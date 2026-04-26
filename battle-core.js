@@ -222,17 +222,20 @@
     };
   }
 
-  function getDefenderOrderForAttacker(attackerIndex, defenderOrderFrontFirst, defenderOrderRearFirst) {
+  function getDefenderOrderForAttacker(attackerIndex, defenderOrderFrontFirst, defenderOrderRearFirst, roundCount) {
     if (attackerIndex === BONEWINGS_INDEX || attackerIndex === BANSHEES_INDEX) {
+      return defenderOrderRearFirst;
+    }
+    if (attackerIndex === WRAITHS_INDEX && roundCount >= 2) {
       return defenderOrderRearFirst;
     }
     return defenderOrderFrontFirst;
   }
 
-  function findDefenderForAttacker(attackerIndex, unitNumbers, defenderOrderFrontFirst, defenderOrderRearFirst) {
+  function findDefenderForAttacker(attackerIndex, unitNumbers, defenderOrderFrontFirst, defenderOrderRearFirst, roundCount) {
     const attackerSide = UNIT_DESC[attackerIndex][SIDE_INDEX];
     const defenderSide = attackerSide === "ally" ? "enemy" : "ally";
-    const defenderOrder = getDefenderOrderForAttacker(attackerIndex, defenderOrderFrontFirst, defenderOrderRearFirst);
+    const defenderOrder = getDefenderOrderForAttacker(attackerIndex, defenderOrderFrontFirst, defenderOrderRearFirst, roundCount);
 
     for (let i = 0; i < defenderOrder.length; i += 1) {
       const defenderIndex = defenderOrder[i];
@@ -418,7 +421,7 @@
         let defenderOrder = defenderOrderFrontFirst;
 
         if (foundAttacker) {
-          const target = findDefenderForAttacker(attackerIndex, unitNumbers, defenderOrderFrontFirst, defenderOrderRearFirst);
+          const target = findDefenderForAttacker(attackerIndex, unitNumbers, defenderOrderFrontFirst, defenderOrderRearFirst, roundCount);
           defenderIndex = target.defenderIndex;
           defenderOrder = target.defenderOrder;
           foundDefender = defenderIndex !== -1;
@@ -619,7 +622,7 @@
         }
 
         if (rotmawsOverkillDamage > 0) {
-          const nextTarget = findDefenderForAttacker(attackerIndex, unitNumbers, defenderOrderFrontFirst, defenderOrderRearFirst);
+          const nextTarget = findDefenderForAttacker(attackerIndex, unitNumbers, defenderOrderFrontFirst, defenderOrderRearFirst, roundCount);
           if (nextTarget.defenderIndex !== -1) {
             const nextTargetIndex = nextTarget.defenderIndex;
             unitHealth[nextTargetIndex] -= rotmawsOverkillDamage;
