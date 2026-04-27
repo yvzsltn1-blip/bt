@@ -729,6 +729,10 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
     !worst || variant.lostBloodTotal > worst.lostBloodTotal ? variant : worst, null);
   const averageLostBlood = variants.reduce((sum, variant) =>
     sum + variant.lostBloodTotal * variant.probability, 0);
+  const victoryProbability = variants.reduce((sum, variant) =>
+    sum + (variant.winner === "ally" ? variant.probability : 0), 0);
+  const defeatProbability = variants.reduce((sum, variant) =>
+    sum + (variant.winner === "enemy" ? variant.probability : 0), 0);
 
   return {
     sampleCount: VARIANT_SAMPLE_COUNT,
@@ -736,6 +740,8 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
     bestVariant,
     worstVariant,
     averageLostBlood,
+    victoryProbability,
+    defeatProbability,
     expanded: false
   };
 }
@@ -792,7 +798,9 @@ function renderVariantDetails(analysis) {
   summary.append(
     buildVariantSummaryCard("En iyi sonuc", analysis.bestVariant),
     buildVariantSummaryCard("En kotu sonuc", analysis.worstVariant),
-    buildAverageSummaryCard(analysis.averageLostBlood)
+    buildAverageSummaryCard(analysis.averageLostBlood),
+    buildProbabilitySummaryCard("Zafer olasiligi", analysis.victoryProbability),
+    buildProbabilitySummaryCard("Maglubiyet olasiligi", analysis.defeatProbability)
   );
 
   const list = document.createElement("div");
@@ -895,6 +903,26 @@ function buildAverageSummaryCard(averageLostBlood) {
   const meta = document.createElement("span");
   meta.className = "variant-summary-meta";
   meta.textContent = "Agirlikli beklenen deger";
+
+  card.append(heading, value, meta);
+  return card;
+}
+
+function buildProbabilitySummaryCard(label, probability) {
+  const card = document.createElement("section");
+  card.className = "variant-summary-card";
+
+  const heading = document.createElement("span");
+  heading.className = "variant-summary-label";
+  heading.textContent = label;
+
+  const value = document.createElement("strong");
+  value.className = "variant-summary-value";
+  value.textContent = `%${formatProbability(probability)}`;
+
+  const meta = document.createElement("span");
+  meta.className = "variant-summary-meta";
+  meta.textContent = "Seed dagilimi uzerinden tahmini oran";
 
   card.append(heading, value, meta);
   return card;
