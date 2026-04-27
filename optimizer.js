@@ -101,7 +101,12 @@ function openSimulationForCounts(enemyCounts, allyCounts) {
       enemyCounts,
       allyCounts
     }));
-    window.location.href = "index.html";
+    const opened = window.open("index.html", "_blank");
+    if (!opened) {
+      window.alert("Simulasyon yeni sekmede acilamadi. Lutfen popup engelleyiciyi kontrol edin.");
+      return;
+    }
+    opened.focus?.();
   } catch (error) {
     window.alert(`Simulasyon ekranina gecilemedi: ${error.message}`);
   }
