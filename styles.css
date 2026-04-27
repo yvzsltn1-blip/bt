@@ -430,6 +430,12 @@ body {
   font-size: 0.76rem;
 }
 
+.variant-more-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
 @media (max-width: 720px) {
   .variant-summary {
     grid-template-columns: 1fr;

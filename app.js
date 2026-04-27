@@ -50,7 +50,9 @@ let lastLogTextTr = "";
 let simulationLogFullscreenFallback = false;
 let currentVariantAnalysis = null;
 let wasOpenedFromOptimizer = false;
-const VARIANT_SAMPLE_COUNT = 120;
+const VARIANT_SAMPLE_COUNT = 240;
+const VARIANT_INITIAL_VISIBLE_COUNT = 20;
+const VARIANT_VISIBLE_STEP = 20;
 
 reportWrongSimulationBtn.disabled = true;
 buildWrongLossInputs();
@@ -793,7 +795,8 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
     averageLostBlood,
     victoryProbability,
     defeatProbability,
-    expanded: false
+    expanded: false,
+    visibleCount: Math.min(VARIANT_INITIAL_VISIBLE_COUNT, variants.length)
   };
 }
 
@@ -857,7 +860,7 @@ function renderVariantDetails(analysis) {
   const list = document.createElement("div");
   list.className = "variant-list";
 
-  analysis.variants.forEach((variant, index) => {
+  analysis.variants.slice(0, analysis.visibleCount).forEach((variant, index) => {
     const card = document.createElement("article");
     card.className = `variant-card${variant.isCurrent ? " is-primary" : ""}`;
 
@@ -903,6 +906,27 @@ function renderVariantDetails(analysis) {
   });
 
   variantDetailsPanel.append(head, summary, list);
+
+  if (analysis.visibleCount < analysis.variants.length) {
+    const moreWrap = document.createElement("div");
+    moreWrap.className = "variant-more-actions";
+
+    const remainingCount = analysis.variants.length - analysis.visibleCount;
+    const moreBtn = document.createElement("button");
+    moreBtn.className = "button button-secondary";
+    moreBtn.type = "button";
+    moreBtn.textContent = `Daha Fazlasini Goster (${remainingCount})`;
+    moreBtn.addEventListener("click", () => {
+      analysis.visibleCount = Math.min(
+        analysis.visibleCount + VARIANT_VISIBLE_STEP,
+        analysis.variants.length
+      );
+      renderVariantDetails(analysis);
+    });
+
+    moreWrap.appendChild(moreBtn);
+    variantDetailsPanel.appendChild(moreWrap);
+  }
 }
 
 function buildVariantLossChips(lossesByKey) {
