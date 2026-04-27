@@ -38,6 +38,8 @@ const matchedActualPanel = document.querySelector("#matchedActualPanel");
 const variantInsightsPanel = document.querySelector("#variantInsightsPanel");
 const variantToggleBtn = document.querySelector("#variantToggleBtn");
 const variantDetailsPanel = document.querySelector("#variantDetailsPanel");
+const optimizerLaunchBar = document.querySelector("#optimizerLaunchBar");
+const returnToOptimizerBtn = document.querySelector("#returnToOptimizerBtn");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 let currentSimulationReport = null;
 let pendingWrongSimulationReport = null;
@@ -47,6 +49,7 @@ let lastSummaryTextTr = "";
 let lastLogTextTr = "";
 let simulationLogFullscreenFallback = false;
 let currentVariantAnalysis = null;
+let wasOpenedFromOptimizer = false;
 const VARIANT_SAMPLE_COUNT = 120;
 
 reportWrongSimulationBtn.disabled = true;
@@ -92,6 +95,16 @@ clearBtn.addEventListener("click", () => {
   reportWrongSimulationBtn.disabled = true;
   syncVariantInsightsUi();
 });
+
+if (returnToOptimizerBtn) {
+  returnToOptimizerBtn.addEventListener("click", () => {
+    if (document.referrer && document.referrer.includes("optimizer.html") && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    window.location.href = "optimizer.html";
+  });
+}
 
 if (variantToggleBtn) {
   variantToggleBtn.addEventListener("click", () => {
@@ -386,6 +399,13 @@ function resetValues() {
   renderAllyPoints();
 }
 
+function syncOptimizerLaunchUi() {
+  if (!optimizerLaunchBar) {
+    return;
+  }
+  optimizerLaunchBar.hidden = !wasOpenedFromOptimizer;
+}
+
 function hydrateSimulationFromOptimizer() {
   try {
     const raw = window.sessionStorage.getItem(OPTIMIZER_SIMULATION_STORAGE_KEY);
@@ -405,6 +425,8 @@ function hydrateSimulationFromOptimizer() {
     ALLY_UNITS.forEach((unit) => {
       inputRefs[unit.key].value = String(payload.allyCounts[unit.key] || 0);
     });
+    wasOpenedFromOptimizer = true;
+    syncOptimizerLaunchUi();
     renderAllyPoints();
     statusLabel.textContent = "Optimizer sonucu yuklendi";
     simulateBtn.click();
