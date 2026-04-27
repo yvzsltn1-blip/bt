@@ -9,6 +9,7 @@
       "firebase.json",
       ".firebaserc",
       "**/.*",
+      ".backups/**",
       "**/node_modules/**",
       "*.py",
       "__pycache__/**"
