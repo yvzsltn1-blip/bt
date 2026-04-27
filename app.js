@@ -50,6 +50,7 @@ let lastLogTextTr = "";
 let simulationLogFullscreenFallback = false;
 let currentVariantAnalysis = null;
 let wasOpenedFromOptimizer = false;
+let variantAnalysisRunId = 0;
 const VARIANT_SAMPLE_COUNT = 240;
 const VARIANT_INITIAL_VISIBLE_COUNT = 20;
 const VARIANT_VISIBLE_STEP = 20;
@@ -74,7 +75,6 @@ simulateBtn.addEventListener("click", () => {
     statusLabel.textContent = "Simulasyon calisiyor";
     const result = simulateBattle(enemy, ally, { collectLog: true });
     renderSimulation(result);
-    statusLabel.textContent = "Tamamlandi";
   } catch (error) {
     statusLabel.textContent = "Hata";
     window.alert(error.message);
@@ -537,10 +537,32 @@ function renderSimulation(result) {
     logText: detailText,
     usedCapacity: result.usedCapacity
   };
-  currentVariantAnalysis = analyzeSimulationVariants(enemyCounts, allyCounts, result);
   reportWrongSimulationBtn.disabled = false;
   renderMatchedActualReport();
+  startVariantAnalysis(enemyCounts, allyCounts, result);
+}
+
+function startVariantAnalysis(enemyCounts, allyCounts, currentResult) {
+  const runId = variantAnalysisRunId + 1;
+  variantAnalysisRunId = runId;
+  currentVariantAnalysis = {
+    loading: true,
+    expanded: false,
+    variants: [],
+    sampleCount: VARIANT_SAMPLE_COUNT
+  };
   syncVariantInsightsUi();
+  statusLabel.textContent = "Dagilim hesaplaniyor";
+
+  window.setTimeout(() => {
+    const analysis = analyzeSimulationVariants(enemyCounts, allyCounts, currentResult);
+    if (runId !== variantAnalysisRunId) {
+      return;
+    }
+    currentVariantAnalysis = analysis;
+    statusLabel.textContent = "Tamamlandi";
+    syncVariantInsightsUi();
+  }, 0);
 }
 
 function openWrongReportModal(report) {
@@ -813,10 +835,18 @@ function syncVariantInsightsUi() {
     return;
   }
 
+  const isLoading = Boolean(currentVariantAnalysis && currentVariantAnalysis.loading);
   const hasVariants = currentVariantAnalysis && currentVariantAnalysis.variants.length > 1;
-  variantInsightsPanel.hidden = !hasVariants;
-  variantToggleBtn.hidden = !hasVariants;
-  variantDetailsPanel.hidden = !hasVariants || !currentVariantAnalysis.expanded;
+  variantInsightsPanel.hidden = !hasVariants && !isLoading;
+  variantToggleBtn.hidden = !hasVariants || isLoading;
+  variantDetailsPanel.hidden = !isLoading && (!hasVariants || !currentVariantAnalysis.expanded);
+
+  if (isLoading) {
+    variantToggleBtn.setAttribute("aria-expanded", "false");
+    variantDetailsPanel.hidden = false;
+    variantDetailsPanel.innerHTML = '<div class="variant-loading-state">Dagilim hesaplaniyor...</div>';
+    return;
+  }
 
   if (!hasVariants) {
     variantToggleBtn.setAttribute("aria-expanded", "false");
