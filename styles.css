@@ -306,6 +306,39 @@ body {
   letter-spacing: 0.03em;
 }
 
+.variant-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.variant-summary-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.variant-summary-label {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.variant-summary-value {
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.variant-summary-meta {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
 .variant-list {
   display: grid;
   gap: 10px;
@@ -373,6 +406,12 @@ body {
   margin-top: 8px;
   color: var(--muted);
   font-size: 0.76rem;
+}
+
+@media (max-width: 720px) {
+  .variant-summary {
+    grid-template-columns: 1fr;
+  }
 }
 
 .unit-grid {

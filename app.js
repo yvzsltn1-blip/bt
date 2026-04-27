@@ -723,9 +723,19 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
       left.lostBloodTotal - right.lostBloodTotal
     );
 
+  const bestVariant = variants.reduce((best, variant) =>
+    !best || variant.lostBloodTotal < best.lostBloodTotal ? variant : best, null);
+  const worstVariant = variants.reduce((worst, variant) =>
+    !worst || variant.lostBloodTotal > worst.lostBloodTotal ? variant : worst, null);
+  const averageLostBlood = variants.reduce((sum, variant) =>
+    sum + variant.lostBloodTotal * variant.probability, 0);
+
   return {
     sampleCount: VARIANT_SAMPLE_COUNT,
     variants,
+    bestVariant,
+    worstVariant,
+    averageLostBlood,
     expanded: false
   };
 }
@@ -777,6 +787,14 @@ function renderVariantDetails(analysis) {
     <span>${analysis.sampleCount} sabit seed ile tarandi. Yuzdeler tahmini gorulme oranidir.</span>
   `;
 
+  const summary = document.createElement("div");
+  summary.className = "variant-summary";
+  summary.append(
+    buildVariantSummaryCard("En iyi sonuc", analysis.bestVariant),
+    buildVariantSummaryCard("En kotu sonuc", analysis.worstVariant),
+    buildAverageSummaryCard(analysis.averageLostBlood)
+  );
+
   const list = document.createElement("div");
   list.className = "variant-list";
 
@@ -825,7 +843,7 @@ function renderVariantDetails(analysis) {
     list.appendChild(card);
   });
 
-  variantDetailsPanel.append(head, list);
+  variantDetailsPanel.append(head, summary, list);
 }
 
 function buildVariantLossChips(lossesByKey) {
@@ -840,8 +858,54 @@ function buildVariantLossChips(lossesByKey) {
   return chips;
 }
 
+function buildVariantSummaryCard(label, variant) {
+  const card = document.createElement("section");
+  card.className = "variant-summary-card";
+
+  const heading = document.createElement("span");
+  heading.className = "variant-summary-label";
+  heading.textContent = label;
+
+  const value = document.createElement("strong");
+  value.className = "variant-summary-value";
+  value.textContent = variant ? `${variant.lostBloodTotal} kan` : "-";
+
+  const meta = document.createElement("span");
+  meta.className = "variant-summary-meta";
+  meta.textContent = variant
+    ? `%${formatProbability(variant.probability)} | ${variant.winner === "ally" ? "Zafer" : "Maglubiyet"}`
+    : "-";
+
+  card.append(heading, value, meta);
+  return card;
+}
+
+function buildAverageSummaryCard(averageLostBlood) {
+  const card = document.createElement("section");
+  card.className = "variant-summary-card";
+
+  const heading = document.createElement("span");
+  heading.className = "variant-summary-label";
+  heading.textContent = "Ortalama kan kaybi";
+
+  const value = document.createElement("strong");
+  value.className = "variant-summary-value";
+  value.textContent = `${formatAverageValue(averageLostBlood)} kan`;
+
+  const meta = document.createElement("span");
+  meta.className = "variant-summary-meta";
+  meta.textContent = "Agirlikli beklenen deger";
+
+  card.append(heading, value, meta);
+  return card;
+}
+
 function formatProbability(value) {
   return (value * 100).toFixed(value * 100 >= 10 ? 1 : 2).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+}
+
+function formatAverageValue(value) {
+  return value.toFixed(value >= 100 ? 0 : 1).replace(/\.0+$/, "");
 }
 
 if (langToggleSimulationBtn) {
