@@ -85,7 +85,8 @@ service cloud.firestore {
     function validWrongReport(data, documentId) {
       return documentId.matches('^wrong_[0-9]+_[a-z0-9]+$')
         && data.keys().hasOnly([
-          'source', 'sourceLabel', 'reportedAt', 'stage', 'mode', 'diversityMode',
+          'source', 'sourceLabel', 'reportedAt', 'stage', 'mode', 'objective', 'diversityMode',
+          'stoneMode',
           'modeLabel', 'enemyCounts', 'allyCounts', 'matchSignature',
           'recommendationCounts', 'summaryText', 'logText', 'possible',
           'usedPoints', 'lostBlood', 'winRate', 'pointLimit', 'usedCapacity',
@@ -101,7 +102,9 @@ service cloud.firestore {
         && isShortString(data.reportedAt, 40)
         && (!('stage' in data) || (data.stage is int && data.stage >= 1 && data.stage <= 9999))
         && (!('mode' in data) || data.mode in ['balanced', 'fast', 'deep'])
+        && (!('objective' in data) || data.objective in ['min_loss', 'min_army'])
         && (!('diversityMode' in data) || data.diversityMode is bool)
+        && (!('stoneMode' in data) || data.stoneMode is bool)
         && (!('modeLabel' in data) || isShortString(data.modeLabel, 40))
         && validEnemyCounts(data.enemyCounts)
         && validAllyCounts(data.allyCounts)
