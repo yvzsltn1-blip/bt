@@ -35,6 +35,9 @@ const expectedWrongSummaryPreview = document.querySelector("#expectedWrongSummar
 const actualWrongSummaryPreview = document.querySelector("#actualWrongSummaryPreview");
 const wrongLossInputs = document.querySelector("#wrongLossInputs");
 const matchedActualPanel = document.querySelector("#matchedActualPanel");
+const variantInsightsPanel = document.querySelector("#variantInsightsPanel");
+const variantToggleBtn = document.querySelector("#variantToggleBtn");
+const variantDetailsPanel = document.querySelector("#variantDetailsPanel");
 let currentSimulationReport = null;
 let pendingWrongSimulationReport = null;
 let wrongReports = [];
@@ -42,6 +45,8 @@ let currentLogLang = "tr";
 let lastSummaryTextTr = "";
 let lastLogTextTr = "";
 let simulationLogFullscreenFallback = false;
+let currentVariantAnalysis = null;
+const VARIANT_SAMPLE_COUNT = 120;
 
 reportWrongSimulationBtn.disabled = true;
 buildWrongLossInputs();
@@ -81,8 +86,20 @@ clearBtn.addEventListener("click", () => {
   logOutput.textContent = "Tum birlik sayilari sifirlandi. Yeni bir simulasyon baslatabilirsiniz.";
   statusLabel.textContent = "Sifirlandi";
   currentSimulationReport = null;
+  currentVariantAnalysis = null;
   reportWrongSimulationBtn.disabled = true;
+  syncVariantInsightsUi();
 });
+
+if (variantToggleBtn) {
+  variantToggleBtn.addEventListener("click", () => {
+    if (!currentVariantAnalysis || currentVariantAnalysis.variants.length <= 1) {
+      return;
+    }
+    currentVariantAnalysis.expanded = !currentVariantAnalysis.expanded;
+    syncVariantInsightsUi();
+  });
+}
 
 reportWrongSimulationBtn.addEventListener("click", async () => {
   if (!currentSimulationReport) {
@@ -467,8 +484,10 @@ function renderSimulation(result) {
     logText: detailText,
     usedCapacity: result.usedCapacity
   };
+  currentVariantAnalysis = analyzeSimulationVariants(enemyCounts, allyCounts, result);
   reportWrongSimulationBtn.disabled = false;
   renderMatchedActualReport();
+  syncVariantInsightsUi();
 }
 
 function openWrongReportModal(report) {
@@ -666,6 +685,163 @@ function paintLogPanels() {
   if (lastLogTextTr) {
     renderStyledLines(detailText.split("\n"), logOutput);
   }
+}
+
+function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
+  const variantsBySignature = new Map();
+
+  for (let seed = 1; seed <= VARIANT_SAMPLE_COUNT; seed += 1) {
+    const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false });
+    const signature = buildVariantSignature(result);
+    const existing = variantsBySignature.get(signature);
+    if (existing) {
+      existing.count += 1;
+      existing.seeds.push(seed);
+      continue;
+    }
+
+    variantsBySignature.set(signature, {
+      signature,
+      count: 1,
+      seeds: [seed],
+      winner: result.winner,
+      lostBloodTotal: result.lostBloodTotal,
+      allyLosses: { ...result.allyLosses }
+    });
+  }
+
+  const currentSignature = buildVariantSignature(currentResult);
+  const variants = [...variantsBySignature.values()]
+    .map((entry) => ({
+      ...entry,
+      probability: entry.count / VARIANT_SAMPLE_COUNT,
+      isCurrent: entry.signature === currentSignature
+    }))
+    .sort((left, right) =>
+      right.count - left.count ||
+      Number(right.isCurrent) - Number(left.isCurrent) ||
+      left.lostBloodTotal - right.lostBloodTotal
+    );
+
+  return {
+    sampleCount: VARIANT_SAMPLE_COUNT,
+    variants,
+    expanded: false
+  };
+}
+
+function buildVariantSignature(result) {
+  return JSON.stringify({
+    winner: result.winner,
+    lostBloodTotal: result.lostBloodTotal,
+    allyLosses: result.allyLosses
+  });
+}
+
+function syncVariantInsightsUi() {
+  if (!variantInsightsPanel || !variantToggleBtn || !variantDetailsPanel) {
+    return;
+  }
+
+  const hasVariants = currentVariantAnalysis && currentVariantAnalysis.variants.length > 1;
+  variantInsightsPanel.hidden = !hasVariants;
+  variantToggleBtn.hidden = !hasVariants;
+  variantDetailsPanel.hidden = !hasVariants || !currentVariantAnalysis.expanded;
+
+  if (!hasVariants) {
+    variantToggleBtn.setAttribute("aria-expanded", "false");
+    variantDetailsPanel.innerHTML = "";
+    return;
+  }
+
+  variantToggleBtn.textContent = currentVariantAnalysis.expanded
+    ? "Olasi Kayip Dagilimini Gizle"
+    : `Olasi Kayip Dagilimini Goster (${currentVariantAnalysis.variants.length})`;
+  variantToggleBtn.setAttribute("aria-expanded", String(currentVariantAnalysis.expanded));
+
+  if (!currentVariantAnalysis.expanded) {
+    variantDetailsPanel.innerHTML = "";
+    return;
+  }
+
+  renderVariantDetails(currentVariantAnalysis);
+}
+
+function renderVariantDetails(analysis) {
+  variantDetailsPanel.innerHTML = "";
+
+  const head = document.createElement("div");
+  head.className = "variant-details-head";
+  head.innerHTML = `
+    <strong>Olasi sonuc dagilimi</strong>
+    <span>${analysis.sampleCount} sabit seed ile tarandi. Yuzdeler tahmini gorulme oranidir.</span>
+  `;
+
+  const list = document.createElement("div");
+  list.className = "variant-list";
+
+  analysis.variants.forEach((variant, index) => {
+    const card = document.createElement("article");
+    card.className = `variant-card${variant.isCurrent ? " is-primary" : ""}`;
+
+    const headRow = document.createElement("div");
+    headRow.className = "variant-card-head";
+
+    const title = document.createElement("strong");
+    title.textContent = `${index + 1}. ${variant.winner === "ally" ? "Zafer" : "Maglubiyet"} senaryosu`;
+
+    const badges = document.createElement("div");
+    badges.className = "variant-badges";
+    badges.innerHTML = `
+      <span class="variant-badge">Olasilik <strong>%${formatProbability(variant.probability)}</strong></span>
+      <span class="variant-badge">Kan kaybi <strong>${variant.lostBloodTotal}</strong></span>
+      ${variant.isCurrent ? '<span class="variant-badge">Bu calistirmada gelen sonuc</span>' : ""}
+    `;
+
+    headRow.append(title, badges);
+
+    const losses = document.createElement("div");
+    losses.className = "variant-losses";
+    const chips = buildVariantLossChips(variant.allyLosses);
+    if (chips.length === 0) {
+      const chip = document.createElement("span");
+      chip.className = "variant-loss-chip";
+      chip.textContent = "Kayip yok";
+      losses.appendChild(chip);
+    } else {
+      chips.forEach((chipText) => {
+        const chip = document.createElement("span");
+        chip.className = "variant-loss-chip";
+        chip.textContent = chipText;
+        losses.appendChild(chip);
+      });
+    }
+
+    const note = document.createElement("div");
+    note.className = "variant-note";
+    note.textContent = `Ornek seedler: ${variant.seeds.slice(0, 5).join(", ")}`;
+
+    card.append(headRow, losses, note);
+    list.appendChild(card);
+  });
+
+  variantDetailsPanel.append(head, list);
+}
+
+function buildVariantLossChips(lossesByKey) {
+  const chips = [];
+  ALLY_UNITS.forEach((unit) => {
+    const count = lossesByKey[unit.key] || 0;
+    if (count <= 0) {
+      return;
+    }
+    chips.push(`${unit.label}: ${count}`);
+  });
+  return chips;
+}
+
+function formatProbability(value) {
+  return (value * 100).toFixed(value * 100 >= 10 ? 1 : 2).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
 }
 
 if (langToggleSimulationBtn) {

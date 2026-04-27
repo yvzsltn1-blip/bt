@@ -244,7 +244,7 @@
     return defenderOrderFrontFirst;
   }
 
-  function findDefenderForAttacker(attackerIndex, unitNumbers, unitHealth, defenderOrderFrontFirst, defenderOrderRearFirst, roundCount) {
+  function findDefenderForAttacker(attackerIndex, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, defenderOrderRearFirst, roundCount) {
     const attackerSide = UNIT_DESC[attackerIndex][SIDE_INDEX];
     const defenderSide = attackerSide === "ally" ? "enemy" : "ally";
     const defenderOrder = getDefenderOrderForAttacker(
@@ -256,14 +256,42 @@
       roundCount
     );
 
+    const prioritizeRear = defenderOrder === defenderOrderRearFirst;
+    let bestOrderRank = Number.POSITIVE_INFINITY;
+    let bestDefenderIndex = -1;
+    let bestPositionRank = Number.POSITIVE_INFINITY;
+    let bestSpeed = Number.POSITIVE_INFINITY;
+    let bestCount = -1;
+
     for (let i = 0; i < defenderOrder.length; i += 1) {
       const defenderIndex = defenderOrder[i];
-      if (unitNumbers[defenderIndex] > 0 && UNIT_DESC[defenderIndex][SIDE_INDEX] === defenderSide) {
-        return { defenderIndex, defenderOrder };
+      if (unitNumbers[defenderIndex] <= 0 || UNIT_DESC[defenderIndex][SIDE_INDEX] !== defenderSide) {
+        continue;
+      }
+
+      const defenderPosition = UNIT_DESC[defenderIndex][POSITION_INDEX];
+      const positionRank = prioritizeRear
+        ? (defenderPosition === "rear" ? 0 : 1)
+        : (defenderPosition === "front" ? 0 : 1);
+      const speed = unitSpeed[defenderIndex];
+      const count = unitNumbers[defenderIndex];
+
+      const isBetter =
+        positionRank < bestPositionRank ||
+        (positionRank === bestPositionRank && speed < bestSpeed) ||
+        (positionRank === bestPositionRank && speed === bestSpeed && count > bestCount) ||
+        (positionRank === bestPositionRank && speed === bestSpeed && count === bestCount && i < bestOrderRank);
+
+      if (isBetter) {
+        bestDefenderIndex = defenderIndex;
+        bestPositionRank = positionRank;
+        bestSpeed = speed;
+        bestCount = count;
+        bestOrderRank = i;
       }
     }
 
-    return { defenderIndex: -1, defenderOrder };
+    return { defenderIndex: bestDefenderIndex, defenderOrder };
   }
 
   function createRng(seed) {
@@ -467,6 +495,7 @@
             attackerIndex,
             unitNumbers,
             unitHealth,
+            unitSpeed,
             defenderOrderFrontFirst,
             defenderOrderRearFirst,
             roundCount
