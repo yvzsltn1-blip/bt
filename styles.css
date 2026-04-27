@@ -355,6 +355,24 @@ body {
   gap: 4px;
 }
 
+.variant-summary-card.is-action {
+  width: 100%;
+  border: 1px solid rgba(108, 182, 255, 0.16);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.variant-summary-card.is-action:hover {
+  border-color: rgba(108, 182, 255, 0.36);
+  background: rgba(108, 182, 255, 0.06);
+}
+
+.variant-summary-card.is-action:focus-visible {
+  outline: 2px solid rgba(108, 182, 255, 0.5);
+  outline-offset: 2px;
+}
+
 .variant-summary-label {
   color: var(--muted);
   font-size: 0.76rem;
@@ -387,6 +405,12 @@ body {
 .variant-card.is-primary {
   border-color: rgba(108, 182, 255, 0.45);
   background: rgba(108, 182, 255, 0.08);
+}
+
+.variant-card.is-focused {
+  border-color: rgba(126, 231, 135, 0.52);
+  background: rgba(126, 231, 135, 0.08);
+  box-shadow: 0 0 0 1px rgba(126, 231, 135, 0.12), 0 0 24px rgba(126, 231, 135, 0.08);
 }
 
 .variant-card-head {

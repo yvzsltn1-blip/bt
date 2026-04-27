@@ -818,7 +818,8 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
     victoryProbability,
     defeatProbability,
     expanded: false,
-    visibleCount: Math.min(VARIANT_INITIAL_VISIBLE_COUNT, variants.length)
+    visibleCount: Math.min(VARIANT_INITIAL_VISIBLE_COUNT, variants.length),
+    focusedVariantIndex: -1
   };
 }
 
@@ -880,8 +881,12 @@ function renderVariantDetails(analysis) {
   const summary = document.createElement("div");
   summary.className = "variant-summary";
   summary.append(
-    buildVariantSummaryCard("En iyi sonuc", analysis.bestVariant),
-    buildVariantSummaryCard("En kotu sonuc", analysis.worstVariant),
+    buildVariantSummaryCard("En iyi sonuc", analysis.bestVariant, () => {
+      focusVariantInDetails(analysis, analysis.bestVariant);
+    }),
+    buildVariantSummaryCard("En kotu sonuc", analysis.worstVariant, () => {
+      focusVariantInDetails(analysis, analysis.worstVariant);
+    }),
     buildAverageSummaryCard(analysis.averageLostBlood),
     buildProbabilitySummaryCard("Zafer olasiligi", analysis.victoryProbability),
     buildProbabilitySummaryCard("Maglubiyet olasiligi", analysis.defeatProbability)
@@ -890,9 +895,11 @@ function renderVariantDetails(analysis) {
   const list = document.createElement("div");
   list.className = "variant-list";
 
-  analysis.variants.slice(0, analysis.visibleCount).forEach((variant, index) => {
+  for (let index = 0; index < analysis.visibleCount; index += 1) {
+    const variant = analysis.variants[index];
     const card = document.createElement("article");
-    card.className = `variant-card${variant.isCurrent ? " is-primary" : ""}`;
+    card.className = `variant-card${variant.isCurrent ? " is-primary" : ""}${analysis.focusedVariantIndex === index ? " is-focused" : ""}`;
+    card.dataset.variantIndex = String(index);
 
     const headRow = document.createElement("div");
     headRow.className = "variant-card-head";
@@ -933,7 +940,7 @@ function renderVariantDetails(analysis) {
 
     card.append(headRow, losses, note);
     list.appendChild(card);
-  });
+  }
 
   variantDetailsPanel.append(head, summary, list);
 
@@ -957,6 +964,43 @@ function renderVariantDetails(analysis) {
     moreWrap.appendChild(moreBtn);
     variantDetailsPanel.appendChild(moreWrap);
   }
+
+  scrollToFocusedVariantCard(analysis);
+}
+
+function focusVariantInDetails(analysis, variant) {
+  if (!analysis || !variant) {
+    return;
+  }
+
+  const targetIndex = analysis.variants.findIndex((item) => item.signature === variant.signature);
+  if (targetIndex < 0) {
+    return;
+  }
+
+  analysis.focusedVariantIndex = targetIndex;
+  if (analysis.visibleCount <= targetIndex) {
+    analysis.visibleCount = Math.min(
+      analysis.variants.length,
+      Math.max(targetIndex + 1, analysis.visibleCount + VARIANT_VISIBLE_STEP)
+    );
+  }
+  renderVariantDetails(analysis);
+}
+
+function scrollToFocusedVariantCard(analysis) {
+  if (!analysis || analysis.focusedVariantIndex < 0) {
+    return;
+  }
+
+  const target = variantDetailsPanel.querySelector(`[data-variant-index="${analysis.focusedVariantIndex}"]`);
+  if (!target) {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
 }
 
 function buildVariantLossChips(lossesByKey) {
@@ -971,9 +1015,13 @@ function buildVariantLossChips(lossesByKey) {
   return chips;
 }
 
-function buildVariantSummaryCard(label, variant) {
-  const card = document.createElement("section");
-  card.className = "variant-summary-card";
+function buildVariantSummaryCard(label, variant, onActivate) {
+  const card = document.createElement(onActivate ? "button" : "section");
+  card.className = `variant-summary-card${onActivate ? " is-action" : ""}`;
+  if (onActivate) {
+    card.type = "button";
+    card.addEventListener("click", onActivate);
+  }
 
   const heading = document.createElement("span");
   heading.className = "variant-summary-label";
