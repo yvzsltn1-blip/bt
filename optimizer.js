@@ -32,6 +32,7 @@ const optimizerSampleBtn = document.querySelector("#optimizerSampleBtn");
 const optimizerClearBtn = document.querySelector("#optimizerClearBtn");
 const saveApprovedBtn = document.querySelector("#saveApprovedBtn");
 const topResultsBtn = document.querySelector("#topResultsBtn");
+const openSimulationFromOptimizerBtn = document.querySelector("#openSimulationFromOptimizerBtn");
 const reportWrongOptimizerBtn = document.querySelector("#reportWrongOptimizerBtn");
 const langToggleOptimizerBtn = document.querySelector("#langToggleOptimizerBtn");
 const stageInput = document.querySelector("#stageInput");
@@ -65,6 +66,7 @@ const adminLoginBtn = document.querySelector("#adminLoginBtn");
 const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
 const ROSTER_CLIPBOARD_STORAGE_KEY = "bt-analiz.optimizer.rosterClipboard.v1";
 const ROSTER_CLIPBOARD_TTL_MS = 60 * 1000;
+const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 
 let optimizerSearchSession = createEmptySearchSession();
 let optimizerMode = "balanced";
@@ -93,6 +95,42 @@ function setOptimizeButtonLabel(text) {
   optimizeBtn.textContent = text;
 }
 
+function openSimulationForCounts(enemyCounts, allyCounts) {
+  try {
+    window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
+      enemyCounts,
+      allyCounts
+    }));
+    window.location.href = "index.html";
+  } catch (error) {
+    window.alert(`Simulasyon ekranina gecilemedi: ${error.message}`);
+  }
+}
+
+function createOpenSimulationButton(enemyCounts, allyCounts, label = "Simule Et") {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "button button-secondary";
+  button.textContent = label;
+  button.addEventListener("click", () => {
+    openSimulationForCounts(enemyCounts, allyCounts);
+  });
+  return button;
+}
+
+if (openSimulationFromOptimizerBtn) {
+  openSimulationFromOptimizerBtn.addEventListener("click", () => {
+    if (!currentApprovedCandidate) {
+      return;
+    }
+    const source = getPrimaryOptimizerSource(currentApprovedCandidate.result);
+    if (!source?.counts) {
+      return;
+    }
+    openSimulationForCounts(currentApprovedCandidate.enemyCounts, source.counts);
+  });
+}
+
 function syncOptimizeButtonCompletionState(hasCompleted) {
   optimizeBtn.classList.toggle("is-success", hasCompleted);
   optimizeBtn.setAttribute("aria-pressed", hasCompleted ? "true" : "false");
@@ -103,6 +141,9 @@ function syncAdminRestrictedActions() {
   const isBusy = optimizeBtn.disabled;
   saveApprovedBtn.disabled = isBusy || !isAdminSession || !currentApprovedCandidate || !currentApprovedCandidate.result.possible;
   saveApprovedBtn.title = isAdminSession ? "" : "Onayli cozum kaydetmek icin admin girisi gerekli.";
+  if (openSimulationFromOptimizerBtn) {
+    openSimulationFromOptimizerBtn.disabled = isBusy || !currentApprovedCandidate || !getPrimaryOptimizerSource(currentApprovedCandidate.result)?.counts;
+  }
 }
 
 async function bindAdminAuth() {
@@ -125,6 +166,9 @@ async function bindAdminAuth() {
 
 saveApprovedBtn.disabled = true;
 topResultsBtn.disabled = true;
+if (openSimulationFromOptimizerBtn) {
+  openSimulationFromOptimizerBtn.disabled = true;
+}
 reportWrongOptimizerBtn.disabled = true;
 buildWrongLossInputs();
 
@@ -1415,6 +1459,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     objective: meta.objective,
     diversityMode: meta.diversityMode,
     stoneMode: meta.stoneMode,
+    enemyCounts,
     candidates: buildDisplayedTopCandidates(result)
   };
   currentTopResultsSort = "default";
@@ -2297,6 +2342,13 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
 
   const actions = document.createElement("div");
   actions.className = "top-result-actions";
+  if (currentTopResultsContext?.enemyCounts) {
+    actions.appendChild(createOpenSimulationButton(
+      currentTopResultsContext.enemyCounts,
+      entry.counts,
+      "Simulasyonda Ac"
+    ));
+  }
   const detailBtn = document.createElement("button");
   detailBtn.className = "button button-ghost";
   detailBtn.type = "button";
@@ -2466,11 +2518,19 @@ function renderRecommendationCards(result, maxPoints, meta) {
   const listTitle = document.createElement("span");
   listTitle.textContent = result.possible ? "Onerilen birlik dagilimi" : "En yakin duzen";
 
+  const listActions = document.createElement("div");
+  listActions.className = "recommendation-actions";
+  listActions.appendChild(createOpenSimulationButton(
+    collectCounts(ENEMY_UNITS),
+    source.counts,
+    "Simulasyon Ekraninda Ac"
+  ));
+
   const list = buildTopResultUnitList(source.counts, {
     expectedLosses: getDisplayedLossBreakdownSource(source)
   });
 
-  listCard.append(listTitle, list);
+  listCard.append(listTitle, listActions, list);
   recommendationPanel.appendChild(listCard);
 }
 

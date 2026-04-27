@@ -38,6 +38,7 @@ const matchedActualPanel = document.querySelector("#matchedActualPanel");
 const variantInsightsPanel = document.querySelector("#variantInsightsPanel");
 const variantToggleBtn = document.querySelector("#variantToggleBtn");
 const variantDetailsPanel = document.querySelector("#variantDetailsPanel");
+const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 let currentSimulationReport = null;
 let pendingWrongSimulationReport = null;
 let wrongReports = [];
@@ -58,6 +59,7 @@ wireSequentialInputOrder([
   ...ALLY_UNITS.map((unit) => inputRefs[unit.key])
 ]);
 resetValues();
+hydrateSimulationFromOptimizer();
 void initializeWrongReports();
 
 simulateBtn.addEventListener("click", () => {
@@ -382,6 +384,33 @@ function resetValues() {
     inputRefs[unit.key].value = "0";
   });
   renderAllyPoints();
+}
+
+function hydrateSimulationFromOptimizer() {
+  try {
+    const raw = window.sessionStorage.getItem(OPTIMIZER_SIMULATION_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+
+    window.sessionStorage.removeItem(OPTIMIZER_SIMULATION_STORAGE_KEY);
+    const payload = JSON.parse(raw);
+    if (!payload || !payload.enemyCounts || !payload.allyCounts) {
+      return;
+    }
+
+    ENEMY_UNITS.forEach((unit) => {
+      inputRefs[unit.key].value = String(payload.enemyCounts[unit.key] || 0);
+    });
+    ALLY_UNITS.forEach((unit) => {
+      inputRefs[unit.key].value = String(payload.allyCounts[unit.key] || 0);
+    });
+    renderAllyPoints();
+    statusLabel.textContent = "Optimizer sonucu yuklendi";
+    simulateBtn.click();
+  } catch (error) {
+    console.warn("Optimizer simulasyon aktarimi okunamadi.", error);
+  }
 }
 
 function collectCounts(units) {
