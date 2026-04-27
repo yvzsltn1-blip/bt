@@ -17,6 +17,14 @@
   const MIGRATION_KEY = "btAnalyssApprovedStrategiesMigrated";
   const COLLECTION = "approvedStrategies";
   const WRONG_COLLECTION = "wrongReports";
+  const ENEMY_COUNT_KEYS = [
+    "skeletons", "zombies", "cultists", "bonewings", "corpses",
+    "wraiths", "revenants", "giants", "broodmothers", "liches"
+  ];
+  const ALLY_COUNT_KEYS = [
+    "bats", "ghouls", "thralls", "banshees",
+    "necromancers", "gargoyles", "witches", "rotmaws"
+  ];
   const hasFirebaseCompat = !!(
     globalScope.firebase &&
     Array.isArray(globalScope.firebase.apps) &&
@@ -127,6 +135,103 @@
     return payload;
   }
 
+  function clampInt(value, maxValue) {
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return 0;
+    }
+    return Math.min(parsed, maxValue);
+  }
+
+  function trimText(value, maxLen) {
+    const text = typeof value === "string" ? value : String(value ?? "");
+    return text.length > maxLen ? text.slice(0, maxLen) : text;
+  }
+
+  function sanitizeCountMap(source, allowedKeys) {
+    const result = {};
+    allowedKeys.forEach((key) => {
+      if (!source || !(key in source)) {
+        return;
+      }
+      result[key] = clampInt(source[key], 9999);
+    });
+    return result;
+  }
+
+  function sanitizeOptionalInt(value, maxValue) {
+    if (value === null || value === undefined || value === "") {
+      return null;
+    }
+    return clampInt(value, maxValue);
+  }
+
+  function sanitizeWrongReport(item) {
+    const source = item?.source === "optimizer" ? "optimizer" : "simulation";
+    const payload = {
+      source,
+      sourceLabel: trimText(item?.sourceLabel || (source === "optimizer" ? "Optimizer" : "Simulasyon"), 30),
+      reportedAt: trimText(item?.reportedAt || new Date().toISOString(), 40),
+      enemyCounts: sanitizeCountMap(item?.enemyCounts, ENEMY_COUNT_KEYS),
+      allyCounts: sanitizeCountMap(item?.allyCounts, ALLY_COUNT_KEYS),
+      matchSignature: trimText(item?.matchSignature || "", 200),
+      summaryText: trimText(item?.summaryText || "", 40000),
+      logText: trimText(item?.logText || "", 400000),
+      usedCapacity: clampInt(item?.usedCapacity, 999999),
+      actualSummaryText: trimText(item?.actualSummaryText || "", 40000),
+      actualNote: trimText(item?.actualNote || "", 4000)
+    };
+
+    if (Number.isInteger(item?.stage) && item.stage >= 1 && item.stage <= 9999) {
+      payload.stage = item.stage;
+    }
+    if (item?.mode === "balanced" || item?.mode === "fast" || item?.mode === "deep") {
+      payload.mode = item.mode;
+    }
+    if (item?.objective === "min_loss" || item?.objective === "min_army") {
+      payload.objective = item.objective;
+    }
+    if (typeof item?.diversityMode === "boolean") {
+      payload.diversityMode = item.diversityMode;
+    }
+    if (typeof item?.stoneMode === "boolean") {
+      payload.stoneMode = item.stoneMode;
+    }
+    if (item?.modeLabel) {
+      payload.modeLabel = trimText(item.modeLabel, 80);
+    }
+    if (item?.recommendationCounts === null) {
+      payload.recommendationCounts = null;
+    } else if (item?.recommendationCounts) {
+      payload.recommendationCounts = sanitizeCountMap(item.recommendationCounts, ALLY_COUNT_KEYS);
+    }
+    if (typeof item?.possible === "boolean") {
+      payload.possible = item.possible;
+    }
+
+    const usedPoints = sanitizeOptionalInt(item?.usedPoints, 99999);
+    if (usedPoints !== null) {
+      payload.usedPoints = usedPoints;
+    }
+
+    const lostBlood = sanitizeOptionalInt(item?.lostBlood, 999999);
+    if (lostBlood !== null) {
+      payload.lostBlood = lostBlood;
+    }
+
+    const winRate = sanitizeOptionalInt(item?.winRate, 100);
+    if (winRate !== null) {
+      payload.winRate = winRate;
+    }
+
+    const pointLimit = sanitizeOptionalInt(item?.pointLimit, 99999);
+    if (pointLimit !== null) {
+      payload.pointLimit = pointLimit;
+    }
+
+    return payload;
+  }
+
   async function migrateLocalStrategies() {
     if (!db || readMigrationFlag() || !isAdminSignedIn()) {
       return;
@@ -227,10 +332,7 @@
 
   async function saveWrongReport(item) {
     const docId = `wrong_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    const payload = {
-      ...item,
-      reportedAt: item.reportedAt || new Date().toISOString()
-    };
+    const payload = sanitizeWrongReport(item);
 
     if (!db) {
       const next = [{ ...payload, id: docId }, ...readWrongReports()];
