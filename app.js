@@ -35,9 +35,17 @@ const expectedWrongSummaryPreview = document.querySelector("#expectedWrongSummar
 const actualWrongSummaryPreview = document.querySelector("#actualWrongSummaryPreview");
 const wrongLossInputs = document.querySelector("#wrongLossInputs");
 const matchedActualPanel = document.querySelector("#matchedActualPanel");
+const simulationAdminActionsPanel = document.querySelector("#simulationAdminActionsPanel");
 const variantInsightsPanel = document.querySelector("#variantInsightsPanel");
 const variantToggleBtn = document.querySelector("#variantToggleBtn");
 const variantDetailsPanel = document.querySelector("#variantDetailsPanel");
+const variantLogModal = document.querySelector("#variantLogModal");
+const closeVariantLogBtn = document.querySelector("#closeVariantLogBtn");
+const variantLogTitle = document.querySelector("#variantLogTitle");
+const variantLogMeta = document.querySelector("#variantLogMeta");
+const variantLogSummary = document.querySelector("#variantLogSummary");
+const variantLogInfo = document.querySelector("#variantLogInfo");
+const variantLogOutput = document.querySelector("#variantLogOutput");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 let currentSimulationReport = null;
 let pendingWrongSimulationReport = null;
@@ -48,6 +56,8 @@ let lastLogTextTr = "";
 let simulationLogFullscreenFallback = false;
 let currentVariantAnalysis = null;
 let variantAnalysisRunId = 0;
+let isAdminSession = false;
+let currentSimulationResult = null;
 const VARIANT_SAMPLE_COUNT = 240;
 const VARIANT_INITIAL_VISIBLE_COUNT = 20;
 const VARIANT_VISIBLE_STEP = 20;
@@ -64,6 +74,7 @@ wireSequentialInputOrder([
 resetValues();
 hydrateSimulationFromOptimizer();
 void initializeWrongReports();
+bindAdminSession();
 
 simulateBtn.addEventListener("click", () => {
   try {
@@ -90,8 +101,11 @@ clearBtn.addEventListener("click", () => {
   logOutput.textContent = "Tum birlik sayilari sifirlandi. Yeni bir simulasyon baslatabilirsiniz.";
   statusLabel.textContent = "Sifirlandi";
   currentSimulationReport = null;
+  currentSimulationResult = null;
   currentVariantAnalysis = null;
   reportWrongSimulationBtn.disabled = true;
+  closeVariantLogModal();
+  syncSimulationAdminActions();
   syncVariantInsightsUi();
 });
 
@@ -209,6 +223,11 @@ document.addEventListener("keydown", (event) => {
     return;
   }
 
+  if (variantLogModal && !variantLogModal.hidden) {
+    closeVariantLogModal();
+    return;
+  }
+
   if (!simulationLogFullscreenFallback || getNativeFullscreenElement() === simulationLogPanel) {
     return;
   }
@@ -218,6 +237,10 @@ document.addEventListener("keydown", (event) => {
 
 closeWrongReportBtn.addEventListener("click", closeWrongReportModal);
 cancelWrongReportBtn.addEventListener("click", closeWrongReportModal);
+
+if (closeVariantLogBtn) {
+  closeVariantLogBtn.addEventListener("click", closeVariantLogModal);
+}
 
 submitWrongReportBtn.addEventListener("click", async () => {
   if (!pendingWrongSimulationReport) {
@@ -249,6 +272,26 @@ wrongReportModal.addEventListener("click", (event) => {
     closeWrongReportModal();
   }
 });
+
+if (variantLogModal) {
+  variantLogModal.addEventListener("click", (event) => {
+    if (event.target === variantLogModal) {
+      closeVariantLogModal();
+    }
+  });
+}
+
+function bindAdminSession() {
+  if (!window.BTFirebase || typeof window.BTFirebase.onAdminStateChanged !== "function") {
+    return;
+  }
+
+  window.BTFirebase.onAdminStateChanged((isAdmin) => {
+    isAdminSession = isAdmin;
+    syncSimulationAdminActions();
+    syncVariantInsightsUi();
+  });
+}
 
 async function initializeWrongReports() {
   wrongReports = await loadWrongReports();
@@ -515,8 +558,15 @@ function renderSimulation(result) {
     logText: detailText,
     usedCapacity: result.usedCapacity
   };
+  currentSimulationResult = {
+    winner: result.winner,
+    lostBloodTotal: result.lostBloodTotal,
+    variantSignature: buildVariantSignature(result)
+  };
   reportWrongSimulationBtn.disabled = false;
+  closeVariantLogModal();
   renderMatchedActualReport();
+  syncSimulationAdminActions();
   startVariantAnalysis(enemyCounts, allyCounts, result);
 }
 
@@ -539,6 +589,7 @@ function startVariantAnalysis(enemyCounts, allyCounts, currentResult) {
     }
     currentVariantAnalysis = analysis;
     statusLabel.textContent = "Tamamlandi";
+    syncSimulationAdminActions();
     syncVariantInsightsUi();
   }, 0);
 }
@@ -789,6 +840,8 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
 
   return {
     sampleCount: VARIANT_SAMPLE_COUNT,
+    enemyCounts: { ...enemyCounts },
+    allyCounts: { ...allyCounts },
     variants,
     bestVariant,
     worstVariant,
@@ -916,7 +969,30 @@ function renderVariantDetails(analysis) {
     note.className = "variant-note";
     note.textContent = `Ornek seedler: ${variant.seeds.slice(0, 5).join(", ")}`;
 
-    card.append(headRow, losses, note);
+    const actions = document.createElement("div");
+    actions.className = "variant-actions";
+
+    const logButton = document.createElement("button");
+    logButton.type = "button";
+    logButton.className = "button button-ghost";
+    logButton.textContent = "Savas Gunlugunu Gor";
+    logButton.addEventListener("click", () => {
+      openVariantLogModal(analysis, variant);
+    });
+    actions.appendChild(logButton);
+
+    if (isAdminSession) {
+      const saveButton = document.createElement("button");
+      saveButton.type = "button";
+      saveButton.className = "button button-secondary";
+      saveButton.textContent = "Onayli Dovuse Kaydet";
+      saveButton.addEventListener("click", async () => {
+        await saveVariantAsApproved(analysis, variant, saveButton);
+      });
+      actions.appendChild(saveButton);
+    }
+
+    card.append(headRow, losses, note, actions);
     list.appendChild(card);
   }
 
@@ -944,6 +1020,50 @@ function renderVariantDetails(analysis) {
   }
 
   scrollToFocusedVariantCard(analysis);
+}
+
+function syncSimulationAdminActions() {
+  if (!simulationAdminActionsPanel) {
+    return;
+  }
+
+  simulationAdminActionsPanel.innerHTML = "";
+
+  const shouldShowSingleSave = Boolean(
+    isAdminSession &&
+    currentSimulationReport &&
+    currentSimulationResult &&
+    currentVariantAnalysis &&
+    !currentVariantAnalysis.loading &&
+    currentVariantAnalysis.variants.length <= 1
+  );
+
+  simulationAdminActionsPanel.hidden = !shouldShowSingleSave;
+  if (!shouldShowSingleSave) {
+    return;
+  }
+
+  const card = document.createElement("article");
+  card.className = "saved-match-card";
+
+  const head = document.createElement("div");
+  head.className = "saved-match-head";
+  head.innerHTML = "<strong>Onayli Dovus</strong><span>Bu savasta alternatif olasilik karti yok.</span>";
+
+  const actions = document.createElement("div");
+  actions.className = "actions actions-inline";
+
+  const saveButton = document.createElement("button");
+  saveButton.type = "button";
+  saveButton.className = "button button-secondary";
+  saveButton.textContent = "Onayli Dovuse Kaydet";
+  saveButton.addEventListener("click", async () => {
+    await saveCurrentSimulationAsApproved(saveButton);
+  });
+
+  actions.appendChild(saveButton);
+  card.append(head, actions);
+  simulationAdminActionsPanel.appendChild(card);
 }
 
 function focusVariantInDetails(analysis, variant) {
@@ -1065,6 +1185,227 @@ function formatProbability(value) {
 
 function formatAverageValue(value) {
   return value.toFixed(value >= 100 ? 0 : 1).replace(/\.0+$/, "");
+}
+
+async function saveVariantAsApproved(analysis, variant, triggerButton) {
+  if (!isAdminSession) {
+    window.alert("Bu islem icin yavuz@gmail.com admin oturumu gerekli.");
+    return;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.saveApprovedStrategy !== "function") {
+    window.alert("Kayit servisi hazir degil.");
+    return;
+  }
+
+  try {
+    triggerButton.disabled = true;
+    const entry = createApprovedSimulationEntry(analysis, variant);
+    await window.BTFirebase.saveApprovedStrategy(entry);
+    window.alert("Senaryo onaylanmis dovuslere kaydedildi.");
+  } catch (error) {
+    window.alert(`Onayli dovus kaydedilemedi: ${error.message}`);
+  } finally {
+    triggerButton.disabled = false;
+  }
+}
+
+async function saveCurrentSimulationAsApproved(triggerButton) {
+  if (!isAdminSession) {
+    window.alert("Bu islem icin yavuz@gmail.com admin oturumu gerekli.");
+    return;
+  }
+  if (!currentSimulationReport || !currentSimulationResult) {
+    window.alert("Kaydedilecek bir savas sonucu yok.");
+    return;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.saveApprovedStrategy !== "function") {
+    window.alert("Kayit servisi hazir degil.");
+    return;
+  }
+
+  try {
+    triggerButton.disabled = true;
+    const entry = createApprovedSimulationEntryFromCurrentResult();
+    await window.BTFirebase.saveApprovedStrategy(entry);
+    window.alert("Dovus onaylanmis dovuslere kaydedildi.");
+  } catch (error) {
+    window.alert(`Onayli dovus kaydedilemedi: ${error.message}`);
+  } finally {
+    triggerButton.disabled = false;
+  }
+}
+
+function createApprovedSimulationEntry(analysis, variant) {
+  const enemyCounts = { ...(analysis?.enemyCounts || {}) };
+  const allyCounts = { ...(analysis?.allyCounts || {}) };
+  const logView = ensureVariantLogView(enemyCounts, allyCounts, variant);
+  return {
+    source: "simulation",
+    sourceLabel: "Simulasyon",
+    savedAt: new Date().toISOString(),
+    enemyTitle: buildEnemyTitle(enemyCounts),
+    enemyCounts,
+    allyCounts,
+    matchSignature: buildMatchSignature("simulation", enemyCounts, allyCounts),
+    variantSignature: variant.signature,
+    variantTitle: `${variant.winner === "ally" ? "Zafer" : "Maglubiyet"} senaryosu`,
+    probabilityBasisPoints: Math.round((variant.probability || 0) * 10000),
+    winner: variant.winner === "enemy" ? "enemy" : "ally",
+    summaryText: logView.summaryText,
+    logText: logView.detailText,
+    usedCapacity: logView.usedCapacity,
+    usedPoints: calculateArmyPoints(allyCounts),
+    lostBlood: variant.lostBloodTotal
+  };
+}
+
+function createApprovedSimulationEntryFromCurrentResult() {
+  const enemyCounts = { ...(currentSimulationReport?.enemyCounts || {}) };
+  const allyCounts = { ...(currentSimulationReport?.allyCounts || {}) };
+  return {
+    source: "simulation",
+    sourceLabel: "Simulasyon",
+    savedAt: new Date().toISOString(),
+    enemyTitle: buildEnemyTitle(enemyCounts),
+    enemyCounts,
+    allyCounts,
+    matchSignature: buildMatchSignature("simulation", enemyCounts, allyCounts),
+    variantSignature: currentSimulationResult?.variantSignature || `${buildMatchSignature("simulation", enemyCounts, allyCounts)}|single`,
+    variantTitle: `${currentSimulationResult?.winner === "enemy" ? "Maglubiyet" : "Zafer"} senaryosu`,
+    probabilityBasisPoints: 10000,
+    winner: currentSimulationResult?.winner === "enemy" ? "enemy" : "ally",
+    summaryText: currentSimulationReport?.summaryText || "",
+    logText: currentSimulationReport?.logText || "",
+    usedCapacity: currentSimulationReport?.usedCapacity || 0,
+    usedPoints: calculateArmyPoints(allyCounts),
+    lostBlood: currentSimulationResult?.lostBloodTotal || 0
+  };
+}
+
+function openVariantLogModal(analysis, variant) {
+  if (!variantLogModal || !variantLogOutput || !variantLogSummary || !variantLogInfo) {
+    return;
+  }
+
+  const enemyCounts = analysis?.enemyCounts || {};
+  const allyCounts = analysis?.allyCounts || {};
+  const logView = ensureVariantLogView(enemyCounts, allyCounts, variant);
+
+  if (variantLogTitle) {
+    variantLogTitle.textContent = `${variant.winner === "ally" ? "Zafer" : "Maglubiyet"} senaryosu`;
+  }
+  if (variantLogMeta) {
+    variantLogMeta.innerHTML = `
+      <span>Olasilik: <strong>%${formatProbability(variant.probability)}</strong></span>
+      <span>Kan kaybi: <strong>${variant.lostBloodTotal}</strong></span>
+      <span>Temsilci seed: <strong>${logView.seed}</strong></span>
+      <span>Sonuc: <strong>${variant.winner === "ally" ? "Zafer" : "Maglubiyet"}</strong></span>
+    `;
+  }
+
+  variantLogSummary.innerHTML = "";
+  renderStyledLines(logView.summaryText.split("\n"), variantLogSummary);
+
+  renderPlainTextBlock([
+    `Rakip: ${buildRosterLabel(enemyCounts, ENEMY_UNITS)}`,
+    `Muttefik: ${buildRosterLabel(allyCounts, ALLY_UNITS)}`,
+    `Ornek seedler: ${variant.seeds.slice(0, 5).join(", ") || logView.seed}`,
+    `Toplam birlik kapasitesi: ${logView.usedCapacity}`
+  ].join("\n"), variantLogInfo);
+
+  variantLogOutput.innerHTML = "";
+  renderStyledLines(logView.detailText.split("\n"), variantLogOutput);
+  variantLogModal.hidden = false;
+}
+
+function closeVariantLogModal() {
+  if (!variantLogModal) {
+    return;
+  }
+  variantLogModal.hidden = true;
+}
+
+function ensureVariantLogView(enemyCounts, allyCounts, variant) {
+  if (variant?.logView) {
+    return variant.logView;
+  }
+
+  const seeds = Array.isArray(variant?.seeds) && variant.seeds.length ? variant.seeds : [1];
+  let selectedSeed = seeds[0];
+  let selectedResult = null;
+
+  for (const seed of seeds.slice(0, 8)) {
+    const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: true });
+    if (buildVariantSignature(result) === variant.signature) {
+      selectedSeed = seed;
+      selectedResult = result;
+      break;
+    }
+  }
+
+  if (!selectedResult) {
+    selectedResult = simulateBattle(enemyCounts, allyCounts, { seed: selectedSeed, collectLog: true });
+  }
+
+  variant.logView = buildVariantLogView(selectedResult, enemyCounts, allyCounts, selectedSeed);
+  return variant.logView;
+}
+
+function buildVariantLogView(result, enemyCounts, allyCounts, seed) {
+  const lines = result.logText.split("\n");
+  const victoryIndex = lines.findIndex((line) => line.trim().startsWith(">>"));
+
+  let summaryLines = [];
+  let detailLines = lines;
+
+  if (victoryIndex >= 0) {
+    let splitAt = victoryIndex;
+    if (splitAt > 0 && lines[splitAt - 1].trim().startsWith("---")) {
+      splitAt -= 1;
+    }
+    summaryLines = lines.slice(splitAt);
+    detailLines = lines.slice(0, splitAt);
+  }
+
+  const summaryText = applySpecialLossDisplayOverride([
+    "======================  SAVAS  SONUCU  ======================",
+    ...(summaryLines.length > 0 ? summaryLines : ["  (sonuc henuz belirlenmedi)"])
+  ].join("\n"), enemyCounts, allyCounts, result.usedCapacity);
+
+  const detailText = [
+    "======================  TUR  TUR  ANALIZ  ======================",
+    `  temsilci seed: ${seed}`,
+    "",
+    ...detailLines
+  ].join("\n");
+
+  return {
+    seed,
+    usedCapacity: result.usedCapacity,
+    summaryText,
+    detailText
+  };
+}
+
+function buildEnemyTitle(enemyCounts) {
+  return buildRosterLabel(enemyCounts, ENEMY_UNITS, 2) || "Versus";
+}
+
+function buildRosterLabel(counts, units, limit = null) {
+  const parts = units
+    .filter((unit) => (counts?.[unit.key] || 0) > 0)
+    .map((unit) => `${counts[unit.key]} ${unit.label}`);
+  return (limit ? parts.slice(0, limit) : parts).join(" / ");
+}
+
+function renderPlainTextBlock(text, target) {
+  target.innerHTML = "";
+  text.split("\n").forEach((line) => {
+    const row = document.createElement("span");
+    row.className = "log-line";
+    row.textContent = line;
+    target.appendChild(row);
+  });
 }
 
 if (langToggleSimulationBtn) {

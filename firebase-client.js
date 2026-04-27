@@ -83,17 +83,24 @@
     localStorage.setItem(MIGRATION_KEY, "1");
   }
 
-  function buildStrategyId(item) {
+  function buildApprovedEntryId(item) {
+    const source = item?.source === "simulation" ? "simulation" : "optimizer";
+    if (source === "simulation") {
+      if (!item?.matchSignature || !item?.variantSignature) {
+        return "";
+      }
+      return buildSimulationDocId(item.matchSignature, item.variantSignature);
+    }
     if (!item || !Number.isFinite(Number(item.stage)) || !item.enemySignature) {
       return "";
     }
-    return buildDocId(item.stage, item.enemySignature);
+    return buildOptimizerDocId(item.stage, item.enemySignature);
   }
 
   function mergeStrategies(items) {
     const merged = new Map();
     items.forEach((item) => {
-      const id = item.id || buildStrategyId(item);
+      const id = item.id || buildApprovedEntryId(item);
       if (!id) {
         return;
       }
@@ -125,14 +132,56 @@
     writeStorage(WRONG_CACHE_KEY, items);
   }
 
-  function sanitizeForSave(item) {
-    const payload = {
-      ...item,
-      savedAt: item.savedAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  function sanitizeApprovedEntry(item) {
+    const source = item?.source === "simulation" ? "simulation" : "optimizer";
+    const basePayload = {
+      source,
+      savedAt: trimText(item?.savedAt || new Date().toISOString(), 40),
+      updatedAt: trimText(new Date().toISOString(), 40)
     };
-    delete payload.id;
-    return payload;
+
+    if (source === "simulation") {
+      const payload = {
+        ...basePayload,
+        sourceLabel: trimText(item?.sourceLabel || "Simulasyon", 30),
+        enemyTitle: trimText(item?.enemyTitle || "Versus", 120),
+        enemyCounts: sanitizeCountMap(item?.enemyCounts, ENEMY_COUNT_KEYS),
+        allyCounts: sanitizeCountMap(item?.allyCounts, ALLY_COUNT_KEYS),
+        matchSignature: trimText(item?.matchSignature || "", 200),
+        variantSignature: trimText(item?.variantSignature || "", 500),
+        variantTitle: trimText(item?.variantTitle || "", 80),
+        winner: item?.winner === "enemy" ? "enemy" : "ally",
+        probabilityBasisPoints: clampInt(item?.probabilityBasisPoints, 10000),
+        summaryText: trimText(item?.summaryText || "", 40000),
+        logText: trimText(item?.logText || "", 400000),
+        usedCapacity: clampInt(item?.usedCapacity, 999999),
+        usedPoints: clampInt(item?.usedPoints, 99999),
+        lostBlood: clampInt(item?.lostBlood, 999999)
+      };
+      if (Number.isInteger(item?.stage) && item.stage >= 1 && item.stage <= 9999) {
+        payload.stage = item.stage;
+      }
+      return payload;
+    }
+
+    return {
+      ...basePayload,
+      sourceLabel: trimText(item?.sourceLabel || "Optimizer", 30),
+      stage: clampInt(item?.stage, 9999),
+      mode: item?.mode === "fast" || item?.mode === "deep" ? item.mode : "balanced",
+      objective: item?.objective === "min_army" ? "min_army" : "min_loss",
+      diversityMode: Boolean(item?.diversityMode),
+      stoneMode: Boolean(item?.stoneMode),
+      modeLabel: trimText(item?.modeLabel || "", 80),
+      enemySignature: trimText(item?.enemySignature || "", 120),
+      enemyTitle: trimText(item?.enemyTitle || "Versus", 120),
+      enemyCounts: sanitizeCountMap(item?.enemyCounts, ENEMY_COUNT_KEYS),
+      allyPool: sanitizeCountMap(item?.allyPool, ALLY_COUNT_KEYS),
+      recommendationCounts: sanitizeCountMap(item?.recommendationCounts, ALLY_COUNT_KEYS),
+      usedPoints: clampInt(item?.usedPoints, 99999),
+      lostBlood: clampInt(item?.lostBlood, 999999),
+      winRate: clampInt(item?.winRate, 100)
+    };
   }
 
   function clampInt(value, maxValue) {
@@ -243,24 +292,31 @@
     }
     const batch = db.batch();
     localItems.forEach((item) => {
-      const id = item.id || buildStrategyId(item);
+      const id = item.id || buildApprovedEntryId(item);
       if (!id) {
         return;
       }
-      batch.set(db.collection(COLLECTION).doc(id), sanitizeForSave(item), { merge: true });
+      batch.set(db.collection(COLLECTION).doc(id), sanitizeApprovedEntry(item), { merge: true });
     });
     await batch.commit();
     writeMigrationFlag();
   }
 
-  function buildDocId(stage, enemySignature) {
+  function hashText(text) {
     let hash = 2166136261;
-    const text = `${stage}:${enemySignature}`;
     for (let index = 0; index < text.length; index += 1) {
       hash ^= text.charCodeAt(index);
       hash = Math.imul(hash, 16777619);
     }
-    return `stage_${stage}_${(hash >>> 0).toString(16)}`;
+    return (hash >>> 0).toString(16);
+  }
+
+  function buildOptimizerDocId(stage, enemySignature) {
+    return `stage_${stage}_${hashText(`${stage}:${enemySignature}`)}`;
+  }
+
+  function buildSimulationDocId(matchSignature, variantSignature) {
+    return `sim_${hashText(`${matchSignature}::${variantSignature}`)}`;
   }
 
   async function loadApprovedStrategies() {
@@ -271,7 +327,8 @@
     try {
       await migrateLocalStrategies();
       const snapshot = await db.collection(COLLECTION).get();
-      const items = mergeStrategies(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const remoteItems = mergeStrategies(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const items = mergeStrategies([...remoteItems, ...readLocalStrategies()]);
       writeCache(items);
       return items;
     } catch (error) {
@@ -281,8 +338,12 @@
   }
 
   async function saveApprovedStrategy(item) {
-    const docId = buildDocId(item.stage, item.enemySignature);
-    const payload = sanitizeForSave(item);
+    const docId = buildApprovedEntryId(item);
+    const payload = sanitizeApprovedEntry(item);
+
+    if (!docId) {
+      throw new Error("Kayit kimligi olusturulamadi.");
+    }
 
     if (!db) {
       const next = mergeStrategies([...readLocalStrategies(), { ...payload, id: docId }]);
@@ -290,16 +351,25 @@
       return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
     }
 
-    await db.collection(COLLECTION).doc(docId).set(payload, { merge: true });
-    return { ...payload, id: docId };
+    try {
+      await db.collection(COLLECTION).doc(docId).set(payload, { merge: true });
+      return { ...payload, id: docId };
+    } catch (error) {
+      console.warn("Firestore kaydi basarisiz, yerel cache kullaniliyor.", error);
+      const next = mergeStrategies([...readLocalStrategies(), { ...payload, id: docId }]);
+      writeCache(next);
+      return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
+    }
   }
 
   async function deleteApprovedStrategy(id) {
+    const nextLocal = readLocalStrategies().filter((candidate) => candidate.id !== id);
     if (!db) {
-      writeCache(readLocalStrategies().filter((candidate) => candidate.id !== id));
+      writeCache(nextLocal);
       return;
     }
     await db.collection(COLLECTION).doc(id).delete();
+    writeCache(nextLocal);
   }
 
   async function clearApprovedStrategies() {

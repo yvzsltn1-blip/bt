@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260427-06">
+  <link rel="stylesheet" href="styles.css?v=20260427-08">
 </head>
 <body>
   <div class="page-shell">
@@ -68,6 +68,8 @@
         <section id="summaryPanel" class="summary-panel">
           <p class="summary-empty">Simulasyon henuz calismadi.</p>
         </section>
+
+        <section id="simulationAdminActionsPanel" class="saved-match-panel" hidden></section>
 
         <section id="variantInsightsPanel" class="variant-insights" hidden>
           <button id="variantToggleBtn" class="button button-secondary variant-toggle" type="button" hidden aria-expanded="false">
@@ -155,11 +157,41 @@
     </div>
   </div>
 
+  <div id="variantLogModal" class="report-modal" hidden>
+    <div class="report-modal-card variant-log-modal-card">
+      <div class="panel-head top-results-modal-head">
+        <h2 id="variantLogTitle">Senaryo Savas Gunlugu</h2>
+        <button id="closeVariantLogBtn" class="button button-ghost" type="button">Kapat</button>
+      </div>
+
+      <div id="variantLogMeta" class="saved-match-meta"></div>
+
+      <div class="wrong-summary-grid">
+        <section class="wrong-summary-block">
+          <h3>Ozet</h3>
+          <div id="variantLogSummary" class="terminal-block"></div>
+        </section>
+
+        <section class="wrong-summary-block">
+          <h3>Senaryo Bilgisi</h3>
+          <div id="variantLogInfo" class="terminal-block variant-log-info"></div>
+        </section>
+      </div>
+
+      <section class="log-panel">
+        <div class="log-head">
+          <span class="log-head-title">Temsilci Savas Gunlugu</span>
+        </div>
+        <div id="variantLogOutput" class="variant-log-output"></div>
+      </section>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
-  <script src="firebase-client.js?v=20260427-10" defer></script>
+  <script src="firebase-client.js?v=20260427-12" defer></script>
   <script src="battle-core.js?v=20260427-02" defer></script>
-  <script src="app.js?v=20260427-07" defer></script>
+  <script src="app.js?v=20260427-09" defer></script>
 </body>
 </html>

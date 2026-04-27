@@ -2833,6 +2833,8 @@ function createSavedEntry(candidate) {
     .join(" / ");
 
   return {
+    source: "optimizer",
+    sourceLabel: "Optimizer",
     savedAt: new Date().toISOString(),
     stage: candidate.stage,
     mode: candidate.mode,

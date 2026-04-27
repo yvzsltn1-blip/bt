@@ -4,6 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "bt-analiz",
     "public": ".",
     "ignore": [
       "firebase.json",

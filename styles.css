@@ -443,6 +443,13 @@ body {
   font-size: 0.76rem;
 }
 
+.variant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .variant-more-actions {
   display: flex;
   justify-content: center;
@@ -815,6 +822,33 @@ body {
   gap: 10px;
   margin-bottom: 12px;
   min-width: 0;
+}
+
+.saved-simulation-details {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.saved-stage-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.saved-stage-editor-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.saved-stage-input {
+  min-width: 110px;
+}
+
+.saved-text-block {
+  white-space: pre-wrap;
 }
 
 .compare-panel {
@@ -1396,7 +1430,8 @@ body {
 }
 
 #logOutput,
-#optimizerLogOutput {
+#optimizerLogOutput,
+.variant-log-output {
   margin: 0;
   min-height: 320px;
   max-height: calc(100vh - 280px);
@@ -1470,10 +1505,15 @@ body.simulation-log-fullscreen {
 }
 
 #logOutput .log-line,
-#optimizerLogOutput .log-line {
+#optimizerLogOutput .log-line,
+.variant-log-output .log-line {
   white-space: pre;
   overflow-wrap: normal;
   word-break: normal;
+}
+
+.variant-log-info {
+  min-height: 100%;
 }
 
 .log-line.sep {

@@ -357,6 +357,7 @@
 
   function simulateBattle(enemyCounts, allyCounts, options = {}) {
     const collectLog = options.collectLog !== false;
+    const gargoylesDualSlow = options.gargoylesDualSlow === true;
     const rng = createRng(options.seed);
     const logs = [];
     const log = (line = "") => {
@@ -459,6 +460,8 @@
       let bansheesReduceTarget = -1;
       let gargoylesReduceEvent = false;
       let gargoylesReduceEnemyIndex = -1;
+      let gargoylesReactiveReduceEvent = false;
+      let gargoylesReactiveReduceEnemyIndex = -1;
 
       if (unitNumbers[GARGOYLES_INDEX] > 0) {
         for (let k = 0; k < 100; k += 1) {
@@ -638,6 +641,25 @@
         if (gargoylesReduceEvent) {
           log(`- ${UNIT_DESC[GARGOYLES_INDEX][NAME_INDEX]}, ${UNIT_DESC[gargoylesReduceEnemyIndex][NAME_INDEX]} hizini 2 azaltti; ${UNIT_DESC[gargoylesReduceEnemyIndex][NAME_INDEX]} hizi artik ${unitSpeed[gargoylesReduceEnemyIndex]}`);
           gargoylesReduceEvent = false;
+        }
+
+        if (
+          gargoylesDualSlow &&
+          defenderIndex === GARGOYLES_INDEX &&
+          UNIT_DESC[attackerIndex][SIDE_INDEX] === "enemy"
+        ) {
+          unitSpeed[attackerIndex] -= 2;
+          gargoylesReactiveReduceEnemyIndex = attackerIndex;
+          gargoylesReactiveReduceEvent = true;
+          orders = buildOrders(unitSpeed);
+          attackerOrder = orders.attackerOrder;
+          defenderOrderFrontFirst = orders.defenderOrderFrontFirst;
+          defenderOrderRearFirst = orders.defenderOrderRearFirst;
+        }
+
+        if (gargoylesReactiveReduceEvent) {
+          log(`- ${UNIT_DESC[GARGOYLES_INDEX][NAME_INDEX]}, kendisine saldiran ${UNIT_DESC[gargoylesReactiveReduceEnemyIndex][NAME_INDEX]} hizini 2 azaltti; ${UNIT_DESC[gargoylesReactiveReduceEnemyIndex][NAME_INDEX]} hizi artik ${unitSpeed[gargoylesReactiveReduceEnemyIndex]}`);
+          gargoylesReactiveReduceEvent = false;
         }
 
         if (attackerIndex === WITCHES_INDEX && unitNumbers[WITCHES_INDEX] > 0 && roundCount % 2 === 0) {

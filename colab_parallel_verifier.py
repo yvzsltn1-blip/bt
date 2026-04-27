@@ -1,10 +1,13 @@
-# Colab tek hucre kodu - PARALEL HIZLI VERIFIER.
-# 3 hizlandirma:
-#  1) Multi-process: 99.4M kombinasyon N worker'a bolunur (CPU cekirdek sayisi).
-#  2) Adaptif trial: Trial 1 kaybederse veya kayip >> yerel incumbent ise
-#     Trial 2 atlanir (zayif/imkansiz adaylar tek simulasyonla elenir).
-#  3) Worker-ici stage 2: her worker kendi shortlist'ini 30-trial dogrular,
-#     sadece top-K dondurur; master sadece final birlestirme + 60-trial.
+# Colab tek hucre kodu - PARALEL TAM TARAMA VERIFIER.
+# Bu dosya mevcut savas icin tum aday ordulari exhaustively enumerate eder.
+# Pro Colab icin optimize edildi:
+#  1) Multi-process: kombinasyon uzayi worker'lara bolunur.
+#  2) Adaptif stage 1: kotu adaylar tek/iki trial'da elenir.
+#  3) Worker ici stage 2 + master stage 3 ile top adaylar daha derin dogrulanir.
+# Final cikti:
+#  - En iyi 10 aday
+#  - Her aday icin win rate / puan / kayip
+#  - Hangi birlikten ortalama kac adet oldugu
 
 import json
 import math
@@ -13,14 +16,15 @@ import subprocess
 import sys
 import time
 import urllib.request
+from html import escape
 from IPython.display import display, HTML
 from tqdm.auto import tqdm
 
 BATTLE_CORE_URL = "https://bt-analiz.web.app/battle-core.js"
 
 CONFIG = {
-    "stage": 48,
-    "pointLimit": 490,
+    "stage": 55,
+    "pointLimit": 560,
     "objective": "min_loss",
     "stoneMode": False,
     "minWinRate": 0.75,
@@ -28,44 +32,48 @@ CONFIG = {
 
     # Adaptif trial sinirleri
     "stage1MaxTrials": 2,    # gercekte 1 yada 2 (adaptif); 2 = guvenli ust sinir
-    "stage2Trials": 30,      # worker-ici dogrulama
-    "stage3Trials": 60,      # master final dogrulama
-    "stage3TopK": 50,        # master sadece top-50'yi 60 trial ile dogrular
+    "stage2Trials": 40,      # worker-ici dogrulama
+    "stage3Trials": 100,     # master final dogrulama
+    "stage3TopK": 100,       # master sadece top-100'u final dogrular
+    "topOutcomeCount": 10,   # her top ordu icin yazdirilacak tekil outcome sayisi
+    "liveOutcomeTrials": 20,  # canli tabloda ilk aday icin hizli outcome taramasi
+    "liveOutcomeCandidates": 1,  # canlida outcome zenginlestirilecek aday sayisi
 
     # Worker basina shortlist boyutu
-    "shortlistPerWorker": 800,
-    "workerStage2TopK": 80,  # her worker stage1'den stage2'ye 80 aday tasir
+    "shortlistPerWorker": 1200,
+    "workerStage2TopK": 120,  # her worker stage1'den stage2'ye aday tasir
 
     # Paralelizm
-    "workers": None,  # None = os.cpu_count() (Colab free ~2, Pro ~8)
-    "partitionAxis": "bats",  # ilk aktif birim, en buyuk maxCount
+    "workers": None,  # None = os.cpu_count() (Colab Pro cekirdeklerini kullanir)
+    "partitionAxis": "bats",
 
     # Erken durdurma
     "stopOnTargetAfterStage3": False,
-    "targetLoss": 639,
+    "targetLoss": 0,
 
     "enemy": {
-        "skeletons": 29,
-        "zombies": 7,
-        "cultists": 28,
-        "bonewings": 13,
-        "corpses": 17,
-        "wraiths": 10,
-        "revenants": 8,
-        "giants": 0,
+        "skeletons": 24,
+        "zombies": 25,
+        "cultists": 21,
+        "bonewings": 11,
+        "corpses": 7,
+        "wraiths": 7,
+        "revenants": 13,
+        "giants": 5,
         "broodmothers": 0,
         "liches": 0
     },
     "allyPool": {
-        "bats": 136,
-        "ghouls": 84,
-        "thralls": 57,
-        "banshees": 60,
-        "necromancers": 10,
-        "gargoyles": 0,
+        "bats": 50,
+        "ghouls": 50,
+        "thralls": 60,
+        "banshees": 70,
+        "necromancers": 12,
+        "gargoyles": 12,
         "witches": 0,
         "rotmaws": 0
-    }
+    },
+    "topResultCount": 10
 }
 
 # ---------------------------------------------------------------------------
@@ -97,6 +105,9 @@ const stage2Trials = Math.max(stage1MaxTrials, Math.floor(config.stage2Trials ||
 const baseSeed = Math.floor(config.baseSeed || 42042);
 const shortlistSize = Math.max(1, Math.floor(config.shortlistPerWorker || 800));
 const stage2TopK = Math.max(1, Math.floor(config.workerStage2TopK || 80));
+const topOutcomeCount = Math.max(1, Math.floor(config.topOutcomeCount || 10));
+const liveOutcomeTrials = Math.max(stage1MaxTrials, Math.floor(config.liveOutcomeTrials || 20));
+const liveOutcomeCandidates = Math.max(0, Math.floor(config.liveOutcomeCandidates || 1));
 
 const activeUnits = ALLY_UNITS.filter((unit) => (config.allyPool?.[unit.key] || 0) > 0);
 const partitionUnit = activeUnits.find((unit) => unit.key === partition.axis) || activeUnits[0];
@@ -112,6 +123,23 @@ function cloneCounts(counts) {
 
 let localIncumbent = Number.POSITIVE_INFINITY;
 
+function buildOutcomeSummaryEntry(key, bucket, totalTrials) {
+  const probability = totalTrials > 0 ? bucket.count / totalTrials : 0;
+  const lossBlood = bucket.lossBloodTotal / Math.max(1, bucket.count);
+  const stoneLossBlood = bucket.stoneLossBloodTotal / Math.max(1, bucket.count);
+  return {
+    key,
+    winner: bucket.winner,
+    count: bucket.count,
+    probability,
+    avgLossBlood: lossBlood,
+    avgStoneLossBlood: stoneLossBlood,
+    lossesByKey: bucket.lossesByKey,
+    permanentLossesByKey: bucket.permanentLossesByKey,
+    exampleSeeds: bucket.exampleSeeds
+  };
+}
+
 // Adaptif degerlendirme: trial 1 kaybederse veya kayip >> incumbent ise dur
 function evaluateAdaptive(counts) {
   const signature = getSignature(counts);
@@ -126,6 +154,8 @@ function evaluateAdaptive(counts) {
   let enemyHpSum = 0;
   let enemyUnitsSum = 0;
   let trialsRun = 0;
+  const avgAllyLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+  const avgPermanentAllyLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
 
   for (let trial = 0; trial < stage1MaxTrials; trial += 1) {
     const seed = baseSeed + trial * 977;
@@ -144,6 +174,10 @@ function evaluateAdaptive(counts) {
       permLossSum += sp.permanentLostBlood;
       permUnitsSum += sp.permanentLostUnits;
       stoneSum += sp.stoneCount;
+      ALLY_UNITS.forEach((unit) => {
+        avgAllyLosses[unit.key] += (result.allyLosses?.[unit.key] || 0);
+        avgPermanentAllyLosses[unit.key] += (sp.permanentLossesByKey?.[unit.key] || 0);
+      });
     }
 
     // Adaptif erken sonlandirma sadece trial 0'dan sonra
@@ -189,12 +223,20 @@ function evaluateAdaptive(counts) {
     avgPermanentLostBlood: avgPerm,
     avgPermanentLostUnits: wins > 0 ? permUnitsSum / wins : Number.POSITIVE_INFINITY,
     avgStoneCount: wins > 0 ? stoneSum / wins : 0,
+    avgAllyLosses: Object.fromEntries(ALLY_UNITS.map((unit) => [
+      unit.key,
+      wins > 0 ? avgAllyLosses[unit.key] / wins : 0
+    ])),
+    avgPermanentAllyLosses: Object.fromEntries(ALLY_UNITS.map((unit) => [
+      unit.key,
+      wins > 0 ? avgPermanentAllyLosses[unit.key] / wins : 0
+    ])),
     displayedLoss: displayed
   };
 }
 
 // Tam degerlendirme (stage 2 ve sonrasi) - tum trial'lari kosar, erken cikis yok
-function evaluateFull(counts, trials) {
+function evaluateFull(counts, trials, includeOutcomes = false) {
   const signature = getSignature(counts);
   let wins = 0;
   let rawLossSum = 0;
@@ -206,6 +248,9 @@ function evaluateFull(counts, trials) {
   let usedCapSum = 0;
   let enemyHpSum = 0;
   let enemyUnitsSum = 0;
+  const avgAllyLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+  const avgPermanentAllyLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+  const outcomeBuckets = includeOutcomes ? new Map() : null;
 
   for (let trial = 0; trial < trials; trial += 1) {
     const seed = baseSeed + trial * 977;
@@ -214,15 +259,43 @@ function evaluateFull(counts, trials) {
     usedCapSum += result.usedCapacity;
     enemyHpSum += result.enemyRemainingHealth;
     enemyUnitsSum += result.enemyRemainingUnits;
+    const sp = getStoneAdjustedLossProfile(result.allyLosses || {});
+    if (includeOutcomes) {
+      const rawLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, Math.max(0, Number(result.allyLosses?.[unit.key]) || 0)]));
+      const permLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, Math.max(0, Number(sp.permanentLossesByKey?.[unit.key]) || 0)]));
+      const outcomeKey = [
+        result.winner,
+        ...ALLY_UNITS.map((unit) => rawLosses[unit.key] || 0)
+      ].join("|");
+      const existing = outcomeBuckets.get(outcomeKey) || {
+        winner: result.winner,
+        count: 0,
+        lossBloodTotal: 0,
+        stoneLossBloodTotal: 0,
+        lossesByKey: rawLosses,
+        permanentLossesByKey: permLosses,
+        exampleSeeds: []
+      };
+      existing.count += 1;
+      existing.lossBloodTotal += result.lostBloodTotal || 0;
+      existing.stoneLossBloodTotal += sp.permanentLostBlood || 0;
+      if (existing.exampleSeeds.length < 5) {
+        existing.exampleSeeds.push(seed);
+      }
+      outcomeBuckets.set(outcomeKey, existing);
+    }
 
     if (result.winner === "ally") {
       wins += 1;
       rawLossSum += result.lostBloodTotal;
       rawUnitsSum += result.lostUnitsTotal;
-      const sp = getStoneAdjustedLossProfile(result.allyLosses || {});
       permLossSum += sp.permanentLostBlood;
       permUnitsSum += sp.permanentLostUnits;
       stoneSum += sp.stoneCount;
+      ALLY_UNITS.forEach((unit) => {
+        avgAllyLosses[unit.key] += (result.allyLosses?.[unit.key] || 0);
+        avgPermanentAllyLosses[unit.key] += (sp.permanentLossesByKey?.[unit.key] || 0);
+      });
     }
   }
 
@@ -231,6 +304,19 @@ function evaluateFull(counts, trials) {
   const avgRaw = wins > 0 ? rawLossSum / wins : Number.POSITIVE_INFINITY;
   const avgPerm = wins > 0 ? permLossSum / wins : Number.POSITIVE_INFINITY;
   const displayed = stoneMode ? avgPerm : avgRaw;
+  const topOutcomes = includeOutcomes
+    ? [...outcomeBuckets.entries()]
+        .map(([key, bucket]) => buildOutcomeSummaryEntry(key, bucket, trials))
+        .sort((a, b) => {
+          if (a.count !== b.count) return b.count - a.count;
+          if (a.winner !== b.winner) return a.winner === "ally" ? -1 : 1;
+          const lossA = stoneMode ? a.avgStoneLossBlood : a.avgLossBlood;
+          const lossB = stoneMode ? b.avgStoneLossBlood : b.avgLossBlood;
+          if (lossA !== lossB) return lossA - lossB;
+          return a.key.localeCompare(b.key);
+        })
+        .slice(0, topOutcomeCount)
+    : undefined;
 
   return {
     counts: cloneCounts(counts),
@@ -248,7 +334,16 @@ function evaluateFull(counts, trials) {
     avgPermanentLostBlood: avgPerm,
     avgPermanentLostUnits: wins > 0 ? permUnitsSum / wins : Number.POSITIVE_INFINITY,
     avgStoneCount: wins > 0 ? stoneSum / wins : 0,
-    displayedLoss: displayed
+    avgAllyLosses: Object.fromEntries(ALLY_UNITS.map((unit) => [
+      unit.key,
+      wins > 0 ? avgAllyLosses[unit.key] / wins : 0
+    ])),
+    avgPermanentAllyLosses: Object.fromEntries(ALLY_UNITS.map((unit) => [
+      unit.key,
+      wins > 0 ? avgPermanentAllyLosses[unit.key] / wins : 0
+    ])),
+    displayedLoss: displayed,
+    topOutcomes
   };
 }
 
@@ -313,6 +408,17 @@ let checked = 0;
 let lastReport = Date.now();
 const startTime = Date.now();
 
+function buildSnapshot(limit = 10) {
+  const entries = shortlist.finalize().slice(0, limit);
+  if (liveOutcomeCandidates <= 0 || liveOutcomeTrials <= 0) {
+    return entries;
+  }
+  return entries.map((entry, index) => {
+    if (index >= liveOutcomeCandidates) return entry;
+    return evaluateFull(entry.counts, liveOutcomeTrials, true);
+  });
+}
+
 function emit(payload) {
   process.stdout.write(JSON.stringify(payload) + "\n");
 }
@@ -329,7 +435,8 @@ function enumerate(index, remainingPoints) {
         worker: partition.id,
         checked,
         elapsedMs: Date.now() - startTime,
-        incumbent: Number.isFinite(localIncumbent) ? localIncumbent : null
+        incumbent: Number.isFinite(localIncumbent) ? localIncumbent : null,
+        topCandidates: buildSnapshot(10)
       });
     }
     return;
@@ -357,7 +464,7 @@ partial[partitionUnit.key] = 0;
 const finalShortlist = shortlist.finalize();
 const stage2Pool = finalShortlist.slice(0, stage2TopK);
 const stage2Verified = stage2Pool
-  .map((entry) => evaluateFull(entry.counts, stage2Trials))
+  .map((entry, index) => evaluateFull(entry.counts, stage2Trials, index < liveOutcomeCandidates))
   .sort(comparePrimary);
 
 emit({
@@ -392,6 +499,172 @@ def fmt_elapsed(seconds):
     m = (seconds % 3600) // 60
     s = seconds % 60
     return f"{h:02d}:{m:02d}:{s:02d}"
+
+
+def live_compare_key(entry):
+    objective = CONFIG.get("objective", "min_loss")
+    feasible_rank = 0 if entry.get("feasible") else 1
+    win_rank = -(entry.get("winRate") or 0)
+    loss_rank = safe_metric(entry.get("displayedLoss"))
+    points_rank = safe_metric(entry.get("avgUsedPoints"))
+    enemy_hp_rank = safe_metric(entry.get("avgEnemyRemainingHealth"))
+    sig = entry.get("signature", "")
+    if objective == "min_army":
+        return (feasible_rank, win_rank, points_rank, loss_rank, enemy_hp_rank, sig)
+    return (feasible_rank, win_rank, loss_rank, points_rank, enemy_hp_rank, sig)
+
+
+def safe_metric(value, default=float("inf")):
+    if value is None:
+        return default
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(numeric):
+        return default
+    return numeric
+
+
+def format_metric_cell(value, digits=1, default="inf"):
+    numeric = safe_metric(value, default=None)
+    if numeric is None:
+        return default
+    return f"{numeric:.{digits}f}"
+
+
+def format_live_counts(entry):
+    counts = entry.get("counts") or {}
+    order = ["bats", "ghouls", "thralls", "banshees", "necromancers", "gargoyles", "witches", "rotmaws"]
+    labels = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"]
+    parts = []
+    for unit_key, label in zip(order, labels):
+        value = counts.get(unit_key, 0)
+        if value > 0:
+            parts.append(f"{label}:{value}")
+    return ", ".join(parts) if parts else "-"
+
+
+def format_live_losses(entry):
+    losses = entry.get("avgAllyLosses") or {}
+    order = ["bats", "ghouls", "thralls", "banshees", "necromancers", "gargoyles", "witches", "rotmaws"]
+    labels = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"]
+    parts = []
+    for unit_key, label in zip(order, labels):
+        value = losses.get(unit_key, 0)
+        if value and value > 0:
+            parts.append(f"{label}:{value:.2f}")
+    return ", ".join(parts) if parts else "yok"
+
+
+def format_outcome_losses(losses_by_key):
+    order = ["bats", "ghouls", "thralls", "banshees", "necromancers", "gargoyles", "witches", "rotmaws"]
+    labels = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"]
+    parts = []
+    for unit_key, label in zip(order, labels):
+        value = (losses_by_key or {}).get(unit_key, 0)
+        if value and value > 0:
+            parts.append(f"{label}:{value}")
+    return ", ".join(parts) if parts else "kayip yok"
+
+
+def print_outcome_block(outcomes, stone_mode=False, indent="      "):
+    if not outcomes:
+        print(f"{indent}tekil outcome yok")
+        return
+    for idx, outcome in enumerate(outcomes, start=1):
+        winner_label = "zafer" if outcome.get("winner") == "ally" else "maglubiyet"
+        probability = (outcome.get("probability") or 0) * 100
+        loss_value = outcome.get("avgStoneLossBlood") if stone_mode else outcome.get("avgLossBlood")
+        loss_value = safe_metric(loss_value, default=0.0)
+        losses = outcome.get("permanentLossesByKey") if stone_mode else outcome.get("lossesByKey")
+        print(
+            f"{indent}{idx:2}. {winner_label:<10} olasilik=%{probability:5.2f}  "
+            f"kan={loss_value:6.1f}  {format_outcome_losses(losses)}"
+        )
+        seeds = outcome.get("exampleSeeds") or []
+        if seeds:
+            print(f"{indent}    ornek seedler -> {', '.join(str(seed) for seed in seeds)}")
+
+
+def build_live_outcome_html(entry):
+    if not entry:
+        return ""
+    outcomes = entry.get("topOutcomes") or []
+    if not outcomes:
+        return ""
+    lines = []
+    lines.append("<div style='margin-top:12px;font-family:monospace;font-size:12px;'>")
+    lines.append("<div><strong>Canli 1. aday detay</strong></div>")
+    lines.append(
+        f"<div>1. kayip={format_metric_cell(entry.get('displayedLoss'), 1, '-')}  "
+        f"win=%{(entry.get('winRate', 0) * 100):.0f}  "
+        f"pts={format_metric_cell(entry.get('avgUsedPoints'), 1, '-')}  "
+        f"{escape(format_live_counts(entry))}</div>"
+    )
+    lines.append(f"<div>&nbsp;&nbsp;&nbsp;&nbsp;ort. kayiplar -&gt; {escape(format_live_losses(entry))}</div>")
+    lines.append("<div>&nbsp;&nbsp;&nbsp;&nbsp;tekil outcome'lar -&gt;</div>")
+    for idx, outcome in enumerate(outcomes, start=1):
+        winner_label = "zafer" if outcome.get("winner") == "ally" else "maglubiyet"
+        probability = (outcome.get("probability") or 0) * 100
+        loss_value = safe_metric(outcome.get("avgLossBlood"), default=0.0)
+        lines.append(
+            f"<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{idx:2}. {winner_label:<10} "
+            f"olasilik=%{probability:5.2f}  kan={loss_value:6.1f}  "
+            f"{escape(format_outcome_losses(outcome.get('lossesByKey')))}</div>"
+        )
+        seeds = outcome.get("exampleSeeds") or []
+        if seeds:
+            lines.append(
+                f"<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ornek seedler -&gt; "
+                f"{escape(', '.join(str(seed) for seed in seeds))}</div>"
+            )
+    lines.append("</div>")
+    return "".join(lines)
+
+
+def build_live_top_html(active, total_workers, elapsed, global_incumbent, entries):
+    rows = []
+    for idx, entry in enumerate(entries[:10], start=1):
+        rows.append(
+            "<tr>"
+            f"<td>{idx}</td>"
+            f"<td>{'evet' if entry.get('feasible') else 'hayir'}</td>"
+            f"<td>%{(entry.get('winRate', 0) * 100):.0f}</td>"
+            f"<td>{format_metric_cell(entry.get('displayedLoss'), 1, '-')}</td>"
+            f"<td>{format_metric_cell(entry.get('avgUsedPoints'), 1, '-')}</td>"
+            f"<td>{escape(format_live_counts(entry))}</td>"
+            f"<td>{escape(format_live_losses(entry))}</td>"
+            "</tr>"
+        )
+    if not rows:
+        rows.append('<tr><td colspan="7">Henuz canli top sonuc yok.</td></tr>')
+
+    summary = (
+        f"sure {fmt_elapsed(elapsed)} | aktif worker {active}/{total_workers} | "
+        f"en iyi yerel kayip {global_incumbent if global_incumbent is not None else '-'}"
+    )
+    detail_html = build_live_outcome_html(entries[0] if entries else None)
+    return f"""
+    <div>
+      <pre>{escape(summary)}</pre>
+      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-family:monospace;font-size:12px;">
+        <thead>
+          <tr>
+            <th>#</th><th>Feasible</th><th>Win</th><th>Kayip</th><th>Puan</th><th>Dizilis</th><th>Ort. kayiplar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {''.join(rows)}
+        </tbody>
+      </table>
+      {detail_html}
+    </div>
+    """
+
+
+def has_live_outcomes(entry):
+    return bool((entry or {}).get("topOutcomes"))
 
 
 def count_combinations_for_partition(allyPool, pointLimit, axis, axis_start, axis_end):
@@ -500,9 +773,38 @@ const minWinRate = Number.isFinite(config.minWinRate) ? config.minWinRate : 0.75
 const trials = Math.max(1, Math.floor(config.stage3Trials || 60));
 const baseSeed = Math.floor(config.baseSeed || 42042);
 const topK = Math.max(1, Math.floor(config.stage3TopK || 50));
+const topResultCount = Math.max(1, Math.floor(config.topResultCount || 10));
+const topOutcomeCount = Math.max(1, Math.floor(config.topOutcomeCount || 10));
 
 function getSignature(counts) {
   return ALLY_UNITS.map((unit) => counts[unit.key] || 0).join("|");
+}
+
+function getCountsLossString(lossesByKey) {
+  return ALLY_UNITS
+    .map((unit, index) => {
+      const val = Math.max(0, Number(lossesByKey?.[unit.key]) || 0);
+      return val > 0 ? `T${index + 1}:${val}` : null;
+    })
+    .filter(Boolean)
+    .join(", ");
+}
+
+function buildOutcomeSummaryEntry(key, bucket, totalTrials) {
+  const probability = totalTrials > 0 ? bucket.count / totalTrials : 0;
+  const lossBlood = bucket.lossBloodTotal / Math.max(1, bucket.count);
+  const stoneLossBlood = bucket.stoneLossBloodTotal / Math.max(1, bucket.count);
+  return {
+    key,
+    winner: bucket.winner,
+    count: bucket.count,
+    probability,
+    avgLossBlood: lossBlood,
+    avgStoneLossBlood: stoneLossBlood,
+    lossesByKey: bucket.lossesByKey,
+    permanentLossesByKey: bucket.permanentLossesByKey,
+    exampleSeeds: bucket.exampleSeeds
+  };
 }
 
 function evaluateFull(counts) {
@@ -512,6 +814,9 @@ function evaluateFull(counts) {
   let permLossSum = 0, permUnitsSum = 0, stoneSum = 0;
   let usedPtsSum = 0, usedCapSum = 0;
   let enemyHpSum = 0, enemyUnitsSum = 0;
+  const avgAllyLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+  const avgPermanentAllyLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+  const outcomeBuckets = new Map();
   for (let trial = 0; trial < trials; trial += 1) {
     const seed = baseSeed + trial * 977;
     const r = simulateBattle(config.enemy, counts, { seed, collectLog: false });
@@ -519,20 +824,57 @@ function evaluateFull(counts) {
     usedCapSum += r.usedCapacity;
     enemyHpSum += r.enemyRemainingHealth;
     enemyUnitsSum += r.enemyRemainingUnits;
+    const sp = getStoneAdjustedLossProfile(r.allyLosses || {});
+    const rawLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, Math.max(0, Number(r.allyLosses?.[unit.key]) || 0)]));
+    const permLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, Math.max(0, Number(sp.permanentLossesByKey?.[unit.key]) || 0)]));
+    const outcomeKey = [
+      r.winner,
+      ...ALLY_UNITS.map((unit) => rawLosses[unit.key] || 0)
+    ].join("|");
+    const existing = outcomeBuckets.get(outcomeKey) || {
+      winner: r.winner,
+      count: 0,
+      lossBloodTotal: 0,
+      stoneLossBloodTotal: 0,
+      lossesByKey: rawLosses,
+      permanentLossesByKey: permLosses,
+      exampleSeeds: []
+    };
+    existing.count += 1;
+    existing.lossBloodTotal += r.lostBloodTotal || 0;
+    existing.stoneLossBloodTotal += sp.permanentLostBlood || 0;
+    if (existing.exampleSeeds.length < 5) {
+      existing.exampleSeeds.push(seed);
+    }
+    outcomeBuckets.set(outcomeKey, existing);
     if (r.winner === "ally") {
       wins += 1;
       rawLossSum += r.lostBloodTotal;
       rawUnitsSum += r.lostUnitsTotal;
-      const sp = getStoneAdjustedLossProfile(r.allyLosses || {});
       permLossSum += sp.permanentLostBlood;
       permUnitsSum += sp.permanentLostUnits;
       stoneSum += sp.stoneCount;
+      ALLY_UNITS.forEach((unit) => {
+        avgAllyLosses[unit.key] += (r.allyLosses?.[unit.key] || 0);
+        avgPermanentAllyLosses[unit.key] += (sp.permanentLossesByKey?.[unit.key] || 0);
+      });
     }
   }
   const winRate = wins / trials;
   const avgRaw = wins > 0 ? rawLossSum / wins : Number.POSITIVE_INFINITY;
   const avgPerm = wins > 0 ? permLossSum / wins : Number.POSITIVE_INFINITY;
   const displayed = stoneMode ? avgPerm : avgRaw;
+  const topOutcomes = [...outcomeBuckets.entries()]
+    .map(([key, bucket]) => buildOutcomeSummaryEntry(key, bucket, trials))
+    .sort((a, b) => {
+      if (a.count !== b.count) return b.count - a.count;
+      if (a.winner !== b.winner) return a.winner === "ally" ? -1 : 1;
+      const lossA = stoneMode ? a.avgStoneLossBlood : a.avgLossBlood;
+      const lossB = stoneMode ? b.avgStoneLossBlood : b.avgLossBlood;
+      if (lossA !== lossB) return lossA - lossB;
+      return a.key.localeCompare(b.key);
+    })
+    .slice(0, topOutcomeCount);
   return {
     counts, signature, trials,
     feasible: winRate >= minWinRate,
@@ -546,7 +888,16 @@ function evaluateFull(counts) {
     avgPermanentLostBlood: avgPerm,
     avgPermanentLostUnits: wins > 0 ? permUnitsSum / wins : Number.POSITIVE_INFINITY,
     avgStoneCount: wins > 0 ? stoneSum / wins : 0,
-    displayedLoss: displayed
+    avgAllyLosses: Object.fromEntries(ALLY_UNITS.map((unit) => [
+      unit.key,
+      wins > 0 ? avgAllyLosses[unit.key] / wins : 0
+    ])),
+    avgPermanentAllyLosses: Object.fromEntries(ALLY_UNITS.map((unit) => [
+      unit.key,
+      wins > 0 ? avgPermanentAllyLosses[unit.key] / wins : 0
+    ])),
+    displayedLoss: displayed,
+    topOutcomes
   };
 }
 
@@ -580,7 +931,7 @@ const verified = candidates.map((c) => evaluateFull(c.counts)).sort(comparePrima
 process.stdout.write(JSON.stringify({
   totalEvaluated: candidates.length,
   best: verified[0],
-  top10: verified.slice(0, 10)
+  top10: verified.slice(0, topResultCount)
 }, null, 2));
 """
 
@@ -637,7 +988,7 @@ for partition in partitions:
         text=True, bufsize=1
     )
     processes.append({"partition": partition, "proc": p, "checked": 0,
-                      "incumbent": None, "shortlist": None, "done": False})
+                      "incumbent": None, "shortlist": None, "live_top": [], "done": False})
 
 # Progress bar
 pbar = tqdm(total=total_combos, desc="Tum worker'lar", unit="aday", smoothing=0.05)
@@ -691,11 +1042,13 @@ while any(not w["done"] for w in processes):
                 delta = payload["checked"] - w["checked"]
                 w["checked"] = payload["checked"]
                 w["incumbent"] = payload.get("incumbent")
+                w["live_top"] = payload.get("topCandidates") or w["live_top"]
                 pbar.update(delta)
             elif kind == "done":
                 delta = payload["checked"] - w["checked"]
                 w["checked"] = payload["checked"]
                 w["shortlist"] = payload["shortlist"]
+                w["live_top"] = payload.get("shortlist") or w["live_top"]
                 w["done"] = True
                 pbar.update(delta)
         if w["proc"].poll() is not None and not w["done"]:
@@ -711,6 +1064,7 @@ while any(not w["done"] for w in processes):
                     continue
                 if payload.get("type") == "done":
                     w["shortlist"] = payload["shortlist"]
+                    w["live_top"] = payload.get("shortlist") or w["live_top"]
                     w["done"] = True
                     delta = payload["checked"] - w["checked"]
                     w["checked"] = payload["checked"]
@@ -723,9 +1077,27 @@ while any(not w["done"] for w in processes):
         incumbents = [w["incumbent"] for w in processes if w["incumbent"] is not None]
         global_inc = min(incumbents) if incumbents else None
         active = sum(1 for w in processes if not w["done"])
+        merged_live = {}
+        for w in processes:
+            for entry in (w.get("live_top") or []):
+                signature = entry.get("signature")
+                if not signature:
+                    continue
+                existing = merged_live.get(signature)
+                should_replace = existing is None or live_compare_key(entry) < live_compare_key(existing)
+                if (
+                    not should_replace
+                    and existing is not None
+                    and live_compare_key(entry) == live_compare_key(existing)
+                    and has_live_outcomes(entry)
+                    and not has_live_outcomes(existing)
+                ):
+                    should_replace = True
+                if should_replace:
+                    merged_live[signature] = entry
+        live_entries = sorted(merged_live.values(), key=live_compare_key)[:10]
         status_display.update(HTML(
-            f"<pre>sure {fmt_elapsed(elapsed)} | aktif worker {active}/{len(processes)} "
-            f"| en iyi yerel kayip {global_inc if global_inc is not None else '-'}</pre>"
+            build_live_top_html(active, len(processes), elapsed, global_inc, live_entries)
         ))
 
     if not any(not w["done"] for w in processes):
@@ -764,6 +1136,23 @@ print(f"En iyi kayip: {best['displayedLoss']:.1f}")
 print(f"Win rate: %{best['winRate']*100:.0f}")
 print(f"Puan: {best['avgUsedPoints']:.0f} / {CONFIG['pointLimit']}")
 print(f"Dizilis: {counts_str}")
+best_losses = []
+for unit_key, label in [
+    ("bats", "Yarasa (T1)"),
+    ("ghouls", "Gulyabani (T2)"),
+    ("thralls", "Vampir Kole (T3)"),
+    ("banshees", "Bansi (T4)"),
+    ("necromancers", "Nekromant (T5)"),
+    ("gargoyles", "Gargoyl (T6)"),
+    ("witches", "Kan Cadisi (T7)"),
+    ("rotmaws", "Curuk Cene (T8)")
+]:
+    loss_value = (best.get("avgAllyLosses") or {}).get(unit_key, 0)
+    if loss_value > 0:
+        best_losses.append(f"{label}: {loss_value:.2f}")
+print("Ortalama kayip birlikler: " + (", ".join(best_losses) if best_losses else "yok"))
+print("En olasi tekil outcome'lar:")
+print_outcome_block(best.get("topOutcomes"), stone_mode=CONFIG.get("stoneMode", False))
 print()
 print("TOP 10:")
 for i, e in enumerate(final["top10"]):
@@ -773,4 +1162,21 @@ for i, e in enumerate(final["top10"]):
                                "gargoyles", "witches", "rotmaws"])
         if e["counts"][u] > 0
     ])
+    loss_parts = []
+    for unit_key, short_label in [
+        ("bats", "T1"),
+        ("ghouls", "T2"),
+        ("thralls", "T3"),
+        ("banshees", "T4"),
+        ("necromancers", "T5"),
+        ("gargoyles", "T6"),
+        ("witches", "T7"),
+        ("rotmaws", "T8")
+    ]:
+        loss_value = (e.get("avgAllyLosses") or {}).get(unit_key, 0)
+        if loss_value > 0:
+            loss_parts.append(f"{short_label}:{loss_value:.2f}")
     print(f"  {i+1:2}. kayip={e['displayedLoss']:6.1f}  win=%{e['winRate']*100:3.0f}  pts={e['avgUsedPoints']:5.1f}  {cs}")
+    print(f"      ort. kayiplar -> {', '.join(loss_parts) if loss_parts else 'yok'}")
+    print("      tekil outcome'lar ->")
+    print_outcome_block(e.get("topOutcomes"), stone_mode=CONFIG.get("stoneMode", False), indent="        ")
