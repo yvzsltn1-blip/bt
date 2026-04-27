@@ -1,0 +1,35 @@
+Hazirlaniyor...
+CPU cekirdek sayisi: 2, kullanilacak worker: 2
+Partition sayisi: 2
+  worker 0: bats [0..37] = 49.802.730 kombinasyon
+  worker 1: bats [38..136] = 49.619.829 kombinasyon
+Toplam: 99.422.559 kombinasyon
+
+Worker'lar baslatiliyor...
+Tum worker'lar: 100%
+ 99422559/99422559 [1:41:44<00:00, 14780.29aday/s]
+sure 01:41:44 | aktif worker 1/2 | en iyi yerel kayip 640
+
+Tum worker'lar bitti. Toplam sure: 01:41:44
+Birlesik shortlist: 160 aday
+Master final dogrulama (60 trial x top 50)...
+
+======================================================================
+NIHAI SONUC (60 trial dogrulamasi)
+======================================================================
+En iyi kayip: 640.0
+Win rate: %100
+Puan: 428 / 490
+Dizilis: T1:40, T2:28, T3:32, T4:18, T5:1
+
+TOP 10:
+   1. kayip= 640.0  win=%100  pts=428.0  T1:40, T2:28, T3:32, T4:18, T5:1
+   2. kayip= 640.0  win=%100  pts=430.0  T1:41, T2:28, T3:32, T4:18, T5:1
+   3. kayip= 640.0  win=%100  pts=432.0  T1:40, T2:28, T3:33, T4:18, T5:1
+   4. kayip= 640.0  win=%100  pts=432.0  T1:42, T2:28, T3:32, T4:18, T5:1
+   5. kayip= 640.0  win=%100  pts=434.0  T1:41, T2:28, T3:33, T4:18, T5:1
+   6. kayip= 640.0  win=%100  pts=434.0  T1:43, T2:28, T3:32, T4:18, T5:1
+   7. kayip= 640.0  win=%100  pts=435.0  T1:40, T2:28, T3:32, T4:19, T5:1
+   8. kayip= 640.0  win=%100  pts=436.0  T1:40, T2:28, T3:34, T4:18, T5:1
+   9. kayip= 640.0  win=%100  pts=436.0  T1:42, T2:28, T3:33, T4:18, T5:1
+  10. kayip= 640.0  win=%100  pts=436.0  T1:44, T2:28, T3:32, T4:18, T5:1

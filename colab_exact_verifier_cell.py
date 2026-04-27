@@ -12,10 +12,10 @@ from tqdm.auto import tqdm
 BATTLE_CORE_URL = "https://bt-analiz.web.app/battle-core.js"
 
 CONFIG = {
-    "stage": 44,
-    "pointLimit": 450,
+    "stage": 48,
+    "pointLimit": 490,
     "objective": "min_loss",   # "min_loss" veya "min_army"
-    "stoneMode": True,
+    "stoneMode": False,
     "minWinRate": 0.75,
     "baseSeed": 42042,
     "reportEvery": 10000,
@@ -35,26 +35,26 @@ CONFIG = {
 
     # Bulunca durdurmak istersen:
     "stopOnTargetAfterStage2": False,
-    "targetPermanentLoss": 350,
+    "targetPermanentLoss": 600,
 
     "enemy": {
-        "skeletons": 28,
-        "zombies": 13,
-        "cultists": 15,
-        "bonewings": 19,
-        "corpses": 16,
+        "skeletons": 29,
+        "zombies": 7,
+        "cultists": 28,
+        "bonewings": 13,
+        "corpses": 17,
         "wraiths": 10,
-        "revenants": 5,
+        "revenants": 8,
         "giants": 0,
         "broodmothers": 0,
         "liches": 0
     },
     "allyPool": {
-        "bats": 100,
-        "ghouls": 100,
-        "thralls": 100,
-        "banshees": 100,
-        "necromancers": 100,
+        "bats": 136,
+        "ghouls": 84,
+        "thralls": 57,
+        "banshees": 60,
+        "necromancers": 10,
         "gargoyles": 0,
         "witches": 0,
         "rotmaws": 0
@@ -177,7 +177,7 @@ function evaluateCandidate(counts, trials) {
   let enemyRemainingUnitsSum = 0;
 
   for (let trial = 0; trial < trials; trial += 1) {
-    const seed = baseSeed + trial * 977 + signature.length * 13;
+    const seed = baseSeed + trial * 977;
     const result = simulateBattle(config.enemy, counts, { seed, collectLog: false });
     usedPointsSum += result.usedPoints;
     usedCapacitySum += result.usedCapacity;

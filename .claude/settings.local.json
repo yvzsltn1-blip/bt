@@ -11,7 +11,10 @@
       "Bash(node --check battle-core.js)",
       "Bash(node *)",
       "Bash(firebase --version)",
-      "Bash(firebase deploy *)"
+      "Bash(firebase deploy *)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(command -v firebase)",
+      "Bash(firebase projects:list)"
     ]
   }
 }

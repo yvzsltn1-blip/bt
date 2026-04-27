@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260426-20">
+  <link rel="stylesheet" href="styles.css?v=20260427-01">
 </head>
 <body>
   <div class="page-shell">
@@ -62,11 +62,18 @@
       <section class="panel output-panel">
         <div class="panel-head">
           <h2>Savas Sonucu</h2>
-          <p>Ustte ozet, altta tam savas gunlugu gosterilir.</p>
+          <p>Ustte ham kayip ozeti, altta tam savas gunlugu gosterilir. Hellstone veya diriltme sonrasi kalici kayip bu ekranda uygulanmaz.</p>
         </div>
 
         <section id="summaryPanel" class="summary-panel">
           <p class="summary-empty">Simulasyon henuz calismadi.</p>
+        </section>
+
+        <section id="variantInsightsPanel" class="variant-insights" hidden>
+          <button id="variantToggleBtn" class="button button-secondary variant-toggle" type="button" hidden aria-expanded="false">
+            Olasi Kayip Dagilimini Goster
+          </button>
+          <div id="variantDetailsPanel" class="variant-details" hidden></div>
         </section>
 
         <section id="matchedActualPanel" class="saved-match-panel"></section>
@@ -152,7 +159,7 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="firebase-client.js?v=20260423-9" defer></script>
-  <script src="battle-core.js?v=20260426-22" defer></script>
-  <script src="app.js?v=20260426-20" defer></script>
+  <script src="battle-core.js?v=20260427-02" defer></script>
+  <script src="app.js?v=20260427-01" defer></script>
 </body>
 </html>
