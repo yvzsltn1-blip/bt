@@ -284,6 +284,10 @@
     return Math.floor(rng() * max);
   }
 
+  function ceilCombatValue(value) {
+    return Math.ceil(Math.max(0, value) - 1e-9);
+  }
+
   function bannerLine(text) {
     const padded = "  " + text + "  ";
     const total = 60;
@@ -425,6 +429,25 @@
 
       let bansheesReduceRound = -1;
       let bansheesReduceTarget = -1;
+      let gargoylesReduceEvent = false;
+      let gargoylesReduceEnemyIndex = -1;
+
+      if (unitNumbers[GARGOYLES_INDEX] > 0) {
+        for (let k = 0; k < 100; k += 1) {
+          const randomIndex = randomInt(unitNumbers.length, rng);
+          if (unitNumbers[randomIndex] > 0 && UNIT_DESC[randomIndex][SIDE_INDEX] === "enemy") {
+            unitSpeed[randomIndex] -= 2;
+            gargoylesReduceEnemyIndex = randomIndex;
+            gargoylesReduceEvent = true;
+            break;
+          }
+        }
+
+        orders = buildOrders(unitSpeed);
+        attackerOrder = orders.attackerOrder;
+        defenderOrderFrontFirst = orders.defenderOrderFrontFirst;
+        defenderOrderRearFirst = orders.defenderOrderRearFirst;
+      }
 
       for (let j = 0; j < attackerOrder.length; j += 1) {
         let attackerIndex = -1;
@@ -574,25 +597,27 @@
         let witchesSplashDamage = 0;
         let rotmawsOverkillDamage = 0;
 
-        const attackerDamage = Math.round(unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex] + 0.001);
+        const attackerDamage = ceilCombatValue(
+          unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex]
+        );
         unitHealth[defenderIndex] -= attackerDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];
         const multiplierText = Math.abs(totalDamageMultiplier - 1) < 1e-9 ? "" : ` × ${totalDamageMultiplier.toFixed(2)} carpan`;
         log(`  ${UNIT_DESC[attackerIndex][NAME_INDEX]} → ${UNIT_DESC[defenderIndex][NAME_INDEX]}`);
         log(`     Hesap: ${unitNumbers[attackerIndex]} birim × ${UNIT_DESC[attackerIndex][ATTACK_INDEX]} atk${multiplierText} = ${attackerDamage} hasar`);
 
-        if (defenderIndex === GARGOYLES_INDEX && UNIT_DESC[attackerIndex][SIDE_INDEX] === "enemy") {
-          unitSpeed[attackerIndex] -= 2;
-          log(`- ${UNIT_DESC[GARGOYLES_INDEX][NAME_INDEX]}, ${UNIT_DESC[attackerIndex][NAME_INDEX]} hizini 2 azaltti; ${UNIT_DESC[attackerIndex][NAME_INDEX]} hizi artik ${unitSpeed[attackerIndex]}`);
+        if (gargoylesReduceEvent) {
+          log(`- ${UNIT_DESC[GARGOYLES_INDEX][NAME_INDEX]}, ${UNIT_DESC[gargoylesReduceEnemyIndex][NAME_INDEX]} hizini 2 azaltti; ${UNIT_DESC[gargoylesReduceEnemyIndex][NAME_INDEX]} hizi artik ${unitSpeed[gargoylesReduceEnemyIndex]}`);
+          gargoylesReduceEvent = false;
         }
 
         if (attackerIndex === WITCHES_INDEX && unitNumbers[WITCHES_INDEX] > 0 && roundCount % 2 === 0) {
-          witchesSplashDamage = Math.round(attackerDamage * 0.25 + 0.001);
+          witchesSplashDamage = ceilCombatValue(attackerDamage * 0.25);
         }
 
         if (unitHealth[defenderIndex] <= 0) {
           if (attackerIndex === LICHES_INDEX) {
-            lichesSplashDamage = Math.round(attackerDamage * 0.5 + 0.001);
+            lichesSplashDamage = ceilCombatValue(attackerDamage * 0.5);
           }
           if (attackerIndex === ROTMAWS_INDEX) {
             rotmawsOverkillDamage = unitHealth[defenderIndex] * -1;
@@ -1863,7 +1888,7 @@
 
       for (let trial = 0; trial < localTrialCount; trial += 1) {
         simulationRuns += 1;
-        const seed = baseSeed + trial * 977 + signature.length * 13;
+        const seed = baseSeed + trial * 977;
         const result = simulateBattle(enemyCounts, counts, { seed, collectLog: false });
         usedCapacitySum += result.usedCapacity;
         usedPointsSum += result.usedPoints;
@@ -1925,6 +1950,92 @@
       return [...unique.values()]
         .map((candidate) => evaluateCandidate(candidate, localTrialCount))
         .sort(compareEntries);
+    }
+
+    function dedupeCandidates(candidateList) {
+      const unique = new Map();
+      candidateList.forEach((candidate) => {
+        if (!candidate) return;
+        unique.set(getCountSignature(candidate, ALLY_UNITS), candidate);
+      });
+      return [...unique.values()];
+    }
+
+    // Successive halving: ucuz tier ile tara, en iyi yuzdeyi bir sonraki tiere
+    // tasi. Net etki: ayni butce ile cok daha fazla aday taranir.
+    function successiveHalvingEvaluation(candidateList) {
+      const unique = dedupeCandidates(candidateList);
+      if (unique.length === 0) {
+        return [];
+      }
+
+      const finalTrials = trialCount;
+      const cheapTrials = Math.max(2, Math.min(3, finalTrials));
+      const midTrials = Math.max(cheapTrials + 1, Math.min(Math.ceil(finalTrials / 2), finalTrials));
+
+      // Tier 1: cok ucuz tarama, sadece kazanan adaylari ileri tasi
+      const tier1 = unique
+        .map((candidate) => evaluateCandidate(candidate, cheapTrials))
+        .sort(compareEntries);
+
+      // Istatistiksel olarak %75 kazanma sansi olamayacaklari ele
+      // (cheapTrials uzerinden 0 win = neredeyse imkansiz feasible)
+      const cheapWinThreshold = Math.max(1, Math.ceil(cheapTrials * 0.5));
+      const survivorsTier1 = tier1.filter((entry) => entry.wins >= cheapWinThreshold);
+      const tier1Top = survivorsTier1.length > 0
+        ? survivorsTier1.slice(0, Math.max(20, Math.ceil(survivorsTier1.length * 0.3)))
+        : tier1.slice(0, Math.max(20, Math.ceil(tier1.length * 0.15)));
+
+      // Tier 2: orta seviye dogrulama
+      const tier2 = tier1Top
+        .map((entry) => evaluateCandidate(entry.counts, midTrials))
+        .sort(compareEntries);
+
+      const tier2Top = tier2.slice(0, Math.max(beamWidth * 2, Math.ceil(tier2.length * 0.5)));
+
+      // Tier 3: tam dogrulama
+      const tier3 = tier2Top
+        .map((entry) => evaluateCandidate(entry.counts, finalTrials))
+        .sort(compareEntries);
+
+      return tier3;
+    }
+
+    // Iki ebeveyn aday arasinda recombine: ortalama, max, min, agirlikli karisim
+    function crossoverCandidates(parentA, parentB) {
+      if (!parentA || !parentB) return [];
+      const offspring = [];
+
+      const avg = createEmptyAllyCounts();
+      const maxMix = createEmptyAllyCounts();
+      const minMix = createEmptyAllyCounts();
+      const blendA = createEmptyAllyCounts();
+      const blendB = createEmptyAllyCounts();
+      const swapped = createEmptyAllyCounts();
+
+      ALLY_UNITS.forEach((unit) => {
+        const a = parentA[unit.key] || 0;
+        const b = parentB[unit.key] || 0;
+        const max = availableAllyCounts[unit.key] || 0;
+        avg[unit.key] = Math.min(max, Math.round((a + b) / 2));
+        maxMix[unit.key] = Math.min(max, Math.max(a, b));
+        minMix[unit.key] = Math.min(max, Math.min(a, b));
+        blendA[unit.key] = Math.min(max, Math.round(a * 0.7 + b * 0.3));
+        blendB[unit.key] = Math.min(max, Math.round(a * 0.3 + b * 0.7));
+      });
+
+      // Tekli birim swap: yarisini parentA, yarisini parentB'den al (deterministik)
+      const halfIndex = Math.floor(ALLY_UNITS.length / 2);
+      ALLY_UNITS.forEach((unit, index) => {
+        const max = availableAllyCounts[unit.key] || 0;
+        const source = index < halfIndex ? parentA : parentB;
+        swapped[unit.key] = Math.min(max, source[unit.key] || 0);
+      });
+
+      [avg, maxMix, minMix, blendA, blendB, swapped].forEach((child) => {
+        offspring.push(normalizeCandidateToPointLimit(child, maxPoints));
+      });
+      return offspring;
     }
 
     function sanitizeEvaluation(entry) {
@@ -1998,7 +2109,9 @@
         .map(sanitizeEvaluation);
     }
 
-    let ranked = collectTopEvaluations(initialCandidates);
+    // Baslangic adaylarini successive halving ile tara: cok daha fazla aday
+    // gorulebilir cunku zayif olanlar erken elenir.
+    let ranked = successiveHalvingEvaluation(initialCandidates);
     let best = ranked[0];
     let beam = ranked.slice(0, beamWidth);
     const elitePool = [...beam];
@@ -2012,7 +2125,17 @@
         }
       });
 
-      ranked = collectTopEvaluations(mutated);
+      // Crossover: en iyi beam uyelerinin parlak ozelliklerini birlestir.
+      // Tek-aday mutasyonlarinin atlayamayacagi karisimlari uretir.
+      const crossoverPool = beam.filter((entry) => entry?.counts).slice(0, Math.min(6, beam.length));
+      for (let i = 0; i < crossoverPool.length; i += 1) {
+        for (let j = i + 1; j < crossoverPool.length; j += 1) {
+          mutated.push(...crossoverCandidates(crossoverPool[i].counts, crossoverPool[j].counts));
+        }
+      }
+
+      // Mutasyon havuzunu da successive halving ile tara
+      ranked = successiveHalvingEvaluation(mutated);
       if (ranked.length === 0) {
         break;
       }
@@ -2038,6 +2161,8 @@
 
       while (improved) {
         improved = false;
+
+        // 1. Asama: tek birimi azaltarak gelisme ara
         for (const unit of unitPriority) {
           const currentCount = refined.counts[unit.key];
           if (currentCount === 0) {
@@ -2068,6 +2193,53 @@
           if (improved) {
             break;
           }
+        }
+
+        if (improved) {
+          continue;
+        }
+
+        // 2. Asama: birim swap (1 azalt + 1 ekle). Refinement yalnizca azaltma
+        // yapinca yerel optimumda takiliyor; swap karisimi degistirebiliyor.
+        for (const reduceUnit of unitPriority) {
+          const reduceFrom = refined.counts[reduceUnit.key] || 0;
+          if (reduceFrom <= 0) continue;
+          for (const increaseUnit of unitPriority) {
+            if (increaseUnit.key === reduceUnit.key) continue;
+            const increaseFrom = refined.counts[increaseUnit.key] || 0;
+            const increaseMax = availableAllyCounts[increaseUnit.key] || 0;
+            if (increaseFrom >= increaseMax) continue;
+
+            const swapAmounts = Array.from(new Set([
+              1,
+              Math.max(1, Math.ceil(reduceFrom * 0.25)),
+              Math.max(1, Math.ceil(reduceFrom * 0.5))
+            ]));
+
+            let swapImproved = false;
+            for (const amount of swapAmounts) {
+              const newReduce = Math.max(0, reduceFrom - amount);
+              const candidate = cloneCounts(refined.counts, ALLY_UNITS);
+              candidate[reduceUnit.key] = newReduce;
+              const freedPoints = (reduceFrom - newReduce) * POINTS_BY_ALLY_KEY[reduceUnit.key];
+              const addCount = Math.min(
+                increaseMax - increaseFrom,
+                Math.floor(freedPoints / POINTS_BY_ALLY_KEY[increaseUnit.key])
+              );
+              if (addCount <= 0) continue;
+              candidate[increaseUnit.key] = increaseFrom + addCount;
+
+              const evaluation = evaluateCandidate(normalizeCandidateToPointLimit(candidate, maxPoints));
+              if (evaluation.feasible && compareEntries(evaluation, refined) < 0) {
+                refined = evaluation;
+                improved = true;
+                swapImproved = true;
+                break;
+              }
+            }
+            if (swapImproved) break;
+          }
+          if (improved) break;
         }
       }
 

@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260426-20">
+  <link rel="stylesheet" href="styles.css?v=20260426-27">
 </head>
 <body>
   <div class="page-shell">
@@ -49,13 +49,12 @@
             <button class="objective-button active" data-objective="min_loss" type="button">En Az Kayıpla Kazan</button>
             <button class="objective-button" data-objective="min_army" type="button">En Az Orduyla Kazan</button>
           </div>
-          <button id="stoneModeBtn" class="button button-secondary" type="button" aria-pressed="false">Tasli Hesap Kapali</button>
         </div>
 
         <div class="roster-grid">
           <section class="roster-card roster-card-ally">
             <div class="roster-head">
-              <button id="copyAllyRosterBtn" class="roster-dot roster-dot-button" type="button" aria-label="Eldeki orduyu kopyala" title="Eldeki orduyu kopyala"></button>
+              <span class="roster-dot" aria-hidden="true"></span>
               <h3>Eldeki Ordu</h3>
               <span class="roster-metric">Puan <strong id="optimizerPointsValue">0</strong></span>
               <span class="roster-metric">Limit <strong id="optimizerPointsLimit">-</strong></span>
@@ -65,22 +64,11 @@
 
           <section class="roster-card roster-card-enemy">
             <div class="roster-head">
-              <button id="copyEnemyRosterBtn" class="roster-dot roster-dot-button" type="button" aria-label="Rakip orduyu kopyala" title="Rakip orduyu kopyala"></button>
+              <span class="roster-dot" aria-hidden="true"></span>
               <h3>Rakip Ordu</h3>
-              <div class="roster-head-actions">
-                <button id="copyBothRostersBtn" class="roster-dot roster-dot-button roster-dot-both" type="button" aria-label="Iki tarafi da kopyala" title="Iki tarafi da kopyala"></button>
-              </div>
             </div>
             <div id="optimizerEnemyInputs" class="unit-grid"></div>
           </section>
-        </div>
-
-        <div class="roster-clipboard-bar">
-          <span class="roster-clipboard-label">Hizli Yapistir</span>
-          <span id="rosterClipboardIndicator" class="roster-clipboard-indicator is-empty" aria-live="polite">Kopya yok</span>
-          <button id="pasteAllyRosterBtn" class="button button-ghost roster-clipboard-button" type="button">Eldekini Yapistir</button>
-          <button id="pasteEnemyRosterBtn" class="button button-ghost roster-clipboard-button" type="button">Rakibi Yapistir</button>
-          <button id="pasteBothRostersBtn" class="button button-secondary roster-clipboard-button" type="button">Ikisini Yapistir</button>
         </div>
 
         <div class="actions">
@@ -217,7 +205,7 @@
 
   <div id="topResultsModal" class="report-modal" hidden>
     <div class="report-modal-card top-results-modal-card">
-      <div class="panel-head">
+      <div class="panel-head top-results-modal-head">
         <h2>En Iyi 5 Sonuc Ozeti</h2>
         <button id="closeTopResultsBtn" class="button button-ghost" type="button">Kapat</button>
       </div>
@@ -234,7 +222,7 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="firebase-client.js?v=20260423-9" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="battle-core.js?v=20260426-22" defer></script>
+  <script src="battle-core.js?v=20260427-01" defer></script>
   <script src="optimizer.js?v=20260426-19" defer></script>
 </body>
 </html>

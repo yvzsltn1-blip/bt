@@ -19,20 +19,13 @@ const optimizerEnemyInputs = document.querySelector("#optimizerEnemyInputs");
 const optimizerAllyInputs = document.querySelector("#optimizerAllyInputs");
 const optimizerSummary = document.querySelector("#optimizerSummary");
 const recommendationPanel = document.querySelector("#recommendationPanel");
-const copyAllyRosterBtn = document.querySelector("#copyAllyRosterBtn");
-const copyEnemyRosterBtn = document.querySelector("#copyEnemyRosterBtn");
-const copyBothRostersBtn = document.querySelector("#copyBothRostersBtn");
-const pasteAllyRosterBtn = document.querySelector("#pasteAllyRosterBtn");
-const pasteEnemyRosterBtn = document.querySelector("#pasteEnemyRosterBtn");
-const pasteBothRostersBtn = document.querySelector("#pasteBothRostersBtn");
-const rosterClipboardIndicator = document.querySelector("#rosterClipboardIndicator");
+const rosterClipboardIndicator = null;
 const optimizerLogPanel = document.querySelector("#optimizerLogPanel");
 const optimizerLogOutput = document.querySelector("#optimizerLogOutput");
 const optimizerLogFullscreenBtn = document.querySelector("#optimizerLogFullscreenBtn");
 const optimizerStatus = document.querySelector("#optimizerStatus");
 const optimizeBtn = document.querySelector("#optimizeBtn");
 const diversityModeBtn = document.querySelector("#diversityModeBtn");
-const stoneModeBtn = document.querySelector("#stoneModeBtn");
 const batchRunButtons = [...document.querySelectorAll("[data-batch-runs]")];
 const stopOptimizerBtn = document.querySelector("#stopOptimizerBtn");
 const optimizerSampleBtn = document.querySelector("#optimizerSampleBtn");
@@ -83,6 +76,7 @@ let comparePanelOpen = false;
 let currentApprovedCandidate = null;
 let currentWrongCandidate = null;
 let currentTopResultsContext = null;
+let currentTopResultsSort = "default";
 let pendingWrongReport = null;
 let approvedStrategies = [];
 let wrongReports = [];
@@ -97,6 +91,12 @@ let optimizerIncumbentContext = null;
 
 function setOptimizeButtonLabel(text) {
   optimizeBtn.textContent = text;
+}
+
+function syncOptimizeButtonCompletionState(hasCompleted) {
+  optimizeBtn.classList.toggle("is-success", hasCompleted);
+  optimizeBtn.setAttribute("aria-pressed", hasCompleted ? "true" : "false");
+  optimizeBtn.title = hasCompleted ? "Mevcut sonuc simule edildi. Tekrar simule edebilirsin." : "";
 }
 
 function syncAdminRestrictedActions() {
@@ -142,7 +142,6 @@ void initializeWrongReports();
 void bindAdminAuth();
 syncDiversityModeButton();
 syncObjectiveButtons();
-syncStoneModeButton();
 syncComparePanelToggle();
 renderComparisonPanel();
 
@@ -170,13 +169,6 @@ diversityModeBtn.addEventListener("click", () => {
   syncDiversityModeButton();
   invalidateSearchSession();
   optimizerStatus.textContent = optimizerDiversityMode ? "Cesitlilik modu acildi" : "Cesitlilik modu kapatildi";
-});
-
-stoneModeBtn.addEventListener("click", () => {
-  optimizerStoneMode = !optimizerStoneMode;
-  syncStoneModeButton();
-  invalidateSearchSession();
-  optimizerStatus.textContent = optimizerStoneMode ? "Tasli hesap acildi" : "Tasli hesap kapatildi";
 });
 
 compareToggleBtn.addEventListener("click", () => {
@@ -235,42 +227,6 @@ optimizerClearBtn.addEventListener("click", () => {
   currentWrongCandidate = null;
   reportWrongOptimizerBtn.disabled = true;
 });
-
-if (copyAllyRosterBtn) {
-  copyAllyRosterBtn.addEventListener("click", () => {
-    void copyRosterSelection("ally");
-  });
-}
-
-if (copyEnemyRosterBtn) {
-  copyEnemyRosterBtn.addEventListener("click", () => {
-    void copyRosterSelection("enemy");
-  });
-}
-
-if (copyBothRostersBtn) {
-  copyBothRostersBtn.addEventListener("click", () => {
-    void copyRosterSelection("both");
-  });
-}
-
-if (pasteAllyRosterBtn) {
-  pasteAllyRosterBtn.addEventListener("click", () => {
-    void pasteRosterSelection("ally");
-  });
-}
-
-if (pasteEnemyRosterBtn) {
-  pasteEnemyRosterBtn.addEventListener("click", () => {
-    void pasteRosterSelection("enemy");
-  });
-}
-
-if (pasteBothRostersBtn) {
-  pasteBothRostersBtn.addEventListener("click", () => {
-    void pasteRosterSelection("both");
-  });
-}
 
 saveApprovedBtn.addEventListener("click", async () => {
   if (!isAdminSession) {
@@ -500,6 +456,7 @@ async function runOptimizerSearch(batchRuns) {
     let completedRuns = 0;
 
     optimizerStopRequested = false;
+    syncOptimizeButtonCompletionState(false);
     setOptimizerBusy(true);
 
     for (let step = 1; step <= batchRuns; step += 1) {
@@ -586,9 +543,11 @@ async function runOptimizerSearch(batchRuns) {
     });
 
     setOptimizeButtonLabel("Tekrar Simule Et");
+    syncOptimizeButtonCompletionState(true);
     optimizerStatus.textContent = optimizerStopRequested ? "Durduruldu" : "Tamamlandi";
   } catch (error) {
     setOptimizeButtonLabel("Tekrar Simule Et");
+    syncOptimizeButtonCompletionState(false);
     optimizerStatus.textContent = "Hata";
     window.alert(error.message);
   } finally {
@@ -649,7 +608,6 @@ function setOptimizerBusy(isBusy) {
   optimizerSampleBtn.disabled = isBusy;
   optimizerClearBtn.disabled = isBusy;
   diversityModeBtn.disabled = isBusy;
-  stoneModeBtn.disabled = isBusy;
   stageInput.disabled = isBusy;
   syncAdminRestrictedActions();
   topResultsBtn.disabled = isBusy || !currentTopResultsContext || !currentTopResultsContext.candidates.length;
@@ -680,12 +638,6 @@ function syncDiversityModeButton() {
   diversityModeBtn.textContent = optimizerDiversityMode ? "Cesitlilik Acik" : "Cesitlilik Modu";
 }
 
-function syncStoneModeButton() {
-  stoneModeBtn.classList.toggle("is-active", optimizerStoneMode);
-  stoneModeBtn.setAttribute("aria-pressed", optimizerStoneMode ? "true" : "false");
-  stoneModeBtn.textContent = optimizerStoneMode ? "Tasli Hesap Acik" : "Tasli Hesap Kapali";
-}
-
 function syncObjectiveButtons() {
   objectiveButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.objective === optimizerObjective);
@@ -702,6 +654,7 @@ function syncComparePanelToggle() {
 function invalidateSearchSession() {
   optimizerSearchSession = createEmptySearchSession();
   setOptimizeButtonLabel("Simule Et");
+  syncOptimizeButtonCompletionState(false);
   currentApprovedCandidate = null;
   currentWrongCandidate = null;
   currentTopResultsContext = null;
@@ -1286,9 +1239,6 @@ async function pasteRosterSelection(scope) {
   syncRosterClipboardIndicator();
 }
 
-loadStoredRosterClipboardPayload();
-syncRosterClipboardIndicator();
-
 function collectCounts(units) {
   const counts = {};
   units.forEach((unit) => {
@@ -1467,6 +1417,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     stoneMode: meta.stoneMode,
     candidates: buildDisplayedTopCandidates(result)
   };
+  currentTopResultsSort = "default";
   topResultsBtn.disabled = !currentTopResultsContext.candidates.length;
   currentWrongCandidate = createWrongReportEntry(result, stage, maxPoints, meta, battleView.summaryText, battleView.logText);
   reportWrongOptimizerBtn.disabled = false;
@@ -1673,7 +1624,7 @@ function createComparisonCard(snapshot, maxPoints, isBetter) {
     ["Kazanma orani", `%${Math.round(snapshot.winRate * 100)}`],
     [getLossMetricLabel(snapshot.stoneMode), snapshot.feasible && Number.isFinite(getDisplayedLossValue(snapshot)) ? `${Math.round(getDisplayedLossValue(snapshot))}` : "Kazanis yok"],
     ["Puan", `${Math.round(snapshot.avgUsedPoints)} / ${maxPoints}`],
-    ["Kapasite", `${Math.round(snapshot.avgUsedCapacity)}`]
+    ["Kullanilan birlik", `${getSelectedUnitCount(snapshot)}`]
   ].forEach(([label, value]) => {
     const item = document.createElement("span");
     item.innerHTML = `${label}: <strong>${value}</strong>`;
@@ -1948,6 +1899,92 @@ function getSelectedUnitCount(entry) {
   return ALLY_UNITS.reduce((sum, unit) => sum + (entry?.counts?.[unit.key] || 0), 0);
 }
 
+function getSingularityPattern(entry) {
+  return Object.values(getRoundedLossBreakdown(entry))
+    .filter((value) => value > 0)
+    .sort((left, right) => left - right);
+}
+
+function compareSingularityPatterns(left, right) {
+  const minLength = Math.min(left.length, right.length);
+  for (let index = 0; index < minLength; index += 1) {
+    if (left[index] !== right[index]) {
+      return left[index] - right[index];
+    }
+  }
+  return left.length - right.length;
+}
+
+function compareTopResultsBySortMode(left, right, sortMode = "default") {
+  if (sortMode === "units") {
+    if (left.feasible !== right.feasible) {
+      return left.feasible ? -1 : 1;
+    }
+    const unitDelta = getSelectedUnitCount(left) - getSelectedUnitCount(right);
+    if (unitDelta !== 0) {
+      return unitDelta;
+    }
+    const bloodDelta = getDisplayedLossValue(left) - getDisplayedLossValue(right);
+    if (bloodDelta !== 0) {
+      return bloodDelta;
+    }
+    return compareOptimizerCandidates(left, right);
+  }
+
+  if (sortMode === "blood") {
+    if (left.feasible !== right.feasible) {
+      return left.feasible ? -1 : 1;
+    }
+    const bloodDelta = getDisplayedLossValue(left) - getDisplayedLossValue(right);
+    if (bloodDelta !== 0) {
+      return bloodDelta;
+    }
+    const unitDelta = getSelectedUnitCount(left) - getSelectedUnitCount(right);
+    if (unitDelta !== 0) {
+      return unitDelta;
+    }
+    return compareOptimizerCandidates(left, right);
+  }
+
+  if (sortMode === "singularity") {
+    if (left.feasible !== right.feasible) {
+      return left.feasible ? -1 : 1;
+    }
+    const patternDelta = compareSingularityPatterns(getSingularityPattern(left), getSingularityPattern(right));
+    if (patternDelta !== 0) {
+      return patternDelta;
+    }
+    const unitDelta = getSelectedUnitCount(left) - getSelectedUnitCount(right);
+    if (unitDelta !== 0) {
+      return unitDelta;
+    }
+    const bloodDelta = getDisplayedLossValue(left) - getDisplayedLossValue(right);
+    if (bloodDelta !== 0) {
+      return bloodDelta;
+    }
+    return compareOptimizerCandidates(left, right);
+  }
+
+  return 0;
+}
+
+function getSortedTopResultEntries() {
+  const source = currentTopResultsContext?.candidates || [];
+  if (!source.length || currentTopResultsSort === "default") {
+    return source.map((entry, sourceIndex) => ({ entry, sourceIndex }));
+  }
+
+  return source
+    .map((entry, sourceIndex) => ({ entry, sourceIndex }))
+    .sort((left, right) => {
+      const compare = compareTopResultsBySortMode(left.entry, right.entry, currentTopResultsSort);
+      if (compare !== 0) {
+        return compare;
+      }
+      return left.sourceIndex - right.sourceIndex;
+    });
+}
+
 function getRoundedSingularityProfile(entry) {
   const roundedLosses = getRoundedLossBreakdown(entry);
   const stoneProfile = getStoneAdjustedLossProfile(roundedLosses);
@@ -2173,31 +2210,46 @@ function renderTopResultsModal() {
   }
 
   [
-    `${currentTopResultsContext.stage}. Kademe`,
-    `${getModeLabel(currentTopResultsContext.mode, currentTopResultsContext.objective, currentTopResultsContext.diversityMode, currentTopResultsContext.stoneMode)} mod`,
-    `Puan limiti ${currentTopResultsContext.maxPoints}`,
-    `${currentTopResultsContext.candidates.length} sonuc`
-  ].forEach((text) => {
-    const chip = document.createElement("span");
-    chip.textContent = text;
-    topResultsMeta.appendChild(chip);
+    ["default", "Varsayilan", "Ana", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v4H5V5zm0 5.5h9v4H5v-4zm0 5.5h14v3H5v-3z"></path></svg>'],
+    ["singularity", "Tekillik", "Tek", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.4L20 11l-4 3.9.9 5.6-4.9-2.6-4.9 2.6.9-5.6L4 11l5.4-2.6L12 3z"></path></svg>'],
+    ["units", "Kullanilan birlik", "Bir", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 11.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5zm9 0a2.5 2.5 0 110-5 2.5 2.5 0 010 5zM3.5 19a4 4 0 014-4H8a4 4 0 014 4v1H3.5v-1zm8.5 1v-1a4.7 4.7 0 00-1.3-3.2A4 4 0 0114 14h.5a4 4 0 014 4v2H12z"></path></svg>'],
+    ["blood", "Kan kaybi", "Kan", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.2 4.1 5.5 6.9 5.5 10A5.5 5.5 0 116.5 13c0-3.1 2.3-5.9 5.5-10zm0 14.5a2.5 2.5 0 002.5-2.5h-5a2.5 2.5 0 002.5 2.5z"></path></svg>']
+  ].forEach(([mode, label, shortLabel, icon]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `button button-ghost top-results-sort-button${currentTopResultsSort === mode ? " is-active" : ""}`;
+    button.innerHTML = `${icon}<span class="top-results-sort-label">${label}</span><span class="top-results-sort-label-short">${shortLabel}</span>`;
+    button.setAttribute("aria-pressed", String(currentTopResultsSort === mode));
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    button.addEventListener("click", () => {
+      if (currentTopResultsSort === mode) {
+        return;
+      }
+      currentTopResultsSort = mode;
+      renderTopResultsModal();
+    });
+    topResultsMeta.appendChild(button);
   });
 
-  currentTopResultsContext.candidates.forEach((entry, index) => {
-    topResultsList.appendChild(createTopResultCard(entry, index, currentTopResultsContext.maxPoints));
+  getSortedTopResultEntries().forEach(({ entry, sourceIndex }, index) => {
+    topResultsList.appendChild(createTopResultCard(entry, index, currentTopResultsContext.maxPoints, {
+      isPrimary: currentTopResultsSort === "default" && sourceIndex === 0
+    }));
   });
 }
 
-function createTopResultCard(entry, index, maxPoints) {
+function createTopResultCard(entry, index, maxPoints, options = {}) {
+  const isPrimary = Boolean(options.isPrimary);
   const card = document.createElement("article");
-  card.className = `top-result-card${index === 0 ? " is-primary" : ""}`;
+  card.className = `top-result-card${isPrimary ? " is-primary" : ""}`;
 
   const head = document.createElement("div");
   head.className = "top-result-head";
 
   const titleWrap = document.createElement("div");
   const title = document.createElement("strong");
-  title.textContent = index === 0 ? "Ana sonuc" : `${index + 1}. sonuc`;
+  title.textContent = isPrimary ? "Ana sonuc" : `${index + 1}. sonuc`;
   const subtitle = document.createElement("span");
   subtitle.textContent = entry.specialFocusLabel || (entry.feasible ? "Kazanabilir dizilim" : "Kazanamayan ama en yakin alternatif");
   titleWrap.append(title, subtitle);
@@ -2214,7 +2266,7 @@ function createTopResultCard(entry, index, maxPoints) {
         ["Kazanma orani", `%${Math.round(entry.winRate * 100)}`],
         [getLossMetricLabel(entry.stoneMode), `${Math.round(getDisplayedLossValue(entry))}`],
         ["Kullanilan puan", `${Math.round(entry.avgUsedPoints)} / ${maxPoints}`],
-        ["Kapasite", `${Math.round(entry.avgUsedCapacity)}`],
+        ["Kullanilan birlik", `${getSelectedUnitCount(entry)}`],
         ...(entry.stoneMode ? [["Ortalama tas", formatMetricValue(entry.avgStoneCount || 0)]] : [])
       ]
     : [
@@ -3014,11 +3066,10 @@ function restoreFromQuery() {
   optimizerMode = item.mode || "balanced";
   optimizerObjective = item.objective === "min_army" ? "min_army" : "min_loss";
   optimizerDiversityMode = Boolean(item.diversityMode);
-  optimizerStoneMode = Boolean(item.stoneMode);
+  optimizerStoneMode = false;
   modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
   syncObjectiveButtons();
   syncDiversityModeButton();
-  syncStoneModeButton();
 }
 
 function applyStageFromQuery() {
