@@ -71,7 +71,7 @@ service cloud.firestore {
         && data.stage is int && data.stage >= 1 && data.stage <= 9999
         && data.mode in ['balanced', 'fast', 'deep']
         && data.diversityMode is bool
-        && isShortString(data.modeLabel, 40)
+        && isShortString(data.modeLabel, 80)
         && isShortString(data.enemySignature, 120)
         && isShortString(data.enemyTitle, 120)
         && validEnemyCounts(data.enemyCounts)
@@ -105,21 +105,21 @@ service cloud.firestore {
         && (!('objective' in data) || data.objective in ['min_loss', 'min_army'])
         && (!('diversityMode' in data) || data.diversityMode is bool)
         && (!('stoneMode' in data) || data.stoneMode is bool)
-        && (!('modeLabel' in data) || isShortString(data.modeLabel, 40))
+        && (!('modeLabel' in data) || isShortString(data.modeLabel, 80))
         && validEnemyCounts(data.enemyCounts)
         && validAllyCounts(data.allyCounts)
         && (!('recommendationCounts' in data) || data.recommendationCounts == null || validAllyCounts(data.recommendationCounts))
         && isShortString(data.matchSignature, 200)
-        && isTextString(data.summaryText, 20000)
-        && isTextString(data.logText, 120000)
+        && isTextString(data.summaryText, 40000)
+        && isTextString(data.logText, 400000)
         && (!('possible' in data) || data.possible is bool)
         && (!('usedPoints' in data) || (data.usedPoints is int && data.usedPoints >= 0 && data.usedPoints <= 99999))
         && (!('lostBlood' in data) || data.lostBlood == null || (data.lostBlood is int && data.lostBlood >= 0 && data.lostBlood <= 999999))
         && (!('winRate' in data) || (data.winRate is int && data.winRate >= 0 && data.winRate <= 100))
         && (!('pointLimit' in data) || (data.pointLimit is int && data.pointLimit >= 0 && data.pointLimit <= 99999))
         && data.usedCapacity is int && data.usedCapacity >= 0 && data.usedCapacity <= 999999
-        && isTextString(data.actualSummaryText, 20000)
-        && isTextString(data.actualNote, 2000);
+        && isTextString(data.actualSummaryText, 40000)
+        && isTextString(data.actualNote, 4000);
     }
 
     match /approvedStrategies/{documentId} {
