@@ -456,6 +456,7 @@
       log(bannerLine(`RAUND ${roundCount}`));
       log("");
 
+      let zombiesEliminatedImmediately = false;
       let bansheesReduceRound = -1;
       let bansheesReduceTarget = -1;
       let gargoylesReduceEvent = false;
@@ -629,9 +630,14 @@
         let witchesSplashDamage = 0;
         let rotmawsOverkillDamage = 0;
 
-        const attackerDamage = ceilCombatValue(
+        let attackerDamage = ceilCombatValue(
           unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex]
         );
+        if (attackerIndex === REVIVED_INDEX && zombiesEliminatedImmediately) {
+          zombiesEliminatedImmediately = false;
+          attackerDamage = 1;
+          log(`- ${UNIT_DESC[REVIVED_INDEX][NAME_INDEX]}, ilk raund ilk hamlede dusuruldugu icin sabit 1 hasar verdi`);
+        }
         unitHealth[defenderIndex] -= attackerDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];
         const multiplierText = Math.abs(totalDamageMultiplier - 1) < 1e-9 ? "" : ` × ${totalDamageMultiplier.toFixed(2)} carpan`;
@@ -749,6 +755,10 @@
           unitNumbers[REVIVED_INDEX] = zombies;
           unitHealth[REVIVED_INDEX] = zombies * UNIT_DESC[REVIVED_INDEX][HEALTH_INDEX];
           log(`- ${UNIT_DESC[ZOMBIES_INDEX][NAME_INDEX]}, her biri 1 canla geri dirildi`);
+        }
+
+        if (defenderIndex === ZOMBIES_INDEX && roundCount === 1 && turnCount === 1 && unitNumbers[ZOMBIES_INDEX] === 0) {
+          zombiesEliminatedImmediately = true;
         }
 
         if (attackerIndex === CULTISTS_INDEX && unitNumbers[CULTISTS_INDEX] > 0) {
