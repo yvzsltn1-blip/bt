@@ -677,7 +677,16 @@
           log(`     ↳ ${UNIT_DESC[defenderIndex][NAME_INDEX]} tamamen yok edildi`);
         }
 
-        unitNumbers[defenderIndex] = Math.ceil(unitHealth[defenderIndex] / UNIT_DESC[defenderIndex][HEALTH_INDEX]);
+        if (defenderIndex === REVIVED_INDEX) {
+          if (unitHealth[defenderIndex] > 0) {
+            const baseHp = UNIT_DESC[ZOMBIES_INDEX][HEALTH_INDEX];
+            unitNumbers[defenderIndex] = Math.ceil(unitHealth[defenderIndex] / baseHp);
+          } else {
+            unitNumbers[defenderIndex] = 0;
+          }
+        } else {
+          unitNumbers[defenderIndex] = Math.ceil(unitHealth[defenderIndex] / UNIT_DESC[defenderIndex][HEALTH_INDEX]);
+        }
 
         if (unitNumbers[defenderIndex] > 0) {
           const defenderLost = unitNumbersBefore[defenderIndex] - unitNumbers[defenderIndex];
