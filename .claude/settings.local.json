@@ -14,7 +14,9 @@
       "Bash(firebase deploy *)",
       "Bash(awk '{print $5, $9}')",
       "Bash(command -v firebase)",
-      "Bash(firebase projects:list)"
+      "Bash(firebase projects:list)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

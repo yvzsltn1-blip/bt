@@ -58,9 +58,12 @@ let currentVariantAnalysis = null;
 let variantAnalysisRunId = 0;
 let isAdminSession = false;
 let currentSimulationResult = null;
-const VARIANT_SAMPLE_COUNT = 240;
+const VARIANT_SAMPLE_COUNT = 480;
 const VARIANT_INITIAL_VISIBLE_COUNT = 20;
 const VARIANT_VISIBLE_STEP = 20;
+const RANDOM_BENCHMARK_SAMPLE_COUNT = 480;
+const RANDOM_BENCHMARK_SEED_MIN = 10000;
+const RANDOM_BENCHMARK_SEED_MAX = 99999;
 
 reportWrongSimulationBtn.disabled = true;
 buildWrongLossInputs();
@@ -792,9 +795,30 @@ function paintLogPanels() {
 }
 
 function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
+  const currentSignature = buildVariantSignature(currentResult);
+  const fixedSeeds = Array.from({ length: VARIANT_SAMPLE_COUNT }, (_, index) => index + 1);
+  const fixedAnalysis = analyzeSimulationSeedSet(enemyCounts, allyCounts, fixedSeeds, currentSignature);
+  const randomSeeds = buildRandomBenchmarkSeeds(RANDOM_BENCHMARK_SAMPLE_COUNT);
+  const randomBenchmark = analyzeSimulationSeedSet(enemyCounts, allyCounts, randomSeeds);
+
+  return {
+    ...fixedAnalysis,
+    randomBenchmark: {
+      sampleCount: randomBenchmark.sampleCount,
+      averageLostBlood: randomBenchmark.averageLostBlood,
+      victoryProbability: randomBenchmark.victoryProbability,
+      defeatProbability: randomBenchmark.defeatProbability,
+      bestVariant: randomBenchmark.bestVariant,
+      worstVariant: randomBenchmark.worstVariant,
+      sampleSeeds: randomSeeds.slice(0, 5)
+    }
+  };
+}
+
+function analyzeSimulationSeedSet(enemyCounts, allyCounts, seeds, currentSignature = "") {
   const variantsBySignature = new Map();
 
-  for (let seed = 1; seed <= VARIANT_SAMPLE_COUNT; seed += 1) {
+  for (const seed of seeds) {
     const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false });
     const signature = buildVariantSignature(result);
     const existing = variantsBySignature.get(signature);
@@ -814,12 +838,11 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
     });
   }
 
-  const currentSignature = buildVariantSignature(currentResult);
   const variants = [...variantsBySignature.values()]
     .map((entry) => ({
       ...entry,
-      probability: entry.count / VARIANT_SAMPLE_COUNT,
-      isCurrent: entry.signature === currentSignature
+      probability: entry.count / seeds.length,
+      isCurrent: currentSignature ? entry.signature === currentSignature : false
     }))
     .sort((left, right) =>
       right.count - left.count ||
@@ -839,7 +862,7 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
     sum + (variant.winner === "enemy" ? variant.probability : 0), 0);
 
   return {
-    sampleCount: VARIANT_SAMPLE_COUNT,
+    sampleCount: seeds.length,
     enemyCounts: { ...enemyCounts },
     allyCounts: { ...allyCounts },
     variants,
@@ -852,6 +875,33 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
     visibleCount: Math.min(VARIANT_INITIAL_VISIBLE_COUNT, variants.length),
     focusedVariantIndex: -1
   };
+}
+
+function buildRandomBenchmarkSeeds(count = RANDOM_BENCHMARK_SAMPLE_COUNT) {
+  const seedRange = RANDOM_BENCHMARK_SEED_MAX - RANDOM_BENCHMARK_SEED_MIN + 1;
+  const uniqueSeeds = new Set();
+  const seeds = [];
+
+  while (seeds.length < count) {
+    const seed = RANDOM_BENCHMARK_SEED_MIN + getRuntimeRandomInt(seedRange);
+    if (uniqueSeeds.has(seed)) {
+      continue;
+    }
+    uniqueSeeds.add(seed);
+    seeds.push(seed);
+  }
+
+  return seeds;
+}
+
+function getRuntimeRandomInt(maxExclusive) {
+  const limit = Math.max(1, Math.floor(maxExclusive));
+  if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+    const values = new Uint32Array(1);
+    window.crypto.getRandomValues(values);
+    return values[0] % limit;
+  }
+  return Math.floor(Math.random() * limit);
 }
 
 function buildVariantSignature(result) {
@@ -922,6 +972,10 @@ function renderVariantDetails(analysis) {
     buildProbabilitySummaryCard("Zafer olasiligi", analysis.victoryProbability),
     buildProbabilitySummaryCard("Maglubiyet olasiligi", analysis.defeatProbability)
   );
+
+  const randomBenchmarkPanel = analysis.randomBenchmark
+    ? buildRandomBenchmarkPanel(analysis.randomBenchmark, analysis.sampleCount)
+    : null;
 
   const list = document.createElement("div");
   list.className = "variant-list";
@@ -996,7 +1050,11 @@ function renderVariantDetails(analysis) {
     list.appendChild(card);
   }
 
-  variantDetailsPanel.append(head, summary, list);
+  variantDetailsPanel.append(head, summary);
+  if (randomBenchmarkPanel) {
+    variantDetailsPanel.appendChild(randomBenchmarkPanel);
+  }
+  variantDetailsPanel.appendChild(list);
 
   if (analysis.visibleCount < analysis.variants.length) {
     const moreWrap = document.createElement("div");
@@ -1140,26 +1198,14 @@ function buildVariantSummaryCard(label, variant, onActivate) {
 }
 
 function buildAverageSummaryCard(averageLostBlood) {
-  const card = document.createElement("section");
-  card.className = "variant-summary-card";
-
-  const heading = document.createElement("span");
-  heading.className = "variant-summary-label";
-  heading.textContent = "Ortalama kan kaybi";
-
-  const value = document.createElement("strong");
-  value.className = "variant-summary-value";
-  value.textContent = `${formatAverageValue(averageLostBlood)} kan`;
-
-  const meta = document.createElement("span");
-  meta.className = "variant-summary-meta";
-  meta.textContent = "Agirlikli beklenen deger";
-
-  card.append(heading, value, meta);
-  return card;
+  return buildMetricSummaryCard("Ortalama kan kaybi", `${formatAverageValue(averageLostBlood)} kan`, "Agirlikli beklenen deger");
 }
 
 function buildProbabilitySummaryCard(label, probability) {
+  return buildMetricSummaryCard(label, `%${formatProbability(probability)}`, "Seed dagilimi uzerinden tahmini oran");
+}
+
+function buildMetricSummaryCard(label, value, metaText) {
   const card = document.createElement("section");
   card.className = "variant-summary-card";
 
@@ -1167,16 +1213,56 @@ function buildProbabilitySummaryCard(label, probability) {
   heading.className = "variant-summary-label";
   heading.textContent = label;
 
-  const value = document.createElement("strong");
-  value.className = "variant-summary-value";
-  value.textContent = `%${formatProbability(probability)}`;
+  const valueNode = document.createElement("strong");
+  valueNode.className = "variant-summary-value";
+  valueNode.textContent = value;
 
   const meta = document.createElement("span");
   meta.className = "variant-summary-meta";
-  meta.textContent = "Seed dagilimi uzerinden tahmini oran";
+  meta.textContent = metaText;
 
-  card.append(heading, value, meta);
+  card.append(heading, valueNode, meta);
   return card;
+}
+
+function buildRandomBenchmarkPanel(benchmark, fixedSampleCount) {
+  const wrapper = document.createElement("section");
+  wrapper.className = "variant-benchmark-panel";
+
+  const head = document.createElement("div");
+  head.className = "variant-benchmark-head";
+  head.innerHTML = `
+    <strong>Ek benchmark: random ${benchmark.sampleCount} seed</strong>
+    <span>Bu calistirmada uretilen alternatif 5 haneli seed blogu. Sabit 1..${fixedSampleCount} sonucunu degistirmez, sadece ek guven resmi verir.</span>
+  `;
+
+  const grid = document.createElement("div");
+  grid.className = "variant-summary variant-summary-secondary";
+  grid.append(
+    buildMetricSummaryCard(
+      "Random ortalama kan kaybi",
+      `${formatAverageValue(benchmark.averageLostBlood)} kan`,
+      `Ornek seedler: ${(benchmark.sampleSeeds || []).join(", ")}`
+    ),
+    buildMetricSummaryCard(
+      "Random zafer olasiligi",
+      `%${formatProbability(benchmark.victoryProbability)}`,
+      "Alternatif benchmark blok sonucu"
+    ),
+    buildMetricSummaryCard(
+      "Random maglubiyet olasiligi",
+      `%${formatProbability(benchmark.defeatProbability)}`,
+      "Alternatif benchmark blok sonucu"
+    ),
+    buildMetricSummaryCard(
+      "Random min / max",
+      `${benchmark.bestVariant?.lostBloodTotal ?? "-"} / ${benchmark.worstVariant?.lostBloodTotal ?? "-"}`,
+      "Bu bloktaki en iyi ve en kotu sonuc"
+    )
+  );
+
+  wrapper.append(head, grid);
+  return wrapper;
 }
 
 function formatProbability(value) {

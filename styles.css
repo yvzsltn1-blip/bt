@@ -284,6 +284,7 @@ body {
   border-radius: 18px;
   background: rgba(8, 12, 18, 0.5);
   padding: 14px;
+  font-family: "Bahnschrift", "Segoe UI Variable", "Aptos", "Trebuchet MS", sans-serif;
 }
 
 .variant-loading-state {
@@ -324,6 +325,11 @@ body {
   margin-bottom: 12px;
 }
 
+.variant-summary-secondary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 0;
+}
+
 .variant-summary-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
@@ -331,6 +337,7 @@ body {
   padding: 12px;
   display: grid;
   gap: 4px;
+  font-family: inherit;
 }
 
 .variant-summary-card.is-action {
@@ -366,6 +373,39 @@ body {
 .variant-summary-meta {
   color: var(--muted);
   font-size: 0.74rem;
+}
+
+.variant-benchmark-panel {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 214, 102, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 214, 102, 0.08), rgba(255, 255, 255, 0.02));
+  font-family: "Bahnschrift", "Segoe UI Variable", "Aptos", "Trebuchet MS", sans-serif;
+}
+
+.variant-benchmark-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.variant-benchmark-head strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #ffe7a8;
+}
+
+.variant-benchmark-head span {
+  color: rgba(245, 233, 204, 0.82);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  line-height: 1.45;
+  max-width: 620px;
 }
 
 .variant-list {
@@ -458,6 +498,10 @@ body {
 
 @media (max-width: 720px) {
   .variant-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-summary-secondary {
     grid-template-columns: 1fr;
   }
 }
