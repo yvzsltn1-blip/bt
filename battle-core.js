@@ -357,7 +357,6 @@
 
   function simulateBattle(enemyCounts, allyCounts, options = {}) {
     const collectLog = options.collectLog !== false;
-    const gargoylesDualSlow = options.gargoylesDualSlow === true;
     const rng = createRng(options.seed);
     const logs = [];
     const log = (line = "") => {
@@ -458,22 +457,10 @@
 
       let bansheesReduceRound = -1;
       let bansheesReduceTarget = -1;
-      let gargoylesReduceEvent = false;
-      let gargoylesReduceEnemyIndex = -1;
       let gargoylesReactiveReduceEvent = false;
       let gargoylesReactiveReduceEnemyIndex = -1;
 
       if (unitNumbers[GARGOYLES_INDEX] > 0) {
-        for (let k = 0; k < 100; k += 1) {
-          const randomIndex = randomInt(unitNumbers.length, rng);
-          if (unitNumbers[randomIndex] > 0 && UNIT_DESC[randomIndex][SIDE_INDEX] === "enemy") {
-            unitSpeed[randomIndex] -= 2;
-            gargoylesReduceEnemyIndex = randomIndex;
-            gargoylesReduceEvent = true;
-            break;
-          }
-        }
-
         orders = buildOrders(unitSpeed);
         attackerOrder = orders.attackerOrder;
         defenderOrderFrontFirst = orders.defenderOrderFrontFirst;
@@ -638,13 +625,7 @@
         log(`  ${UNIT_DESC[attackerIndex][NAME_INDEX]} → ${UNIT_DESC[defenderIndex][NAME_INDEX]}`);
         log(`     Hesap: ${unitNumbers[attackerIndex]} birim × ${UNIT_DESC[attackerIndex][ATTACK_INDEX]} atk${multiplierText} = ${attackerDamage} hasar`);
 
-        if (gargoylesReduceEvent) {
-          log(`- ${UNIT_DESC[GARGOYLES_INDEX][NAME_INDEX]}, ${UNIT_DESC[gargoylesReduceEnemyIndex][NAME_INDEX]} hizini 2 azaltti; ${UNIT_DESC[gargoylesReduceEnemyIndex][NAME_INDEX]} hizi artik ${unitSpeed[gargoylesReduceEnemyIndex]}`);
-          gargoylesReduceEvent = false;
-        }
-
         if (
-          gargoylesDualSlow &&
           defenderIndex === GARGOYLES_INDEX &&
           UNIT_DESC[attackerIndex][SIDE_INDEX] === "enemy"
         ) {
@@ -652,7 +633,6 @@
           gargoylesReactiveReduceEnemyIndex = attackerIndex;
           gargoylesReactiveReduceEvent = true;
           orders = buildOrders(unitSpeed);
-          attackerOrder = orders.attackerOrder;
           defenderOrderFrontFirst = orders.defenderOrderFrontFirst;
           defenderOrderRearFirst = orders.defenderOrderRearFirst;
         }
