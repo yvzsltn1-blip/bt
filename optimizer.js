@@ -67,6 +67,7 @@ const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
 const ROSTER_CLIPBOARD_STORAGE_KEY = "bt-analiz.optimizer.rosterClipboard.v1";
 const ROSTER_CLIPBOARD_TTL_MS = 60 * 1000;
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
 
 let optimizerSearchSession = createEmptySearchSession();
 let optimizerMode = "balanced";
@@ -844,7 +845,7 @@ function pickBetterOptimizerResult(left, right) {
   const rightSource = right.possible ? right.recommendation : right.fallback || right.fullArmyEvaluation;
   const objective = rightSource?.objective || leftSource?.objective || "min_loss";
   const stoneMode = Boolean(rightSource?.stoneMode || leftSource?.stoneMode);
-  const lossKey = stoneMode ? "avgStoneAdjustedLostBlood" : "avgLostBlood";
+  const lossKey = stoneMode ? "expectedStoneAdjustedLostBlood" : "expectedLostBlood";
 
   if (left.possible !== right.possible) {
     return left.possible ? left : right;
@@ -1420,7 +1421,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       `- beklenen kazanma orani: %${Math.round(recommendation.winRate * 100)}`,
       `- ${lossLabel}: ${Math.round(getDisplayedLossValue(recommendation))}`,
       `- kullanilan puan: ${Math.round(recommendation.avgUsedPoints)}`,
-      ...(meta.stoneMode ? [`- ortalama tas ihtiyaci: ${formatMetricValue(source?.avgStoneCount || 0)}`] : []),
+      ...(meta.stoneMode ? [`- ortalama tas ihtiyaci: ${formatMetricValue(getDisplayedStoneCount(source))}`] : []),
       ...progressLines
     ];
   } else {
@@ -1465,7 +1466,9 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     diversityMode: meta.diversityMode,
     stoneMode: meta.stoneMode,
     enemyCounts,
-    candidates: buildDisplayedTopCandidates(result)
+    candidates: buildDisplayedTopCandidates(result),
+    benchmarkedCandidates: null,
+    benchmarkPromise: null
   };
   currentTopResultsSort = "default";
   topResultsBtn.disabled = !currentTopResultsContext.candidates.length;
@@ -1518,14 +1521,21 @@ function createComparisonSnapshot(source, meta) {
     modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode),
     feasible: Boolean(source.feasible),
     winRate: source.winRate || 0,
+    expectedLostBlood: Number.isFinite(source.expectedLostBlood) ? source.expectedLostBlood : null,
+    expectedLostUnits: Number.isFinite(source.expectedLostUnits) ? source.expectedLostUnits : null,
     avgLostBlood: Number.isFinite(source.avgLostBlood) ? source.avgLostBlood : null,
+    expectedStoneAdjustedLostBlood: Number.isFinite(source.expectedStoneAdjustedLostBlood) ? source.expectedStoneAdjustedLostBlood : null,
+    expectedStoneAdjustedLostUnits: Number.isFinite(source.expectedStoneAdjustedLostUnits) ? source.expectedStoneAdjustedLostUnits : null,
     avgStoneAdjustedLostBlood: Number.isFinite(source.avgStoneAdjustedLostBlood) ? source.avgStoneAdjustedLostBlood : null,
     avgStoneAdjustedLostUnits: Number.isFinite(source.avgStoneAdjustedLostUnits) ? source.avgStoneAdjustedLostUnits : null,
+    expectedStoneCount: source.expectedStoneCount || 0,
     avgStoneCount: source.avgStoneCount || 0,
     avgUsedPoints: source.avgUsedPoints || 0,
     avgUsedCapacity: source.avgUsedCapacity || 0,
     avgEnemyRemainingHealth: source.avgEnemyRemainingHealth || 0,
     avgEnemyRemainingUnits: source.avgEnemyRemainingUnits || 0,
+    expectedAllyLosses: { ...(source.expectedAllyLosses || {}) },
+    expectedStoneAdjustedAllyLosses: { ...(source.expectedStoneAdjustedAllyLosses || {}) },
     avgAllyLosses: { ...(source.avgAllyLosses || {}) },
     avgStoneAdjustedAllyLosses: { ...(source.avgStoneAdjustedAllyLosses || {}) },
     objective: meta.objective,
@@ -1705,8 +1715,15 @@ function getComparisonBenchmark(entry) {
 
 function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
   let wins = 0;
+  let totalLostBloodSum = 0;
+  let totalLostUnitsSum = 0;
+  let totalLostBloodSquaredSum = 0;
   let lostBloodSum = 0;
   let lostUnitsSum = 0;
+  let totalStoneAdjustedLostBloodSum = 0;
+  let totalStoneAdjustedLostUnitsSum = 0;
+  let totalStoneCountSum = 0;
+  let totalStoneAdjustedLostBloodSquaredSum = 0;
   let stoneAdjustedLostBloodSum = 0;
   let stoneAdjustedLostUnitsSum = 0;
   let stoneCountSum = 0;
@@ -1714,6 +1731,12 @@ function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
   let usedPointsSum = 0;
   let enemyRemainingHealthSum = 0;
   let enemyRemainingUnitsSum = 0;
+  let minLostBlood = Number.POSITIVE_INFINITY;
+  let maxLostBlood = Number.NEGATIVE_INFINITY;
+  let minStoneAdjustedLostBlood = Number.POSITIVE_INFINITY;
+  let maxStoneAdjustedLostBlood = Number.NEGATIVE_INFINITY;
+  const totalAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+  const totalStoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
   const allyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
   const stoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
 
@@ -1723,11 +1746,26 @@ function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
     usedPointsSum += result.usedPoints;
     enemyRemainingHealthSum += result.enemyRemainingHealth;
     enemyRemainingUnitsSum += result.enemyRemainingUnits;
+    totalLostBloodSum += result.lostBloodTotal;
+    totalLostUnitsSum += result.lostUnitsTotal;
+    totalLostBloodSquaredSum += result.lostBloodTotal * result.lostBloodTotal;
+    const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
+    totalStoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
+    totalStoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
+    totalStoneCountSum += stoneProfile.stoneCount;
+    totalStoneAdjustedLostBloodSquaredSum += stoneProfile.permanentLostBlood * stoneProfile.permanentLostBlood;
+    minLostBlood = Math.min(minLostBlood, result.lostBloodTotal);
+    maxLostBlood = Math.max(maxLostBlood, result.lostBloodTotal);
+    minStoneAdjustedLostBlood = Math.min(minStoneAdjustedLostBlood, stoneProfile.permanentLostBlood);
+    maxStoneAdjustedLostBlood = Math.max(maxStoneAdjustedLostBlood, stoneProfile.permanentLostBlood);
+    ALLY_UNITS.forEach((unit) => {
+      totalAllyLossesSum[unit.key] += result.allyLosses?.[unit.key] || 0;
+      totalStoneAdjustedAllyLossesSum[unit.key] += stoneProfile.permanentLossesByKey[unit.key] || 0;
+    });
     if (result.winner === "ally") {
       wins += 1;
       lostBloodSum += result.lostBloodTotal;
       lostUnitsSum += result.lostUnitsTotal;
-      const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
       stoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
       stoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
       stoneCountSum += stoneProfile.stoneCount;
@@ -1739,21 +1777,45 @@ function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
   });
 
   const winRate = wins / seeds.length;
+  const expectedLostBlood = totalLostBloodSum / seeds.length;
+  const expectedStoneAdjustedLostBlood = totalStoneAdjustedLostBloodSum / seeds.length;
+  const expectedLostBloodVariance = Math.max(0, totalLostBloodSquaredSum / seeds.length - expectedLostBlood * expectedLostBlood);
+  const expectedStoneAdjustedLostBloodVariance = Math.max(
+    0,
+    totalStoneAdjustedLostBloodSquaredSum / seeds.length - expectedStoneAdjustedLostBlood * expectedStoneAdjustedLostBlood
+  );
   return {
     ...snapshot,
     trials: seeds.length,
     wins,
     winRate,
     feasible: winRate >= 0.75,
+    expectedLostBlood,
+    expectedLostUnits: totalLostUnitsSum / seeds.length,
     avgLostBlood: wins > 0 ? lostBloodSum / wins : null,
     avgLostUnits: wins > 0 ? lostUnitsSum / wins : null,
+    expectedLostBloodVariance,
+    minLostBlood: Number.isFinite(minLostBlood) ? minLostBlood : null,
+    maxLostBlood: Number.isFinite(maxLostBlood) ? maxLostBlood : null,
+    expectedStoneAdjustedLostBlood,
+    expectedStoneAdjustedLostUnits: totalStoneAdjustedLostUnitsSum / seeds.length,
     avgStoneAdjustedLostBlood: wins > 0 ? stoneAdjustedLostBloodSum / wins : null,
     avgStoneAdjustedLostUnits: wins > 0 ? stoneAdjustedLostUnitsSum / wins : null,
+    expectedStoneAdjustedLostBloodVariance,
+    minStoneAdjustedLostBlood: Number.isFinite(minStoneAdjustedLostBlood) ? minStoneAdjustedLostBlood : null,
+    maxStoneAdjustedLostBlood: Number.isFinite(maxStoneAdjustedLostBlood) ? maxStoneAdjustedLostBlood : null,
+    expectedStoneCount: totalStoneCountSum / seeds.length,
     avgStoneCount: wins > 0 ? stoneCountSum / wins : 0,
     avgUsedCapacity: usedCapacitySum / seeds.length,
     avgUsedPoints: usedPointsSum / seeds.length,
     avgEnemyRemainingHealth: enemyRemainingHealthSum / seeds.length,
     avgEnemyRemainingUnits: enemyRemainingUnitsSum / seeds.length,
+    expectedAllyLosses: Object.fromEntries(
+      ALLY_UNITS.map((unit) => [unit.key, totalAllyLossesSum[unit.key] / seeds.length])
+    ),
+    expectedStoneAdjustedAllyLosses: Object.fromEntries(
+      ALLY_UNITS.map((unit) => [unit.key, totalStoneAdjustedAllyLossesSum[unit.key] / seeds.length])
+    ),
     avgAllyLosses: Object.fromEntries(
       ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? allyLossesSum[unit.key] / wins : 0])
     ),
@@ -1781,7 +1843,9 @@ function getDisplayedLossValue(entry) {
     return Number.POSITIVE_INFINITY;
   }
   const stoneMode = Boolean(entry.stoneMode);
-  const value = stoneMode ? entry.avgStoneAdjustedLostBlood : entry.avgLostBlood;
+  const value = stoneMode
+    ? (entry.expectedStoneAdjustedLostBlood ?? entry.avgStoneAdjustedLostBlood)
+    : (entry.expectedLostBlood ?? entry.avgLostBlood);
   return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
 }
 
@@ -1790,12 +1854,51 @@ function getDisplayedLossUnits(entry) {
     return Number.POSITIVE_INFINITY;
   }
   const stoneMode = Boolean(entry.stoneMode);
-  const value = stoneMode ? entry.avgStoneAdjustedLostUnits : entry.avgLostUnits;
+  const value = stoneMode
+    ? (entry.expectedStoneAdjustedLostUnits ?? entry.avgStoneAdjustedLostUnits)
+    : (entry.expectedLostUnits ?? entry.avgLostUnits);
   return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
 }
 
 function getDisplayedLossBreakdownSource(entry) {
-  return entry?.stoneMode ? (entry.avgStoneAdjustedAllyLosses || {}) : (entry?.avgAllyLosses || {});
+  return entry?.stoneMode
+    ? (entry.expectedStoneAdjustedAllyLosses || entry.avgStoneAdjustedAllyLosses || {})
+    : (entry?.expectedAllyLosses || entry?.avgAllyLosses || {});
+}
+
+function getDisplayedLossRange(entry) {
+  if (!entry) {
+    return { min: null, max: null };
+  }
+  return entry.stoneMode
+    ? {
+        min: Number.isFinite(entry.minStoneAdjustedLostBlood) ? entry.minStoneAdjustedLostBlood : null,
+        max: Number.isFinite(entry.maxStoneAdjustedLostBlood) ? entry.maxStoneAdjustedLostBlood : null
+      }
+    : {
+        min: Number.isFinite(entry.minLostBlood) ? entry.minLostBlood : null,
+        max: Number.isFinite(entry.maxLostBlood) ? entry.maxLostBlood : null
+      };
+}
+
+function getDisplayedLossVariance(entry) {
+  if (!entry) {
+    return null;
+  }
+  const value = entry.stoneMode
+    ? entry.expectedStoneAdjustedLostBloodVariance
+    : entry.expectedLostBloodVariance;
+  return Number.isFinite(value) ? value : null;
+}
+
+function getDisplayedLossStdDev(entry) {
+  const variance = getDisplayedLossVariance(entry);
+  return Number.isFinite(variance) ? Math.sqrt(Math.max(0, variance)) : null;
+}
+
+function getDisplayedStoneCount(entry) {
+  const value = entry?.expectedStoneCount ?? entry?.avgStoneCount;
+  return Number.isFinite(value) ? value : 0;
 }
 
 function getLossMetricLabel(stoneMode) {
@@ -2019,12 +2122,23 @@ function compareTopResultsBySortMode(left, right, sortMode = "default") {
 }
 
 function getSortedTopResultEntries() {
-  const source = currentTopResultsContext?.candidates || [];
-  if (!source.length || currentTopResultsSort === "default") {
-    return source.map((entry, sourceIndex) => ({ entry, sourceIndex }));
+  const defaultSource = currentTopResultsContext?.candidates || [];
+  const benchmarkedSource = currentTopResultsContext?.benchmarkedCandidates || [];
+  if (!defaultSource.length) {
+    return [];
   }
 
-  return source
+  if (currentTopResultsSort === "default") {
+    const benchmarkedBySignature = new Map(
+      benchmarkedSource.map((entry) => [getOptimizerCandidateSignature(entry), entry])
+    );
+    return defaultSource.map((entry, sourceIndex) => ({
+      entry: benchmarkedBySignature.get(getOptimizerCandidateSignature(entry)) || entry,
+      sourceIndex
+    }));
+  }
+
+  return benchmarkedSource
     .map((entry, sourceIndex) => ({ entry, sourceIndex }))
     .sort((left, right) => {
       const compare = compareTopResultsBySortMode(left.entry, right.entry, currentTopResultsSort);
@@ -2158,6 +2272,51 @@ function compareSingularityFocusedCandidates(left, right) {
   return compareAlternativeTopCandidates(left, right);
 }
 
+function compareSingularitySlotCandidates(left, right) {
+  if (left.feasible !== right.feasible) {
+    return left.feasible ? -1 : 1;
+  }
+
+  const leftProfile = getRoundedSingularityProfile(left);
+  const rightProfile = getRoundedSingularityProfile(right);
+
+  if (leftProfile.permanentLostUnits !== rightProfile.permanentLostUnits) {
+    return leftProfile.permanentLostUnits - rightProfile.permanentLostUnits;
+  }
+  if (leftProfile.permanentLostBlood !== rightProfile.permanentLostBlood) {
+    return leftProfile.permanentLostBlood - rightProfile.permanentLostBlood;
+  }
+
+  const leftSelectedUnits = getSelectedUnitCount(left);
+  const rightSelectedUnits = getSelectedUnitCount(right);
+  if (leftSelectedUnits !== rightSelectedUnits) {
+    return leftSelectedUnits - rightSelectedUnits;
+  }
+
+  const leftDisplayedLoss = getDisplayedLossValue(left);
+  const rightDisplayedLoss = getDisplayedLossValue(right);
+  if (leftDisplayedLoss !== rightDisplayedLoss) {
+    return leftDisplayedLoss - rightDisplayedLoss;
+  }
+
+  const leftRounded = getRoundedLossMetrics(left);
+  const rightRounded = getRoundedLossMetrics(right);
+  if (leftRounded.repeatedOverflow !== rightRounded.repeatedOverflow) {
+    return leftRounded.repeatedOverflow - rightRounded.repeatedOverflow;
+  }
+  if (leftRounded.maxRepeatedStack !== rightRounded.maxRepeatedStack) {
+    return leftRounded.maxRepeatedStack - rightRounded.maxRepeatedStack;
+  }
+  if (leftRounded.singletonTypes !== rightRounded.singletonTypes) {
+    return rightRounded.singletonTypes - leftRounded.singletonTypes;
+  }
+  if (leftRounded.roundedBloodLoss !== rightRounded.roundedBloodLoss) {
+    return leftRounded.roundedBloodLoss - rightRounded.roundedBloodLoss;
+  }
+
+  return compareSingularityFocusedCandidates(left, right);
+}
+
 function chooseSingularityFocusedCandidate(alternatives) {
   if (!alternatives.length) {
     return null;
@@ -2165,44 +2324,7 @@ function chooseSingularityFocusedCandidate(alternatives) {
 
   const pool = alternatives.filter((entry) => entry.feasible);
   const source = pool.length ? pool : alternatives;
-  const frontier = source.filter((candidate, index) =>
-    !source.some((other, otherIndex) => otherIndex !== index && dominatesSingularityCandidate(other, candidate))
-  );
-  const metricsList = frontier.map((entry) => getSingularityFocusMetrics(entry));
-  const selectedUnitsValues = metricsList.map((metrics) => metrics.selectedUnits);
-  const permanentLostBloodValues = metricsList.map((metrics) => metrics.permanentLostBlood);
-  const permanentLostUnitsValues = metricsList.map((metrics) => metrics.permanentLostUnits);
-  const repeatedOverflowValues = metricsList.map((metrics) => metrics.repeatedOverflow);
-  const singletonTypesValues = metricsList.map((metrics) => metrics.singletonTypes);
-
-  const minSelectedUnits = Math.min(...selectedUnitsValues);
-  const maxSelectedUnits = Math.max(...selectedUnitsValues);
-  const minPermanentLostBlood = Math.min(...permanentLostBloodValues);
-  const maxPermanentLostBlood = Math.max(...permanentLostBloodValues);
-  const minPermanentLostUnits = Math.min(...permanentLostUnitsValues);
-  const maxPermanentLostUnits = Math.max(...permanentLostUnitsValues);
-  const minRepeatedOverflow = Math.min(...repeatedOverflowValues);
-  const maxRepeatedOverflow = Math.max(...repeatedOverflowValues);
-  const minSingletonTypes = Math.min(...singletonTypesValues);
-  const maxSingletonTypes = Math.max(...singletonTypesValues);
-
-  return frontier
-    .map((entry) => {
-      const metrics = getSingularityFocusMetrics(entry);
-      const score =
-        normalizeMetric(metrics.selectedUnits, minSelectedUnits, maxSelectedUnits) * 0.5 +
-        normalizeMetric(metrics.permanentLostBlood, minPermanentLostBlood, maxPermanentLostBlood) * 0.3 +
-        normalizeMetric(metrics.permanentLostUnits, minPermanentLostUnits, maxPermanentLostUnits) * 0.12 +
-        normalizeMetric(metrics.repeatedOverflow, minRepeatedOverflow, maxRepeatedOverflow) * 0.08 -
-        normalizeMetric(metrics.singletonTypes, minSingletonTypes, maxSingletonTypes) * 0.04;
-      return { entry, score };
-    })
-    .sort((left, right) => {
-      if (left.score !== right.score) {
-        return left.score - right.score;
-      }
-      return compareSingularityFocusedCandidates(left.entry, right.entry);
-    })[0]?.entry || null;
+  return [...source].sort(compareSingularitySlotCandidates)[0] || null;
 }
 
 function buildDisplayedTopCandidates(result) {
@@ -2216,7 +2338,13 @@ function buildDisplayedTopCandidates(result) {
   const alternatives = ranked
     .filter((entry) => getOptimizerCandidateSignature(entry) !== primarySignature);
 
-  const sortedAlternatives = [...alternatives].sort(compareAlternativeTopCandidates);
+  const sortedAlternatives = [...alternatives].sort((left, right) => {
+    const compare = compareTopResultsBySortMode(left, right, "blood");
+    if (compare !== 0) {
+      return compare;
+    }
+    return compareOptimizerCandidates(left, right);
+  });
   const singularityCandidate = chooseSingularityFocusedCandidate(alternatives);
   const singularitySignature = singularityCandidate ? getOptimizerCandidateSignature(singularityCandidate) : "";
   const displayAlternatives = sortedAlternatives
@@ -2241,9 +2369,92 @@ function buildDisplayedTopCandidates(result) {
   ].slice(0, 6);
 }
 
+function getTopResultsBenchmarkSeeds() {
+  return Array.from({ length: TOP_RESULTS_BENCHMARK_SAMPLE_COUNT }, (_, index) => index + 1);
+}
+
+function compareTopResultEntriesByBlood(left, right) {
+  const compare = compareTopResultsBySortMode(left, right, "blood");
+  if (compare !== 0) {
+    return compare;
+  }
+  return compareOptimizerCandidates(left, right);
+}
+
+function normalizeScoreValue(value, min, max, options = {}) {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+    return 1;
+  }
+  const ratio = (value - min) / (max - min);
+  return options.invert ? 1 - ratio : ratio;
+}
+
+function attachTopResultSmartScores(entries) {
+  if (!entries.length) {
+    return entries;
+  }
+
+  const winRates = entries.map((entry) => entry.winRate || 0);
+  const losses = entries.map((entry) => getDisplayedLossValue(entry));
+  const risks = entries.map((entry) => getDisplayedLossStdDev(entry) ?? 0);
+  const minWinRate = Math.min(...winRates);
+  const maxWinRate = Math.max(...winRates);
+  const minLoss = Math.min(...losses);
+  const maxLoss = Math.max(...losses);
+  const minRisk = Math.min(...risks);
+  const maxRisk = Math.max(...risks);
+
+  return entries.map((entry) => {
+    const winComponent = normalizeScoreValue(entry.winRate || 0, minWinRate, maxWinRate);
+    const lossComponent = normalizeScoreValue(getDisplayedLossValue(entry), minLoss, maxLoss, { invert: true });
+    const riskComponent = normalizeScoreValue(getDisplayedLossStdDev(entry) ?? 0, minRisk, maxRisk, { invert: true });
+    const smartScore = (winComponent * 0.45 + lossComponent * 0.4 + riskComponent * 0.15) * 100;
+    return {
+      ...entry,
+      smartScore
+    };
+  });
+}
+
+async function ensureTopResultsBenchmarked() {
+  const context = currentTopResultsContext;
+  if (!context || !context.candidates.length || context.benchmarkedCandidates) {
+    return;
+  }
+
+  if (context.benchmarkPromise) {
+    await context.benchmarkPromise;
+    return;
+  }
+
+  context.benchmarkPromise = Promise.resolve().then(() => {
+    const seeds = getTopResultsBenchmarkSeeds();
+    context.benchmarkedCandidates = attachTopResultSmartScores(context.candidates
+      .map((entry) => ({
+        ...evaluateComparisonSnapshot(context.enemyCounts, entry, seeds),
+        signature: getOptimizerCandidateSignature(entry),
+        counts: { ...(entry.counts || {}) },
+        objective: entry.objective,
+        stoneMode: entry.stoneMode,
+        specialFocus: entry.specialFocus,
+        specialFocusLabel: entry.specialFocusLabel,
+        specialFocusBadge: entry.specialFocusBadge
+      }))
+      .sort(compareTopResultEntriesByBlood));
+  }).finally(() => {
+    context.benchmarkPromise = null;
+    if (context === currentTopResultsContext && !topResultsModal.hidden) {
+      renderTopResultsModal();
+    }
+  });
+
+  await context.benchmarkPromise;
+}
+
 function openTopResultsModal() {
-  renderTopResultsModal();
   topResultsModal.hidden = false;
+  renderTopResultsModal();
+  void ensureTopResultsBenchmarked();
 }
 
 function closeTopResultsModal() {
@@ -2282,6 +2493,11 @@ function renderTopResultsModal() {
     topResultsMeta.appendChild(button);
   });
 
+  if (!currentTopResultsContext.benchmarkedCandidates) {
+    topResultsList.innerHTML = `<div class="variant-loading-state">${TOP_RESULTS_BENCHMARK_SAMPLE_COUNT} sabit seed ile ortalama kayiplar dogrulaniyor...</div>`;
+    return;
+  }
+
   getSortedTopResultEntries().forEach(({ entry, sourceIndex }, index) => {
     topResultsList.appendChild(createTopResultCard(entry, index, currentTopResultsContext.maxPoints, {
       isPrimary: currentTopResultsSort === "default" && sourceIndex === 0
@@ -2317,7 +2533,7 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
         [getLossMetricLabel(entry.stoneMode), `${Math.round(getDisplayedLossValue(entry))}`],
         ["Kullanilan puan", `${Math.round(entry.avgUsedPoints)} / ${maxPoints}`],
         ["Kullanilan birlik", `${getSelectedUnitCount(entry)}`],
-        ...(entry.stoneMode ? [["Ortalama tas", formatMetricValue(entry.avgStoneCount || 0)]] : [])
+        ...(entry.stoneMode ? [["Ortalama tas", formatMetricValue(getDisplayedStoneCount(entry))]] : [])
       ]
     : [
         ["Kazanma orani", `%${Math.round(entry.winRate * 100)}`],
@@ -2332,8 +2548,37 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
     const labelNode = document.createElement("span");
     labelNode.textContent = label;
     const valueNode = document.createElement("strong");
-    valueNode.textContent = value;
-    stat.append(labelNode, valueNode);
+    if (label === getLossMetricLabel(entry.stoneMode) && entry.feasible) {
+      stat.classList.add("top-result-stat-loss");
+      const headRow = document.createElement("div");
+      headRow.className = "top-result-stat-head";
+      labelNode.classList.add("top-result-stat-label");
+      headRow.appendChild(labelNode);
+      if (Number.isFinite(entry.smartScore)) {
+        const scoreNode = document.createElement("span");
+        scoreNode.className = "top-result-smart-badge";
+        scoreNode.textContent = entry.smartScore.toFixed(1);
+        headRow.appendChild(scoreNode);
+      }
+      stat.appendChild(headRow);
+      valueNode.className = "top-result-loss-value-wrap";
+      const mainValue = document.createElement("span");
+      mainValue.className = "top-result-loss-value";
+      mainValue.textContent = value;
+      valueNode.appendChild(mainValue);
+
+      const range = getDisplayedLossRange(entry);
+      if (Number.isFinite(range.min) && Number.isFinite(range.max)) {
+        const rangeNode = document.createElement("span");
+        rangeNode.className = "top-result-loss-range";
+        rangeNode.textContent = `min ${Math.round(range.min)} / max ${Math.round(range.max)}`;
+        valueNode.appendChild(rangeNode);
+      }
+    } else {
+      stat.appendChild(labelNode);
+      valueNode.textContent = value;
+    }
+    stat.appendChild(valueNode);
 
     if (label === getLossMetricLabel(entry.stoneMode)) {
       const lossNote = document.createElement("small");
@@ -2389,7 +2634,7 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
     ...(entry.specialFocus === "singleton"
       ? [["Tekillik sonrasi kalici kayip", formatSingularityFocusSummary(entry)]]
       : []),
-    ...(entry.stoneMode ? [["Ortalama tas", formatMetricValue(entry.avgStoneCount || 0)]] : [])
+    ...(entry.stoneMode ? [["Ortalama tas", formatMetricValue(getDisplayedStoneCount(entry))]] : [])
   ].forEach(([label, value]) => {
     const row = document.createElement("li");
     row.className = "recommend-row";
@@ -2479,7 +2724,7 @@ function formatCandidateLossBreakdown(entry) {
   }
 
   if (entry?.stoneMode) {
-    return `${parts.join(", ")} | ~${formatMetricValue(entry.avgStoneCount || 0)} tas`;
+    return `${parts.join(", ")} | ~${formatMetricValue(getDisplayedStoneCount(entry))} tas`;
   }
   return parts.join(", ");
 }
@@ -2502,7 +2747,7 @@ function renderRecommendationCards(result, maxPoints, meta) {
     [getLossMetricLabel(meta.stoneMode), result.possible ? `${Math.round(getDisplayedLossValue(source))}` : "Kazanis yok"],
     ["Kazanma orani", `%${Math.round(source.winRate * 100)}`],
     ["Toplam tarama", `${meta.totalCandidates} aday`],
-    ...(meta.stoneMode ? [["Ortalama tas", formatMetricValue(source.avgStoneCount || 0)]] : [])
+    ...(meta.stoneMode ? [["Ortalama tas", formatMetricValue(getDisplayedStoneCount(source))]] : [])
   ];
 
   stats.forEach(([label, value]) => {

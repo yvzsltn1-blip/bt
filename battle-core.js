@@ -456,7 +456,6 @@
       log(bannerLine(`RAUND ${roundCount}`));
       log("");
 
-      let zombiesEliminatedImmediately = false;
       let bansheesReduceRound = -1;
       let bansheesReduceTarget = -1;
       let gargoylesReduceEvent = false;
@@ -630,14 +629,9 @@
         let witchesSplashDamage = 0;
         let rotmawsOverkillDamage = 0;
 
-        let attackerDamage = ceilCombatValue(
+        const attackerDamage = ceilCombatValue(
           unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex]
         );
-        if (attackerIndex === REVIVED_INDEX && zombiesEliminatedImmediately) {
-          zombiesEliminatedImmediately = false;
-          attackerDamage = 1;
-          log(`- ${UNIT_DESC[REVIVED_INDEX][NAME_INDEX]}, ilk raund ilk hamlede dusuruldugu icin sabit 1 hasar verdi`);
-        }
         unitHealth[defenderIndex] -= attackerDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];
         const multiplierText = Math.abs(totalDamageMultiplier - 1) < 1e-9 ? "" : ` × ${totalDamageMultiplier.toFixed(2)} carpan`;
@@ -756,11 +750,6 @@
           unitHealth[REVIVED_INDEX] = zombies * UNIT_DESC[REVIVED_INDEX][HEALTH_INDEX];
           log(`- ${UNIT_DESC[ZOMBIES_INDEX][NAME_INDEX]}, her biri 1 canla geri dirildi`);
         }
-
-        if (defenderIndex === ZOMBIES_INDEX && roundCount === 1 && turnCount === 1 && unitNumbers[ZOMBIES_INDEX] === 0) {
-          zombiesEliminatedImmediately = true;
-        }
-
         if (attackerIndex === CULTISTS_INDEX && unitNumbers[CULTISTS_INDEX] > 0) {
           for (let n = 0; n < 50; n += 1) {
             const randomUnitIndex = randomInt(unitNumbers.length, rng);
@@ -1287,8 +1276,8 @@
   function compareEvaluations(a, b, options = {}) {
     const objective = options.objective === "min_army" ? "min_army" : "min_loss";
     const stoneMode = Boolean(options.stoneMode);
-    const lossMetricKey = stoneMode ? "avgStoneAdjustedLostBlood" : "avgLostBlood";
-    const lossUnitsMetricKey = stoneMode ? "avgStoneAdjustedLostUnits" : "avgLostUnits";
+    const lossMetricKey = stoneMode ? "expectedStoneAdjustedLostBlood" : "expectedLostBlood";
+    const lossUnitsMetricKey = stoneMode ? "expectedStoneAdjustedLostUnits" : "expectedLostUnits";
 
     if (a.feasible !== b.feasible) {
       return a.feasible ? -1 : 1;
@@ -1934,8 +1923,13 @@
       }
 
       let wins = 0;
+      let totalLostBloodSum = 0;
+      let totalLostUnitsSum = 0;
       let winLostBloodSum = 0;
       let winLostUnitsSum = 0;
+      let totalStoneAdjustedLostBloodSum = 0;
+      let totalStoneAdjustedLostUnitsSum = 0;
+      let totalStoneCountSum = 0;
       let stoneAdjustedLostBloodSum = 0;
       let stoneAdjustedLostUnitsSum = 0;
       let stoneCountSum = 0;
@@ -1943,6 +1937,8 @@
       let usedPointsSum = 0;
       let enemyRemainingHealthSum = 0;
       let enemyRemainingUnitsSum = 0;
+      const totalAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+      const totalStoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
       const allyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
       const stoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
       const winningSeeds = [];
@@ -1955,11 +1951,20 @@
         usedPointsSum += result.usedPoints;
         enemyRemainingHealthSum += result.enemyRemainingHealth;
         enemyRemainingUnitsSum += result.enemyRemainingUnits;
+        totalLostBloodSum += result.lostBloodTotal;
+        totalLostUnitsSum += result.lostUnitsTotal;
+        const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
+        totalStoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
+        totalStoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
+        totalStoneCountSum += stoneProfile.stoneCount;
+        ALLY_UNITS.forEach((unit) => {
+          totalAllyLossesSum[unit.key] += result.allyLosses?.[unit.key] || 0;
+          totalStoneAdjustedAllyLossesSum[unit.key] += stoneProfile.permanentLossesByKey[unit.key] || 0;
+        });
         if (result.winner === "ally") {
           wins += 1;
           winLostBloodSum += result.lostBloodTotal;
           winLostUnitsSum += result.lostUnitsTotal;
-          const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
           stoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
           stoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
           stoneCountSum += stoneProfile.stoneCount;
@@ -1979,15 +1984,26 @@
         wins,
         winRate,
         feasible: winRate >= minWinRate,
+        expectedLostBlood: totalLostBloodSum / localTrialCount,
+        expectedLostUnits: totalLostUnitsSum / localTrialCount,
         avgLostBlood: wins > 0 ? winLostBloodSum / wins : Number.POSITIVE_INFINITY,
         avgLostUnits: wins > 0 ? winLostUnitsSum / wins : Number.POSITIVE_INFINITY,
+        expectedStoneAdjustedLostBlood: totalStoneAdjustedLostBloodSum / localTrialCount,
+        expectedStoneAdjustedLostUnits: totalStoneAdjustedLostUnitsSum / localTrialCount,
         avgStoneAdjustedLostBlood: wins > 0 ? stoneAdjustedLostBloodSum / wins : Number.POSITIVE_INFINITY,
         avgStoneAdjustedLostUnits: wins > 0 ? stoneAdjustedLostUnitsSum / wins : Number.POSITIVE_INFINITY,
+        expectedStoneCount: totalStoneCountSum / localTrialCount,
         avgStoneCount: wins > 0 ? stoneCountSum / wins : 0,
         avgUsedCapacity: usedCapacitySum / localTrialCount,
         avgUsedPoints: usedPointsSum / localTrialCount,
         avgEnemyRemainingHealth: enemyRemainingHealthSum / localTrialCount,
         avgEnemyRemainingUnits: enemyRemainingUnitsSum / localTrialCount,
+        expectedAllyLosses: Object.fromEntries(
+          ALLY_UNITS.map((unit) => [unit.key, totalAllyLossesSum[unit.key] / localTrialCount])
+        ),
+        expectedStoneAdjustedAllyLosses: Object.fromEntries(
+          ALLY_UNITS.map((unit) => [unit.key, totalStoneAdjustedAllyLossesSum[unit.key] / localTrialCount])
+        ),
         avgAllyLosses: Object.fromEntries(
           ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? allyLossesSum[unit.key] / wins : 0])
         ),
@@ -2110,15 +2126,22 @@
         wins: entry.wins,
         winRate: entry.winRate,
         feasible: entry.feasible,
+        expectedLostBlood: entry.expectedLostBlood,
+        expectedLostUnits: entry.expectedLostUnits,
         avgLostBlood: entry.avgLostBlood,
         avgLostUnits: entry.avgLostUnits,
+        expectedStoneAdjustedLostBlood: entry.expectedStoneAdjustedLostBlood,
+        expectedStoneAdjustedLostUnits: entry.expectedStoneAdjustedLostUnits,
         avgStoneAdjustedLostBlood: entry.avgStoneAdjustedLostBlood,
         avgStoneAdjustedLostUnits: entry.avgStoneAdjustedLostUnits,
+        expectedStoneCount: entry.expectedStoneCount,
         avgStoneCount: entry.avgStoneCount,
         avgUsedCapacity: entry.avgUsedCapacity,
         avgUsedPoints: entry.avgUsedPoints,
         avgEnemyRemainingHealth: entry.avgEnemyRemainingHealth,
         avgEnemyRemainingUnits: entry.avgEnemyRemainingUnits,
+        expectedAllyLosses: { ...(entry.expectedAllyLosses || {}) },
+        expectedStoneAdjustedAllyLosses: { ...(entry.expectedStoneAdjustedAllyLosses || {}) },
         avgAllyLosses: { ...(entry.avgAllyLosses || {}) },
         avgStoneAdjustedAllyLosses: { ...(entry.avgStoneAdjustedAllyLosses || {}) },
         objective: entry.objective,
