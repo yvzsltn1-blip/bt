@@ -178,6 +178,20 @@ Asagidaki vakalar daha once incelendi:
   - son buyuk vakada buna ek olarak `Bat` kaybi da eksik
 - Bu nokta deploy / commit oncesi geri donus kaydi olarak korunuyor
 
+## 2026-04-29 kalan 3 vaka arastirma notu
+
+- Sadece `reactive-only T6` modeli ile kalan `3` vaka aciklanamiyor
+- Ama brute-force denemesinde su modelle `3/3` kalan vaka gercek sonuca birebir ulasabiliyor:
+  - `Gargoyle` hayattaysa, her raund basinda bir dusman stack'ine `-2 speed` uygulanir
+  - Bu etki, `reactive hit-to-Gargoyle` etkisinden ayridir
+- Tam eslesen ornek hedef dizileri:
+  - `wrong_1777415591614_g7dc64p` -> `[corpses, revenants, zombies|corpses|revenants|giants]`
+  - `wrong_1777441496356_6fouf17` -> ilk raund `skeletons` slow yeterli; sonraki raundlar sonucu degistirmiyor
+  - `wrong_1777454090042_59ekfny` -> `[corpses, broodmothers, giants]`
+- Bu sonuc, ikinci eksik kuralin buyuk ihtimalle `raund basi T6 slow secimi` oldugunu guclu sekilde destekliyor
+- Hala net olmayan kisim:
+  - slow hedefi tam olarak nasil seciliyor: random mi, oncelik kuralli mi, yoksa belirli bir target-order mi var?
+
 ## Yeni kayıtlar
 
 Asagidan devam ederek yeni savaslari ekle:
