@@ -5,19 +5,41 @@ const { ENEMY_UNITS, ALLY_UNITS } = window.BattleCore;
 const wrongList = document.querySelector("#wrongList");
 const wrongCountLabel = document.querySelector("#wrongCountLabel");
 const clearWrongBtn = document.querySelector("#clearWrongBtn");
+const wrongSearchInput = document.querySelector("#wrongSearchInput");
+const wrongSideFilter = document.querySelector("#wrongSideFilter");
+const wrongTierFilter = document.querySelector("#wrongTierFilter");
+const wrongUsageFilter = document.querySelector("#wrongUsageFilter");
+const resetWrongFiltersBtn = document.querySelector("#resetWrongFiltersBtn");
+const exportWrongCsvBtn = document.querySelector("#exportWrongCsvBtn");
+const wrongFilterMeta = document.querySelector("#wrongFilterMeta");
+const wrongPagination = document.querySelector("#wrongPagination");
+const wrongPrevPageBtn = document.querySelector("#wrongPrevPageBtn");
+const wrongNextPageBtn = document.querySelector("#wrongNextPageBtn");
+const wrongPageInfo = document.querySelector("#wrongPageInfo");
 const adminAuthStatus = document.querySelector("#adminAuthStatus");
 const adminEmailInput = document.querySelector("#adminEmailInput");
 const adminPasswordInput = document.querySelector("#adminPasswordInput");
 const adminLoginBtn = document.querySelector("#adminLoginBtn");
 const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const PAGE_SIZE = 10;
 const unitLabelMap = new Map(
   [...ENEMY_UNITS, ...ALLY_UNITS].map((unit) => [unit.key, unit.label])
 );
+const FILTERABLE_UNITS = [...ENEMY_UNITS, ...ALLY_UNITS].map((unit) => ({
+  key: unit.key,
+  label: unit.label,
+  tier: extractTierLabel(unit.label),
+  side: ENEMY_UNITS.some((candidate) => candidate.key === unit.key) ? "enemy" : "ally"
+}));
 
 let isAdminSession = false;
+let allWrongItems = [];
+let filteredWrongItems = [];
+let wrongCurrentPage = 0;
 
 syncAdminActions();
+bindFilterControls();
 
 void renderWrongReports();
 void bindAdminAuth();
@@ -81,13 +103,18 @@ async function loadWrongReports() {
 }
 
 async function renderWrongReports() {
-  const items = (await loadWrongReports()).sort((a, b) => (b.reportedAt || "").localeCompare(a.reportedAt || ""));
-  wrongCountLabel.textContent = String(items.length);
-  wrongList.innerHTML = "";
+  allWrongItems = (await loadWrongReports()).sort((a, b) => (b.reportedAt || "").localeCompare(a.reportedAt || ""));
   syncAdminActions();
+  applyWrongFilters();
+}
+
+function renderWrongPage(items) {
+  wrongList.innerHTML = "";
 
   if (items.length === 0) {
-    wrongList.innerHTML = '<p class="summary-empty">Henuz kaydedilmis yanlis raporu yok.</p>';
+    wrongList.innerHTML = allWrongItems.length === 0
+      ? '<p class="summary-empty">Henuz kaydedilmis yanlis raporu yok.</p>'
+      : '<p class="summary-empty">Filtreyle eslesen rapor bulunamadi.</p>';
     return;
   }
 
@@ -218,6 +245,227 @@ function hasCountsForSimulation(item) {
     Object.keys(item.enemyCounts).length > 0 &&
     Object.keys(item.allyCounts).length > 0
   );
+}
+
+function bindFilterControls() {
+  const rerender = () => {
+    wrongCurrentPage = 0;
+    applyWrongFilters();
+  };
+
+  [wrongSearchInput, wrongSideFilter, wrongTierFilter, wrongUsageFilter].forEach((element) => {
+    if (!element) {
+      return;
+    }
+    element.addEventListener("input", rerender);
+    element.addEventListener("change", rerender);
+  });
+
+  resetWrongFiltersBtn?.addEventListener("click", () => {
+    if (wrongSearchInput) {
+      wrongSearchInput.value = "";
+    }
+    if (wrongSideFilter) {
+      wrongSideFilter.value = "all";
+    }
+    if (wrongTierFilter) {
+      wrongTierFilter.value = "all";
+    }
+    if (wrongUsageFilter) {
+      wrongUsageFilter.value = "all";
+    }
+    wrongCurrentPage = 0;
+    applyWrongFilters();
+  });
+
+  exportWrongCsvBtn?.addEventListener("click", () => {
+    downloadCsv(
+      filteredWrongItems.map((item) => ({
+        id: item.id || "",
+        source: item.source || "",
+        sourceLabel: item.sourceLabel || "",
+        reportedAt: item.reportedAt || "",
+        stage: item.stage || "",
+        modeLabel: item.modeLabel || "",
+        seed: item.seed ?? "",
+        pointLimit: item.pointLimit ?? "",
+        usedPoints: item.usedPoints ?? "",
+        usedCapacity: item.usedCapacity ?? "",
+        lostBlood: item.lostBlood ?? "",
+        actualLostBlood: item.actualLostBlood ?? "",
+        enemyRoster: buildRosterCsv(item.enemyCounts || {}, ENEMY_UNITS),
+        allyRoster: buildRosterCsv(item.allyCounts || {}, ALLY_UNITS),
+        recommendationRoster: buildRosterCsv(item.recommendationCounts || {}, ALLY_UNITS),
+        expectedWinner: item.expectedWinner || "",
+        actualWinner: item.actualWinner || "",
+        summaryText: item.summaryText || "",
+        actualSummaryText: item.actualSummaryText || "",
+        actualNote: item.actualNote || ""
+      })),
+      `wrong-filtered-${new Date().toISOString().slice(0, 10)}.csv`
+    );
+  });
+
+  wrongPrevPageBtn?.addEventListener("click", () => {
+    if (wrongCurrentPage <= 0) {
+      return;
+    }
+    wrongCurrentPage -= 1;
+    updateWrongPagination();
+    renderWrongPage(getCurrentWrongPageItems());
+  });
+
+  wrongNextPageBtn?.addEventListener("click", () => {
+    const totalPages = Math.max(1, Math.ceil(filteredWrongItems.length / PAGE_SIZE));
+    if (wrongCurrentPage >= totalPages - 1) {
+      return;
+    }
+    wrongCurrentPage += 1;
+    updateWrongPagination();
+    renderWrongPage(getCurrentWrongPageItems());
+  });
+}
+
+function applyWrongFilters() {
+  const searchText = (wrongSearchInput?.value || "").trim().toLocaleLowerCase("tr-TR");
+  const side = wrongSideFilter?.value || "all";
+  const tier = wrongTierFilter?.value || "all";
+  const usage = wrongUsageFilter?.value || "all";
+
+  filteredWrongItems = allWrongItems.filter((item) => matchesWrongSearch(item, searchText) && matchesTierUsage(item, side, tier, usage));
+  const totalPages = Math.max(1, Math.ceil(filteredWrongItems.length / PAGE_SIZE));
+  wrongCurrentPage = Math.min(wrongCurrentPage, totalPages - 1);
+
+  wrongCountLabel.textContent = filteredWrongItems.length === allWrongItems.length
+    ? String(allWrongItems.length)
+    : `${filteredWrongItems.length}/${allWrongItems.length}`;
+
+  updateWrongFilterMeta();
+  updateWrongPagination();
+  renderWrongPage(getCurrentWrongPageItems());
+}
+
+function getCurrentWrongPageItems() {
+  const start = wrongCurrentPage * PAGE_SIZE;
+  return filteredWrongItems.slice(start, start + PAGE_SIZE);
+}
+
+function updateWrongFilterMeta() {
+  if (!wrongFilterMeta) {
+    return;
+  }
+  const start = filteredWrongItems.length === 0 ? 0 : wrongCurrentPage * PAGE_SIZE + 1;
+  const end = Math.min(filteredWrongItems.length, (wrongCurrentPage + 1) * PAGE_SIZE);
+  wrongFilterMeta.innerHTML = `
+    <span>Filtre sonucu: <strong>${filteredWrongItems.length}</strong></span>
+    <span>Toplam rapor: <strong>${allWrongItems.length}</strong></span>
+    <span>Sayfa araligi: <strong>${start}-${end}</strong></span>
+  `;
+}
+
+function updateWrongPagination() {
+  if (!wrongPagination || !wrongPrevPageBtn || !wrongNextPageBtn || !wrongPageInfo) {
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(filteredWrongItems.length / PAGE_SIZE));
+  wrongPagination.hidden = filteredWrongItems.length <= PAGE_SIZE;
+  wrongPrevPageBtn.disabled = wrongCurrentPage <= 0;
+  wrongNextPageBtn.disabled = wrongCurrentPage >= totalPages - 1;
+  wrongPageInfo.textContent = `Sayfa ${Math.min(wrongCurrentPage + 1, totalPages)} / ${totalPages}`;
+}
+
+function matchesWrongSearch(item, searchText) {
+  if (!searchText) {
+    return true;
+  }
+  const haystack = [
+    item.id,
+    item.source,
+    item.sourceLabel,
+    item.modeLabel,
+    item.stage,
+    item.reportedAt,
+    item.summaryText,
+    item.actualSummaryText,
+    item.actualNote,
+    buildRosterCsv(item.enemyCounts || {}, ENEMY_UNITS),
+    buildRosterCsv(item.allyCounts || {}, ALLY_UNITS),
+    buildRosterCsv(item.recommendationCounts || {}, ALLY_UNITS)
+  ].join(" ").toLocaleLowerCase("tr-TR");
+  return haystack.includes(searchText);
+}
+
+function matchesTierUsage(item, side, tier, usage) {
+  if (usage === "all" && tier === "all" && side === "all") {
+    return true;
+  }
+
+  const relevantUnits = FILTERABLE_UNITS.filter((unit) => {
+    if (side !== "all" && unit.side !== side) {
+      return false;
+    }
+    if (tier !== "all" && unit.tier !== tier) {
+      return false;
+    }
+    return true;
+  });
+
+  if (relevantUnits.length === 0) {
+    return true;
+  }
+
+  const enemyCounts = item.enemyCounts || {};
+  const allyCounts = item.allyCounts || {};
+  const hasMatch = relevantUnits.some((unit) => {
+    const counts = unit.side === "enemy" ? enemyCounts : allyCounts;
+    return Number(counts?.[unit.key] || 0) > 0;
+  });
+
+  if (usage === "used") {
+    return hasMatch;
+  }
+  if (usage === "unused") {
+    return !hasMatch;
+  }
+  return hasMatch;
+}
+
+function buildRosterCsv(counts, units) {
+  return (units || [])
+    .filter((unit) => Number(counts?.[unit.key] || 0) > 0)
+    .map((unit) => `${unit.label}:${counts[unit.key]}`)
+    .join(" | ");
+}
+
+function extractTierLabel(label) {
+  const match = String(label || "").match(/\((T\d+)\)/i);
+  return match ? match[1].toUpperCase() : "";
+}
+
+function escapeCsvCell(value) {
+  const text = String(value ?? "");
+  return `"${text.replace(/"/g, "\"\"")}"`;
+}
+
+function downloadCsv(rows, filename) {
+  if (!rows.length) {
+    window.alert("Indirilecek filtre sonucu yok.");
+    return;
+  }
+  const headers = Object.keys(rows[0]);
+  const lines = [
+    headers.map(escapeCsvCell).join(","),
+    ...rows.map((row) => headers.map((header) => escapeCsvCell(row[header])).join(","))
+  ];
+  const blob = new Blob([`\uFEFF${lines.join("\n")}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {

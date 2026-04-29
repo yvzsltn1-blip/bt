@@ -1081,6 +1081,60 @@ body {
   gap: 12px;
 }
 
+.list-tools-panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 14px;
+  border: 1px solid rgba(160, 185, 214, 0.12);
+  border-radius: 18px;
+  background: rgba(8, 12, 18, 0.36);
+}
+
+.list-tools-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.list-tools-head strong {
+  font-size: 0.96rem;
+  color: var(--text);
+}
+
+.list-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.list-filter-meta {
+  margin-bottom: 0;
+}
+
+.list-filter-meta span {
+  font-size: 0.74rem;
+}
+
+.list-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.list-pagination-info {
+  min-width: 120px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+}
+
 .saved-list .terminal-block {
   margin-top: 10px;
 }
@@ -2110,6 +2164,23 @@ body.simulation-log-fullscreen {
   .saved-match-card {
     padding: 10px 12px;
     border-radius: 12px;
+  }
+
+  .list-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .list-tools-head {
+    align-items: flex-start;
+  }
+
+  .list-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list-pagination .button {
+    width: 100%;
   }
 
   .saved-card-head,

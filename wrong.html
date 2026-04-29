@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260427-01">
+  <link rel="stylesheet" href="styles.css?v=20260429-14">
 </head>
 <body>
   <div class="page-shell">
@@ -37,8 +37,63 @@
           </div>
         </div>
 
+        <section class="list-tools-panel">
+          <div class="list-tools-head">
+            <strong>Arama ve Filtre</strong>
+            <div class="actions actions-inline">
+              <button id="exportWrongCsvBtn" class="button button-secondary" type="button">CSV Indir</button>
+              <button id="resetWrongFiltersBtn" class="button button-ghost" type="button">Filtreyi Temizle</button>
+            </div>
+          </div>
+          <div class="list-filter-grid">
+            <label class="select-wrap">
+              <span>Metin Arama</span>
+              <input id="wrongSearchInput" class="admin-auth-input" type="text" placeholder="Kademe, sonuc, not, birlik ara">
+            </label>
+            <label class="select-wrap">
+              <span>Taraf</span>
+              <select id="wrongSideFilter" class="stage-select">
+                <option value="all">Tum taraflar</option>
+                <option value="ally">Muttefik</option>
+                <option value="enemy">Dusman</option>
+              </select>
+            </label>
+            <label class="select-wrap">
+              <span>Tier</span>
+              <select id="wrongTierFilter" class="stage-select">
+                <option value="all">Tum tierler</option>
+                <option value="T1">T1</option>
+                <option value="T2">T2</option>
+                <option value="T3">T3</option>
+                <option value="T4">T4</option>
+                <option value="T5">T5</option>
+                <option value="T6">T6</option>
+                <option value="T7">T7</option>
+                <option value="T8">T8</option>
+                <option value="T9">T9</option>
+                <option value="T10">T10</option>
+              </select>
+            </label>
+            <label class="select-wrap">
+              <span>Kullanim</span>
+              <select id="wrongUsageFilter" class="stage-select">
+                <option value="all">Kullanan ve kullanmayan</option>
+                <option value="used">Kullananlar</option>
+                <option value="unused">Kullanmayanlar</option>
+              </select>
+            </label>
+          </div>
+          <div id="wrongFilterMeta" class="saved-meta list-filter-meta"></div>
+        </section>
+
         <section id="wrongList" class="saved-list">
           <p class="summary-empty">Henuz kaydedilmis yanlis raporu yok.</p>
+        </section>
+
+        <section id="wrongPagination" class="list-pagination" hidden>
+          <button id="wrongPrevPageBtn" class="button button-ghost" type="button">Onceki 10</button>
+          <div id="wrongPageInfo" class="list-pagination-info"></div>
+          <button id="wrongNextPageBtn" class="button button-ghost" type="button">Sonraki 10</button>
         </section>
 
         <section class="admin-auth-panel">
@@ -64,6 +119,6 @@
   <script src="firebase-client.js?v=20260429-13" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
   <script src="battle-core.js?v=20260429-02" defer></script>
-  <script src="wrong.js?v=20260429-10" defer></script>
+  <script src="wrong.js?v=20260429-11" defer></script>
 </body>
 </html>

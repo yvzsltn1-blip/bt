@@ -8,16 +8,39 @@ const {
 const savedList = document.querySelector("#savedList");
 const savedCountLabel = document.querySelector("#savedCountLabel");
 const clearSavedBtn = document.querySelector("#clearSavedBtn");
+const savedSearchInput = document.querySelector("#savedSearchInput");
+const savedSideFilter = document.querySelector("#savedSideFilter");
+const savedTierFilter = document.querySelector("#savedTierFilter");
+const savedUsageFilter = document.querySelector("#savedUsageFilter");
+const resetSavedFiltersBtn = document.querySelector("#resetSavedFiltersBtn");
+const exportSavedCsvBtn = document.querySelector("#exportSavedCsvBtn");
+const savedFilterMeta = document.querySelector("#savedFilterMeta");
+const savedPagination = document.querySelector("#savedPagination");
+const savedPrevPageBtn = document.querySelector("#savedPrevPageBtn");
+const savedNextPageBtn = document.querySelector("#savedNextPageBtn");
+const savedPageInfo = document.querySelector("#savedPageInfo");
 const adminAuthStatus = document.querySelector("#adminAuthStatus");
 const adminEmailInput = document.querySelector("#adminEmailInput");
 const adminPasswordInput = document.querySelector("#adminPasswordInput");
 const adminLoginBtn = document.querySelector("#adminLoginBtn");
 const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const PAGE_SIZE = 10;
+const UNIT_DEFS = [...ENEMY_UNITS, ...ALLY_UNITS];
+const FILTERABLE_UNITS = UNIT_DEFS.map((unit) => ({
+  key: unit.key,
+  label: unit.label,
+  tier: extractTierLabel(unit.label),
+  side: ENEMY_UNITS.some((candidate) => candidate.key === unit.key) ? "enemy" : "ally"
+}));
 
 let isAdminSession = false;
+let allSavedItems = [];
+let filteredSavedItems = [];
+let savedCurrentPage = 0;
 
 syncAdminActions();
+bindFilterControls();
 
 void renderSavedStrategies();
 void bindAdminAuth();
@@ -81,13 +104,18 @@ async function loadSavedStrategies() {
 }
 
 async function renderSavedStrategies() {
-  const items = (await loadSavedStrategies()).sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
-  savedCountLabel.textContent = String(items.length);
-  savedList.innerHTML = "";
+  allSavedItems = (await loadSavedStrategies()).sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
   syncAdminActions();
+  applySavedFilters();
+}
+
+function renderSavedPage(items) {
+  savedList.innerHTML = "";
 
   if (items.length === 0) {
-    savedList.innerHTML = '<p class="summary-empty">Henuz onaylanmis bir kayit yok.</p>';
+    savedList.innerHTML = allSavedItems.length === 0
+      ? '<p class="summary-empty">Henuz onaylanmis bir kayit yok.</p>'
+      : '<p class="summary-empty">Filtreyle eslesen kayit bulunamadi.</p>';
     return;
   }
 
@@ -115,7 +143,7 @@ async function renderSavedStrategies() {
       openBtn.type = "button";
       openBtn.textContent = "Rastgele Ac";
       openBtn.addEventListener("click", () => {
-        openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {});
+        openSimulationForCounts(item.enemyCounts || {}, getSavedAllyCounts(item));
       });
       actions.append(openBtn);
 
@@ -125,7 +153,7 @@ async function renderSavedStrategies() {
         seededOpenBtn.type = "button";
         seededOpenBtn.textContent = "Ayni Seed ile Ac";
         seededOpenBtn.addEventListener("click", () => {
-          openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {}, item.representativeSeed);
+          openSimulationForCounts(item.enemyCounts || {}, getSavedAllyCounts(item), item.representativeSeed);
         });
         actions.append(seededOpenBtn);
       }
@@ -180,12 +208,12 @@ async function renderSavedStrategies() {
     if (source === "simulation") {
       grid.append(
         renderCountBlock("Rakip Ordu", item.enemyCounts, ENEMY_UNITS),
-        renderCountBlock("Onaylanan Dovus", item.allyCounts, ALLY_UNITS)
+        renderCountBlock("Onaylanan Dovus", getSavedAllyCounts(item), ALLY_UNITS)
       );
     } else {
       grid.append(
         renderCountBlock("Rakip Ordu", item.enemyCounts, ENEMY_UNITS),
-        renderCountBlock("Onaylanan Cozum", item.recommendationCounts, ALLY_UNITS)
+        renderCountBlock("Onaylanan Cozum", getSavedAllyCounts(item), ALLY_UNITS)
       );
     }
 
@@ -204,6 +232,227 @@ async function renderSavedStrategies() {
 
 function getApprovedSource(item) {
   return item?.source === "simulation" ? "simulation" : "optimizer";
+}
+
+function getSavedAllyCounts(item) {
+  return getApprovedSource(item) === "simulation" ? (item.allyCounts || {}) : (item.recommendationCounts || {});
+}
+
+function bindFilterControls() {
+  const rerender = () => {
+    savedCurrentPage = 0;
+    applySavedFilters();
+  };
+
+  [savedSearchInput, savedSideFilter, savedTierFilter, savedUsageFilter].forEach((element) => {
+    if (!element) {
+      return;
+    }
+    element.addEventListener("input", rerender);
+    element.addEventListener("change", rerender);
+  });
+
+  resetSavedFiltersBtn?.addEventListener("click", () => {
+    if (savedSearchInput) {
+      savedSearchInput.value = "";
+    }
+    if (savedSideFilter) {
+      savedSideFilter.value = "all";
+    }
+    if (savedTierFilter) {
+      savedTierFilter.value = "all";
+    }
+    if (savedUsageFilter) {
+      savedUsageFilter.value = "all";
+    }
+    savedCurrentPage = 0;
+    applySavedFilters();
+  });
+
+  exportSavedCsvBtn?.addEventListener("click", () => {
+    downloadCsv(
+      filteredSavedItems.map((item) => ({
+        id: item.id || "",
+        source: getApprovedSource(item),
+        savedAt: item.savedAt || "",
+        stage: item.stage || "",
+        enemyTitle: item.enemyTitle || "",
+        result: getApprovedSource(item) === "simulation" ? (item.winner === "enemy" ? "Maglubiyet" : "Zafer") : "",
+        modeLabel: item.modeLabel || "",
+        representativeSeed: item.representativeSeed ?? "",
+        usedPoints: item.usedPoints ?? "",
+        lostBlood: item.lostBlood ?? "",
+        winRate: item.winRate ?? "",
+        probability: item.probabilityBasisPoints ?? "",
+        enemyRoster: buildRosterCsv(item.enemyCounts || {}, ENEMY_UNITS),
+        allyRoster: buildRosterCsv(getSavedAllyCounts(item), ALLY_UNITS),
+        summaryText: item.summaryText || "",
+        logText: item.logText || ""
+      })),
+      `saved-filtered-${new Date().toISOString().slice(0, 10)}.csv`
+    );
+  });
+
+  savedPrevPageBtn?.addEventListener("click", () => {
+    if (savedCurrentPage <= 0) {
+      return;
+    }
+    savedCurrentPage -= 1;
+    updateSavedPagination();
+    renderSavedPage(getCurrentSavedPageItems());
+  });
+
+  savedNextPageBtn?.addEventListener("click", () => {
+    const totalPages = Math.max(1, Math.ceil(filteredSavedItems.length / PAGE_SIZE));
+    if (savedCurrentPage >= totalPages - 1) {
+      return;
+    }
+    savedCurrentPage += 1;
+    updateSavedPagination();
+    renderSavedPage(getCurrentSavedPageItems());
+  });
+}
+
+function applySavedFilters() {
+  const searchText = (savedSearchInput?.value || "").trim().toLocaleLowerCase("tr-TR");
+  const side = savedSideFilter?.value || "all";
+  const tier = savedTierFilter?.value || "all";
+  const usage = savedUsageFilter?.value || "all";
+
+  filteredSavedItems = allSavedItems.filter((item) => matchesSavedSearch(item, searchText) && matchesTierUsage(item, side, tier, usage));
+  const totalPages = Math.max(1, Math.ceil(filteredSavedItems.length / PAGE_SIZE));
+  savedCurrentPage = Math.min(savedCurrentPage, totalPages - 1);
+
+  savedCountLabel.textContent = filteredSavedItems.length === allSavedItems.length
+    ? String(allSavedItems.length)
+    : `${filteredSavedItems.length}/${allSavedItems.length}`;
+
+  updateSavedFilterMeta();
+  updateSavedPagination();
+  renderSavedPage(getCurrentSavedPageItems());
+}
+
+function getCurrentSavedPageItems() {
+  const start = savedCurrentPage * PAGE_SIZE;
+  return filteredSavedItems.slice(start, start + PAGE_SIZE);
+}
+
+function updateSavedFilterMeta() {
+  if (!savedFilterMeta) {
+    return;
+  }
+  const start = filteredSavedItems.length === 0 ? 0 : savedCurrentPage * PAGE_SIZE + 1;
+  const end = Math.min(filteredSavedItems.length, (savedCurrentPage + 1) * PAGE_SIZE);
+  savedFilterMeta.innerHTML = `
+    <span>Filtre sonucu: <strong>${filteredSavedItems.length}</strong></span>
+    <span>Toplam kayit: <strong>${allSavedItems.length}</strong></span>
+    <span>Sayfa araligi: <strong>${start}-${end}</strong></span>
+  `;
+}
+
+function updateSavedPagination() {
+  if (!savedPagination || !savedPrevPageBtn || !savedNextPageBtn || !savedPageInfo) {
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(filteredSavedItems.length / PAGE_SIZE));
+  savedPagination.hidden = filteredSavedItems.length <= PAGE_SIZE;
+  savedPrevPageBtn.disabled = savedCurrentPage <= 0;
+  savedNextPageBtn.disabled = savedCurrentPage >= totalPages - 1;
+  savedPageInfo.textContent = `Sayfa ${Math.min(savedCurrentPage + 1, totalPages)} / ${totalPages}`;
+}
+
+function matchesSavedSearch(item, searchText) {
+  if (!searchText) {
+    return true;
+  }
+  const haystack = [
+    item.id,
+    item.source,
+    item.sourceLabel,
+    item.enemyTitle,
+    item.variantTitle,
+    item.modeLabel,
+    item.stage,
+    item.savedAt,
+    item.summaryText,
+    item.logText,
+    buildRosterCsv(item.enemyCounts || {}, ENEMY_UNITS),
+    buildRosterCsv(getSavedAllyCounts(item), ALLY_UNITS)
+  ].join(" ").toLocaleLowerCase("tr-TR");
+  return haystack.includes(searchText);
+}
+
+function matchesTierUsage(item, side, tier, usage) {
+  if (usage === "all" && tier === "all" && side === "all") {
+    return true;
+  }
+
+  const relevantUnits = FILTERABLE_UNITS.filter((unit) => {
+    if (side !== "all" && unit.side !== side) {
+      return false;
+    }
+    if (tier !== "all" && unit.tier !== tier) {
+      return false;
+    }
+    return true;
+  });
+
+  if (relevantUnits.length === 0) {
+    return true;
+  }
+
+  const enemyCounts = item.enemyCounts || {};
+  const allyCounts = getSavedAllyCounts(item);
+  const hasMatch = relevantUnits.some((unit) => {
+    const counts = unit.side === "enemy" ? enemyCounts : allyCounts;
+    return Number(counts?.[unit.key] || 0) > 0;
+  });
+
+  if (usage === "used") {
+    return hasMatch;
+  }
+  if (usage === "unused") {
+    return !hasMatch;
+  }
+  return hasMatch;
+}
+
+function buildRosterCsv(counts, units) {
+  return (units || [])
+    .filter((unit) => Number(counts?.[unit.key] || 0) > 0)
+    .map((unit) => `${unit.label}:${counts[unit.key]}`)
+    .join(" | ");
+}
+
+function extractTierLabel(label) {
+  const match = String(label || "").match(/\((T\d+)\)/i);
+  return match ? match[1].toUpperCase() : "";
+}
+
+function escapeCsvCell(value) {
+  const text = String(value ?? "");
+  return `"${text.replace(/"/g, "\"\"")}"`;
+}
+
+function downloadCsv(rows, filename) {
+  if (!rows.length) {
+    window.alert("Indirilecek filtre sonucu yok.");
+    return;
+  }
+  const headers = Object.keys(rows[0]);
+  const lines = [
+    headers.map(escapeCsvCell).join(","),
+    ...rows.map((row) => headers.map((header) => escapeCsvCell(row[header])).join(","))
+  ];
+  const blob = new Blob([`\uFEFF${lines.join("\n")}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
