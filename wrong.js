@@ -138,10 +138,10 @@ async function renderWrongReports() {
 
     const grid = document.createElement("div");
     grid.className = "saved-columns";
-    grid.append(renderCountBlock("Rakip Ordu", item.enemyCounts || {}));
-    grid.append(renderCountBlock(item.source === "optimizer" ? "Bizdeki Ordu" : "Muttefikler", item.allyCounts || {}));
+    grid.append(renderCountBlock("Rakip Ordu", item.enemyCounts || {}, ENEMY_UNITS));
+    grid.append(renderCountBlock(item.source === "optimizer" ? "Bizdeki Ordu" : "Muttefikler", item.allyCounts || {}, ALLY_UNITS));
     if (item.recommendationCounts) {
-      grid.append(renderCountBlock("Onerilen Cozum", item.recommendationCounts));
+      grid.append(renderCountBlock("Onerilen Cozum", item.recommendationCounts, ALLY_UNITS));
     }
 
     const summaryGrid = document.createElement("div");
@@ -187,7 +187,7 @@ async function renderWrongReports() {
   });
 }
 
-function renderCountBlock(title, counts) {
+function renderCountBlock(title, counts, units) {
   const wrap = document.createElement("section");
   wrap.className = "saved-mini-block";
 
@@ -197,7 +197,9 @@ function renderCountBlock(title, counts) {
 
   const list = document.createElement("ul");
   list.className = "recommend-list";
-  const entries = Object.entries(counts).filter(([, value]) => value > 0);
+  const entries = (units || [])
+    .map((unit) => [unit.key, counts?.[unit.key] || 0])
+    .filter(([, value]) => value > 0);
 
   if (entries.length === 0) {
     const row = document.createElement("li");
