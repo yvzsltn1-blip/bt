@@ -859,6 +859,7 @@
     }
 
     return {
+      seed: typeof options.seed === "number" ? options.seed : null,
       winner,
       victory: winner,
       roundCount,

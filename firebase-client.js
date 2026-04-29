@@ -158,13 +158,17 @@
         usedPoints: clampInt(item?.usedPoints, 99999),
         lostBlood: clampInt(item?.lostBlood, 999999)
       };
+      const representativeSeed = sanitizeOptionalInt(item?.representativeSeed, 4294967295);
+      if (representativeSeed !== null) {
+        payload.representativeSeed = representativeSeed;
+      }
       if (Number.isInteger(item?.stage) && item.stage >= 1 && item.stage <= 9999) {
         payload.stage = item.stage;
       }
       return payload;
     }
 
-    return {
+    const payload = {
       ...basePayload,
       sourceLabel: trimText(item?.sourceLabel || "Optimizer", 30),
       stage: clampInt(item?.stage, 9999),
@@ -182,6 +186,11 @@
       lostBlood: clampInt(item?.lostBlood, 999999),
       winRate: clampInt(item?.winRate, 100)
     };
+    const representativeSeed = sanitizeOptionalInt(item?.representativeSeed, 4294967295);
+    if (representativeSeed !== null) {
+      payload.representativeSeed = representativeSeed;
+    }
+    return payload;
   }
 
   function clampInt(value, maxValue) {
@@ -231,6 +240,11 @@
       actualNote: trimText(item?.actualNote || "", 4000)
     };
 
+    const seed = sanitizeOptionalInt(item?.seed, 4294967295);
+    if (seed !== null) {
+      payload.seed = seed;
+    }
+
     if (Number.isInteger(item?.stage) && item.stage >= 1 && item.stage <= 9999) {
       payload.stage = item.stage;
     }
@@ -276,6 +290,60 @@
     const pointLimit = sanitizeOptionalInt(item?.pointLimit, 99999);
     if (pointLimit !== null) {
       payload.pointLimit = pointLimit;
+    }
+
+    if (item?.expectedWinner === "ally" || item?.expectedWinner === "enemy" || item?.expectedWinner === "unknown") {
+      payload.expectedWinner = item.expectedWinner;
+    }
+
+    const expectedLostBlood = sanitizeOptionalInt(item?.expectedLostBlood, 999999);
+    if (expectedLostBlood !== null) {
+      payload.expectedLostBlood = expectedLostBlood;
+    }
+
+    const expectedUsedCapacity = sanitizeOptionalInt(item?.expectedUsedCapacity, 999999);
+    if (expectedUsedCapacity !== null) {
+      payload.expectedUsedCapacity = expectedUsedCapacity;
+    }
+
+    const expectedUsedPoints = sanitizeOptionalInt(item?.expectedUsedPoints, 99999);
+    if (expectedUsedPoints !== null) {
+      payload.expectedUsedPoints = expectedUsedPoints;
+    }
+
+    if (item?.expectedAllyLosses) {
+      payload.expectedAllyLosses = sanitizeCountMap(item.expectedAllyLosses, ALLY_COUNT_KEYS);
+    }
+
+    if (item?.expectedVariantSignature) {
+      payload.expectedVariantSignature = trimText(item.expectedVariantSignature, 1000);
+    }
+
+    if (item?.actualOutcomeLine) {
+      payload.actualOutcomeLine = trimText(item.actualOutcomeLine, 400);
+    }
+
+    const actualCapacity = sanitizeOptionalInt(item?.actualCapacity, 999999);
+    if (actualCapacity !== null) {
+      payload.actualCapacity = actualCapacity;
+    }
+
+    if (item?.actualLosses) {
+      payload.actualLosses = sanitizeCountMap(item.actualLosses, ALLY_COUNT_KEYS);
+    }
+
+    if (item?.actualWinner === "ally" || item?.actualWinner === "enemy" || item?.actualWinner === "unknown") {
+      payload.actualWinner = item.actualWinner;
+    }
+
+    const actualLostUnitsTotal = sanitizeOptionalInt(item?.actualLostUnitsTotal, 999999);
+    if (actualLostUnitsTotal !== null) {
+      payload.actualLostUnitsTotal = actualLostUnitsTotal;
+    }
+
+    const actualLostBlood = sanitizeOptionalInt(item?.actualLostBlood, 999999);
+    if (actualLostBlood !== null) {
+      payload.actualLostBlood = actualLostBlood;
     }
 
     return payload;

@@ -113,11 +113,22 @@ async function renderSavedStrategies() {
       const openBtn = document.createElement("button");
       openBtn.className = "button button-secondary";
       openBtn.type = "button";
-      openBtn.textContent = "Simulasyonda Ac";
+      openBtn.textContent = "Rastgele Ac";
       openBtn.addEventListener("click", () => {
         openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {});
       });
       actions.append(openBtn);
+
+      if (Number.isInteger(item.representativeSeed)) {
+        const seededOpenBtn = document.createElement("button");
+        seededOpenBtn.className = "button button-secondary";
+        seededOpenBtn.type = "button";
+        seededOpenBtn.textContent = "Ayni Seed ile Ac";
+        seededOpenBtn.addEventListener("click", () => {
+          openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {}, item.representativeSeed);
+        });
+        actions.append(seededOpenBtn);
+      }
     } else {
       const openBtn = document.createElement("a");
       openBtn.className = "button button-secondary";
@@ -152,6 +163,7 @@ async function renderSavedStrategies() {
         <span>Olasilik: <strong>%${formatStoredProbability(item.probabilityBasisPoints)}</strong></span>
         <span>Kan kaybi: <strong>${item.lostBlood ?? 0}</strong></span>
         <span>Kullanilan puan: <strong>${item.usedPoints ?? 0}</strong></span>
+        ${Number.isInteger(item.representativeSeed) ? `<span>Seed: <strong>${item.representativeSeed}</strong></span>` : ""}
       `;
     } else {
       meta.innerHTML = `
@@ -159,6 +171,7 @@ async function renderSavedStrategies() {
         <span>Kan kaybi: <strong>${item.lostBlood}</strong></span>
         <span>Kazanma orani: <strong>%${item.winRate}</strong></span>
         <span>Mod: <strong>${item.modeLabel}</strong></span>
+        ${Number.isInteger(item.representativeSeed) ? `<span>Seed: <strong>${item.representativeSeed}</strong></span>` : ""}
       `;
     }
 
@@ -193,11 +206,12 @@ function getApprovedSource(item) {
   return item?.source === "simulation" ? "simulation" : "optimizer";
 }
 
-function openSimulationForCounts(enemyCounts, allyCounts) {
+function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
   try {
     window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
       enemyCounts,
-      allyCounts
+      allyCounts,
+      seed: Number.isInteger(seed) ? seed : null
     }));
     const opened = window.open("index.html", "_blank");
     if (!opened) {

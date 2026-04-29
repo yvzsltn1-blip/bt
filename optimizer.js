@@ -429,6 +429,7 @@ submitWrongReportBtn.addEventListener("click", async () => {
 
   const report = {
     ...pendingWrongReport,
+    ...buildActualOutcomePayload(),
     actualSummaryText: buildActualSummaryText(),
     actualNote: actualNoteInput.value.trim()
   };
@@ -3097,6 +3098,7 @@ function createSavedEntry(candidate) {
     enemyCounts: candidate.enemyCounts,
     allyPool: candidate.allyPool,
     recommendationCounts: recommendation.counts,
+    representativeSeed: Number.isInteger(candidate.result?.sampleBattle?.seed) ? candidate.result.sampleBattle.seed : undefined,
     usedPoints: Math.round(recommendation.avgUsedPoints),
     lostBlood: Math.round(getDisplayedLossValue(recommendation)),
     winRate: Math.round(recommendation.winRate * 100)
@@ -3105,6 +3107,7 @@ function createSavedEntry(candidate) {
 
 function createWrongReportEntry(result, stage, maxPoints, meta, summaryText, logText) {
   const source = result.possible ? result.recommendation : result.fallback || result.fullArmyEvaluation;
+  const sampleBattle = result.sampleBattle || null;
   const enemyCounts = collectCounts(ENEMY_UNITS);
   const allyCounts = collectCounts(ALLY_UNITS);
   return {
@@ -3119,10 +3122,23 @@ function createWrongReportEntry(result, stage, maxPoints, meta, summaryText, log
     modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode),
     enemyCounts,
     allyCounts,
+    seed: Number.isInteger(sampleBattle?.seed) ? sampleBattle.seed : undefined,
     matchSignature: buildOptimizerMatchSignature(stage, enemyCounts, allyCounts),
     recommendationCounts: source?.counts || null,
     summaryText,
     logText,
+    expectedWinner: sampleBattle ? (sampleBattle.winner === "enemy" ? "enemy" : "ally") : undefined,
+    expectedLostBlood: Number.isFinite(sampleBattle?.lostBloodTotal) ? Math.round(sampleBattle.lostBloodTotal) : null,
+    expectedAllyLosses: sampleBattle?.allyLosses ? { ...sampleBattle.allyLosses } : {},
+    expectedUsedCapacity: Number.isFinite(sampleBattle?.usedCapacity) ? Math.round(sampleBattle.usedCapacity) : Math.round(source?.avgUsedCapacity || 0),
+    expectedUsedPoints: Number.isFinite(sampleBattle?.usedPoints) ? Math.round(sampleBattle.usedPoints) : Math.round(source?.avgUsedPoints || 0),
+    expectedVariantSignature: sampleBattle
+      ? JSON.stringify({
+        winner: sampleBattle.winner,
+        lostBloodTotal: sampleBattle.lostBloodTotal,
+        allyLosses: sampleBattle.allyLosses || {}
+      })
+      : "",
     possible: result.possible,
     usedPoints: source ? Math.round(source.avgUsedPoints || 0) : 0,
     lostBlood: source && Number.isFinite(getDisplayedLossValue(source)) ? Math.round(getDisplayedLossValue(source)) : null,
@@ -3184,10 +3200,45 @@ function collectActualLosses() {
   return losses;
 }
 
+function inferWinnerFromOutcomeLine(outcomeLine) {
+  const normalized = String(outcomeLine || "").toLowerCase();
+  if (normalized.includes("dusman yenildi") || normalized.includes("enemy defeated")) {
+    return "ally";
+  }
+  if (normalized.includes("muttefikler yenildi") || normalized.includes("allies defeated")) {
+    return "enemy";
+  }
+  return "unknown";
+}
+
+function buildActualOutcomePayload() {
+  const actualOutcomeLine = actualOutcomeInput.value.trim() || ">> Gercek sonuc girilmedi.";
+  const actualLosses = collectActualLosses();
+  const actualCapacity = actualCapacityInput.value.trim() === "" ? 0 : Number.parseInt(actualCapacityInput.value, 10);
+  let actualLostUnitsTotal = 0;
+  let actualLostBlood = 0;
+
+  ALLY_UNITS.forEach((unit) => {
+    const lossCount = actualLosses[unit.key] || 0;
+    actualLostUnitsTotal += lossCount;
+    actualLostBlood += lossCount * (BLOOD_BY_ALLY_KEY[unit.key] || 0);
+  });
+
+  return {
+    actualOutcomeLine,
+    actualCapacity,
+    actualLosses,
+    actualWinner: inferWinnerFromOutcomeLine(actualOutcomeLine),
+    actualLostUnitsTotal,
+    actualLostBlood
+  };
+}
+
 function buildActualSummaryText() {
-  const outcome = actualOutcomeInput.value.trim() || ">> Gercek sonuc girilmedi.";
-  const losses = collectActualLosses();
-  const capacity = actualCapacityInput.value.trim() === "" ? 0 : Number.parseInt(actualCapacityInput.value, 10);
+  const details = buildActualOutcomePayload();
+  const outcome = details.actualOutcomeLine;
+  const losses = details.actualLosses;
+  const capacity = details.actualCapacity;
 
   const lines = [
     "======================  SAVAS  SONUCU  ======================",

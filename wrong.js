@@ -110,11 +110,22 @@ async function renderWrongReports() {
       const openBtn = document.createElement("button");
       openBtn.className = "button button-secondary";
       openBtn.type = "button";
-      openBtn.textContent = "Simulasyonda Ac";
+      openBtn.textContent = "Rastgele Ac";
       openBtn.addEventListener("click", () => {
         openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {});
       });
       actions.append(openBtn);
+
+      if (Number.isInteger(item.seed)) {
+        const seededOpenBtn = document.createElement("button");
+        seededOpenBtn.className = "button button-secondary";
+        seededOpenBtn.type = "button";
+        seededOpenBtn.textContent = "Ayni Seed ile Ac";
+        seededOpenBtn.addEventListener("click", () => {
+          openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {}, item.seed);
+        });
+        actions.append(seededOpenBtn);
+      }
     }
     if (isAdminSession) {
       const deleteBtn = document.createElement("button");
@@ -140,6 +151,7 @@ async function renderWrongReports() {
       `<span>Kaynak: <strong>${item.sourceLabel || "-"}</strong></span>`,
       item.stage ? `<span>Kademe: <strong>${item.stage}</strong></span>` : "",
       item.modeLabel ? `<span>Mod: <strong>${item.modeLabel}</strong></span>` : "",
+      Number.isInteger(item.seed) ? `<span>Seed: <strong>${item.seed}</strong></span>` : "",
       Number.isFinite(item.pointLimit) ? `<span>Limit: <strong>${item.pointLimit}</strong></span>` : "",
       Number.isFinite(item.usedPoints) ? `<span>Kullanilan puan: <strong>${item.usedPoints}</strong></span>` : "",
       Number.isFinite(item.winRate) ? `<span>Kazanma orani: <strong>%${item.winRate}</strong></span>` : "",
@@ -208,11 +220,12 @@ function hasCountsForSimulation(item) {
   );
 }
 
-function openSimulationForCounts(enemyCounts, allyCounts) {
+function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
   try {
     window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
       enemyCounts,
-      allyCounts
+      allyCounts,
+      seed: Number.isInteger(seed) ? seed : null
     }));
     const opened = window.open("index.html", "_blank");
     if (!opened) {

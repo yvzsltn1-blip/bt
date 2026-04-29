@@ -195,3 +195,32 @@ Asagidaki vakalar daha once incelendi:
 ## Yeni kayıtlar
 
 Asagidan devam ederek yeni savaslari ekle:
+
+## 2026-04-29 ek heuristic tarama notu
+
+- Bir tur daha sistematik kural taramasi yapildi
+- Amac:
+  - `saved` tarafinda `46/46` dogrulugu korumak
+  - `wrong` tarafinda `17/17` gercek sonuca ulasan bir `T6 round-start slow hedef secimi` bulmak
+- Denenen siniflar:
+  - saf random round-start slow
+  - round-start + reactive birlikte
+  - deterministic hedef secimi: `speed`, `count`, `health`, `attack`, `index` alanlarina gore artan / azalan oncelikler
+  - `front` / `rear` pozisyon kisitlari
+  - basit kosullu acma denemeleri: `enemy_zombies`, `enemy_corpses`, `enemy_giants`, `gargoyles_ge_8` vb.
+- Sonuc:
+  - hicbir basit kural `46/46 saved` ve `17/17 wrong` sonucunu ayni anda vermedi
+  - en iyi deterministic adaylardan biri yaklasik `42/46 saved` ve `16/17 wrong` seviyesinde kaldi
+  - basit kosullu acma denemelerinde en iyi sonuc yaklasik `44/46 saved` ve `15/17 wrong` seviyesinde kaldi
+  - yani `wrong` tarafini iyilestiren modeller, `saved` tarafinda regresyon uretti
+- Ek not:
+  - `wrong` kayitlarinda `seed` saklanmadigi icin bu taraf tam deterministik degil
+  - `saved` kayitlari ise sakli temsilci `seed` ile deterministik dogrulaniyor
+- Gecici teknik durum:
+  - `gargoylesRoundStartSlow` deneyi yerelde test edildi
+  - ancak `saved` tarafinda regresyon urettigi icin uygulama koduna alinmadi
+  - canli davranista ikinci `T6` kurali aktif degil
+- Karar:
+  - su an uygulanacak guvenli bir ikinci `T6` kurali bulunamadi
+  - sonraki mantikli adim, `wrong` veri kumesini ve ozellikle `seed` orneklerini arttirmak
+  - daha buyuk ornekten sonra hedef secim kurali tekrar arastirilacak

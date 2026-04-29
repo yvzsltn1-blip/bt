@@ -14,6 +14,7 @@ const actualLossInputs = {};
 const enemyInputs = document.querySelector("#enemyInputs");
 const allyInputs = document.querySelector("#allyInputs");
 const summaryPanel = document.querySelector("#summaryPanel");
+const simulationMetaPanel = document.querySelector("#simulationMetaPanel");
 const logOutput = document.querySelector("#logOutput");
 const simulationLogPanel = document.querySelector("#simulationLogPanel");
 const simulationLogFullscreenBtn = document.querySelector("#simulationLogFullscreenBtn");
@@ -58,6 +59,7 @@ let currentVariantAnalysis = null;
 let variantAnalysisRunId = 0;
 let isAdminSession = false;
 let currentSimulationResult = null;
+let pendingHydratedSimulationSeed = null;
 const VARIANT_SAMPLE_COUNT = 480;
 const VARIANT_INITIAL_VISIBLE_COUNT = 20;
 const VARIANT_VISIBLE_STEP = 20;
@@ -83,9 +85,10 @@ simulateBtn.addEventListener("click", () => {
   try {
     const enemy = collectCounts(ENEMY_UNITS);
     const ally = collectCounts(ALLY_UNITS);
+    const seed = consumeSimulationSeed();
     statusLabel.textContent = "Simulasyon calisiyor";
-    const result = simulateBattle(enemy, ally, { collectLog: true });
-    renderSimulation(result);
+    const result = simulateBattle(enemy, ally, { seed, collectLog: true });
+    renderSimulation(result, { seed });
   } catch (error) {
     statusLabel.textContent = "Hata";
     window.alert(error.message);
@@ -106,7 +109,9 @@ clearBtn.addEventListener("click", () => {
   currentSimulationReport = null;
   currentSimulationResult = null;
   currentVariantAnalysis = null;
+  pendingHydratedSimulationSeed = null;
   reportWrongSimulationBtn.disabled = true;
+  renderSimulationMeta();
   closeVariantLogModal();
   syncSimulationAdminActions();
   syncVariantInsightsUi();
@@ -252,6 +257,7 @@ submitWrongReportBtn.addEventListener("click", async () => {
 
   const report = {
     ...pendingWrongSimulationReport,
+    ...buildActualOutcomePayload(),
     actualSummaryText: buildActualSummaryText(),
     actualNote: actualNoteInput.value.trim()
   };
@@ -447,6 +453,8 @@ function hydrateSimulationFromOptimizer() {
       return;
     }
 
+    pendingHydratedSimulationSeed = Number.isInteger(payload.seed) ? payload.seed : null;
+
     ENEMY_UNITS.forEach((unit) => {
       inputRefs[unit.key].value = String(payload.enemyCounts[unit.key] || 0);
     });
@@ -454,7 +462,7 @@ function hydrateSimulationFromOptimizer() {
       inputRefs[unit.key].value = String(payload.allyCounts[unit.key] || 0);
     });
     renderAllyPoints();
-    statusLabel.textContent = "Optimizer sonucu yuklendi";
+    statusLabel.textContent = pendingHydratedSimulationSeed ? "Kayitli seed ile sonuc yuklendi" : "Optimizer sonucu yuklendi";
     simulateBtn.click();
   } catch (error) {
     console.warn("Optimizer simulasyon aktarimi okunamadi.", error);
@@ -473,9 +481,48 @@ function renderAllyPoints() {
   allyPointValue.textContent = String(calculateArmyPoints(collectCounts(ALLY_UNITS)));
 }
 
-function renderSimulation(result) {
+function buildRuntimeSeed() {
+  if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+    const values = new Uint32Array(1);
+    window.crypto.getRandomValues(values);
+    return Math.max(1, values[0] >>> 0);
+  }
+  return 10000 + Math.floor(Math.random() * 90000);
+}
+
+function consumeSimulationSeed() {
+  if (Number.isInteger(pendingHydratedSimulationSeed)) {
+    const seed = pendingHydratedSimulationSeed;
+    pendingHydratedSimulationSeed = null;
+    return seed;
+  }
+  return buildRuntimeSeed();
+}
+
+function renderSimulationMeta(report = null, result = null) {
+  if (!simulationMetaPanel) {
+    return;
+  }
+  if (!report || !result) {
+    simulationMetaPanel.innerHTML = "";
+    return;
+  }
+
+  const metaParts = [
+    Number.isInteger(report.seed) ? `<span>Seed: <strong>${report.seed}</strong></span>` : "",
+    `<span>Sonuc: <strong>${result.winner === "enemy" ? "Maglubiyet" : "Zafer"}</strong></span>`,
+    `<span>Kan kaybi: <strong>${result.lostBloodTotal ?? 0}</strong></span>`,
+    `<span>Kullanilan puan: <strong>${report.usedPoints ?? 0}</strong></span>`,
+    `<span>Kapasite: <strong>${report.usedCapacity ?? 0}</strong></span>`
+  ].filter(Boolean);
+
+  simulationMetaPanel.innerHTML = metaParts.join("");
+}
+
+function renderSimulation(result, options = {}) {
   const enemyCounts = collectCounts(ENEMY_UNITS);
   const allyCounts = collectCounts(ALLY_UNITS);
+  const seed = Number.isInteger(options.seed) ? options.seed : (Number.isInteger(result?.seed) ? result.seed : null);
   const logText = result.logText;
   const lines = logText.split("\n");
   const victoryIndex = lines.findIndex((line) => line.trim().startsWith(">>"));
@@ -498,6 +545,7 @@ function renderSimulation(result) {
   ].join("\n");
   const detailText = [
     "======================  TUR  TUR  ANALIZ  ======================",
+    `  seed: ${seed ?? "-"}`,
     "  her raundun olaylari ve muharebe duzeni asagidadir",
     "",
     ...detailLines
@@ -513,17 +561,28 @@ function renderSimulation(result) {
     reportedAt: new Date().toISOString(),
     enemyCounts,
     allyCounts,
+    seed,
     matchSignature: buildMatchSignature("simulation", enemyCounts, allyCounts),
     summaryText,
     logText: detailText,
-    usedCapacity: result.usedCapacity
+    usedCapacity: result.usedCapacity,
+    usedPoints: calculateArmyPoints(allyCounts),
+    lostBlood: result.lostBloodTotal,
+    expectedWinner: result.winner,
+    expectedLostBlood: result.lostBloodTotal,
+    expectedUsedCapacity: result.usedCapacity,
+    expectedUsedPoints: calculateArmyPoints(allyCounts),
+    expectedAllyLosses: { ...(result.allyLosses || {}) },
+    expectedVariantSignature: buildVariantSignature(result)
   };
   currentSimulationResult = {
     winner: result.winner,
     lostBloodTotal: result.lostBloodTotal,
-    variantSignature: buildVariantSignature(result)
+    variantSignature: buildVariantSignature(result),
+    seed
   };
   reportWrongSimulationBtn.disabled = false;
+  renderSimulationMeta(currentSimulationReport, currentSimulationResult);
   closeVariantLogModal();
   renderMatchedActualReport();
   syncSimulationAdminActions();
@@ -606,10 +665,45 @@ function collectActualLosses() {
   return losses;
 }
 
+function inferWinnerFromOutcomeLine(outcomeLine) {
+  const normalized = String(outcomeLine || "").toLowerCase();
+  if (normalized.includes("dusman yenildi") || normalized.includes("enemy defeated")) {
+    return "ally";
+  }
+  if (normalized.includes("muttefikler yenildi") || normalized.includes("allies defeated")) {
+    return "enemy";
+  }
+  return "unknown";
+}
+
+function buildActualOutcomePayload() {
+  const actualOutcomeLine = actualOutcomeInput.value.trim() || ">> Gercek sonuc girilmedi.";
+  const actualLosses = collectActualLosses();
+  const actualCapacity = actualCapacityInput.value.trim() === "" ? 0 : Number.parseInt(actualCapacityInput.value, 10);
+  let actualLostUnitsTotal = 0;
+  let actualLostBlood = 0;
+
+  ALLY_UNITS.forEach((unit) => {
+    const lossCount = actualLosses[unit.key] || 0;
+    actualLostUnitsTotal += lossCount;
+    actualLostBlood += lossCount * (BLOOD_BY_ALLY_KEY[unit.key] || 0);
+  });
+
+  return {
+    actualOutcomeLine,
+    actualCapacity,
+    actualLosses,
+    actualWinner: inferWinnerFromOutcomeLine(actualOutcomeLine),
+    actualLostUnitsTotal,
+    actualLostBlood
+  };
+}
+
 function buildActualSummaryText() {
-  const outcome = actualOutcomeInput.value.trim() || ">> Gercek sonuc girilmedi.";
-  const losses = collectActualLosses();
-  const capacity = actualCapacityInput.value.trim() === "" ? 0 : Number.parseInt(actualCapacityInput.value, 10);
+  const details = buildActualOutcomePayload();
+  const outcome = details.actualOutcomeLine;
+  const losses = details.actualLosses;
+  const capacity = details.actualCapacity;
 
   const lines = [
     "======================  SAVAS  SONUCU  ======================",
@@ -1291,6 +1385,7 @@ function createApprovedSimulationEntry(analysis, variant) {
     allyCounts,
     matchSignature: buildMatchSignature("simulation", enemyCounts, allyCounts),
     variantSignature: variant.signature,
+    representativeSeed: logView.seed,
     variantTitle: `${variant.winner === "ally" ? "Zafer" : "Maglubiyet"} senaryosu`,
     probabilityBasisPoints: Math.round((variant.probability || 0) * 10000),
     winner: variant.winner === "enemy" ? "enemy" : "ally",
@@ -1313,6 +1408,7 @@ function createApprovedSimulationEntryFromCurrentResult() {
     enemyCounts,
     allyCounts,
     matchSignature: buildMatchSignature("simulation", enemyCounts, allyCounts),
+    representativeSeed: currentSimulationReport?.seed,
     variantSignature: currentSimulationResult?.variantSignature || `${buildMatchSignature("simulation", enemyCounts, allyCounts)}|single`,
     variantTitle: `${currentSimulationResult?.winner === "enemy" ? "Maglubiyet" : "Zafer"} senaryosu`,
     probabilityBasisPoints: 10000,
