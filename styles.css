@@ -770,6 +770,19 @@ body {
   font: inherit;
   appearance: none;
   -moz-appearance: textfield;
+  color-scheme: dark;
+}
+
+.stage-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stage-select option,
+.stage-select optgroup {
+  background: #121923;
+  color: var(--text);
 }
 
 .stage-select::-webkit-outer-spin-button,
