@@ -737,6 +737,8 @@
         if (zombiesNumbersDiff > 0 && unitNumbers[ZOMBIES_INDEX] === 0) {
           unitNumbers[REVIVED_INDEX] = zombies;
           unitHealth[REVIVED_INDEX] = zombies * UNIT_DESC[REVIVED_INDEX][HEALTH_INDEX];
+          // Revived zombies keep any speed penalties the original stack had accumulated.
+          unitSpeed[REVIVED_INDEX] = unitSpeed[ZOMBIES_INDEX];
           log(`- ${UNIT_DESC[ZOMBIES_INDEX][NAME_INDEX]}, her biri 1 canla geri dirildi`);
         }
         if (attackerIndex === CULTISTS_INDEX && unitNumbers[CULTISTS_INDEX] > 0) {

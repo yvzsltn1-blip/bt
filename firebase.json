@@ -12,6 +12,8 @@
       "**/.*",
       ".backups/**",
       "**/node_modules/**",
+      "live_*.json",
+      "*.firestoredump.json",
       "*.py",
       "__pycache__/**"
     ],
