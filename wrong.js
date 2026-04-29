@@ -10,6 +10,7 @@ const adminEmailInput = document.querySelector("#adminEmailInput");
 const adminPasswordInput = document.querySelector("#adminPasswordInput");
 const adminLoginBtn = document.querySelector("#adminLoginBtn");
 const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
+const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 const unitLabelMap = new Map(
   [...ENEMY_UNITS, ...ALLY_UNITS].map((unit) => [unit.key, unit.label])
 );
@@ -105,6 +106,16 @@ async function renderWrongReports() {
 
     const actions = document.createElement("div");
     actions.className = "actions actions-inline";
+    if (hasCountsForSimulation(item)) {
+      const openBtn = document.createElement("button");
+      openBtn.className = "button button-secondary";
+      openBtn.type = "button";
+      openBtn.textContent = "Simulasyonda Ac";
+      openBtn.addEventListener("click", () => {
+        openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {});
+      });
+      actions.append(openBtn);
+    }
     if (isAdminSession) {
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "button button-ghost";
@@ -185,6 +196,33 @@ async function renderWrongReports() {
     }
     wrongList.appendChild(card);
   });
+}
+
+function hasCountsForSimulation(item) {
+  return !!(
+    item &&
+    item.enemyCounts &&
+    item.allyCounts &&
+    Object.keys(item.enemyCounts).length > 0 &&
+    Object.keys(item.allyCounts).length > 0
+  );
+}
+
+function openSimulationForCounts(enemyCounts, allyCounts) {
+  try {
+    window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
+      enemyCounts,
+      allyCounts
+    }));
+    const opened = window.open("index.html", "_blank");
+    if (!opened) {
+      window.alert("Simulasyon yeni sekmede acilamadi. Lutfen popup engelleyiciyi kontrol edin.");
+      return;
+    }
+    opened.focus?.();
+  } catch (error) {
+    window.alert(`Simulasyon ekranina gecilemedi: ${error.message}`);
+  }
 }
 
 function renderCountBlock(title, counts, units) {
