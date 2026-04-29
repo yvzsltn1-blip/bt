@@ -53,6 +53,7 @@ const actualCapacityInput = document.querySelector("#actualCapacityInput");
 const actualNoteInput = document.querySelector("#actualNoteInput");
 const expectedWrongSummaryPreview = document.querySelector("#expectedWrongSummaryPreview");
 const actualWrongSummaryPreview = document.querySelector("#actualWrongSummaryPreview");
+const wrongReportErrorBox = document.querySelector("#wrongReportErrorBox");
 const wrongLossInputs = document.querySelector("#wrongLossInputs");
 const matchedActualPanel = document.querySelector("#matchedActualPanel");
 const topResultsModal = document.querySelector("#topResultsModal");
@@ -439,10 +440,12 @@ submitWrongReportBtn.addEventListener("click", async () => {
     await window.BTFirebase.saveWrongReport(report);
     wrongReports = await loadWrongReports();
     renderMatchedActualReport();
+    clearWrongReportError();
     closeWrongReportModal();
     window.alert("Optimizer icin gercek sonuc kaydedildi.");
   } catch (error) {
-    window.alert(`Yanlis raporu kaydedilemedi: ${error.message}`);
+    showWrongReportError(error);
+    window.alert("Yanlis raporu kaydedilemedi. Ayrintili neden pencerenin icinde gosterildi.");
   } finally {
     submitWrongReportBtn.disabled = false;
   }
@@ -3150,6 +3153,7 @@ function createWrongReportEntry(result, stage, maxPoints, meta, summaryText, log
 
 function openWrongReportModal(report) {
   pendingWrongReport = report;
+  clearWrongReportError();
   expectedWrongSummaryPreview.innerHTML = "";
   renderStyledLines(report.summaryText.split("\n"), expectedWrongSummaryPreview);
   const expectedLosses = extractLossesFromSummary(report.summaryText);
@@ -3167,6 +3171,23 @@ function openWrongReportModal(report) {
 function closeWrongReportModal() {
   wrongReportModal.hidden = true;
   pendingWrongReport = null;
+  clearWrongReportError();
+}
+
+function showWrongReportError(error) {
+  if (!wrongReportErrorBox) {
+    return;
+  }
+  wrongReportErrorBox.hidden = false;
+  wrongReportErrorBox.textContent = String(error?.message || error || "Bilinmeyen hata");
+}
+
+function clearWrongReportError() {
+  if (!wrongReportErrorBox) {
+    return;
+  }
+  wrongReportErrorBox.hidden = true;
+  wrongReportErrorBox.textContent = "";
 }
 
 function extractOutcomeLine(summaryText) {
@@ -3257,11 +3278,11 @@ function buildActualSummaryText() {
     const blood = count * BLOOD_BY_ALLY_KEY[unit.key];
     totalUnits += count;
     totalBlood += blood;
-    lines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${String(blood).padStart(4)} kan)`);
+    lines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
   });
 
   lines.push("");
-  lines.push(`= ${String(totalUnits).padStart(3)} toplam ${"".padEnd(21)} (${String(totalBlood).padStart(4)} kan)`);
+  lines.push(`= ${String(totalUnits).padStart(3)} toplam ${"".padEnd(21)} (${totalBlood} kan)`);
   lines.push("--------------------------------------------------");
   lines.push(`Toplam birlik kapasitesi: ${capacity}`);
 
@@ -3291,8 +3312,14 @@ function renderMatchedActualReport() {
   );
   const matched = wrongReports.find((item) =>
     item.source === "optimizer" &&
-    Number(item.stage) === Number(currentWrongCandidate.stage) &&
-    (item.matchSignature === signature || buildOptimizerMatchSignature(item.stage, item.enemyCounts || {}, item.allyCounts || {}) === signature)
+    (
+      item.matchSignature === signature ||
+      (
+        Number.isInteger(item.stage) &&
+        Number(item.stage) === Number(currentWrongCandidate.stage) &&
+        buildOptimizerMatchSignature(item.stage, item.enemyCounts || {}, item.allyCounts || {}) === signature
+      )
+    )
   );
 
   if (!matched || !matched.actualSummaryText) {

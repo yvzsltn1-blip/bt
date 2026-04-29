@@ -36,6 +36,7 @@
     Array.isArray(globalScope.firebase.apps) &&
     typeof globalScope.firebase.auth === "function"
   );
+  const textEncoder = typeof TextEncoder === "function" ? new TextEncoder() : null;
 
   if (hasFirebaseCompat && !globalScope.firebase.apps.length) {
     globalScope.firebase.initializeApp(firebaseConfig);
@@ -43,6 +44,7 @@
 
   const db = hasFirebaseCompat ? globalScope.firebase.firestore() : null;
   const auth = hasFirebaseAuth ? globalScope.firebase.auth() : null;
+  const firestoreRestBaseUrl = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents`;
 
   function normalizeEmail(value) {
     return String(value || "").trim().toLowerCase();
@@ -201,9 +203,30 @@
     return Math.min(parsed, maxValue);
   }
 
+  function getUtf8Size(text) {
+    const normalized = typeof text === "string" ? text : String(text ?? "");
+    if (textEncoder) {
+      return textEncoder.encode(normalized).length;
+    }
+    return unescape(encodeURIComponent(normalized)).length;
+  }
+
   function trimText(value, maxLen) {
     const text = typeof value === "string" ? value : String(value ?? "");
-    return text.length > maxLen ? text.slice(0, maxLen) : text;
+    if (getUtf8Size(text) <= maxLen) {
+      return text;
+    }
+    let low = 0;
+    let high = text.length;
+    while (low < high) {
+      const mid = Math.ceil((low + high) / 2);
+      if (getUtf8Size(text.slice(0, mid)) <= maxLen) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    return text.slice(0, low);
   }
 
   function sanitizeCountMap(source, allowedKeys) {
@@ -226,7 +249,7 @@
 
   function sanitizeWrongReport(item) {
     const source = item?.source === "optimizer" ? "optimizer" : "simulation";
-    const payload = {
+    return {
       source,
       sourceLabel: trimText(item?.sourceLabel || (source === "optimizer" ? "Optimizer" : "Simulasyon"), 30),
       reportedAt: trimText(item?.reportedAt || new Date().toISOString(), 40),
@@ -239,114 +262,257 @@
       actualSummaryText: trimText(item?.actualSummaryText || "", 40000),
       actualNote: trimText(item?.actualNote || "", 4000)
     };
+  }
 
-    const seed = sanitizeOptionalInt(item?.seed, 4294967295);
-    if (seed !== null) {
-      payload.seed = seed;
-    }
+  function isIntegerInRange(value, minValue, maxValue) {
+    return Number.isInteger(value) && value >= minValue && value <= maxValue;
+  }
 
-    if (Number.isInteger(item?.stage) && item.stage >= 1 && item.stage <= 9999) {
-      payload.stage = item.stage;
-    }
-    if (item?.mode === "balanced" || item?.mode === "fast" || item?.mode === "deep") {
-      payload.mode = item.mode;
-    }
-    if (item?.objective === "min_loss" || item?.objective === "min_army") {
-      payload.objective = item.objective;
-    }
-    if (typeof item?.diversityMode === "boolean") {
-      payload.diversityMode = item.diversityMode;
-    }
-    if (typeof item?.stoneMode === "boolean") {
-      payload.stoneMode = item.stoneMode;
-    }
-    if (item?.modeLabel) {
-      payload.modeLabel = trimText(item.modeLabel, 80);
-    }
-    if (item?.recommendationCounts === null) {
-      payload.recommendationCounts = null;
-    } else if (item?.recommendationCounts) {
-      payload.recommendationCounts = sanitizeCountMap(item.recommendationCounts, ALLY_COUNT_KEYS);
-    }
-    if (typeof item?.possible === "boolean") {
-      payload.possible = item.possible;
-    }
+  function validateShortString(value, maxLen) {
+    return typeof value === "string" && getUtf8Size(value) > 0 && getUtf8Size(value) <= maxLen;
+  }
 
-    const usedPoints = sanitizeOptionalInt(item?.usedPoints, 99999);
-    if (usedPoints !== null) {
-      payload.usedPoints = usedPoints;
-    }
+  function validateTextString(value, maxLen) {
+    return typeof value === "string" && getUtf8Size(value) <= maxLen;
+  }
 
-    const lostBlood = sanitizeOptionalInt(item?.lostBlood, 999999);
-    if (lostBlood !== null) {
-      payload.lostBlood = lostBlood;
+  function validateCountMap(mapValue, allowedKeys, path, errors) {
+    if (!mapValue || typeof mapValue !== "object" || Array.isArray(mapValue)) {
+      errors.push(`${path} map olmali.`);
+      return;
     }
-
-    const winRate = sanitizeOptionalInt(item?.winRate, 100);
-    if (winRate !== null) {
-      payload.winRate = winRate;
+    const keys = Object.keys(mapValue);
+    const invalidKeys = keys.filter((key) => !allowedKeys.includes(key));
+    if (invalidKeys.length > 0) {
+      errors.push(`${path} icinde izin verilmeyen alanlar var: ${invalidKeys.join(", ")}`);
     }
+    keys.forEach((key) => {
+      if (!isIntegerInRange(mapValue[key], 0, 9999)) {
+        errors.push(`${path}.${key} 0..9999 araliginda tam sayi olmali.`);
+      }
+    });
+  }
 
-    const pointLimit = sanitizeOptionalInt(item?.pointLimit, 99999);
-    if (pointLimit !== null) {
-      payload.pointLimit = pointLimit;
-    }
+  function validateWrongReportPayload(payload, docId) {
+    const errors = [];
+    const allowedKeys = [
+      "source", "sourceLabel", "reportedAt", "stage", "mode", "objective", "diversityMode",
+      "stoneMode", "seed", "expectedWinner", "expectedLostBlood", "expectedUsedCapacity",
+      "expectedUsedPoints", "expectedAllyLosses", "expectedVariantSignature",
+      "modeLabel", "enemyCounts", "allyCounts", "matchSignature",
+      "recommendationCounts", "summaryText", "logText", "possible",
+      "usedPoints", "lostBlood", "winRate", "pointLimit", "usedCapacity",
+      "actualSummaryText", "actualNote", "actualOutcomeLine", "actualCapacity",
+      "actualLosses", "actualWinner", "actualLostUnitsTotal", "actualLostBlood"
+    ];
+    const requiredKeys = [
+      "source", "sourceLabel", "reportedAt", "enemyCounts", "allyCounts",
+      "matchSignature", "summaryText", "logText", "usedCapacity",
+      "actualSummaryText", "actualNote"
+    ];
 
-    if (item?.expectedWinner === "ally" || item?.expectedWinner === "enemy" || item?.expectedWinner === "unknown") {
-      payload.expectedWinner = item.expectedWinner;
+    if (!/^wrong_[0-9]+_[a-z0-9]+$/.test(docId)) {
+      errors.push(`Belge kimligi kurala uymuyor: ${docId}`);
     }
 
-    const expectedLostBlood = sanitizeOptionalInt(item?.expectedLostBlood, 999999);
-    if (expectedLostBlood !== null) {
-      payload.expectedLostBlood = expectedLostBlood;
+    const payloadKeys = Object.keys(payload);
+    const extraKeys = payloadKeys.filter((key) => !allowedKeys.includes(key));
+    if (extraKeys.length > 0) {
+      errors.push(`Payload icinde izin verilmeyen alanlar var: ${extraKeys.join(", ")}`);
     }
 
-    const expectedUsedCapacity = sanitizeOptionalInt(item?.expectedUsedCapacity, 999999);
-    if (expectedUsedCapacity !== null) {
-      payload.expectedUsedCapacity = expectedUsedCapacity;
+    const missingKeys = requiredKeys.filter((key) => !(key in payload));
+    if (missingKeys.length > 0) {
+      errors.push(`Zorunlu alanlar eksik: ${missingKeys.join(", ")}`);
     }
 
-    const expectedUsedPoints = sanitizeOptionalInt(item?.expectedUsedPoints, 99999);
-    if (expectedUsedPoints !== null) {
-      payload.expectedUsedPoints = expectedUsedPoints;
+    if (!["simulation", "optimizer"].includes(payload.source)) {
+      errors.push(`source gecersiz: ${String(payload.source)}`);
+    }
+    if (!validateShortString(payload.sourceLabel, 30)) {
+      errors.push("sourceLabel 1..30 karakter olmali.");
+    }
+    if (!validateShortString(payload.reportedAt, 40)) {
+      errors.push("reportedAt 1..40 karakter olmali.");
+    }
+    if ("stage" in payload && !isIntegerInRange(payload.stage, 1, 9999)) {
+      errors.push("stage 1..9999 araliginda tam sayi olmali.");
+    }
+    if ("mode" in payload && !["balanced", "fast", "deep"].includes(payload.mode)) {
+      errors.push(`mode gecersiz: ${String(payload.mode)}`);
+    }
+    if ("objective" in payload && !["min_loss", "min_army"].includes(payload.objective)) {
+      errors.push(`objective gecersiz: ${String(payload.objective)}`);
+    }
+    if ("diversityMode" in payload && typeof payload.diversityMode !== "boolean") {
+      errors.push("diversityMode boolean olmali.");
+    }
+    if ("stoneMode" in payload && typeof payload.stoneMode !== "boolean") {
+      errors.push("stoneMode boolean olmali.");
+    }
+    if ("seed" in payload && !isIntegerInRange(payload.seed, 0, 4294967295)) {
+      errors.push("seed 0..4294967295 araliginda tam sayi olmali.");
+    }
+    if ("modeLabel" in payload && !validateShortString(payload.modeLabel, 80)) {
+      errors.push("modeLabel 1..80 karakter olmali.");
     }
 
-    if (item?.expectedAllyLosses) {
-      payload.expectedAllyLosses = sanitizeCountMap(item.expectedAllyLosses, ALLY_COUNT_KEYS);
+    validateCountMap(payload.enemyCounts, ENEMY_COUNT_KEYS, "enemyCounts", errors);
+    validateCountMap(payload.allyCounts, ALLY_COUNT_KEYS, "allyCounts", errors);
+
+    if ("recommendationCounts" in payload && payload.recommendationCounts !== null) {
+      validateCountMap(payload.recommendationCounts, ALLY_COUNT_KEYS, "recommendationCounts", errors);
     }
 
-    if (item?.expectedVariantSignature) {
-      payload.expectedVariantSignature = trimText(item.expectedVariantSignature, 1000);
+    if (!validateShortString(payload.matchSignature, 200)) {
+      errors.push("matchSignature 1..200 karakter olmali.");
+    }
+    if ("expectedWinner" in payload && !["ally", "enemy", "unknown"].includes(payload.expectedWinner)) {
+      errors.push(`expectedWinner gecersiz: ${String(payload.expectedWinner)}`);
+    }
+    if ("expectedLostBlood" in payload && payload.expectedLostBlood !== null && !isIntegerInRange(payload.expectedLostBlood, 0, 999999)) {
+      errors.push("expectedLostBlood 0..999999 araliginda tam sayi olmali.");
+    }
+    if ("expectedUsedCapacity" in payload && payload.expectedUsedCapacity !== null && !isIntegerInRange(payload.expectedUsedCapacity, 0, 999999)) {
+      errors.push("expectedUsedCapacity 0..999999 araliginda tam sayi olmali.");
+    }
+    if ("expectedUsedPoints" in payload && payload.expectedUsedPoints !== null && !isIntegerInRange(payload.expectedUsedPoints, 0, 99999)) {
+      errors.push("expectedUsedPoints 0..99999 araliginda tam sayi olmali.");
+    }
+    if ("expectedAllyLosses" in payload) {
+      validateCountMap(payload.expectedAllyLosses, ALLY_COUNT_KEYS, "expectedAllyLosses", errors);
+    }
+    if ("expectedVariantSignature" in payload && !validateTextString(payload.expectedVariantSignature, 1000)) {
+      errors.push("expectedVariantSignature en fazla 1000 karakter olmali.");
+    }
+    if (!validateTextString(payload.summaryText, 40000)) {
+      errors.push("summaryText en fazla 40000 karakter olmali.");
+    }
+    if (!validateTextString(payload.logText, 400000)) {
+      errors.push("logText en fazla 400000 karakter olmali.");
+    }
+    if ("possible" in payload && typeof payload.possible !== "boolean") {
+      errors.push("possible boolean olmali.");
+    }
+    if ("usedPoints" in payload && !isIntegerInRange(payload.usedPoints, 0, 99999)) {
+      errors.push("usedPoints 0..99999 araliginda tam sayi olmali.");
+    }
+    if ("lostBlood" in payload && payload.lostBlood !== null && !isIntegerInRange(payload.lostBlood, 0, 999999)) {
+      errors.push("lostBlood 0..999999 araliginda tam sayi olmali.");
+    }
+    if ("winRate" in payload && !isIntegerInRange(payload.winRate, 0, 100)) {
+      errors.push("winRate 0..100 araliginda tam sayi olmali.");
+    }
+    if ("pointLimit" in payload && !isIntegerInRange(payload.pointLimit, 0, 99999)) {
+      errors.push("pointLimit 0..99999 araliginda tam sayi olmali.");
+    }
+    if (!isIntegerInRange(payload.usedCapacity, 0, 999999)) {
+      errors.push("usedCapacity 0..999999 araliginda tam sayi olmali.");
+    }
+    if (!validateTextString(payload.actualSummaryText, 40000)) {
+      errors.push("actualSummaryText en fazla 40000 karakter olmali.");
+    }
+    if (!validateTextString(payload.actualNote, 4000)) {
+      errors.push("actualNote en fazla 4000 karakter olmali.");
+    }
+    if ("actualOutcomeLine" in payload && !validateTextString(payload.actualOutcomeLine, 400)) {
+      errors.push("actualOutcomeLine en fazla 400 karakter olmali.");
+    }
+    if ("actualCapacity" in payload && payload.actualCapacity !== null && !isIntegerInRange(payload.actualCapacity, 0, 999999)) {
+      errors.push("actualCapacity 0..999999 araliginda tam sayi olmali.");
+    }
+    if ("actualLosses" in payload) {
+      validateCountMap(payload.actualLosses, ALLY_COUNT_KEYS, "actualLosses", errors);
+    }
+    if ("actualWinner" in payload && !["ally", "enemy", "unknown"].includes(payload.actualWinner)) {
+      errors.push(`actualWinner gecersiz: ${String(payload.actualWinner)}`);
+    }
+    if ("actualLostUnitsTotal" in payload && payload.actualLostUnitsTotal !== null && !isIntegerInRange(payload.actualLostUnitsTotal, 0, 999999)) {
+      errors.push("actualLostUnitsTotal 0..999999 araliginda tam sayi olmali.");
+    }
+    if ("actualLostBlood" in payload && payload.actualLostBlood !== null && !isIntegerInRange(payload.actualLostBlood, 0, 999999)) {
+      errors.push("actualLostBlood 0..999999 araliginda tam sayi olmali.");
     }
 
-    if (item?.actualOutcomeLine) {
-      payload.actualOutcomeLine = trimText(item.actualOutcomeLine, 400);
+    return errors;
+  }
+
+  function formatWrongReportError(error, payload, docId) {
+    const localErrors = validateWrongReportPayload(payload, docId);
+    const lines = [
+      `Firestore hata kodu: ${error?.code || "bilinmiyor"}`,
+      `Firestore mesaji: ${error?.message || "bilinmiyor"}`,
+      `Belge kimligi: ${docId}`,
+      `Payload alanlari: ${Object.keys(payload).join(", ")}`,
+      `Byte boyutlari: summaryText=${getUtf8Size(payload.summaryText || "")}, logText=${getUtf8Size(payload.logText || "")}, actualSummaryText=${getUtf8Size(payload.actualSummaryText || "")}, actualNote=${getUtf8Size(payload.actualNote || "")}`
+    ];
+
+    if (localErrors.length > 0) {
+      lines.push("Yerel kural dogrulamasi basarisiz:");
+      localErrors.forEach((item) => lines.push(`- ${item}`));
+    } else {
+      lines.push("Yerel kural dogrulamasi gecti.");
+      lines.push("Sunucu hala reddediyorsa aktif projede farkli kural, farkli Firestore veritabani veya oturum/policy kaynakli ek bir kisit olabilir.");
     }
 
-    const actualCapacity = sanitizeOptionalInt(item?.actualCapacity, 999999);
-    if (actualCapacity !== null) {
-      payload.actualCapacity = actualCapacity;
+    return new Error(lines.join("\n"));
+  }
+
+  function toFirestoreRestValue(value) {
+    if (value === null) {
+      return { nullValue: null };
+    }
+    if (typeof value === "string") {
+      return { stringValue: value };
+    }
+    if (typeof value === "boolean") {
+      return { booleanValue: value };
+    }
+    if (Number.isInteger(value)) {
+      return { integerValue: String(value) };
+    }
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const fields = {};
+      Object.entries(value).forEach(([key, nestedValue]) => {
+        fields[key] = toFirestoreRestValue(nestedValue);
+      });
+      return { mapValue: { fields } };
+    }
+    throw new Error(`Firestore REST donusumu bu degeri desteklemiyor: ${String(value)}`);
+  }
+
+  function toFirestoreRestFields(payload) {
+    const fields = {};
+    Object.entries(payload).forEach(([key, value]) => {
+      fields[key] = toFirestoreRestValue(value);
+    });
+    return fields;
+  }
+
+  async function createWrongReportViaRest(docId, payload) {
+    if (typeof globalScope.fetch !== "function") {
+      throw new Error("REST fallback icin fetch kullanilamiyor.");
     }
 
-    if (item?.actualLosses) {
-      payload.actualLosses = sanitizeCountMap(item.actualLosses, ALLY_COUNT_KEYS);
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}/${WRONG_COLLECTION}?documentId=${encodeURIComponent(docId)}&key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fields: toFirestoreRestFields(payload)
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new Error(`REST fallback basarisiz: HTTP ${response.status} ${response.statusText}\n${responseText}`);
     }
 
-    if (item?.actualWinner === "ally" || item?.actualWinner === "enemy" || item?.actualWinner === "unknown") {
-      payload.actualWinner = item.actualWinner;
-    }
-
-    const actualLostUnitsTotal = sanitizeOptionalInt(item?.actualLostUnitsTotal, 999999);
-    if (actualLostUnitsTotal !== null) {
-      payload.actualLostUnitsTotal = actualLostUnitsTotal;
-    }
-
-    const actualLostBlood = sanitizeOptionalInt(item?.actualLostBlood, 999999);
-    if (actualLostBlood !== null) {
-      payload.actualLostBlood = actualLostBlood;
-    }
-
-    return payload;
+    return response.json().catch(() => null);
   }
 
   async function migrateLocalStrategies() {
@@ -471,6 +637,14 @@
   async function saveWrongReport(item) {
     const docId = `wrong_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     const payload = sanitizeWrongReport(item);
+    const localErrors = validateWrongReportPayload(payload, docId);
+
+    if (localErrors.length > 0) {
+      throw new Error([
+        "Wrong report payload yerel kural dogrulamasini gecemedi.",
+        ...localErrors.map((entry) => `- ${entry}`)
+      ].join("\n"));
+    }
 
     if (!db) {
       const next = [{ ...payload, id: docId }, ...readWrongReports()];
@@ -478,8 +652,20 @@
       return next[0];
     }
 
-    await db.collection(WRONG_COLLECTION).doc(docId).set(payload);
-    return { ...payload, id: docId };
+    try {
+      await db.collection(WRONG_COLLECTION).doc(docId).set(payload);
+      return { ...payload, id: docId };
+    } catch (error) {
+      if (error?.code === "permission-denied") {
+        try {
+          await createWrongReportViaRest(docId, payload);
+          return { ...payload, id: docId, savedVia: "rest-fallback" };
+        } catch (restError) {
+          throw formatWrongReportError(restError, payload, docId);
+        }
+      }
+      throw formatWrongReportError(error, payload, docId);
+    }
   }
 
   async function deleteWrongReport(id) {

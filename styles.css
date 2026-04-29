@@ -1549,6 +1549,13 @@ body {
   line-height: 1.44;
 }
 
+.wrong-report-error-box {
+  border-color: rgba(255, 120, 120, 0.42);
+  background: rgba(70, 12, 12, 0.72);
+  color: #ffd7d7;
+  white-space: pre-wrap;
+}
+
 .log-panel {
   border: 1px solid var(--line);
   border-radius: 22px;

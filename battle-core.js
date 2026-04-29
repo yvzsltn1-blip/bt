@@ -827,11 +827,11 @@
         lostUnitsTotal += lostUnits;
         const lostBlood = lostUnits * UNIT_DESC[i][BLOOD_INDEX];
         lostBloodTotal += lostBlood;
-        log(`- ${String(lostUnits).padStart(3)} ${UNIT_DESC[i][NAME_INDEX].padEnd(28)} (${String(lostBlood).padStart(4)} kan)`);
+        log(`- ${String(lostUnits).padStart(3)} ${UNIT_DESC[i][NAME_INDEX].padEnd(28)} (${lostBlood} kan)`);
       }
     }
     log("");
-    log(`= ${String(lostUnitsTotal).padStart(3)} toplam ${"".padEnd(21)} (${String(lostBloodTotal).padStart(4)} kan)`);
+    log(`= ${String(lostUnitsTotal).padStart(3)} toplam ${"".padEnd(21)} (${lostBloodTotal} kan)`);
     log("");
 
     let capacity = 0;
