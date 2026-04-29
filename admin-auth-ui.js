@@ -13,6 +13,14 @@
     if (emailInput && !emailInput.value && api?.ADMIN_EMAIL) {
       emailInput.value = api.ADMIN_EMAIL;
     }
+    if (passwordInput) {
+      passwordInput.autocomplete = "new-password";
+      passwordInput.setAttribute("data-lpignore", "true");
+      passwordInput.setAttribute("data-1p-ignore", "true");
+      passwordInput.setAttribute("autocapitalize", "off");
+      passwordInput.setAttribute("autocorrect", "off");
+      passwordInput.setAttribute("spellcheck", "false");
+    }
 
     function render(isAdmin, user, note = "") {
       if (statusLabel) {
@@ -30,9 +38,11 @@
         emailInput.disabled = isAdmin;
       }
       if (passwordInput) {
-        passwordInput.disabled = isAdmin;
         if (isAdmin) {
           passwordInput.value = "";
+          passwordInput.placeholder = "Silme icin sifreyi tekrar gir";
+        } else {
+          passwordInput.placeholder = "Admin sifresi";
         }
       }
       if (onStateChange) {

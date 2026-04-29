@@ -48,6 +48,12 @@ clearWrongBtn.addEventListener("click", async () => {
   if (!isAdminSession) {
     return;
   }
+  const password = String(adminPasswordInput?.value || "");
+  if (!password.trim()) {
+    window.alert("Tumunu Sil icin sifreyi tekrar girmen gerekiyor.");
+    adminPasswordInput?.focus();
+    return;
+  }
   const items = await loadWrongReports();
   if (items.length === 0) {
     return;
@@ -57,10 +63,18 @@ clearWrongBtn.addEventListener("click", async () => {
   }
   clearWrongBtn.disabled = true;
   try {
+    await window.BTFirebase.verifyAdminPassword(password);
     await window.BTFirebase.clearWrongReports();
+    if (adminPasswordInput) {
+      adminPasswordInput.value = "";
+    }
     await renderWrongReports();
   } catch (error) {
+    if (adminPasswordInput) {
+      adminPasswordInput.value = "";
+    }
     console.warn("Yanlis raporlari silinemedi.", error);
+    window.alert(error?.message || "Yanlis raporlari silinemedi.");
   } finally {
     syncAdminActions();
   }
@@ -68,7 +82,7 @@ clearWrongBtn.addEventListener("click", async () => {
 
 function syncAdminActions() {
   clearWrongBtn.disabled = !isAdminSession;
-  clearWrongBtn.title = isAdminSession ? "" : "Tum raporlari silmek icin admin girisi gerekli.";
+  clearWrongBtn.title = isAdminSession ? "Bu islem icin sifre tekrar istenir." : "Tum raporlari silmek icin admin girisi gerekli.";
 }
 
 async function bindAdminAuth() {

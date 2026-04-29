@@ -49,6 +49,12 @@ clearSavedBtn.addEventListener("click", async () => {
   if (!isAdminSession) {
     return;
   }
+  const password = String(adminPasswordInput?.value || "");
+  if (!password.trim()) {
+    window.alert("Tumunu Sil icin sifreyi tekrar girmen gerekiyor.");
+    adminPasswordInput?.focus();
+    return;
+  }
   const items = await loadSavedStrategies();
   if (items.length === 0) {
     return;
@@ -58,10 +64,18 @@ clearSavedBtn.addEventListener("click", async () => {
   }
   clearSavedBtn.disabled = true;
   try {
+    await window.BTFirebase.verifyAdminPassword(password);
     await window.BTFirebase.clearApprovedStrategies();
+    if (adminPasswordInput) {
+      adminPasswordInput.value = "";
+    }
     await renderSavedStrategies();
   } catch (error) {
+    if (adminPasswordInput) {
+      adminPasswordInput.value = "";
+    }
     console.warn("Kayitlar silinemedi.", error);
+    window.alert(error?.message || "Kayitlar silinemedi.");
   } finally {
     syncAdminActions();
   }
@@ -69,7 +83,7 @@ clearSavedBtn.addEventListener("click", async () => {
 
 function syncAdminActions() {
   clearSavedBtn.disabled = !isAdminSession;
-  clearSavedBtn.title = isAdminSession ? "" : "Tum kayitlari silmek icin admin girisi gerekli.";
+  clearSavedBtn.title = isAdminSession ? "Bu islem icin sifre tekrar istenir." : "Tum kayitlari silmek icin admin girisi gerekli.";
 }
 
 async function bindAdminAuth() {

@@ -549,6 +549,27 @@
     await auth.signOut();
   }
 
+  async function verifyAdminPassword(password) {
+    if (!auth) {
+      throw new Error("Admin dogrulamasi hazir degil.");
+    }
+    const user = getCurrentUser();
+    if (!isAdminUser(user)) {
+      throw new Error("Bu islem icin aktif admin oturumu gerekli.");
+    }
+    const rawPassword = String(password || "");
+    if (!rawPassword.trim()) {
+      throw new Error("Bu islem icin sifre tekrar girilmeli.");
+    }
+    const provider = globalScope.firebase?.auth?.EmailAuthProvider;
+    if (!provider || typeof provider.credential !== "function") {
+      throw new Error("Admin dogrulamasi kullanilamiyor.");
+    }
+    const credential = provider.credential(normalizeEmail(user.email), rawPassword);
+    await user.reauthenticateWithCredential(credential);
+    return true;
+  }
+
   globalScope.BTFirebase = {
     ADMIN_EMAIL,
     getCurrentUser,
@@ -556,6 +577,7 @@
     onAdminStateChanged,
     signInAdmin,
     signOutAdmin,
+    verifyAdminPassword,
     loadApprovedStrategies,
     saveApprovedStrategy,
     deleteApprovedStrategy,
