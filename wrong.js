@@ -1,6 +1,6 @@
 "use strict";
 
-const { ENEMY_UNITS, ALLY_UNITS } = window.BattleCore;
+const { ENEMY_UNITS, ALLY_UNITS, BLOOD_BY_ALLY_KEY } = window.BattleCore;
 
 const wrongList = document.querySelector("#wrongList");
 const wrongCountLabel = document.querySelector("#wrongCountLabel");
@@ -11,6 +11,10 @@ const wrongTierFilter = document.querySelector("#wrongTierFilter");
 const wrongUsageFilter = document.querySelector("#wrongUsageFilter");
 const resetWrongFiltersBtn = document.querySelector("#resetWrongFiltersBtn");
 const exportWrongCsvBtn = document.querySelector("#exportWrongCsvBtn");
+const exportWrongTxtBtn = document.querySelector("#exportWrongTxtBtn");
+const exportWrongAllTxtBtn = document.querySelector("#exportWrongAllTxtBtn");
+const wrongStartDateInput = document.querySelector("#wrongStartDateInput");
+const wrongEndDateInput = document.querySelector("#wrongEndDateInput");
 const wrongFilterMeta = document.querySelector("#wrongFilterMeta");
 const wrongPagination = document.querySelector("#wrongPagination");
 const wrongPrevPageBtn = document.querySelector("#wrongPrevPageBtn");
@@ -267,7 +271,7 @@ function bindFilterControls() {
     applyWrongFilters();
   };
 
-  [wrongSearchInput, wrongSideFilter, wrongTierFilter, wrongUsageFilter].forEach((element) => {
+  [wrongSearchInput, wrongSideFilter, wrongTierFilter, wrongUsageFilter, wrongStartDateInput, wrongEndDateInput].forEach((element) => {
     if (!element) {
       return;
     }
@@ -288,8 +292,26 @@ function bindFilterControls() {
     if (wrongUsageFilter) {
       wrongUsageFilter.value = "all";
     }
+    if (wrongStartDateInput) {
+      wrongStartDateInput.value = "";
+    }
+    if (wrongEndDateInput) {
+      wrongEndDateInput.value = "";
+    }
     wrongCurrentPage = 0;
     applyWrongFilters();
+  });
+
+  exportWrongTxtBtn?.addEventListener("click", () => {
+    downloadWrongTxt(
+      filteredWrongItems,
+      "filtered",
+      buildDateRangeLabel(wrongStartDateInput?.value || "", wrongEndDateInput?.value || "")
+    );
+  });
+
+  exportWrongAllTxtBtn?.addEventListener("click", () => {
+    downloadWrongTxt(allWrongItems, "all", "Tum tarihler");
   });
 
   exportWrongCsvBtn?.addEventListener("click", () => {
@@ -345,8 +367,14 @@ function applyWrongFilters() {
   const side = wrongSideFilter?.value || "all";
   const tier = wrongTierFilter?.value || "all";
   const usage = wrongUsageFilter?.value || "all";
+  const startDate = wrongStartDateInput?.value || "";
+  const endDate = wrongEndDateInput?.value || "";
 
-  filteredWrongItems = allWrongItems.filter((item) => matchesWrongSearch(item, searchText) && matchesTierUsage(item, side, tier, usage));
+  filteredWrongItems = allWrongItems.filter((item) => (
+    matchesWrongSearch(item, searchText) &&
+    matchesTierUsage(item, side, tier, usage) &&
+    matchesDateRange(item.reportedAt, startDate, endDate)
+  ));
   const totalPages = Math.max(1, Math.ceil(filteredWrongItems.length / PAGE_SIZE));
   wrongCurrentPage = Math.min(wrongCurrentPage, totalPages - 1);
 
@@ -374,6 +402,7 @@ function updateWrongFilterMeta() {
     <span>Filtre sonucu: <strong>${filteredWrongItems.length}</strong></span>
     <span>Toplam rapor: <strong>${allWrongItems.length}</strong></span>
     <span>Sayfa araligi: <strong>${start}-${end}</strong></span>
+    <span>Tarih: <strong>${buildDateRangeLabel(wrongStartDateInput?.value || "", wrongEndDateInput?.value || "")}</strong></span>
   `;
 }
 
@@ -472,6 +501,218 @@ function downloadCsv(rows, filename) {
     ...rows.map((row) => headers.map((header) => escapeCsvCell(row[header])).join(","))
   ];
   const blob = new Blob([`\uFEFF${lines.join("\n")}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadWrongTxt(items, scope, dateLabel) {
+  if (!items.length) {
+    window.alert("Indirilecek rapor yok.");
+    return;
+  }
+  const lines = [
+    "Yanlis Sonuclar Kisa Liste",
+    "==========================",
+    `Olusturma Tarihi: ${new Date().toISOString()}`,
+    `Toplam rapor: ${items.length}`,
+    `Kapsam: ${scope === "all" ? "Tum raporlar" : "Filtrelenmis raporlar"}`,
+    `Tarih filtresi: ${dateLabel}`,
+    "",
+    "Liste",
+    "-----",
+    ""
+  ];
+
+  items.forEach((item, index) => {
+    if (index > 0) {
+      lines.push("");
+    }
+    lines.push(...buildWrongTxtEntry(item, index));
+  });
+
+  downloadTextFile(
+    `${lines.join("\n")}\n`,
+    `wrong-${scope}-${buildExportTimestamp()}.txt`
+  );
+}
+
+function buildWrongTxtEntry(item, index) {
+  const allyCounts = getWrongExportAllyCounts(item);
+  const expectedLosses = getExpectedLosses(item);
+  const actualLosses = getActualLosses(item);
+  const expectedLostBlood = getExpectedLostBlood(item, expectedLosses);
+  const actualLostBlood = getActualLostBlood(item, actualLosses);
+  const sourceLabel = item.sourceLabel || (item.source === "optimizer" ? "Optimizer" : "Simulasyon");
+  const stageLabel = item.stage ? ` / ${item.stage}. Kademe` : "";
+
+  return [
+    `Rapor ${index + 1} [${sourceLabel}${stageLabel}]`,
+    `Tarih: ${formatDate(item.reportedAt)}`,
+    `Rakip dizilis (T1-T10): ${buildTierLine(item.enemyCounts || {}, ENEMY_UNITS)}`,
+    `Bizim dizilis (T1-T8): ${buildTierLine(allyCounts, ALLY_UNITS)}`,
+    `Beklenen kayiplar (T1-T8): ${buildTierLine(expectedLosses, ALLY_UNITS)}`,
+    `Gercek kayiplar (T1-T8): ${buildTierLine(actualLosses, ALLY_UNITS)}`,
+    `Beklenen toplam kan kaybi: ${expectedLostBlood}`,
+    `Gercek toplam kan kaybi: ${actualLostBlood}`
+  ];
+}
+
+function getWrongExportAllyCounts(item) {
+  if (hasAnyPositiveCounts(item?.recommendationCounts)) {
+    return item.recommendationCounts || {};
+  }
+  return item?.allyCounts || {};
+}
+
+function getExpectedLosses(item) {
+  if (hasAnyPositiveCounts(item?.expectedAllyLosses)) {
+    return item.expectedAllyLosses || {};
+  }
+  return extractLossesFromSummary(item?.summaryText || "");
+}
+
+function getActualLosses(item) {
+  if (hasAnyPositiveCounts(item?.actualLosses)) {
+    return item.actualLosses || {};
+  }
+  return extractLossesFromSummary(item?.actualSummaryText || "");
+}
+
+function getExpectedLostBlood(item, losses) {
+  const explicitValue = parseFiniteNumber(item?.expectedLostBlood);
+  if (explicitValue !== null) {
+    return explicitValue;
+  }
+  const legacyValue = parseFiniteNumber(item?.lostBlood);
+  if (legacyValue !== null) {
+    return legacyValue;
+  }
+  return calculateLostBlood(losses);
+}
+
+function getActualLostBlood(item, losses) {
+  const explicitValue = parseFiniteNumber(item?.actualLostBlood);
+  if (explicitValue !== null) {
+    return explicitValue;
+  }
+  return calculateLostBlood(losses);
+}
+
+function extractLossesFromSummary(summaryText) {
+  const nameMap = Object.fromEntries(
+    ALLY_UNITS.map((unit) => [getSummaryUnitName(unit.key), unit.key])
+  );
+  const losses = {};
+  summaryText.split("\n").forEach((line) => {
+    const match = line.match(/^-?\s*(\d+)\s+(.+?)\s+\(\s*\d+\s+kan\)$/);
+    if (!match) {
+      return;
+    }
+    const count = Number.parseInt(match[1], 10);
+    const key = nameMap[match[2].trim()];
+    if (key) {
+      losses[key] = count;
+    }
+  });
+  return losses;
+}
+
+function getSummaryUnitName(key) {
+  const names = {
+    bats: "Yarasalar (T1)",
+    ghouls: "Gulyabaniler (T2)",
+    thralls: "Vampir Koleler (T3)",
+    banshees: "Bansiler (T4)",
+    necromancers: "Nekromantlar (T5)",
+    gargoyles: "Gargoyller (T6)",
+    witches: "Kan Cadilari (T7)",
+    rotmaws: "Curuk Ceneler (T8)"
+  };
+  return names[key] || key;
+}
+
+function hasAnyPositiveCounts(counts) {
+  return Object.values(counts || {}).some((value) => Number(value || 0) > 0);
+}
+
+function calculateLostBlood(losses) {
+  return ALLY_UNITS.reduce((sum, unit) => sum + Number(losses?.[unit.key] || 0) * (BLOOD_BY_ALLY_KEY[unit.key] || 0), 0);
+}
+
+function parseFiniteNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildTierLine(counts, units) {
+  return (units || []).map((unit) => Number(counts?.[unit.key] || 0)).join("-");
+}
+
+function matchesDateRange(value, startValue, endValue) {
+  if (!startValue && !endValue) {
+    return true;
+  }
+  const itemDate = value ? new Date(value) : null;
+  if (!itemDate || Number.isNaN(itemDate.getTime())) {
+    return false;
+  }
+  const start = parseDateBoundary(startValue, "start");
+  const end = parseDateBoundary(endValue, "end");
+  if (start && itemDate < start) {
+    return false;
+  }
+  if (end && itemDate > end) {
+    return false;
+  }
+  return true;
+}
+
+function parseDateBoundary(value, edge) {
+  if (!value) {
+    return null;
+  }
+  const stamp = edge === "end" ? `${value}T23:59:59.999` : `${value}T00:00:00.000`;
+  const date = new Date(stamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function buildDateRangeLabel(startValue, endValue) {
+  if (startValue && endValue) {
+    return `${startValue} - ${endValue}`;
+  }
+  if (startValue) {
+    return `${startValue} ve sonrasi`;
+  }
+  if (endValue) {
+    return `${endValue} ve oncesi`;
+  }
+  return "Tum tarihler";
+}
+
+function buildExportTimestamp() {
+  const date = new Date();
+  const parts = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+    String(date.getHours()).padStart(2, "0"),
+    String(date.getMinutes()).padStart(2, "0"),
+    String(date.getSeconds()).padStart(2, "0")
+  ];
+  return parts.join("");
+}
+
+function downloadTextFile(content, filename) {
+  const blob = new Blob([`\uFEFF${content}`], { type: "text/plain;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

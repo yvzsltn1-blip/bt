@@ -2,7 +2,8 @@
 
 const {
   ENEMY_UNITS,
-  ALLY_UNITS
+  ALLY_UNITS,
+  BLOOD_BY_ALLY_KEY
 } = window.BattleCore;
 
 const savedList = document.querySelector("#savedList");
@@ -14,6 +15,10 @@ const savedTierFilter = document.querySelector("#savedTierFilter");
 const savedUsageFilter = document.querySelector("#savedUsageFilter");
 const resetSavedFiltersBtn = document.querySelector("#resetSavedFiltersBtn");
 const exportSavedCsvBtn = document.querySelector("#exportSavedCsvBtn");
+const exportSavedTxtBtn = document.querySelector("#exportSavedTxtBtn");
+const exportSavedAllTxtBtn = document.querySelector("#exportSavedAllTxtBtn");
+const savedStartDateInput = document.querySelector("#savedStartDateInput");
+const savedEndDateInput = document.querySelector("#savedEndDateInput");
 const savedFilterMeta = document.querySelector("#savedFilterMeta");
 const savedPagination = document.querySelector("#savedPagination");
 const savedPrevPageBtn = document.querySelector("#savedPrevPageBtn");
@@ -258,7 +263,7 @@ function bindFilterControls() {
     applySavedFilters();
   };
 
-  [savedSearchInput, savedSideFilter, savedTierFilter, savedUsageFilter].forEach((element) => {
+  [savedSearchInput, savedSideFilter, savedTierFilter, savedUsageFilter, savedStartDateInput, savedEndDateInput].forEach((element) => {
     if (!element) {
       return;
     }
@@ -279,8 +284,26 @@ function bindFilterControls() {
     if (savedUsageFilter) {
       savedUsageFilter.value = "all";
     }
+    if (savedStartDateInput) {
+      savedStartDateInput.value = "";
+    }
+    if (savedEndDateInput) {
+      savedEndDateInput.value = "";
+    }
     savedCurrentPage = 0;
     applySavedFilters();
+  });
+
+  exportSavedTxtBtn?.addEventListener("click", () => {
+    downloadSavedTxt(
+      filteredSavedItems,
+      "filtered",
+      buildDateRangeLabel(savedStartDateInput?.value || "", savedEndDateInput?.value || "")
+    );
+  });
+
+  exportSavedAllTxtBtn?.addEventListener("click", () => {
+    downloadSavedTxt(allSavedItems, "all", "Tum tarihler");
   });
 
   exportSavedCsvBtn?.addEventListener("click", () => {
@@ -332,8 +355,14 @@ function applySavedFilters() {
   const side = savedSideFilter?.value || "all";
   const tier = savedTierFilter?.value || "all";
   const usage = savedUsageFilter?.value || "all";
+  const startDate = savedStartDateInput?.value || "";
+  const endDate = savedEndDateInput?.value || "";
 
-  filteredSavedItems = allSavedItems.filter((item) => matchesSavedSearch(item, searchText) && matchesTierUsage(item, side, tier, usage));
+  filteredSavedItems = allSavedItems.filter((item) => (
+    matchesSavedSearch(item, searchText) &&
+    matchesTierUsage(item, side, tier, usage) &&
+    matchesDateRange(item.savedAt, startDate, endDate)
+  ));
   const totalPages = Math.max(1, Math.ceil(filteredSavedItems.length / PAGE_SIZE));
   savedCurrentPage = Math.min(savedCurrentPage, totalPages - 1);
 
@@ -361,6 +390,7 @@ function updateSavedFilterMeta() {
     <span>Filtre sonucu: <strong>${filteredSavedItems.length}</strong></span>
     <span>Toplam kayit: <strong>${allSavedItems.length}</strong></span>
     <span>Sayfa araligi: <strong>${start}-${end}</strong></span>
+    <span>Tarih: <strong>${buildDateRangeLabel(savedStartDateInput?.value || "", savedEndDateInput?.value || "")}</strong></span>
   `;
 }
 
@@ -459,6 +489,194 @@ function downloadCsv(rows, filename) {
     ...rows.map((row) => headers.map((header) => escapeCsvCell(row[header])).join(","))
   ];
   const blob = new Blob([`\uFEFF${lines.join("\n")}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadSavedTxt(items, scope, dateLabel) {
+  if (!items.length) {
+    window.alert("Indirilecek kayit yok.");
+    return;
+  }
+  const lines = [
+    "Onaylanan Versuslar Kisa Liste",
+    "================================",
+    `Olusturma Tarihi: ${new Date().toISOString()}`,
+    `Toplam kayit: ${items.length}`,
+    `Kapsam: ${scope === "all" ? "Tum kayitlar" : "Filtrelenmis kayitlar"}`,
+    `Tarih filtresi: ${dateLabel}`,
+    "",
+    "Liste",
+    "-----",
+    ""
+  ];
+
+  items.forEach((item, index) => {
+    if (index > 0) {
+      lines.push("");
+    }
+    lines.push(...buildSavedTxtEntry(item, index));
+  });
+
+  downloadTextFile(
+    `${lines.join("\n")}\n`,
+    `saved-${scope}-${buildExportTimestamp()}.txt`
+  );
+}
+
+function buildSavedTxtEntry(item, index) {
+  const allyCounts = getSavedAllyCounts(item);
+  const lossCounts = extractSavedLosses(item);
+  const storedLostBlood = parseFiniteNumber(item?.lostBlood);
+  const totalLostBlood = storedLostBlood !== null
+    ? storedLostBlood
+    : calculateLostBlood(lossCounts);
+  const stageLabel = item.stage ? ` / ${item.stage}. Kademe` : "";
+  const sourceLabel = getApprovedSource(item) === "simulation" ? "Simulasyon" : "Optimizer";
+
+  return [
+    `Kayit ${index + 1} [${sourceLabel}${stageLabel}]`,
+    `Tarih: ${formatDate(item.savedAt)}`,
+    `Rakip dizilis (T1-T10): ${buildTierLine(item.enemyCounts || {}, ENEMY_UNITS)}`,
+    `Bizim dizilis (T1-T8): ${buildTierLine(allyCounts, ALLY_UNITS)}`,
+    `Beklenen kayiplar (T1-T8): ${buildTierLine(lossCounts, ALLY_UNITS)}`,
+    `Gercek kayiplar (T1-T8): ${buildTierLine(lossCounts, ALLY_UNITS)}`,
+    `Beklenen toplam kan kaybi: ${totalLostBlood}`,
+    `Gercek toplam kan kaybi: ${totalLostBlood}`
+  ];
+}
+
+function extractSavedLosses(item) {
+  const summaryLosses = extractLossesFromSummary(item?.summaryText || "");
+  if (hasAnyPositiveCounts(summaryLosses)) {
+    return summaryLosses;
+  }
+  try {
+    const variant = JSON.parse(item?.variantSignature || "{}");
+    if (variant && typeof variant === "object") {
+      return variant.allyLosses || {};
+    }
+  } catch (error) {
+    console.warn("variantSignature parse edilemedi.", error);
+  }
+  return {};
+}
+
+function extractLossesFromSummary(summaryText) {
+  const nameMap = Object.fromEntries(
+    ALLY_UNITS.map((unit) => [getSummaryUnitName(unit.key), unit.key])
+  );
+  const losses = {};
+  summaryText.split("\n").forEach((line) => {
+    const match = line.match(/^-?\s*(\d+)\s+(.+?)\s+\(\s*\d+\s+kan\)$/);
+    if (!match) {
+      return;
+    }
+    const count = Number.parseInt(match[1], 10);
+    const key = nameMap[match[2].trim()];
+    if (key) {
+      losses[key] = count;
+    }
+  });
+  return losses;
+}
+
+function getSummaryUnitName(key) {
+  const names = {
+    bats: "Yarasalar (T1)",
+    ghouls: "Gulyabaniler (T2)",
+    thralls: "Vampir Koleler (T3)",
+    banshees: "Bansiler (T4)",
+    necromancers: "Nekromantlar (T5)",
+    gargoyles: "Gargoyller (T6)",
+    witches: "Kan Cadilari (T7)",
+    rotmaws: "Curuk Ceneler (T8)"
+  };
+  return names[key] || key;
+}
+
+function hasAnyPositiveCounts(counts) {
+  return Object.values(counts || {}).some((value) => Number(value || 0) > 0);
+}
+
+function calculateLostBlood(losses) {
+  return ALLY_UNITS.reduce((sum, unit) => sum + Number(losses?.[unit.key] || 0) * (BLOOD_BY_ALLY_KEY[unit.key] || 0), 0);
+}
+
+function parseFiniteNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildTierLine(counts, units) {
+  return (units || []).map((unit) => Number(counts?.[unit.key] || 0)).join("-");
+}
+
+function matchesDateRange(value, startValue, endValue) {
+  if (!startValue && !endValue) {
+    return true;
+  }
+  const itemDate = value ? new Date(value) : null;
+  if (!itemDate || Number.isNaN(itemDate.getTime())) {
+    return false;
+  }
+  const start = parseDateBoundary(startValue, "start");
+  const end = parseDateBoundary(endValue, "end");
+  if (start && itemDate < start) {
+    return false;
+  }
+  if (end && itemDate > end) {
+    return false;
+  }
+  return true;
+}
+
+function parseDateBoundary(value, edge) {
+  if (!value) {
+    return null;
+  }
+  const stamp = edge === "end" ? `${value}T23:59:59.999` : `${value}T00:00:00.000`;
+  const date = new Date(stamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function buildDateRangeLabel(startValue, endValue) {
+  if (startValue && endValue) {
+    return `${startValue} - ${endValue}`;
+  }
+  if (startValue) {
+    return `${startValue} ve sonrasi`;
+  }
+  if (endValue) {
+    return `${endValue} ve oncesi`;
+  }
+  return "Tum tarihler";
+}
+
+function buildExportTimestamp() {
+  const date = new Date();
+  const parts = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+    String(date.getHours()).padStart(2, "0"),
+    String(date.getMinutes()).padStart(2, "0"),
+    String(date.getSeconds()).padStart(2, "0")
+  ];
+  return parts.join("");
+}
+
+function downloadTextFile(content, filename) {
+  const blob = new Blob([`\uFEFF${content}`], { type: "text/plain;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

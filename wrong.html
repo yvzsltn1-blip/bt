@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260429-14">
+  <link rel="stylesheet" href="styles.css?v=20260430-23">
 </head>
 <body>
   <div class="page-shell">
@@ -31,19 +31,53 @@
       <section class="panel output-panel">
         <div class="panel-head">
           <h2>Kaydedilen Yanlislar</h2>
-          <div class="actions actions-inline">
-            <a class="button button-secondary" href="saved.html">Kaydedilenlere Don</a>
-            <button id="clearWrongBtn" class="button button-ghost" type="button">Tumunu Sil</button>
+          <div class="actions actions-inline list-header-actions">
+            <a class="button button-secondary button-icon-only-mobile" href="saved.html" aria-label="Onaylananlara Don">
+              <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+              <span class="button-label">Kaydedilenlere Don</span>
+            </a>
+            <div class="header-date-range">
+              <label class="header-date-filter" aria-label="Baslangic tarihi">
+                <span class="sr-only">Baslangic Tarihi</span>
+                <span class="header-date-text">Bas</span>
+                <span class="header-date-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"/><path d="M3 10h18"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="m16 18 3-3 3 3"/><path d="M19 21v-6"/></svg></span>
+                <input id="wrongStartDateInput" class="admin-auth-input header-date-input" type="date">
+              </label>
+              <label class="header-date-filter" aria-label="Bitis tarihi">
+                <span class="sr-only">Bitis Tarihi</span>
+                <span class="header-date-text">Bit</span>
+                <span class="header-date-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"/><path d="M3 10h18"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="m16 18 3 3 3-3"/><path d="M19 14v7"/></svg></span>
+                <input id="wrongEndDateInput" class="admin-auth-input header-date-input" type="date">
+              </label>
+            </div>
+            <div class="header-action-group">
+              <button id="exportWrongTxtBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="TXT Indir">
+                <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg></span>
+                <span class="button-label">TXT Indir</span>
+              </button>
+              <button id="exportWrongAllTxtBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="Tumunu TXT Indir">
+                <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 7 5 5 5-5"/><path d="m7 13 5 5 5-5"/><path d="M5 22h14"/></svg></span>
+                <span class="button-label">Tumunu TXT Indir</span>
+              </button>
+              <button id="exportWrongCsvBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="CSV Indir">
+                <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/></svg></span>
+                <span class="button-label">CSV Indir</span>
+              </button>
+              <button id="resetWrongFiltersBtn" class="button button-ghost button-icon-only-mobile" type="button" aria-label="Filtreyi Temizle">
+                <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></span>
+                <span class="button-label">Filtreyi Temizle</span>
+              </button>
+              <button id="clearWrongBtn" class="button button-ghost button-icon-only-mobile" type="button" aria-label="Tumunu Sil">
+                <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>
+                <span class="button-label">Tumunu Sil</span>
+              </button>
+            </div>
           </div>
         </div>
 
         <section class="list-tools-panel">
           <div class="list-tools-head">
             <strong>Arama ve Filtre</strong>
-            <div class="actions actions-inline">
-              <button id="exportWrongCsvBtn" class="button button-secondary" type="button">CSV Indir</button>
-              <button id="resetWrongFiltersBtn" class="button button-ghost" type="button">Filtreyi Temizle</button>
-            </div>
           </div>
           <div class="list-filter-grid">
             <label class="select-wrap">
@@ -119,6 +153,6 @@
   <script src="firebase-client.js?v=20260429-13" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
   <script src="battle-core.js?v=20260429-02" defer></script>
-  <script src="wrong.js?v=20260429-11" defer></script>
+  <script src="wrong.js?v=20260429-18" defer></script>
 </body>
 </html>

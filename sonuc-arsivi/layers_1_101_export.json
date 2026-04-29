@@ -1,0 +1,2931 @@
+[
+  {
+    "layer": 1,
+    "armyPower": 20,
+    "armyPowerUsed": 18,
+    "allyCounts": [
+      7,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "10 Zombies",
+    "backlineEnemies": "",
+    "totalEnemies": 10,
+    "expectedLosses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 0
+  },
+  {
+    "layer": 2,
+    "armyPower": 30,
+    "armyPowerUsed": 29,
+    "allyCounts": [
+      10,
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "3 Skeletons, 6 Zombies",
+    "backlineEnemies": "5 Cultist",
+    "totalEnemies": 14,
+    "expectedLosses": [
+      1,
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 55
+  },
+  {
+    "layer": 3,
+    "armyPower": 40,
+    "armyPowerUsed": 40,
+    "allyCounts": [
+      12,
+      4,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "4 Skeletons, 15 Zombies",
+    "backlineEnemies": "2 Cultist",
+    "totalEnemies": 21,
+    "expectedLosses": [
+      0,
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 45
+  },
+  {
+    "layer": 4,
+    "armyPower": 50,
+    "armyPowerUsed": 49,
+    "allyCounts": [
+      17,
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "4 Skeletons, 17 Zombies",
+    "backlineEnemies": "4 Cultist",
+    "totalEnemies": 25,
+    "expectedLosses": [
+      5,
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 125
+  },
+  {
+    "layer": 5,
+    "armyPower": 60,
+    "armyPowerUsed": 60,
+    "allyCounts": [
+      21,
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "6 Skeletons, 24 Zombies",
+    "backlineEnemies": "2 Cultist",
+    "totalEnemies": 32,
+    "expectedLosses": [
+      2,
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 110
+  },
+  {
+    "layer": 6,
+    "armyPower": 70,
+    "armyPowerUsed": 70,
+    "allyCounts": [
+      26,
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "4 Skeletons, 27 Zombies",
+    "backlineEnemies": "4 Cultist",
+    "totalEnemies": 35,
+    "expectedLosses": [
+      5,
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 140
+  },
+  {
+    "layer": 7,
+    "armyPower": 80,
+    "armyPowerUsed": 79,
+    "allyCounts": [
+      29,
+      7,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "7 Skeletons, 23 Zombies",
+    "backlineEnemies": "9 Cultist",
+    "totalEnemies": 39,
+    "expectedLosses": [
+      10,
+      7,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 205
+  },
+  {
+    "layer": 8,
+    "armyPower": 90,
+    "armyPowerUsed": 89,
+    "allyCounts": [
+      34,
+      7,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "7 Skeletons, 28 Zombies",
+    "backlineEnemies": "9 Cultist",
+    "totalEnemies": 44,
+    "expectedLosses": [
+      33,
+      7,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 435
+  },
+  {
+    "layer": 9,
+    "armyPower": 100,
+    "armyPowerUsed": 99,
+    "allyCounts": [
+      33,
+      11,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "7 Skeletons, 33 Zombies",
+    "backlineEnemies": "9 Cultist",
+    "totalEnemies": 49,
+    "expectedLosses": [
+      11,
+      11,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 275
+  },
+  {
+    "layer": 10,
+    "armyPower": 110,
+    "armyPowerUsed": 109,
+    "allyCounts": [
+      35,
+      13,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "5 Skeletons, 42 Zombies",
+    "backlineEnemies": "7 Cultist",
+    "totalEnemies": 54,
+    "expectedLosses": [
+      0,
+      10,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 150
+  },
+  {
+    "layer": 11,
+    "armyPower": 120,
+    "armyPowerUsed": 120,
+    "allyCounts": [
+      39,
+      14,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "7 Skeletons, 34 Zombies",
+    "backlineEnemies": "11 Cultist, 2 Bone Wings",
+    "totalEnemies": 54,
+    "expectedLosses": [
+      6,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 180
+  },
+  {
+    "layer": 12,
+    "armyPower": 130,
+    "armyPowerUsed": 130,
+    "allyCounts": [
+      41,
+      16,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "12 Skeletons, 43 Zombies",
+    "backlineEnemies": "9  Cultist, 1 Bone Wings",
+    "totalEnemies": 65,
+    "expectedLosses": [
+      17,
+      16,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 410
+  },
+  {
+    "layer": 13,
+    "armyPower": 140,
+    "armyPowerUsed": 139,
+    "allyCounts": [
+      44,
+      17,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "12 Skeletons, 39 Zombies",
+    "backlineEnemies": "10 Cultist, 4 Bone Wings",
+    "totalEnemies": 65,
+    "expectedLosses": [
+      12,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 240
+  },
+  {
+    "layer": 14,
+    "armyPower": 150,
+    "armyPowerUsed": 150,
+    "allyCounts": [
+      45,
+      20,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "9 Skeletons, 46 Zombies",
+    "backlineEnemies": "13 Cultist, 2 Bone Wings",
+    "totalEnemies": 70,
+    "expectedLosses": [
+      6,
+      9,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 195
+  },
+  {
+    "layer": 15,
+    "armyPower": 160,
+    "armyPowerUsed": 159,
+    "allyCounts": [
+      48,
+      21,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "16 Skeletons, 37 Zombies",
+    "backlineEnemies": "15 Cultist, 5 Bone Wings",
+    "totalEnemies": 73,
+    "expectedLosses": [
+      15,
+      12,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 330
+  },
+  {
+    "layer": 16,
+    "armyPower": 170,
+    "armyPowerUsed": 169,
+    "allyCounts": [
+      50,
+      23,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "16 Skeletons, 40 Zombies",
+    "backlineEnemies": "13 Cultist, 7 Bone Wings",
+    "totalEnemies": 76,
+    "expectedLosses": [
+      21,
+      11,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 375
+  },
+  {
+    "layer": 17,
+    "armyPower": 180,
+    "armyPowerUsed": 180,
+    "allyCounts": [
+      57,
+      22,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "13 Skeletons, 40 Zombies",
+    "backlineEnemies": "14 Cultist, 9 Bone Wings",
+    "totalEnemies": 76,
+    "expectedLosses": [
+      27,
+      11,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 435
+  },
+  {
+    "layer": 18,
+    "armyPower": 190,
+    "armyPowerUsed": 189,
+    "allyCounts": [
+      66,
+      19,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "6  Skeletons, 41 Zombies",
+    "backlineEnemies": "19 Cultist, 9 Bone Wings",
+    "totalEnemies": 75,
+    "expectedLosses": [
+      27,
+      11,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 435
+  },
+  {
+    "layer": 19,
+    "armyPower": 200,
+    "armyPowerUsed": 200,
+    "allyCounts": [
+      70,
+      20,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "16 Skeletons, 35 Zombies",
+    "backlineEnemies": "23 Cultist, 9 Bone Wings",
+    "totalEnemies": 83,
+    "expectedLosses": [
+      40,
+      20,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 700
+  },
+  {
+    "layer": 20,
+    "armyPower": 210,
+    "armyPowerUsed": 209,
+    "allyCounts": [
+      73,
+      21,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "16 Skeletons, 41 Zombies",
+    "backlineEnemies": "19 Cultist, 11 Bone Wings",
+    "totalEnemies": 87,
+    "expectedLosses": [
+      33,
+      14,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 540
+  },
+  {
+    "layer": 21,
+    "armyPower": 220,
+    "armyPowerUsed": 219,
+    "allyCounts": [
+      39,
+      40,
+      0,
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "15 Skeletons, 36 Zombies, 1 Obese",
+    "backlineEnemies": "24 Cultist, 11 Bone Wings",
+    "totalEnemies": 84,
+    "expectedLosses": [
+      34,
+      25,
+      0,
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 820
+  },
+  {
+    "layer": 22,
+    "armyPower": 230,
+    "armyPowerUsed": 230,
+    "allyCounts": [
+      24,
+      42,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "18 Skeletons, 37 Zombies, 1 Obese",
+    "backlineEnemies": "19 Cultist, 15 Bone Wings",
+    "totalEnemies": 90,
+    "expectedLosses": [
+      24,
+      30,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 970
+  },
+  {
+    "layer": 23,
+    "armyPower": 240,
+    "armyPowerUsed": 233,
+    "allyCounts": [
+      39,
+      42,
+      2,
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "19 Skeletons, 27 Zombies, 4 Obese",
+    "backlineEnemies": "26 Cultist, 13 Bone Wings",
+    "totalEnemies": 89,
+    "expectedLosses": [
+      39,
+      19,
+      0,
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 780
+  },
+  {
+    "layer": 24,
+    "armyPower": 250,
+    "armyPowerUsed": 250,
+    "allyCounts": [
+      40,
+      45,
+      0,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "20 Skeletons, 27 Zombies, 3 Obese",
+    "backlineEnemies": "26 Cultist, 16 Bone Wings",
+    "totalEnemies": 92,
+    "expectedLosses": [
+      40,
+      33,
+      0,
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1000
+  },
+  {
+    "layer": 25,
+    "armyPower": 260,
+    "armyPowerUsed": 260,
+    "allyCounts": [
+      43,
+      46,
+      2,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "12 Skeletons, 34 Zombies, 6 Obese",
+    "backlineEnemies": "23 Cultist, 15 Bone Wings",
+    "totalEnemies": 83,
+    "expectedLosses": [
+      43,
+      19,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 855
+  },
+  {
+    "layer": 26,
+    "armyPower": 270,
+    "armyPowerUsed": 269,
+    "allyCounts": [
+      38,
+      51,
+      3,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "21 Skeletons, 38 Zombies, 9 Obese",
+    "backlineEnemies": "18 Cultist, 13 Bone Wings",
+    "totalEnemies": 99,
+    "expectedLosses": [
+      38,
+      33,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1015
+  },
+  {
+    "layer": 27,
+    "armyPower": 280,
+    "armyPowerUsed": 280,
+    "allyCounts": [
+      43,
+      50,
+      4,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "18 Skeletons, 32 Zombies, 8 Obese",
+    "backlineEnemies": "20 Cultist, 18 Bone Wings",
+    "totalEnemies": 96,
+    "expectedLosses": [
+      43,
+      36,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1110
+  },
+  {
+    "layer": 28,
+    "armyPower": 290,
+    "armyPowerUsed": 289,
+    "allyCounts": [
+      44,
+      55,
+      2,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "17 Skeletons, 41 zombies, 8 Obese",
+    "backlineEnemies": "26 Cultist, 13 Bone Wings",
+    "totalEnemies": 105,
+    "expectedLosses": [
+      44,
+      25,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 955
+  },
+  {
+    "layer": 29,
+    "armyPower": 300,
+    "armyPowerUsed": 300,
+    "allyCounts": [
+      54,
+      52,
+      2,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "5 Skeleton, 29 Zombies, 11 Obese",
+    "backlineEnemies": "27 cultist, 18 Bone wings",
+    "totalEnemies": 80,
+    "expectedLosses": [
+      54,
+      16,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 920
+  },
+  {
+    "layer": 30,
+    "armyPower": 310,
+    "armyPowerUsed": 310,
+    "allyCounts": [
+      58,
+      54,
+      1,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "23 Skeleton, 40 Zombies, 11 Obese",
+    "backlineEnemies": "17 Cultist, 18 Bone Wings",
+    "totalEnemies": 109,
+    "expectedLosses": [
+      58,
+      22,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1050
+  },
+  {
+    "layer": 31,
+    "armyPower": 320,
+    "armyPowerUsed": 320,
+    "allyCounts": [
+      61,
+      50,
+      5,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "18 Skeleton, 32 Zombies, 15 Obese",
+    "backlineEnemies": "21 Cultist, 15 Bone Wings",
+    "totalEnemies": 101,
+    "expectedLosses": [
+      61,
+      49,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1485
+  },
+  {
+    "layer": 32,
+    "armyPower": 330,
+    "armyPowerUsed": 330,
+    "allyCounts": [
+      63,
+      56,
+      2,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "36 Zombies, 17 Obese",
+    "backlineEnemies": "17 Cultist, 19 Bone Wings, 1 Wraith",
+    "totalEnemies": 90,
+    "expectedLosses": [
+      63,
+      52,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1550
+  },
+  {
+    "layer": 33,
+    "armyPower": 340,
+    "armyPowerUsed": 340,
+    "allyCounts": [
+      66,
+      56,
+      3,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "18 skeleton, 24 zombies, 18 Obese",
+    "backlineEnemies": "27 Cultist, 13 Bone Wings, 2 Wraith",
+    "totalEnemies": 102,
+    "expectedLosses": [
+      61,
+      56,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1590
+  },
+  {
+    "layer": 34,
+    "armyPower": 350,
+    "armyPowerUsed": 350,
+    "allyCounts": [
+      61,
+      51,
+      10,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "18 Skeleton, 25 Zombies, 13 Obese",
+    "backlineEnemies": "37 Cultist, 19 Bone wings, 1 Wraith",
+    "totalEnemies": 113,
+    "expectedLosses": [
+      61,
+      51,
+      6,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1670
+  },
+  {
+    "layer": 35,
+    "armyPower": 360,
+    "armyPowerUsed": 360,
+    "allyCounts": [
+      60,
+      51,
+      13,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "18 Skeleton, 22 Zombies, 15 Obese",
+    "backlineEnemies": "33 Cultist, 12 Bone wings, 6 Wraith",
+    "totalEnemies": 106,
+    "expectedLosses": [
+      51,
+      51,
+      0,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1450
+  },
+  {
+    "layer": 36,
+    "armyPower": 370,
+    "armyPowerUsed": 370,
+    "allyCounts": [
+      61,
+      51,
+      15,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "23 Skeleton, 27 Zombies, 13 Obese",
+    "backlineEnemies": "19 Cultist, 14 Bone wings, 8 Wraith",
+    "totalEnemies": 104,
+    "expectedLosses": [
+      61,
+      46,
+      0,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1475
+  },
+  {
+    "layer": 37,
+    "armyPower": 380,
+    "armyPowerUsed": 380,
+    "allyCounts": [
+      65,
+      52,
+      13,
+      6,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "17 Skeleton, 24 Zombies, 16 Obese",
+    "backlineEnemies": "15 Cultist, 17 Bone wings, 8 Wraith",
+    "totalEnemies": 97,
+    "expectedLosses": [
+      65,
+      47,
+      0,
+      6,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1565
+  },
+  {
+    "layer": 38,
+    "armyPower": 390,
+    "armyPowerUsed": 390,
+    "allyCounts": [
+      70,
+      52,
+      13,
+      6,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "25 Skeleton, 18 Zombies, 19 Obese",
+    "backlineEnemies": "16 Cultist, 13 Bone wings, 10 Wraith",
+    "totalEnemies": 101,
+    "expectedLosses": [
+      58,
+      52,
+      0,
+      6,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1570
+  },
+  {
+    "layer": 39,
+    "armyPower": 400,
+    "armyPowerUsed": 399,
+    "allyCounts": [
+      59,
+      38,
+      33,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "20 Skeleton, 27 Zombies, 16 Obese",
+    "backlineEnemies": "29 Cultist, 13 Bone wings, 8 Wraith",
+    "totalEnemies": 113,
+    "expectedLosses": [
+      55,
+      38,
+      32,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1935
+  },
+  {
+    "layer": 40,
+    "armyPower": 410,
+    "armyPowerUsed": 410,
+    "allyCounts": [
+      70,
+      60,
+      12,
+      6,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "27 Skeleton, 17 Zombies, 18 Obese",
+    "backlineEnemies": "12 Cultist, 14 Bone wings, 13 Wraith",
+    "totalEnemies": 101,
+    "expectedLosses": [
+      60,
+      60,
+      0,
+      6,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1710
+  },
+  {
+    "layer": 41,
+    "armyPower": 420,
+    "armyPowerUsed": 420,
+    "allyCounts": [
+      71,
+      55,
+      16,
+      7,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "18 Skeleton, 28 Zombies, 12 Obese, 1 Revenant",
+    "backlineEnemies": "12 Cultist, 12 Bone wings, 14 Wraith",
+    "totalEnemies": 99,
+    "expectedLosses": [
+      54,
+      55,
+      16,
+      7,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1930
+  },
+  {
+    "layer": 42,
+    "armyPower": 430,
+    "armyPowerUsed": 428,
+    "allyCounts": [
+      65,
+      54,
+      20,
+      8,
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "24 Skeleton, 16 Zombies, 12 Obese, 2 Revenant",
+    "backlineEnemies": "11 Cultist, 16 Bone wings, 16 Wraith",
+    "totalEnemies": 97,
+    "expectedLosses": [
+      36,
+      42,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1270
+  },
+  {
+    "layer": 43,
+    "armyPower": 440,
+    "armyPowerUsed": 440,
+    "allyCounts": [
+      55,
+      45,
+      29,
+      7,
+      3,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "29 Skeleton, 16 Zombies, 12 Obese, 4 Revenant",
+    "backlineEnemies": "14 Cultist, 21  Bone wings, 11 Wraith",
+    "totalEnemies": 107,
+    "expectedLosses": [
+      19,
+      39,
+      0,
+      7,
+      3,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1170
+  },
+  {
+    "layer": 44,
+    "armyPower": 450,
+    "armyPowerUsed": 450,
+    "allyCounts": [
+      56,
+      45,
+      31,
+      7,
+      3,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "25 Skeleton, 13 Zombies, 17 Obese, 3 Revenant",
+    "backlineEnemies": "9 Cultist, 14 Bone wings, 16 Wraith",
+    "totalEnemies": 97,
+    "expectedLosses": [
+      17,
+      33,
+      0,
+      7,
+      3,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1060
+  },
+  {
+    "layer": 45,
+    "armyPower": 460,
+    "armyPowerUsed": 454,
+    "allyCounts": [
+      51,
+      41,
+      41,
+      5,
+      3,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "23 Skeleton, 34 Zombies, 12 Obese, 3 Revenant",
+    "backlineEnemies": "11 Cultist, 15 Bone wings, 13 Wraith",
+    "totalEnemies": 111,
+    "expectedLosses": [
+      34,
+      41,
+      25,
+      5,
+      3,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1780
+  },
+  {
+    "layer": 46,
+    "armyPower": 470,
+    "armyPowerUsed": 470,
+    "allyCounts": [
+      32,
+      44,
+      52,
+      8,
+      1,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "25 Skeleton, 24 Zombies, 10 Obese, 7 Revenant",
+    "backlineEnemies": "27 Cultist, 17 Bone wings, 9 Wraith",
+    "totalEnemies": 119,
+    "expectedLosses": [
+      10,
+      35,
+      0,
+      8,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 955
+  },
+  {
+    "layer": 47,
+    "armyPower": 480,
+    "armyPowerUsed": 480,
+    "allyCounts": [
+      36,
+      46,
+      52,
+      6,
+      2,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "25 Skeleton, 24 Zombies, 10 Obese, 9 Revenant",
+    "backlineEnemies": "10 Cultist, 13 Bone wings, 13 Wraith",
+    "totalEnemies": 104,
+    "expectedLosses": [
+      25,
+      44,
+      0,
+      6,
+      2,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1220
+  },
+  {
+    "layer": 48,
+    "armyPower": 490,
+    "armyPowerUsed": 490,
+    "allyCounts": [
+      40,
+      40,
+      49,
+      12,
+      1,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "19 Skeleton, 27 Zombies, 9 Obese, 7 Revenant",
+    "backlineEnemies": "31 Cultist, 12 Bone wings, 13 Wraith",
+    "totalEnemies": 118,
+    "expectedLosses": [
+      27,
+      40,
+      0,
+      12,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1340
+  },
+  {
+    "layer": 49,
+    "armyPower": 500,
+    "armyPowerUsed": 500,
+    "allyCounts": [
+      40,
+      33,
+      48,
+      17,
+      1,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "30 Skeleton, 23 Zombies, 16 Obese, 9 Revenant",
+    "backlineEnemies": "6 Cultist, 11 Bone wings, 13 Wraith",
+    "totalEnemies": 108,
+    "expectedLosses": [
+      16,
+      29,
+      0,
+      17,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1240
+  },
+  {
+    "layer": 50,
+    "armyPower": 510,
+    "armyPowerUsed": 510,
+    "allyCounts": [
+      39,
+      48,
+      52,
+      10,
+      1,
+      0,
+      0,
+      0
+    ],
+    "frontlineEnemies": "21 Skeleton, 30 Zombies, 11 Obese, 12 Revenant",
+    "backlineEnemies": "7 Cultist, 15 Bone wings, 10 Wraith",
+    "totalEnemies": 106,
+    "expectedLosses": [
+      11,
+      40,
+      0,
+      8,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1040
+  },
+  {
+    "layer": 51,
+    "armyPower": 520,
+    "armyPowerUsed": 520,
+    "allyCounts": [
+      50,
+      64,
+      35,
+      9,
+      1,
+      1,
+      0,
+      0
+    ],
+    "frontlineEnemies": "1 Skeleton, 23 Zombies, 14 Obese, 14 Revenant, 1 Bone Giant",
+    "backlineEnemies": "29 Cultist, 10 Bone wings, 7 Wraith",
+    "totalEnemies": 99,
+    "expectedLosses": [
+      14,
+      60,
+      0,
+      4,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1230
+  },
+  {
+    "layer": 52,
+    "armyPower": 530,
+    "armyPowerUsed": 530,
+    "allyCounts": [
+      46,
+      58,
+      44,
+      9,
+      1,
+      1,
+      0,
+      0
+    ],
+    "frontlineEnemies": "24 Skeleton, 20 Zombies, 13 Obese, 11 Revenant, 2 Bone Giant",
+    "backlineEnemies": "8 Cultist, 16 Bone wings, 10 Wraith",
+    "totalEnemies": 104,
+    "expectedLosses": [
+      23,
+      58,
+      0,
+      9,
+      1,
+      1,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1540
+  },
+  {
+    "layer": 53,
+    "armyPower": 540,
+    "armyPowerUsed": 536,
+    "allyCounts": [
+      42,
+      60,
+      46,
+      9,
+      1,
+      1,
+      0,
+      0
+    ],
+    "frontlineEnemies": "12 Skeleton, 22 Zombies, 13 Obese, 9 Revenant, 3 Bone Giant",
+    "backlineEnemies": "28 Cultist, 18 Bone wings, 7 Wraith",
+    "totalEnemies": 112,
+    "expectedLosses": [
+      26,
+      60,
+      0,
+      9,
+      1,
+      1,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1600
+  },
+  {
+    "layer": 54,
+    "armyPower": 550,
+    "armyPowerUsed": 549,
+    "allyCounts": [
+      45,
+      62,
+      48,
+      8,
+      1,
+      1,
+      0,
+      0
+    ],
+    "frontlineEnemies": "25 Skeleton, 29 Zombies, 7 Obese, 13 Revenant, 4 Bone Giant",
+    "backlineEnemies": "23 Cultist, 10 Bone wings, 7 Wraith",
+    "totalEnemies": 118,
+    "expectedLosses": [
+      7,
+      62,
+      0,
+      8,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1330
+  },
+  {
+    "layer": 55,
+    "armyPower": 560,
+    "armyPowerUsed": 559,
+    "allyCounts": [
+      31,
+      69,
+      54,
+      7,
+      1,
+      1,
+      0,
+      0
+    ],
+    "frontlineEnemies": "21Skeleton, 25 Zombies, 14 Obese, 10 Revenant, 5 Bone Giant",
+    "backlineEnemies": "5 Cultist, 18 Bone wings, 8 Wraith",
+    "totalEnemies": 106,
+    "expectedLosses": [
+      16,
+      69,
+      0,
+      7,
+      1,
+      1,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1565
+  },
+  {
+    "layer": 56,
+    "armyPower": 570,
+    "armyPowerUsed": 569,
+    "allyCounts": [
+      35,
+      68,
+      57,
+      6,
+      1,
+      1,
+      0,
+      0
+    ],
+    "frontlineEnemies": "28 Skeleton, 23 Zombies, 13 Obese, 9 Revenant, 3 Bone Giant",
+    "backlineEnemies": "20 Cultist, 16 Bone wings, 11 Wraith",
+    "totalEnemies": 123,
+    "expectedLosses": [
+      17,
+      68,
+      0,
+      6,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1450
+  },
+  {
+    "layer": 57,
+    "armyPower": 580,
+    "armyPowerUsed": 580,
+    "allyCounts": [
+      33,
+      80,
+      50,
+      7,
+      1,
+      1,
+      0,
+      0
+    ],
+    "frontlineEnemies": "22 Skeleton, 2 Zombies, 9 Obese, 14 Revenant, 7 Bone Giant",
+    "backlineEnemies": "4 Cultist, 18 Bone wings, 9 Wraith",
+    "totalEnemies": 85,
+    "expectedLosses": [
+      9,
+      60,
+      0,
+      7,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1285
+  },
+  {
+    "layer": 58,
+    "armyPower": 590,
+    "armyPowerUsed": 590,
+    "allyCounts": [
+      45,
+      37,
+      52,
+      18,
+      1,
+      3,
+      0,
+      0
+    ],
+    "frontlineEnemies": "25 Skeleton, 2 Zombies, 18 Obese, 11 Revenant, 6 Bone Giant",
+    "backlineEnemies": "7 Cultist, 10 Bone wings, 13 Wraith",
+    "totalEnemies": 92,
+    "expectedLosses": [
+      18,
+      30,
+      0,
+      18,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1310
+  },
+  {
+    "layer": 59,
+    "armyPower": 600,
+    "armyPowerUsed": 600,
+    "allyCounts": [
+      59,
+      52,
+      42,
+      9,
+      2,
+      5,
+      0,
+      0
+    ],
+    "frontlineEnemies": "30 Skeleton, 7 Zombies, 15 Obese, 12 Revenant, 6 Bone Giant",
+    "backlineEnemies": "19 Cultist, 7 Bone wings, 11 Wraith",
+    "totalEnemies": 107,
+    "expectedLosses": [
+      15,
+      39,
+      0,
+      9,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1100
+  },
+  {
+    "layer": 60,
+    "armyPower": 610,
+    "armyPowerUsed": 610,
+    "allyCounts": [
+      33,
+      83,
+      57,
+      6,
+      1,
+      1,
+      0,
+      0
+    ],
+    "frontlineEnemies": "26 Skeleton, 4 Zombies, 8 Obese, 14 Revenant, 8 Bone Giant",
+    "backlineEnemies": "5 Cultist, 21 Bone wings, 8 Wraith",
+    "totalEnemies": 94,
+    "expectedLosses": [
+      30,
+      81,
+      0,
+      6,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1775
+  },
+  {
+    "layer": 61,
+    "armyPower": 620,
+    "armyPowerUsed": 619,
+    "allyCounts": [
+      34,
+      82,
+      52,
+      6,
+      1,
+      3,
+      0,
+      0
+    ],
+    "frontlineEnemies": "18 Skeleton, 23 Zombies, 12 Obese, 7 Revenant, 7 Bone Giant",
+    "backlineEnemies": "15 Cultist, 16 Bone wings, 11 Wraith, 1 Broodmother",
+    "totalEnemies": 110,
+    "expectedLosses": [
+      12,
+      78,
+      0,
+      6,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1550
+  },
+  {
+    "layer": 62,
+    "armyPower": 630,
+    "armyPowerUsed": 630,
+    "allyCounts": [
+      40,
+      82,
+      46,
+      5,
+      1,
+      5,
+      0,
+      0
+    ],
+    "frontlineEnemies": "13 Skeleton, 26 Zombies, 5 Obese, 12 Revenant, 11 Bone Giant",
+    "backlineEnemies": "2 Cultist, 9 Bone wings, 7 Wraith, 2 Broodmother",
+    "totalEnemies": 87,
+    "expectedLosses": [
+      13,
+      82,
+      1,
+      5,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1605
+  },
+  {
+    "layer": 63,
+    "armyPower": 640,
+    "armyPowerUsed": 640,
+    "allyCounts": [
+      56,
+      80,
+      42,
+      5,
+      1,
+      5,
+      0,
+      0
+    ],
+    "frontlineEnemies": "21 Skeleton, 28 Zombies, 7 Obese, 9 Revenant, 11 Bone Giant",
+    "backlineEnemies": "21 Cultist, 9 Bone wings, 6 Wraith, 1 Broodmother",
+    "totalEnemies": 113,
+    "expectedLosses": [
+      13,
+      79,
+      2,
+      5,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1580
+  },
+  {
+    "layer": 64,
+    "armyPower": 650,
+    "armyPowerUsed": 650,
+    "allyCounts": [
+      69,
+      80,
+      38,
+      5,
+      1,
+      5,
+      0,
+      0
+    ],
+    "frontlineEnemies": "19 Skeleton, 25 Zombies, 16 Obese, 8 Revenant, 8 Bone Giant",
+    "backlineEnemies": "3 Cultist, 17 Bone wings, 6 Wraith, 3 Broodmother",
+    "totalEnemies": 105,
+    "expectedLosses": [
+      41,
+      78,
+      0,
+      5,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1805
+  },
+  {
+    "layer": 65,
+    "armyPower": 660,
+    "armyPowerUsed": 658,
+    "allyCounts": [
+      85,
+      80,
+      32,
+      5,
+      1,
+      5,
+      0,
+      0
+    ],
+    "frontlineEnemies": "17 Skeleton, 37 Zombies, 8 Obese, 8 Revenant, 9 Bone Giant",
+    "backlineEnemies": "20 Cultist, 11 Bone wings, 8 Wraith, 2 Broodmother",
+    "totalEnemies": 120,
+    "expectedLosses": [
+      16,
+      78,
+      2,
+      5,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1595
+  },
+  {
+    "layer": 66,
+    "armyPower": 670,
+    "armyPowerUsed": 660,
+    "allyCounts": [
+      56,
+      46,
+      48,
+      4,
+      1,
+      12,
+      0,
+      0
+    ],
+    "frontlineEnemies": "19 Skeleton, 3 Zombies, 17 Obese, 12 Revenant, 7 Bone Giant",
+    "backlineEnemies": "3 Cultist, 20 Bone wings, 5 Wraith, 4 Broodmother",
+    "totalEnemies": 90,
+    "expectedLosses": [
+      17,
+      45,
+      0,
+      4,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1035
+  },
+  {
+    "layer": 67,
+    "armyPower": 680,
+    "armyPowerUsed": 676,
+    "allyCounts": [
+      31,
+      52,
+      54,
+      1,
+      1,
+      15,
+      0,
+      0
+    ],
+    "frontlineEnemies": "24 Skeleton, 14 Zombies, 16 Obese, 9 Revenant, 10 Bone Giant",
+    "backlineEnemies": "3 Cultist, 21 Bone wings, 6 Wraith, 2 Broodmother",
+    "totalEnemies": 105,
+    "expectedLosses": [
+      31,
+      52,
+      0,
+      1,
+      1,
+      15,
+      0,
+      0
+    ],
+    "expectedLostBlood": 2300
+  },
+  {
+    "layer": 68,
+    "armyPower": 690,
+    "armyPowerUsed": 663,
+    "allyCounts": [
+      70,
+      50,
+      48,
+      3,
+      1,
+      10,
+      0,
+      0
+    ],
+    "frontlineEnemies": "27 Skeleton, 13 Zombies, 15 Obese, 8 Revenant, 10 Bone Giant",
+    "backlineEnemies": "17 Cultist, 7 Bone wings, 4 Wraith, 5 Broodmother",
+    "totalEnemies": 106,
+    "expectedLosses": [
+      15,
+      46,
+      0,
+      3,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 995
+  },
+  {
+    "layer": 69,
+    "armyPower": 700,
+    "armyPowerUsed": 699,
+    "allyCounts": [
+      45,
+      56,
+      63,
+      2,
+      1,
+      11,
+      0,
+      0
+    ],
+    "frontlineEnemies": "22 Skeleton, 1 Zombies, 20 Obese, 7 Revenant, 11 Bone Giant",
+    "backlineEnemies": "19 Cultist, 9 Bone wings, 5 Wraith, 4 Broodmother",
+    "totalEnemies": 98,
+    "expectedLosses": [
+      27,
+      56,
+      8,
+      2,
+      1,
+      11,
+      0,
+      0
+    ],
+    "expectedLostBlood": 2215
+  },
+  {
+    "layer": 70,
+    "armyPower": 710,
+    "armyPowerUsed": 710,
+    "allyCounts": [
+      53,
+      60,
+      70,
+      2,
+      1,
+      8,
+      0,
+      0
+    ],
+    "frontlineEnemies": "26 Skeleton, 15 Zombies, 11 Obese, 8 Revenant, 8 Bone Giant",
+    "backlineEnemies": "4 Cultist, 29 Bone wings, 5 Wraith, 5 Broodmother",
+    "totalEnemies": 111,
+    "expectedLosses": [
+      11,
+      55,
+      0,
+      2,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expectedLostBlood": 1055
+  },
+  {
+    "layer": 71,
+    "armyPower": 720,
+    "armyPowerUsed": 720,
+    "allyCounts": [
+      48,
+      74,
+      60,
+      2,
+      1,
+      8,
+      1,
+      0
+    ],
+    "frontlineEnemies": "22 Skeleton, 10 Zombies, 17 Obese, 10 Revenant, 8 Bone Giant",
+    "backlineEnemies": "7 Cultist, 19 Bone wings, 5 Wraith, 4 Broodmother, 1 Lich",
+    "totalEnemies": 103,
+    "expectedLosses": [
+      17,
+      68,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "expectedLostBlood": 1330
+  },
+  {
+    "layer": 72,
+    "armyPower": 730,
+    "armyPowerUsed": 728,
+    "allyCounts": [
+      45,
+      89,
+      53,
+      2,
+      1,
+      9,
+      0,
+      0
+    ],
+    "frontlineEnemies": "8 Skeleton, 12 Zombies, 8 Obese, 6 Revenant, 10 Bone Giant",
+    "backlineEnemies": "21 Cultist, 24 Bone wings, 4 Wraith, 5 Broodmother, 1 Lich",
+    "totalEnemies": 99,
+    "expectedLosses": [
+      45,
+      89,
+      2,
+      2,
+      1,
+      5,
+      0,
+      0
+    ],
+    "expectedLostBlood": 2320
+  },
+  {
+    "layer": 73,
+    "armyPower": 740,
+    "armyPowerUsed": 740,
+    "allyCounts": [
+      60,
+      77,
+      53,
+      2,
+      1,
+      9,
+      1,
+      0
+    ],
+    "frontlineEnemies": "5 Skeleton, 26 Zombies, 20 Obese, 7 Revenant, 10 Bone Giant",
+    "backlineEnemies": "8 Cultist, 12 Bone wings, 4 Wraith, 2 Broodmother, 1 Lich",
+    "totalEnemies": 95,
+    "expectedLosses": [
+      20,
+      77,
+      0,
+      2,
+      1,
+      5,
+      1,
+      0
+    ],
+    "expectedLostBlood": 1940
+  },
+  {
+    "layer": 74,
+    "armyPower": 750,
+    "armyPowerUsed": 749,
+    "allyCounts": [
+      70,
+      78,
+      57,
+      2,
+      1,
+      7,
+      1,
+      0
+    ],
+    "frontlineEnemies": "7 Skeleton, 9 Zombies, 14 Obese, 9 Revenant, 7 Bone Giant",
+    "backlineEnemies": "6 Cultist, 17 Bone wings, 8 Wraith, 6 Broodmother, 2 Lich",
+    "totalEnemies": 85,
+    "expectedLosses": [
+      18,
+      78,
+      0,
+      2,
+      1,
+      6,
+      1,
+      0
+    ],
+    "expectedLostBlood": 2010
+  },
+  {
+    "layer": 75,
+    "armyPower": 760,
+    "armyPowerUsed": 760,
+    "allyCounts": [
+      60,
+      78,
+      61,
+      2,
+      1,
+      8,
+      1,
+      0
+    ],
+    "frontlineEnemies": "18 Skeleton, 11 Zombies, 9 Obese, 5 Revenant, 8 Bone Giant",
+    "backlineEnemies": "7 Cultist, 20 Bone wings, 11 Wraith, 5 Broodmother, 3 Lich",
+    "totalEnemies": 97,
+    "expectedLosses": [
+      39,
+      78,
+      0,
+      2,
+      1,
+      8,
+      1,
+      0
+    ],
+    "expectedLostBlood": 2370
+  },
+  {
+    "layer": 76,
+    "armyPower": 770,
+    "armyPowerUsed": 769,
+    "allyCounts": [
+      61,
+      79,
+      50,
+      2,
+      1,
+      10,
+      2,
+      0
+    ],
+    "frontlineEnemies": "21 Skeleton, 26 Zombies, 16 Obese, 5 Revenant, 5 Bone Giant",
+    "backlineEnemies": "7 Cultist, 19 Bone wings, 9 Wraith, 7 Broodmother, 2 Lich",
+    "totalEnemies": 117,
+    "expectedLosses": [
+      16,
+      79,
+      0,
+      2,
+      1,
+      0,
+      2,
+      0
+    ],
+    "expectedLostBlood": 1645
+  },
+  {
+    "layer": 77,
+    "armyPower": 780,
+    "armyPowerUsed": 780,
+    "allyCounts": [
+      65,
+      80,
+      50,
+      2,
+      1,
+      10,
+      2,
+      0
+    ],
+    "frontlineEnemies": "6 Skeleton, 27 Zombies, 16 Obese, 8 Revenant, 5 Bone Giant",
+    "backlineEnemies": "6 Cultist, 20 Bone wings, 9 Wraith, 4 Broodmother, 4 Lich",
+    "totalEnemies": 105,
+    "expectedLosses": [
+      46,
+      80,
+      0,
+      2,
+      1,
+      1,
+      2,
+      0
+    ],
+    "expectedLostBlood": 2035
+  },
+  {
+    "layer": 78,
+    "armyPower": 790,
+    "armyPowerUsed": 790,
+    "allyCounts": [
+      67,
+      76,
+      50,
+      2,
+      1,
+      10,
+      3,
+      0
+    ],
+    "frontlineEnemies": "18 Skeleton, 13 Zombies, 22 Obese, 11 Revenant, 5 Bone Giant",
+    "backlineEnemies": "24 Cultist, 9 Bone wings, 5 Wraith, 5 Broodmother, 3 Lich",
+    "totalEnemies": 115,
+    "expectedLosses": [
+      67,
+      76,
+      40,
+      2,
+      1,
+      10,
+      3,
+      0
+    ],
+    "expectedLostBlood": 3750
+  },
+  {
+    "layer": 79,
+    "armyPower": 800,
+    "armyPowerUsed": 799,
+    "allyCounts": [
+      50,
+      90,
+      50,
+      3,
+      1,
+      12,
+      1,
+      0
+    ],
+    "frontlineEnemies": "4 Skeleton, 26 Zombies, 7 Obese, 4 Revenant, 5 Bone Giant",
+    "backlineEnemies": "8 Cultist, 23 Bone wings, 11 Wraith, 5 Broodmother, 6 Lich",
+    "totalEnemies": 99,
+    "expectedLosses": [
+      41,
+      90,
+      3,
+      1,
+      1,
+      8,
+      1,
+      0
+    ],
+    "expectedLostBlood": 2595
+  },
+  {
+    "layer": 80,
+    "armyPower": 810,
+    "armyPowerUsed": 809,
+    "allyCounts": [
+      67,
+      80,
+      50,
+      3,
+      1,
+      10,
+      3,
+      0
+    ],
+    "frontlineEnemies": "26 Skeleton, 25 Zombies, 15 Obese, 8 Revenant, 6 Bone Giant",
+    "backlineEnemies": "6 Cultist, 19 Bone Wings, 4 Wraith, 5 Broodmothr, 5 Lich",
+    "totalEnemies": 119,
+    "expectedLosses": [
+      54,
+      80,
+      0,
+      3,
+      1,
+      4,
+      3,
+      0
+    ],
+    "expectedLostBlood": 2465
+  },
+  {
+    "layer": 81,
+    "armyPower": 820,
+    "armyPowerUsed": 819,
+    "allyCounts": [
+      60,
+      81,
+      50,
+      6,
+      1,
+      10,
+      3,
+      0
+    ],
+    "frontlineEnemies": "24 Skeleton, 13 Zombies, 7 Obese, 4 Revenant, 5 Bone Giant",
+    "backlineEnemies": "20 Cultist, 23 Bone Wings, 12 Wraith, 3 Broodmother, 7 Lich",
+    "totalEnemies": 118,
+    "expectedLosses": [
+      12,
+      81,
+      2,
+      6,
+      1,
+      7,
+      3,
+      0
+    ],
+    "expectedLostBlood": 2430
+  },
+  {
+    "layer": 82,
+    "armyPower": 830,
+    "armyPowerUsed": 830,
+    "allyCounts": [
+      53,
+      85,
+      50,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "frontlineEnemies": "12 Skeleton, 28 Zombies, 18 Obese, 9 Revenant, 4 Bone Giant",
+    "backlineEnemies": "7 Cultist, 10 Bone Wings, 9 Wraith, 5 Broodmother, 6 Lich",
+    "totalEnemies": 108,
+    "expectedLosses": [
+      33,
+      85,
+      0,
+      4,
+      1,
+      6,
+      2,
+      0
+    ],
+    "expectedLostBlood": 2425
+  },
+  {
+    "layer": 83,
+    "armyPower": 840,
+    "armyPowerUsed": 840,
+    "allyCounts": [
+      55,
+      87,
+      50,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "frontlineEnemies": "15 Skeleton, 11 Zombies, 18 Obese, 10 Revenant, 5 Bone Giant",
+    "backlineEnemies": "20 Cultist, 20 Bone Wings, 12 Wraith, 3 Broodmother, 4 Lich",
+    "totalEnemies": 118,
+    "expectedLosses": [
+      55,
+      87,
+      0,
+      4,
+      1,
+      7,
+      2,
+      0
+    ],
+    "expectedLostBlood": 2750
+  },
+  {
+    "layer": 84,
+    "armyPower": 850,
+    "armyPowerUsed": 850,
+    "allyCounts": [
+      60,
+      87,
+      50,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "frontlineEnemies": "14 Skeleton, 26 Zombies, 10 Obese, 10 Revenant, 8 Bone Giant",
+    "backlineEnemies": "8 Cultist, 12 Bone Wings, 6 Wraith, 6 Broodmother, 5 Lich",
+    "totalEnemies": 105,
+    "expectedLosses": [
+      28,
+      87,
+      0,
+      4,
+      1,
+      6,
+      2,
+      0
+    ],
+    "expectedLostBlood": 2405
+  },
+  {
+    "layer": 85,
+    "armyPower": 860,
+    "armyPowerUsed": 859,
+    "allyCounts": [
+      60,
+      90,
+      50,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "frontlineEnemies": "16 Skeleton, 14 Zombies, 21 Obese, 4 Revenant, 5 Bone Giant",
+    "backlineEnemies": "9 Cultist, 26 Bone Wings, 6 Wraith, 7 Broodmother, 5 Lich",
+    "totalEnemies": 113,
+    "expectedLosses": [
+      60,
+      90,
+      0,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "expectedLostBlood": 3295
+  },
+  {
+    "layer": 86,
+    "armyPower": 870,
+    "armyPowerUsed": 870,
+    "allyCounts": [
+      68,
+      80,
+      50,
+      5,
+      1,
+      13,
+      3,
+      0
+    ],
+    "frontlineEnemies": "21 Skeleton, 31 Zombies, 18 Obese, 10 Revenant, 8 Bone Giant",
+    "backlineEnemies": "8 Cultist, 11 Bone Wings, 5 Wraith, 6 Broodmother, 4 Lich",
+    "totalEnemies": 122,
+    "expectedLosses": [
+      34,
+      80,
+      0,
+      5,
+      1,
+      5,
+      3,
+      0
+    ],
+    "expectedLostBlood": 2410
+  },
+  {
+    "layer": 87,
+    "armyPower": 880,
+    "armyPowerUsed": 880,
+    "allyCounts": [
+      63,
+      95,
+      50,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "frontlineEnemies": "19 Skeleton, 36 Zombies, 7 Obese, 5 Revenant, 5 Bone Giant",
+    "backlineEnemies": "9 Cultist, 27 Bone Wings, 13 Wraith, 7 Broodmother, 4 Lich",
+    "totalEnemies": 132,
+    "expectedLosses": [
+      63,
+      95,
+      0,
+      4,
+      1,
+      5,
+      2,
+      0
+    ],
+    "expectedLostBlood": 2800
+  },
+  {
+    "layer": 88,
+    "armyPower": 890,
+    "armyPowerUsed": 890,
+    "allyCounts": [
+      65,
+      97,
+      50,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "frontlineEnemies": "15 Skeleton, 13 Zombies, 19 Obese, 4 Revenant, 9 Bone Giant",
+    "backlineEnemies": "24 Cultist, 11 Bone Wings, 13 Wraith, 4 Broodmother, 5 Lich",
+    "totalEnemies": 117,
+    "expectedLosses": [
+      37,
+      97,
+      0,
+      4,
+      1,
+      8,
+      2,
+      0
+    ],
+    "expectedLostBlood": 2795
+  },
+  {
+    "layer": 89,
+    "armyPower": 900,
+    "armyPowerUsed": 900,
+    "allyCounts": [
+      67,
+      99,
+      50,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "frontlineEnemies": "9 Skeleton, 16 Zombies, 9 Obese, 5 Revenant, 5 Bone Giant",
+    "backlineEnemies": "10 Cultist, 28 Bone wings, 7 Wraith, 9 Broodmother, 6 Lich",
+    "totalEnemies": 104,
+    "expectedLosses": [
+      51,
+      99,
+      0,
+      4,
+      1,
+      5,
+      2,
+      0
+    ],
+    "expectedLostBlood": 2740
+  },
+  {
+    "layer": 90,
+    "armyPower": 910,
+    "armyPowerUsed": 910,
+    "allyCounts": [
+      69,
+      101,
+      50,
+      4,
+      1,
+      13,
+      2,
+      0
+    ],
+    "frontlineEnemies": "26 Skeleton, 13 Zombies, 9 Obese, 10 Revenant, 4 Bone Giant",
+    "backlineEnemies": "23 Cultist, 24 Bone Wings, 13 Wraith, 3 Broodmother, 7 Lich",
+    "totalEnemies": 132,
+    "expectedLosses": [
+      45,
+      101,
+      0,
+      4,
+      1,
+      9,
+      2,
+      0
+    ],
+    "expectedLostBlood": 3010
+  },
+  {
+    "layer": 91,
+    "armyPower": 920,
+    "armyPowerUsed": 920,
+    "allyCounts": [
+      74,
+      91,
+      50,
+      4,
+      1,
+      13,
+      2,
+      1
+    ],
+    "frontlineEnemies": "29 Skeleton, 14 Zombies, 22 Obese, 5 Revenant, 9 Bone Giant",
+    "backlineEnemies": "22 Cultist, 11 Bone Wings, 12 Wraith, 4 Broodmother, 5 Lich",
+    "totalEnemies": 133,
+    "expectedLosses": [
+      22,
+      83,
+      0,
+      4,
+      1,
+      0,
+      2,
+      1
+    ],
+    "expectedLostBlood": 1985
+  },
+  {
+    "layer": 92,
+    "armyPower": 930,
+    "armyPowerUsed": 930,
+    "allyCounts": [
+      76,
+      93,
+      50,
+      4,
+      1,
+      13,
+      2,
+      1
+    ],
+    "frontlineEnemies": "14 Skeleton, 32 Zombies, 19 Obese, 5 Revenant, 8 Bone Giant",
+    "backlineEnemies": "15 Cultist, 21 Bone Wings, 11 Wraith, 3 Broodmother, 6 Lich",
+    "totalEnemies": 134,
+    "expectedLosses": [
+      19,
+      89,
+      0,
+      4,
+      1,
+      0,
+      2,
+      1
+    ],
+    "expectedLostBlood": 2045
+  },
+  {
+    "layer": 93,
+    "armyPower": 940,
+    "armyPowerUsed": 940,
+    "allyCounts": [
+      78,
+      95,
+      50,
+      4,
+      1,
+      13,
+      2,
+      1
+    ],
+    "frontlineEnemies": "6 Skeleton, 13 Zombies, 7 Obese, 10 Revenant, 8 Bone Giant",
+    "backlineEnemies": "17 Cultist, 8 Bone Wings, 11 Wraith, 7 Broodmother, 7 Lich",
+    "totalEnemies": 94,
+    "expectedLosses": [
+      0,
+      93,
+      2,
+      4,
+      1,
+      0,
+      2,
+      1
+    ],
+    "expectedLostBlood": 1955
+  },
+  {
+    "layer": 94,
+    "armyPower": 950,
+    "armyPowerUsed": 950,
+    "allyCounts": [
+      80,
+      97,
+      50,
+      4,
+      1,
+      13,
+      2,
+      1
+    ],
+    "frontlineEnemies": "12 Skeleton, 36 Zombies, 9 Obese, 10 Revenant, 9 Bone Giant",
+    "backlineEnemies": "9 Cultist, 27 Bone Wings, 4 Wraith, 4 Broodmother, 7 Lich",
+    "totalEnemies": 127,
+    "expectedLosses": [
+      49,
+      92,
+      0,
+      4,
+      1,
+      0,
+      2,
+      1
+    ],
+    "expectedLostBlood": 2390
+  },
+  {
+    "layer": 95,
+    "armyPower": 960,
+    "armyPowerUsed": 960,
+    "allyCounts": [
+      82,
+      99,
+      50,
+      4,
+      1,
+      13,
+      2,
+      1
+    ],
+    "frontlineEnemies": "9 Skeleton, 32 Zombies, 10 Obese, 10 Revenant, 9 Bone Giant",
+    "backlineEnemies": "9 Cultist, 23 Bone Wings, 6 Wraith, 7 Broodmother, 5 Lich",
+    "totalEnemies": 120,
+    "expectedLosses": [
+      10,
+      77,
+      0,
+      4,
+      1,
+      0,
+      2,
+      1
+    ],
+    "expectedLostBlood": 1775
+  },
+  {
+    "layer": 96,
+    "armyPower": 970,
+    "armyPowerUsed": 970,
+    "allyCounts": [
+      84,
+      101,
+      50,
+      4,
+      1,
+      13,
+      2,
+      1
+    ],
+    "frontlineEnemies": "4 Skeleton, 31 Zombies, 19 Obese, 11 Revenant, 9 Bone Giant",
+    "backlineEnemies": "21 Cultist, 25 Bone Wings, 4 Wraith, 4 Broodmother, 5 Lich",
+    "totalEnemies": 133,
+    "expectedLosses": [
+      19,
+      78,
+      0,
+      4,
+      1,
+      0,
+      2,
+      1
+    ],
+    "expectedLostBlood": 1880
+  },
+  {
+    "layer": 97,
+    "armyPower": 980,
+    "armyPowerUsed": 980,
+    "allyCounts": [
+      61,
+      83,
+      60,
+      5,
+      1,
+      14,
+      3,
+      2
+    ],
+    "frontlineEnemies": "7 Skeleton, 41 Zombies, 13 Obese, 15 Revenant, 7 Bone Giant",
+    "backlineEnemies": "11 Cultist, 11 Bone Wings, 7 Wraith, 5 Broodmother, 7 Lich",
+    "totalEnemies": 124,
+    "expectedLosses": [
+      61,
+      83,
+      44,
+      5,
+      1,
+      14,
+      3,
+      2
+    ],
+    "expectedLostBlood": 4580
+  },
+  {
+    "layer": 98,
+    "armyPower": 990,
+    "armyPowerUsed": 990,
+    "allyCounts": [
+      63,
+      85,
+      60,
+      5,
+      1,
+      14,
+      3,
+      2
+    ],
+    "frontlineEnemies": "5 Skeeton, 15 Zombies, 22 Obese, 4 Revenant, 10 Bone Giant",
+    "backlineEnemies": "10 Cultist, 26 Bone Wings, 5 Wraith, 5 Broodmother, 8 Lich",
+    "totalEnemies": 110,
+    "expectedLosses": [
+      61,
+      75,
+      0,
+      5,
+      1,
+      0,
+      3,
+      2
+    ],
+    "expectedLostBlood": 2530
+  },
+  {
+    "layer": 99,
+    "armyPower": 1000,
+    "armyPowerUsed": 1000,
+    "allyCounts": [
+      65,
+      87,
+      60,
+      5,
+      1,
+      14,
+      3,
+      2
+    ],
+    "frontlineEnemies": "30 Skeleton, 31 Zombies, 22 Obese, 4 Revenant, 10 Bone Giant",
+    "backlineEnemies": "21 Cultist, 14 Bone Wings, 7 Wraith, 7 Broodmother, 5 Lich",
+    "totalEnemies": 151,
+    "expectedLosses": [
+      45,
+      87,
+      0,
+      5,
+      1,
+      6,
+      3,
+      2
+    ],
+    "expectedLostBlood": 3000
+  },
+  {
+    "layer": 100,
+    "armyPower": 1010,
+    "armyPowerUsed": 1010,
+    "allyCounts": [
+      67,
+      89,
+      60,
+      5,
+      1,
+      14,
+      3,
+      2
+    ],
+    "frontlineEnemies": "7 Skeleton, 32 Zombies, 11 Obese, 10 Revenant, 8 Bone Giant",
+    "backlineEnemies": "21 Cultist, 12 Bone Wings, 13 Wraith, 4 Broodmother, 8 Lich",
+    "totalEnemies": 126,
+    "expectedLosses": [
+      29,
+      83,
+      0,
+      5,
+      1,
+      0,
+      3,
+      2
+    ],
+    "expectedLostBlood": 2330
+  },
+  {
+    "layer": 101,
+    "armyPower": 1020,
+    "armyPowerUsed": 1020,
+    "allyCounts": [
+      69,
+      91,
+      60,
+      5,
+      1,
+      14,
+      3,
+      2
+    ],
+    "frontlineEnemies": "0 Skeleton, 14 Zombies,21 Obese, 11 Revenant, 9 Bone Giant",
+    "backlineEnemies": "3 Cultist, 29 Bone Wings, 15 Wraith, 4 Broodmother, 5 Lich",
+    "totalEnemies": 111,
+    "expectedLosses": [
+      21,
+      73,
+      0,
+      5,
+      1,
+      0,
+      3,
+      2
+    ],
+    "expectedLostBlood": 2100
+  }
+]
