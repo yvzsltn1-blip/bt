@@ -13,6 +13,7 @@ const resetWrongFiltersBtn = document.querySelector("#resetWrongFiltersBtn");
 const exportWrongCsvBtn = document.querySelector("#exportWrongCsvBtn");
 const exportWrongTxtBtn = document.querySelector("#exportWrongTxtBtn");
 const exportWrongAllTxtBtn = document.querySelector("#exportWrongAllTxtBtn");
+const bulkWrongRegressionBtn = document.querySelector("#bulkWrongRegressionBtn");
 const wrongStartDateInput = document.querySelector("#wrongStartDateInput");
 const wrongEndDateInput = document.querySelector("#wrongEndDateInput");
 const wrongFilterMeta = document.querySelector("#wrongFilterMeta");
@@ -157,7 +158,7 @@ function renderWrongPage(items) {
       openBtn.type = "button";
       openBtn.textContent = "Rastgele Ac";
       openBtn.addEventListener("click", () => {
-        openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {});
+        openSimulationForCounts(item.enemyCounts || {}, getWrongSimulationCounts(item));
       });
       actions.append(openBtn);
 
@@ -167,7 +168,7 @@ function renderWrongPage(items) {
         seededOpenBtn.type = "button";
         seededOpenBtn.textContent = "Ayni Seed ile Ac";
         seededOpenBtn.addEventListener("click", () => {
-          openSimulationForCounts(item.enemyCounts || {}, item.allyCounts || {}, item.seed);
+          openSimulationForCounts(item.enemyCounts || {}, getWrongSimulationCounts(item), item.seed);
         });
         actions.append(seededOpenBtn);
       }
@@ -256,12 +257,13 @@ function renderWrongPage(items) {
 }
 
 function hasCountsForSimulation(item) {
+  const allyCounts = getWrongSimulationCounts(item);
   return !!(
     item &&
     item.enemyCounts &&
-    item.allyCounts &&
+    allyCounts &&
     Object.keys(item.enemyCounts).length > 0 &&
-    Object.keys(item.allyCounts).length > 0
+    Object.keys(allyCounts).length > 0
   );
 }
 
@@ -340,6 +342,28 @@ function bindFilterControls() {
       })),
       `wrong-filtered-${new Date().toISOString().slice(0, 10)}.csv`
     );
+  });
+
+  bulkWrongRegressionBtn?.addEventListener("click", () => {
+    if (!window.BulkBattleRegression || typeof window.BulkBattleRegression.openReportPage !== "function") {
+      window.alert("Toplu test araci henuz hazir degil.");
+      return;
+    }
+    if (!filteredWrongItems.length) {
+      window.alert("Toplu test icin secili rapor yok.");
+      return;
+    }
+
+    window.BulkBattleRegression.openReportPage({
+      kind: "wrong",
+      title: "Yanlis Sonuclar Toplu Test",
+      scopeLabel: buildWrongRegressionScopeLabel(),
+      selectedCount: filteredWrongItems.length,
+      totalCount: allWrongItems.length,
+      backHref: "wrong.html",
+      backLabel: "Yanlislar",
+      items: window.BulkBattleRegression.prepareWrongItems(filteredWrongItems)
+    });
   });
 
   wrongPrevPageBtn?.addEventListener("click", () => {
@@ -711,6 +735,13 @@ function buildExportTimestamp() {
   return parts.join("");
 }
 
+function buildWrongRegressionScopeLabel() {
+  return [
+    `${filteredWrongItems.length}/${allWrongItems.length} rapor secili`,
+    `Tarih: ${buildDateRangeLabel(wrongStartDateInput?.value || "", wrongEndDateInput?.value || "")}`
+  ].join(" / ");
+}
+
 function downloadTextFile(content, filename) {
   const blob = new Blob([`\uFEFF${content}`], { type: "text/plain;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -739,6 +770,16 @@ function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
   } catch (error) {
     window.alert(`Simulasyon ekranina gecilemedi: ${error.message}`);
   }
+}
+
+function getWrongSimulationCounts(item) {
+  if (window.BulkBattleRegression && typeof window.BulkBattleRegression.getWrongSimulationCounts === "function") {
+    return window.BulkBattleRegression.getWrongSimulationCounts(item);
+  }
+  if (item?.source === "optimizer" && item?.recommendationCounts && Object.keys(item.recommendationCounts).length > 0) {
+    return item.recommendationCounts;
+  }
+  return item?.allyCounts || {};
 }
 
 function renderCountBlock(title, counts, units) {

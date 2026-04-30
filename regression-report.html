@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BT Analyss Toplu Test Raporu</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="styles.css?v=20260430-26">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy-block">
+        <div class="top-nav">
+          <a class="nav-link" href="index.html">Simulasyon</a>
+          <a class="nav-link" href="optimizer.html">Optimizer</a>
+          <a id="reportBackLink" class="nav-link active" href="saved.html">Kaynak Sayfa</a>
+        </div>
+        <p class="eyebrow">BT ANALYSS / TOPLU TEST RAPORU</p>
+        <h1 id="reportTitle">Toplu Test Raporu</h1>
+        <p id="reportScope" class="hero-support">Rapor hazirlaniyor...</p>
+      </div>
+      <div class="hero-stat">
+        <span>Kayit</span>
+        <strong id="reportCountLabel">0</strong>
+      </div>
+    </header>
+
+    <main class="single-layout">
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <h2>Ozet</h2>
+          <div class="panel-head-tools">
+            <span id="reportProgress" class="report-progress">Hazirlaniyor...</span>
+            <button id="rerunReportBtn" class="button button-secondary" type="button">Tekrar Tara</button>
+          </div>
+        </div>
+
+        <section id="reportSummaryGrid" class="report-summary-grid">
+          <article class="report-summary-card report-summary-card-wide">
+            <span class="report-summary-label">Durum</span>
+            <strong>Hazirlaniyor...</strong>
+          </article>
+        </section>
+
+        <section class="report-section">
+          <div class="report-section-head">
+            <h3>Degisenler</h3>
+            <span id="changedSectionMeta" class="report-section-meta">-</span>
+          </div>
+          <div id="reportChangedList" class="saved-list">
+            <p class="summary-empty">Rapor hazirlaniyor...</p>
+          </div>
+        </section>
+
+        <section class="report-section">
+          <div class="report-section-head">
+            <h3>Atlananlar</h3>
+            <span id="skippedSectionMeta" class="report-section-meta">-</span>
+          </div>
+          <div id="reportSkippedList" class="saved-list">
+            <p class="summary-empty">Atlanan kayit yok.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="battle-core.js?v=20260429-02" defer></script>
+  <script src="bulk-regression.js?v=20260430-1" defer></script>
+  <script src="regression-report.js?v=20260430-1" defer></script>
+</body>
+</html>

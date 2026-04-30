@@ -249,7 +249,7 @@
 
   function sanitizeWrongReport(item) {
     const source = item?.source === "optimizer" ? "optimizer" : "simulation";
-    return {
+    const payload = {
       source,
       sourceLabel: trimText(item?.sourceLabel || (source === "optimizer" ? "Optimizer" : "Simulasyon"), 30),
       reportedAt: trimText(item?.reportedAt || new Date().toISOString(), 40),
@@ -262,6 +262,73 @@
       actualSummaryText: trimText(item?.actualSummaryText || "", 40000),
       actualNote: trimText(item?.actualNote || "", 4000)
     };
+
+    const seed = sanitizeOptionalInt(item?.seed, 4294967295);
+    if (seed !== null) {
+      payload.seed = seed;
+    }
+    if (Number.isInteger(item?.stage) && item.stage >= 1 && item.stage <= 9999) {
+      payload.stage = item.stage;
+    }
+    if (item?.mode === "balanced" || item?.mode === "fast" || item?.mode === "deep") {
+      payload.mode = item.mode;
+    }
+    if (item?.objective === "min_army" || item?.objective === "min_loss") {
+      payload.objective = item.objective;
+    }
+    if ("diversityMode" in (item || {})) {
+      payload.diversityMode = Boolean(item?.diversityMode);
+    }
+    if ("stoneMode" in (item || {})) {
+      payload.stoneMode = Boolean(item?.stoneMode);
+    }
+    if (item?.modeLabel) {
+      payload.modeLabel = trimText(item.modeLabel, 80);
+    }
+    if (item?.recommendationCounts) {
+      payload.recommendationCounts = sanitizeCountMap(item.recommendationCounts, ALLY_COUNT_KEYS);
+    }
+    if (item?.expectedWinner === "ally" || item?.expectedWinner === "enemy" || item?.expectedWinner === "unknown") {
+      payload.expectedWinner = item.expectedWinner;
+    }
+    if (item?.expectedVariantSignature !== undefined) {
+      payload.expectedVariantSignature = trimText(item.expectedVariantSignature || "", 1000);
+    }
+    if (item?.actualOutcomeLine !== undefined) {
+      payload.actualOutcomeLine = trimText(item.actualOutcomeLine || "", 400);
+    }
+    if (item?.actualLosses) {
+      payload.actualLosses = sanitizeCountMap(item.actualLosses, ALLY_COUNT_KEYS);
+    }
+    if (item?.expectedAllyLosses) {
+      payload.expectedAllyLosses = sanitizeCountMap(item.expectedAllyLosses, ALLY_COUNT_KEYS);
+    }
+
+    [
+      ["expectedLostBlood", 999999],
+      ["expectedUsedCapacity", 999999],
+      ["expectedUsedPoints", 99999],
+      ["usedPoints", 99999],
+      ["lostBlood", 999999],
+      ["winRate", 100],
+      ["pointLimit", 99999],
+      ["actualCapacity", 999999],
+      ["actualLostUnitsTotal", 999999],
+      ["actualLostBlood", 999999]
+    ].forEach(([key, maxValue]) => {
+      if (item?.[key] !== undefined && item?.[key] !== null && item?.[key] !== "") {
+        payload[key] = clampInt(item[key], maxValue);
+      }
+    });
+
+    if (item?.actualWinner === "ally" || item?.actualWinner === "enemy" || item?.actualWinner === "unknown") {
+      payload.actualWinner = item.actualWinner;
+    }
+    if ("possible" in (item || {})) {
+      payload.possible = Boolean(item?.possible);
+    }
+
+    return payload;
   }
 
   function isIntegerInRange(value, minValue, maxValue) {

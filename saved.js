@@ -17,6 +17,7 @@ const resetSavedFiltersBtn = document.querySelector("#resetSavedFiltersBtn");
 const exportSavedCsvBtn = document.querySelector("#exportSavedCsvBtn");
 const exportSavedTxtBtn = document.querySelector("#exportSavedTxtBtn");
 const exportSavedAllTxtBtn = document.querySelector("#exportSavedAllTxtBtn");
+const bulkSavedRegressionBtn = document.querySelector("#bulkSavedRegressionBtn");
 const savedStartDateInput = document.querySelector("#savedStartDateInput");
 const savedEndDateInput = document.querySelector("#savedEndDateInput");
 const savedFilterMeta = document.querySelector("#savedFilterMeta");
@@ -328,6 +329,29 @@ function bindFilterControls() {
       })),
       `saved-filtered-${new Date().toISOString().slice(0, 10)}.csv`
     );
+  });
+
+  bulkSavedRegressionBtn?.addEventListener("click", () => {
+    if (!window.BulkBattleRegression || typeof window.BulkBattleRegression.openReportPage !== "function") {
+      window.alert("Toplu test araci henuz hazir degil.");
+      return;
+    }
+    const simulationItems = filteredSavedItems.filter((item) => getApprovedSource(item) === "simulation");
+    if (!simulationItems.length) {
+      window.alert("Toplu test icin secili simulation kaydi yok.");
+      return;
+    }
+
+    window.BulkBattleRegression.openReportPage({
+      kind: "approved",
+      title: "Onaylanan Versuslar Toplu Test",
+      scopeLabel: buildSavedRegressionScopeLabel(simulationItems.length),
+      selectedCount: simulationItems.length,
+      totalCount: allSavedItems.length,
+      backHref: "saved.html",
+      backLabel: "Onaylananlar",
+      items: window.BulkBattleRegression.prepareApprovedItems(simulationItems)
+    });
   });
 
   savedPrevPageBtn?.addEventListener("click", () => {
@@ -673,6 +697,13 @@ function buildExportTimestamp() {
     String(date.getSeconds()).padStart(2, "0")
   ];
   return parts.join("");
+}
+
+function buildSavedRegressionScopeLabel(simulationCount = filteredSavedItems.filter((item) => getApprovedSource(item) === "simulation").length) {
+  return [
+    `${simulationCount}/${allSavedItems.length} simulation kaydi secili`,
+    `Tarih: ${buildDateRangeLabel(savedStartDateInput?.value || "", savedEndDateInput?.value || "")}`
+  ].join(" / ");
 }
 
 function downloadTextFile(content, filename) {
