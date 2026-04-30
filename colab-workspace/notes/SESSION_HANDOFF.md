@@ -30,6 +30,8 @@ Bu not, terminal kapanip tekrar acildiginda Colab entegrasyonu ve aktif battle a
 
 Asagidaki battle icin en iyi dizilimi bulmak:
 
+- Payload dosyasi: [config/stage75-deep-minloss.json](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/config/stage75-deep-minloss.json>)
+
 - Stage: `75`
 - Mod: `deep`
 - Objective: `min_loss`

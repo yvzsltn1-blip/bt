@@ -34,6 +34,7 @@ Bu iskelet kurulduktan sonra agir battle job'larini ayni protokole baglayacagiz.
 ## Dosya Yapisi
 
 - `config/remote.example.json`
+- `config/stage75-deep-minloss.json`
 - `client/submit_job.py`
 - `worker/colab_http_worker.py`
 - `worker/allowed_jobs.json`
@@ -108,6 +109,10 @@ py -3 colab-workspace\client\submit_job.py `
   --wait `
   --save-dir colab-workspace\runs
 ```
+
+Bu oturumdaki aktif battle payload'i:
+
+- [config/stage75-deep-minloss.json](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/config/stage75-deep-minloss.json>)
 
 ## Not
 

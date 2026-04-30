@@ -1,0 +1,35 @@
+{
+  "stage": 75,
+  "mode": "deep",
+  "objective": "min_loss",
+  "stoneMode": false,
+  "diversityMode": false,
+  "minWinRate": 0.75,
+  "maxBatchRuns": 60,
+  "maxSeconds": 14400,
+  "finalValidationTrials": 200,
+  "topCandidateLimit": 32,
+  "seedCandidateLimit": 20,
+  "allyPool": {
+    "bats": 111,
+    "ghouls": 111,
+    "thralls": 90,
+    "banshees": 95,
+    "necromancers": 33,
+    "gargoyles": 44,
+    "witches": 9,
+    "rotmaws": 0
+  },
+  "enemyCounts": {
+    "skeletons": 16,
+    "zombies": 11,
+    "cultists": 20,
+    "bonewings": 23,
+    "corpses": 8,
+    "wraiths": 4,
+    "revenants": 12,
+    "giants": 5,
+    "broodmothers": 5,
+    "liches": 3
+  }
+}
