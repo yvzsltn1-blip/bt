@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BT Analyss Onaylananlar</title>
+  <title>BT Analyss Yanlislar</title>
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260430-25">
+  <link rel="stylesheet" href="styles.css?v=20260430-23">
 </head>
 <body>
   <div class="page-shell">
@@ -16,58 +16,58 @@
         <div class="top-nav">
           <a class="nav-link" href="index.html">Simulasyon</a>
           <a class="nav-link" href="optimizer.html">Optimizer</a>
-          <a class="nav-link active" href="saved.html">Onaylananlar</a>
+          <a class="nav-link" href="saved.html">Onaylananlar</a>
         </div>
-        <p class="eyebrow">BT ANALYSS / KAYITLI COZUMLER</p>
-        <h1>Onaylanan Versuslar</h1>
+        <p class="eyebrow">BT ANALYSS / YANLIS RAPORLARI</p>
+        <h1>Yanlis Sonuclar</h1>
       </div>
       <div class="hero-stat">
-        <span>Kayit</span>
-        <strong id="savedCountLabel">0</strong>
+        <span>Rapor</span>
+        <strong id="wrongCountLabel">0</strong>
       </div>
     </header>
 
     <main class="single-layout">
       <section class="panel output-panel">
         <div class="panel-head">
-          <h2>Kayitli Cozumler</h2>
+          <h2>Kaydedilen Yanlislar</h2>
           <div class="actions actions-inline list-header-actions">
-            <a class="button button-secondary button-icon-only-mobile" href="wrong.html" aria-label="Yanlislar">
-              <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
-              <span class="button-label">Yanlislar</span>
+            <a class="button button-secondary button-icon-only-mobile" href="saved.html" aria-label="Onaylananlara Don">
+              <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+              <span class="button-label">Kaydedilenlere Don</span>
             </a>
             <div class="header-date-range">
               <label class="header-date-filter" aria-label="Baslangic tarihi">
                 <span class="sr-only">Baslangic Tarihi</span>
                 <span class="header-date-text">Bas</span>
                 <span class="header-date-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"/><path d="M3 10h18"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="m16 18 3-3 3 3"/><path d="M19 21v-6"/></svg></span>
-                <input id="savedStartDateInput" class="admin-auth-input header-date-input" type="date">
+                <input id="wrongStartDateInput" class="admin-auth-input header-date-input" type="date">
               </label>
               <label class="header-date-filter" aria-label="Bitis tarihi">
                 <span class="sr-only">Bitis Tarihi</span>
                 <span class="header-date-text">Bit</span>
                 <span class="header-date-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"/><path d="M3 10h18"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="m16 18 3 3 3-3"/><path d="M19 14v7"/></svg></span>
-                <input id="savedEndDateInput" class="admin-auth-input header-date-input" type="date">
+                <input id="wrongEndDateInput" class="admin-auth-input header-date-input" type="date">
               </label>
             </div>
             <div class="header-action-group">
-              <button id="exportSavedTxtBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="TXT Indir">
+              <button id="exportWrongTxtBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="TXT Indir">
                 <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg></span>
                 <span class="button-label">TXT Indir</span>
               </button>
-              <button id="exportSavedAllTxtBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="Tumunu TXT Indir">
+              <button id="exportWrongAllTxtBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="Tumunu TXT Indir">
                 <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 7 5 5 5-5"/><path d="m7 13 5 5 5-5"/><path d="M5 22h14"/></svg></span>
                 <span class="button-label">Tumunu TXT Indir</span>
               </button>
-              <button id="exportSavedCsvBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="CSV Indir">
+              <button id="exportWrongCsvBtn" class="button button-secondary button-icon-only-mobile" type="button" aria-label="CSV Indir">
                 <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/></svg></span>
                 <span class="button-label">CSV Indir</span>
               </button>
-              <button id="resetSavedFiltersBtn" class="button button-ghost button-icon-only-mobile" type="button" aria-label="Filtreyi Temizle">
+              <button id="resetWrongFiltersBtn" class="button button-ghost button-icon-only-mobile" type="button" aria-label="Filtreyi Temizle">
                 <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></span>
                 <span class="button-label">Filtreyi Temizle</span>
               </button>
-              <button id="clearSavedBtn" class="button button-ghost button-icon-only-mobile" type="button" aria-label="Tumunu Sil">
+              <button id="clearWrongBtn" class="button button-ghost button-icon-only-mobile" type="button" aria-label="Tumunu Sil">
                 <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>
                 <span class="button-label">Tumunu Sil</span>
               </button>
@@ -82,11 +82,11 @@
           <div class="list-filter-grid">
             <label class="select-wrap">
               <span>Metin Arama</span>
-              <input id="savedSearchInput" class="admin-auth-input" type="text" placeholder="Kademe, sonuc, not, birlik ara">
+              <input id="wrongSearchInput" class="admin-auth-input" type="text" placeholder="Kademe, sonuc, not, birlik ara">
             </label>
             <label class="select-wrap">
               <span>Taraf</span>
-              <select id="savedSideFilter" class="stage-select">
+              <select id="wrongSideFilter" class="stage-select">
                 <option value="all">Tum taraflar</option>
                 <option value="ally">Muttefik</option>
                 <option value="enemy">Dusman</option>
@@ -94,7 +94,7 @@
             </label>
             <label class="select-wrap">
               <span>Tier</span>
-              <select id="savedTierFilter" class="stage-select">
+              <select id="wrongTierFilter" class="stage-select">
                 <option value="all">Tum tierler</option>
                 <option value="T1">T1</option>
                 <option value="T2">T2</option>
@@ -110,30 +110,30 @@
             </label>
             <label class="select-wrap">
               <span>Kullanim</span>
-              <select id="savedUsageFilter" class="stage-select">
+              <select id="wrongUsageFilter" class="stage-select">
                 <option value="all">Kullanan ve kullanmayan</option>
                 <option value="used">Kullananlar</option>
                 <option value="unused">Kullanmayanlar</option>
               </select>
             </label>
           </div>
-          <div id="savedFilterMeta" class="saved-meta list-filter-meta"></div>
+          <div id="wrongFilterMeta" class="saved-meta list-filter-meta"></div>
         </section>
 
-        <section id="savedList" class="saved-list">
-          <p class="summary-empty">Henuz onaylanmis bir kayit yok.</p>
+        <section id="wrongList" class="saved-list">
+          <p class="summary-empty">Henuz kaydedilmis yanlis raporu yok.</p>
         </section>
 
-        <section id="savedPagination" class="list-pagination" hidden>
-          <button id="savedPrevPageBtn" class="button button-ghost" type="button">Onceki 10</button>
-          <div id="savedPageInfo" class="list-pagination-info"></div>
-          <button id="savedNextPageBtn" class="button button-ghost" type="button">Sonraki 10</button>
+        <section id="wrongPagination" class="list-pagination" hidden>
+          <button id="wrongPrevPageBtn" class="button button-ghost" type="button">Onceki 10</button>
+          <div id="wrongPageInfo" class="list-pagination-info"></div>
+          <button id="wrongNextPageBtn" class="button button-ghost" type="button">Sonraki 10</button>
         </section>
 
         <section class="admin-auth-panel">
           <div class="admin-auth-copy">
             <strong>Admin Girisi</strong>
-            <span>Silme ve toplu temizleme islemleri sadece admin oturumunda acilir.</span>
+            <span>Yanlis raporlarini silmek ve temizlemek sadece admin oturumunda acilir.</span>
           </div>
           <div class="admin-auth-controls">
             <span id="adminAuthStatus" class="admin-auth-status">Admin kapali</span>
@@ -150,9 +150,9 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
-  <script src="firebase-client.js?v=20260430-15" defer></script>
+  <script src="firebase-client.js?v=20260429-13" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
   <script src="battle-core.js?v=20260429-02" defer></script>
-  <script src="saved.js?v=20260430-20" defer></script>
+  <script src="wrong.js?v=20260429-18" defer></script>
 </body>
 </html>

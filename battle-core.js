@@ -459,6 +459,7 @@
       let bansheesReduceTarget = -1;
       let gargoylesReactiveReduceEvent = false;
       let gargoylesReactiveReduceEnemyIndex = -1;
+      const broodmothersRoundStartCount = unitNumbers[BROODMOTHERS_INDEX];
 
       if (unitNumbers[GARGOYLES_INDEX] > 0) {
         orders = buildOrders(unitSpeed);
@@ -790,7 +791,10 @@
           }
         }
 
-        if (!detectedNextAttackerUnit && unitNumbers[BROODMOTHERS_INDEX] > 0) {
+        if (
+          !detectedNextAttackerUnit &&
+          (unitNumbers[BROODMOTHERS_INDEX] > 0 || broodmothersRoundStartCount >= 6)
+        ) {
           unitNumbers[SPIDERLINGS_INDEX] += 10;
           unitHealth[SPIDERLINGS_INDEX] += 10 * UNIT_DESC[SPIDERLINGS_INDEX][HEALTH_INDEX];
           log(`- ${UNIT_DESC[BROODMOTHERS_INDEX][NAME_INDEX]}, 10 yeni ${UNIT_DESC[SPIDERLINGS_INDEX][NAME_INDEX]} dogurdu`);

@@ -1,0 +1,92 @@
+Stage 61 full-space top-100 search
+==================================
+
+Stage              : 61
+Point limit        : 620
+Objective          : min_loss
+Stone mode         : False
+Min win rate       : 0.75
+Workers            : 8
+Stage3 trials      : 240
+Total combinations : 123.456
+Elapsed            : 00:00:12
+
+Enemy
+-----
+skeletons     : 23
+zombies       : 31
+cultists      : 18
+bonewings     : 8
+corpses       : 5
+wraiths       : 7
+revenants     : 8
+giants        : 11
+broodmothers  : 1
+liches        : 0
+
+Ally pool
+---------
+bats          : 185
+ghouls        : 45
+thralls       : 105
+banshees      : 100
+necromancers  : 13
+gargoyles     : 30
+witches       : 0
+rotmaws       : 0
+
+Pinned reference candidates
+--------------------------
+Label        : current_optimizer_best_from_ui
+Rank         : 1
+Counts       : T1:65, T2:41, T3:33, T4:4, T5:1, T6:13
+Win rate     : %100.00
+Exp. loss    : 868
+Used points  : 618
+Used units   : 157
+Used cap     : 157
+Note         : UI reference candidate from the screenshots. Shown as 618/620 points, 157 units, ~868 expected loss, 240/240 wins.
+
+ANA SONUC
+---------
+Kazanabilir dizilim
+Kazanma orani       : %100.00
+Ortalama kan kaybi  : 868
+Min / max kayip     : 565 / 1675
+Kullanilan puan     : 618 / 620
+Kullanilan birlik   : 157
+Kullanilan kapasite : 157
+Ortalama kayip birlik: 49
+Yaklasik kayip      : ~5 Yarasa (T1), ~39 Gulyabani (T2), ~1 Vampir Kole (T3), ~3 Bansi (T4), ~1 Nekromant (T5), ~1 Gargoyl (T6)
+
+BIRLIK DIZILISI
+--------------
+Yarasa (T1)         : 65
+Gulyabani (T2)      : 41
+Vampir Kole (T3)    : 33
+Bansi (T4)          : 4
+Nekromant (T5)      : 1
+Gargoyl (T6)        : 13
+
+DETAY METRIKLERI
+----------------
+Ornek galibiyet    : 240
+Toplam trial       : 240
+Kullanilan birlik  : 157
+Kullanilan kapasite: 157
+Ortalama kayip birlik: 49
+Durum              : Kazanabilir
+Expected losses    : T1:5, T2:39, T3:1, T4:3, T5:1, T6:1
+
+EN OLASI SONUC DAGILIMI
+-----------------------
+       1. zafer      olasilik= 79.58%  kan=   825  T2:41, T3:1, T4:4, T5:1
+          ornek seedler: 8, 16, 18, 20, 28
+
+Top 100
+-------
+  1. win= %100.00  exp_loss=    868  exp_units=     49  pts=   618  units=   157  cap=   157  T1:65, T2:41, T3:33, T4:4, T5:1, T6:13
+      expected losses: T1:5, T2:39, T3:1, T4:3, T5:1, T6:1
+      avg win losses: T1:5, T2:39, T3:1, T4:3, T5:1, T6:1
+       1. zafer      olasilik= 79.58%  kan=   825  T2:41, T3:1, T4:4, T5:1
+          ornek seedler: 8, 16, 18, 20, 28

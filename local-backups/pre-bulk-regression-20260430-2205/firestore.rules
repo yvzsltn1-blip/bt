@@ -1,0 +1,207 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email == "yavuz@gmail.com";
+    }
+
+    function isShortString(value, maxLen) {
+      return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    function isTextString(value, maxLen) {
+      return value is string && value.size() <= maxLen;
+    }
+
+    function isCount(value) {
+      return value is int && value >= 0 && value <= 9999;
+    }
+
+    function isWideInt(value, maxValue) {
+      return value is int && value >= 0 && value <= maxValue;
+    }
+
+    function validEnemyCounts(data) {
+      return data is map
+        && data.keys().hasOnly([
+          'skeletons', 'zombies', 'cultists', 'bonewings', 'corpses',
+          'wraiths', 'revenants', 'giants', 'broodmothers', 'liches'
+        ])
+        && (!('skeletons' in data) || isCount(data.skeletons))
+        && (!('zombies' in data) || isCount(data.zombies))
+        && (!('cultists' in data) || isCount(data.cultists))
+        && (!('bonewings' in data) || isCount(data.bonewings))
+        && (!('corpses' in data) || isCount(data.corpses))
+        && (!('wraiths' in data) || isCount(data.wraiths))
+        && (!('revenants' in data) || isCount(data.revenants))
+        && (!('giants' in data) || isCount(data.giants))
+        && (!('broodmothers' in data) || isCount(data.broodmothers))
+        && (!('liches' in data) || isCount(data.liches));
+    }
+
+    function validAllyCounts(data) {
+      return data is map
+        && data.keys().hasOnly([
+          'bats', 'ghouls', 'thralls', 'banshees',
+          'necromancers', 'gargoyles', 'witches', 'rotmaws'
+        ])
+        && (!('bats' in data) || isCount(data.bats))
+        && (!('ghouls' in data) || isCount(data.ghouls))
+        && (!('thralls' in data) || isCount(data.thralls))
+        && (!('banshees' in data) || isCount(data.banshees))
+        && (!('necromancers' in data) || isCount(data.necromancers))
+        && (!('gargoyles' in data) || isCount(data.gargoyles))
+        && (!('witches' in data) || isCount(data.witches))
+        && (!('rotmaws' in data) || isCount(data.rotmaws));
+    }
+
+    function validApprovedOptimizerEntry(data, documentId) {
+      return documentId.matches('^stage_[0-9]+_[0-9a-f]+$')
+        && data.keys().hasOnly([
+          'source', 'sourceLabel', 'savedAt', 'updatedAt', 'stage', 'mode', 'objective',
+          'diversityMode', 'stoneMode', 'modeLabel',
+          'enemySignature', 'enemyTitle', 'enemyCounts', 'allyPool', 'representativeSeed',
+          'recommendationCounts', 'usedPoints', 'lostBlood', 'winRate'
+        ])
+        && data.keys().hasAll([
+          'source', 'sourceLabel', 'savedAt', 'updatedAt', 'stage', 'mode', 'objective',
+          'diversityMode', 'stoneMode', 'modeLabel',
+          'enemySignature', 'enemyTitle', 'enemyCounts', 'allyPool',
+          'recommendationCounts', 'usedPoints', 'lostBlood', 'winRate'
+        ])
+        && data.source == 'optimizer'
+        && isShortString(data.sourceLabel, 30)
+        && isShortString(data.savedAt, 40)
+        && isShortString(data.updatedAt, 40)
+        && data.stage is int && data.stage >= 1 && data.stage <= 9999
+        && data.mode in ['balanced', 'fast', 'deep']
+        && data.objective in ['min_loss', 'min_army']
+        && data.diversityMode is bool
+        && data.stoneMode is bool
+        && isShortString(data.modeLabel, 80)
+        && isShortString(data.enemySignature, 120)
+        && isShortString(data.enemyTitle, 120)
+        && validEnemyCounts(data.enemyCounts)
+        && validAllyCounts(data.allyPool)
+        && (!('representativeSeed' in data) || isWideInt(data.representativeSeed, 4294967295))
+        && validAllyCounts(data.recommendationCounts)
+        && data.usedPoints is int && data.usedPoints >= 0 && data.usedPoints <= 99999
+        && data.lostBlood is int && data.lostBlood >= 0 && data.lostBlood <= 999999
+        && data.winRate is int && data.winRate >= 0 && data.winRate <= 100;
+    }
+
+    function validApprovedSimulationEntry(data, documentId) {
+      return documentId.matches('^sim_[0-9a-f]+$')
+        && data.keys().hasOnly([
+          'source', 'sourceLabel', 'savedAt', 'updatedAt', 'stage', 'enemyTitle', 'enemyCounts',
+          'allyCounts', 'matchSignature', 'variantSignature', 'representativeSeed', 'variantTitle', 'winner',
+          'probabilityBasisPoints', 'summaryText', 'logText', 'usedCapacity',
+          'usedPoints', 'lostBlood'
+        ])
+        && data.keys().hasAll([
+          'source', 'sourceLabel', 'savedAt', 'updatedAt', 'enemyTitle', 'enemyCounts',
+          'allyCounts', 'matchSignature', 'variantSignature', 'variantTitle', 'winner',
+          'probabilityBasisPoints', 'summaryText', 'logText', 'usedCapacity',
+          'usedPoints', 'lostBlood'
+        ])
+        && data.source == 'simulation'
+        && isShortString(data.sourceLabel, 30)
+        && isShortString(data.savedAt, 40)
+        && isShortString(data.updatedAt, 40)
+        && (!('stage' in data) || (data.stage is int && data.stage >= 1 && data.stage <= 9999))
+        && isShortString(data.enemyTitle, 120)
+        && validEnemyCounts(data.enemyCounts)
+        && validAllyCounts(data.allyCounts)
+        && isShortString(data.matchSignature, 200)
+        && isTextString(data.variantSignature, 500)
+        && (!('representativeSeed' in data) || isWideInt(data.representativeSeed, 4294967295))
+        && isShortString(data.variantTitle, 80)
+        && data.winner in ['ally', 'enemy']
+        && data.probabilityBasisPoints is int && data.probabilityBasisPoints >= 0 && data.probabilityBasisPoints <= 10000
+        && isTextString(data.summaryText, 40000)
+        && isTextString(data.logText, 400000)
+        && data.usedCapacity is int && data.usedCapacity >= 0 && data.usedCapacity <= 999999
+        && data.usedPoints is int && data.usedPoints >= 0 && data.usedPoints <= 99999
+        && data.lostBlood is int && data.lostBlood >= 0 && data.lostBlood <= 999999;
+    }
+
+    function validApprovedStrategy(data, documentId) {
+      return validApprovedOptimizerEntry(data, documentId)
+        || validApprovedSimulationEntry(data, documentId);
+    }
+
+    function validWrongReport(data, documentId) {
+      return documentId.matches('^wrong_[0-9]+_[a-z0-9]+$')
+        && data.keys().hasOnly([
+          'source', 'sourceLabel', 'reportedAt', 'stage', 'mode', 'objective', 'diversityMode',
+          'stoneMode', 'seed', 'expectedWinner', 'expectedLostBlood', 'expectedUsedCapacity',
+          'expectedUsedPoints', 'expectedAllyLosses', 'expectedVariantSignature',
+          'modeLabel', 'enemyCounts', 'allyCounts', 'matchSignature',
+          'recommendationCounts', 'summaryText', 'logText', 'possible',
+          'usedPoints', 'lostBlood', 'winRate', 'pointLimit', 'usedCapacity',
+          'actualSummaryText', 'actualNote', 'actualOutcomeLine', 'actualCapacity',
+          'actualLosses', 'actualWinner', 'actualLostUnitsTotal', 'actualLostBlood'
+        ])
+        && data.keys().hasAll([
+          'source', 'sourceLabel', 'reportedAt', 'enemyCounts', 'allyCounts',
+          'matchSignature', 'summaryText', 'logText', 'usedCapacity',
+          'actualSummaryText', 'actualNote'
+        ])
+        && data.source in ['simulation', 'optimizer']
+        && isShortString(data.sourceLabel, 30)
+        && isShortString(data.reportedAt, 40)
+        && (!('stage' in data) || (data.stage is int && data.stage >= 1 && data.stage <= 9999))
+        && (!('mode' in data) || data.mode in ['balanced', 'fast', 'deep'])
+        && (!('objective' in data) || data.objective in ['min_loss', 'min_army'])
+        && (!('diversityMode' in data) || data.diversityMode is bool)
+        && (!('stoneMode' in data) || data.stoneMode is bool)
+        && (!('seed' in data) || isWideInt(data.seed, 4294967295))
+        && (!('modeLabel' in data) || isShortString(data.modeLabel, 80))
+        && validEnemyCounts(data.enemyCounts)
+        && validAllyCounts(data.allyCounts)
+        && (!('recommendationCounts' in data) || data.recommendationCounts == null || validAllyCounts(data.recommendationCounts))
+        && isShortString(data.matchSignature, 200)
+        && (!('expectedWinner' in data) || data.expectedWinner in ['ally', 'enemy', 'unknown'])
+        && (!('expectedLostBlood' in data) || data.expectedLostBlood == null || (data.expectedLostBlood is int && data.expectedLostBlood >= 0 && data.expectedLostBlood <= 999999))
+        && (!('expectedUsedCapacity' in data) || data.expectedUsedCapacity == null || (data.expectedUsedCapacity is int && data.expectedUsedCapacity >= 0 && data.expectedUsedCapacity <= 999999))
+        && (!('expectedUsedPoints' in data) || data.expectedUsedPoints == null || (data.expectedUsedPoints is int && data.expectedUsedPoints >= 0 && data.expectedUsedPoints <= 99999))
+        && (!('expectedAllyLosses' in data) || validAllyCounts(data.expectedAllyLosses))
+        && (!('expectedVariantSignature' in data) || isTextString(data.expectedVariantSignature, 1000))
+        && isTextString(data.summaryText, 40000)
+        && isTextString(data.logText, 400000)
+        && (!('possible' in data) || data.possible is bool)
+        && (!('usedPoints' in data) || (data.usedPoints is int && data.usedPoints >= 0 && data.usedPoints <= 99999))
+        && (!('lostBlood' in data) || data.lostBlood == null || (data.lostBlood is int && data.lostBlood >= 0 && data.lostBlood <= 999999))
+        && (!('winRate' in data) || (data.winRate is int && data.winRate >= 0 && data.winRate <= 100))
+        && (!('pointLimit' in data) || (data.pointLimit is int && data.pointLimit >= 0 && data.pointLimit <= 99999))
+        && data.usedCapacity is int && data.usedCapacity >= 0 && data.usedCapacity <= 999999
+        && isTextString(data.actualSummaryText, 40000)
+        && isTextString(data.actualNote, 4000)
+        && (!('actualOutcomeLine' in data) || isTextString(data.actualOutcomeLine, 400))
+        && (!('actualCapacity' in data) || data.actualCapacity == null || (data.actualCapacity is int && data.actualCapacity >= 0 && data.actualCapacity <= 999999))
+        && (!('actualLosses' in data) || validAllyCounts(data.actualLosses))
+        && (!('actualWinner' in data) || data.actualWinner in ['ally', 'enemy', 'unknown'])
+        && (!('actualLostUnitsTotal' in data) || data.actualLostUnitsTotal == null || (data.actualLostUnitsTotal is int && data.actualLostUnitsTotal >= 0 && data.actualLostUnitsTotal <= 999999))
+        && (!('actualLostBlood' in data) || data.actualLostBlood == null || (data.actualLostBlood is int && data.actualLostBlood >= 0 && data.actualLostBlood <= 999999));
+    }
+
+    match /approvedStrategies/{documentId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validApprovedStrategy(request.resource.data, documentId);
+      allow delete: if isAdmin();
+    }
+
+    match /wrongReports/{documentId} {
+      allow read: if true;
+      allow create: if validWrongReport(request.resource.data, documentId);
+      allow update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

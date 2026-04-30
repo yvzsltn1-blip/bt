@@ -1,0 +1,531 @@
+﻿Onaylanan Versuslar Kisa Liste
+================================
+Olusturma Tarihi: 2026-04-29T21:31:20.079Z
+Toplam kayit: 58
+Kapsam: Tum kayitlar
+Tarih filtresi: Tum tarihler
+
+Liste
+-----
+
+Kayit 1 [Simulasyon]
+Tarih: 29.04.2026 14:08:01
+Rakip dizilis (T1-T10): 16-39-22-8-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 28-4-10-1-0-4-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-1-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-1-0-0-0-0
+Beklenen toplam kan kaybi: 35
+Gercek toplam kan kaybi: 35
+
+Kayit 2 [Simulasyon]
+Tarih: 29.04.2026 14:03:25
+Rakip dizilis (T1-T10): 18-32-26-10-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 23-5-8-1-0-4-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-1-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-1-0-0-0-0
+Beklenen toplam kan kaybi: 35
+Gercek toplam kan kaybi: 35
+
+Kayit 3 [Simulasyon]
+Tarih: 29.04.2026 14:00:05
+Rakip dizilis (T1-T10): 6-38-11-1-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 22-0-0-3-1-2-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-1-1-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-1-1-0-0
+Beklenen toplam kan kaybi: 125
+Gercek toplam kan kaybi: 125
+
+Kayit 4 [Simulasyon]
+Tarih: 29.04.2026 13:58:53
+Rakip dizilis (T1-T10): 3-43-7-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 24-0-0-2-1-2-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 5 [Simulasyon]
+Tarih: 29.04.2026 13:57:50
+Rakip dizilis (T1-T10): 5-34-9-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 21-0-1-3-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 6 [Simulasyon]
+Tarih: 29.04.2026 13:56:57
+Rakip dizilis (T1-T10): 8-26-10-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 9-1-0-3-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Beklenen toplam kan kaybi: 90
+Gercek toplam kan kaybi: 90
+
+Kayit 7 [Simulasyon]
+Tarih: 29.04.2026 13:55:44
+Rakip dizilis (T1-T10): 5-24-9-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 13-0-1-3-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 8 [Simulasyon]
+Tarih: 29.04.2026 13:52:23
+Rakip dizilis (T1-T10): 7-21-7-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 15-0-1-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 9 [Simulasyon]
+Tarih: 29.04.2026 13:51:30
+Rakip dizilis (T1-T10): 5-17-7-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 10-0-0-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 10 [Simulasyon]
+Tarih: 29.04.2026 13:50:47
+Rakip dizilis (T1-T10): 4-20-2-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 9-0-0-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 11 [Simulasyon]
+Tarih: 29.04.2026 13:49:58
+Rakip dizilis (T1-T10): 2-10-6-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 2-0-0-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 12 [Simulasyon]
+Tarih: 29.04.2026 13:48:11
+Rakip dizilis (T1-T10): 3-12-1-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 2-0-1-1-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-1-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-0-1-0-0-1-0-0
+Beklenen toplam kan kaybi: 95
+Gercek toplam kan kaybi: 95
+
+Kayit 13 [Simulasyon]
+Tarih: 29.04.2026 12:19:00
+Rakip dizilis (T1-T10): 4-9-6-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 3-0-0-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 14 [Simulasyon]
+Tarih: 29.04.2026 12:17:52
+Rakip dizilis (T1-T10): 1-10-3-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 1-0-0-1-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 15 [Simulasyon]
+Tarih: 29.04.2026 10:12:27
+Rakip dizilis (T1-T10): 7-33-9-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 12-0-1-3-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-1-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-0-1-0-0-1-0-0
+Beklenen toplam kan kaybi: 95
+Gercek toplam kan kaybi: 95
+
+Kayit 16 [Simulasyon]
+Tarih: 29.04.2026 10:11:15
+Rakip dizilis (T1-T10): 8-32-6-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 12-1-0-3-0-2-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 15
+Gercek toplam kan kaybi: 15
+
+Kayit 17 [Simulasyon]
+Tarih: 29.04.2026 10:02:34
+Rakip dizilis (T1-T10): 4-12-4-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 4-0-0-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 18 [Simulasyon]
+Tarih: 29.04.2026 08:51:38
+Rakip dizilis (T1-T10): 13-36-15-8-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 26-1-0-7-1-2-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-1-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-1-0-0-0
+Beklenen toplam kan kaybi: 65
+Gercek toplam kan kaybi: 65
+
+Kayit 19 [Simulasyon]
+Tarih: 29.04.2026 08:50:34
+Rakip dizilis (T1-T10): 16-36-19-3-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 26-1-0-6-1-2-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-1-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-1-0-0-0
+Beklenen toplam kan kaybi: 65
+Gercek toplam kan kaybi: 65
+
+Kayit 20 [Simulasyon]
+Tarih: 29.04.2026 08:43:14
+Rakip dizilis (T1-T10): 17-33-24-11-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 24-1-0-10-1-2-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-1-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-1-0-0-0
+Beklenen toplam kan kaybi: 65
+Gercek toplam kan kaybi: 65
+
+Kayit 21 [Simulasyon]
+Tarih: 29.04.2026 08:40:30
+Rakip dizilis (T1-T10): 2-34-10-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 10-1-1-3-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 15
+Gercek toplam kan kaybi: 15
+
+Kayit 22 [Simulasyon]
+Tarih: 29.04.2026 08:38:23
+Rakip dizilis (T1-T10): 6-30-8-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 10-0-0-3-0-2-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-1-0-0
+Beklenen toplam kan kaybi: 75
+Gercek toplam kan kaybi: 75
+
+Kayit 23 [Simulasyon]
+Tarih: 29.04.2026 08:03:53
+Rakip dizilis (T1-T10): 2-20-6-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 7-0-0-2-0-2-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 24 [Simulasyon]
+Tarih: 29.04.2026 07:51:21
+Rakip dizilis (T1-T10): 31-13-21-8-8-11-11-9-2-0
+Bizim dizilis (T1-T8): 53-40-46-4-1-6-0-0
+Beklenen kayiplar (T1-T8): 12-40-2-4-1-0-0-0
+Gercek kayiplar (T1-T8): 12-40-2-4-1-0-0-0
+Beklenen toplam kan kaybi: 950
+Gercek toplam kan kaybi: 950
+
+Kayit 25 [Simulasyon]
+Tarih: 29.04.2026 07:47:12
+Rakip dizilis (T1-T10): 22-15-22-8-9-8-14-8-2-0
+Bizim dizilis (T1-T8): 22-55-56-4-1-6-0-0
+Beklenen kayiplar (T1-T8): 9-50-0-4-1-0-0-0
+Gercek kayiplar (T1-T8): 9-50-0-4-1-0-0-0
+Beklenen toplam kan kaybi: 1030
+Gercek toplam kan kaybi: 1030
+
+Kayit 26 [Simulasyon]
+Tarih: 29.04.2026 06:44:08
+Rakip dizilis (T1-T10): 16-34-25-15-1-0-0-0-0-0
+Bizim dizilis (T1-T8): 17-1-10-12-1-4-0-0
+Beklenen kayiplar (T1-T8): 1-1-0-1-1-1-0-0
+Gercek kayiplar (T1-T8): 1-1-0-1-1-1-0-0
+Beklenen toplam kan kaybi: 185
+Gercek toplam kan kaybi: 185
+
+Kayit 27 [Simulasyon]
+Tarih: 29.04.2026 06:40:09
+Rakip dizilis (T1-T10): 17-35-21-12-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 25-4-9-1-0-4-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-1-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-1-0-0-0-0
+Beklenen toplam kan kaybi: 35
+Gercek toplam kan kaybi: 35
+
+Kayit 28 [Simulasyon]
+Tarih: 29.04.2026 06:38:32
+Rakip dizilis (T1-T10): 11-33-11-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 14-1-1-3-0-2-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 15
+Gercek toplam kan kaybi: 15
+
+Kayit 29 [Simulasyon]
+Tarih: 29.04.2026 06:33:54
+Rakip dizilis (T1-T10): 9-27-9-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 9-1-0-3-0-2-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 15
+Gercek toplam kan kaybi: 15
+
+Kayit 30 [Simulasyon]
+Tarih: 29.04.2026 06:31:30
+Rakip dizilis (T1-T10): 5-28-3-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 20-0-0-1-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 31 [Simulasyon]
+Tarih: 29.04.2026 06:30:44
+Rakip dizilis (T1-T10): 7-16-7-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 12-0-0-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 32 [Simulasyon]
+Tarih: 29.04.2026 06:27:00
+Rakip dizilis (T1-T10): 2-8-14-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 4-1-0-0-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Beklenen toplam kan kaybi: 90
+Gercek toplam kan kaybi: 90
+
+Kayit 33 [Simulasyon / 19. Kademe]
+Tarih: 29.04.2026 03:25:25
+Rakip dizilis (T1-T10): 17-34-20-11-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 20-1-10-10-1-1-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-1-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-1-0-0-0
+Beklenen toplam kan kaybi: 65
+Gercek toplam kan kaybi: 65
+
+Kayit 34 [Simulasyon / 20. Kademe]
+Tarih: 29.04.2026 03:23:16
+Rakip dizilis (T1-T10): 9-34-26-11-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 16-1-0-12-1-3-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-1-1-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-1-1-0-0
+Beklenen toplam kan kaybi: 140
+Gercek toplam kan kaybi: 140
+
+Kayit 35 [Simulasyon]
+Tarih: 29.04.2026 03:19:09
+Rakip dizilis (T1-T10): 5-39-9-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 14-0-1-3-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-1-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-0-1-0-0-1-0-0
+Beklenen toplam kan kaybi: 95
+Gercek toplam kan kaybi: 95
+
+Kayit 36 [Simulasyon]
+Tarih: 29.04.2026 03:17:50
+Rakip dizilis (T1-T10): 9-35-7-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 13-1-1-3-0-2-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 15
+Gercek toplam kan kaybi: 15
+
+Kayit 37 [Simulasyon]
+Tarih: 29.04.2026 03:16:34
+Rakip dizilis (T1-T10): 2-35-6-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 3-1-1-2-0-2-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Beklenen toplam kan kaybi: 90
+Gercek toplam kan kaybi: 90
+
+Kayit 38 [Simulasyon]
+Tarih: 29.04.2026 03:12:18
+Rakip dizilis (T1-T10): 6-28-6-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 10-0-1-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-1-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-0-1-0-0-1-0-0
+Beklenen toplam kan kaybi: 95
+Gercek toplam kan kaybi: 95
+
+Kayit 39 [Simulasyon]
+Tarih: 29.04.2026 03:11:09
+Rakip dizilis (T1-T10): 7-27-3-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 10-1-0-1-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Beklenen toplam kan kaybi: 90
+Gercek toplam kan kaybi: 90
+
+Kayit 40 [Simulasyon]
+Tarih: 29.04.2026 03:09:51
+Rakip dizilis (T1-T10): 4-19-6-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 9-0-0-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-0-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 0
+Gercek toplam kan kaybi: 0
+
+Kayit 41 [Simulasyon]
+Tarih: 29.04.2026 03:07:48
+Rakip dizilis (T1-T10): 3-22-1-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 7-1-0-1-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-1-0-0
+Beklenen toplam kan kaybi: 90
+Gercek toplam kan kaybi: 90
+
+Kayit 42 [Simulasyon]
+Tarih: 29.04.2026 03:03:18
+Rakip dizilis (T1-T10): 1-18-1-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 1-1-0-2-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 15
+Gercek toplam kan kaybi: 15
+
+Kayit 43 [Simulasyon]
+Tarih: 29.04.2026 03:02:07
+Rakip dizilis (T1-T10): 1-10-3-0-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 1-1-0-1-0-1-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-0-0-0-0
+Beklenen toplam kan kaybi: 15
+Gercek toplam kan kaybi: 15
+
+Kayit 44 [Simulasyon / 11. Kademe]
+Tarih: 29.04.2026 02:16:49
+Rakip dizilis (T1-T10): 9-35-12-1-0-0-0-0-0-0
+Bizim dizilis (T1-T8): 13-1-2-4-1-3-0-0
+Beklenen kayiplar (T1-T8): 0-1-0-0-1-1-0-0
+Gercek kayiplar (T1-T8): 0-1-0-0-1-1-0-0
+Beklenen toplam kan kaybi: 140
+Gercek toplam kan kaybi: 140
+
+Kayit 45 [Simulasyon / 65. Kademe]
+Tarih: 29.04.2026 01:45:46
+Rakip dizilis (T1-T10): 15-11-17-13-12-8-10-8-3-0
+Bizim dizilis (T1-T8): 29-39-40-5-1-5-0-0
+Beklenen kayiplar (T1-T8): 12-39-0-5-1-0-0-0
+Gercek kayiplar (T1-T8): 12-39-0-5-1-0-0-0
+Beklenen toplam kan kaybi: 930
+Gercek toplam kan kaybi: 930
+
+Kayit 46 [Simulasyon / 64. Kademe]
+Tarih: 29.04.2026 01:39:02
+Rakip dizilis (T1-T10): 22-28-17-8-14-11-6-7-3-0
+Bizim dizilis (T1-T8): 33-43-24-3-1-11-0-0
+Beklenen kayiplar (T1-T8): 14-43-0-3-1-0-0-0
+Gercek kayiplar (T1-T8): 14-43-0-3-1-0-0-0
+Beklenen toplam kan kaybi: 940
+Gercek toplam kan kaybi: 940
+
+Kayit 47 [Simulasyon / 59. Kademe]
+Tarih: 29.04.2026 01:10:34
+Rakip dizilis (T1-T10): 27-7-17-16-7-11-13-6-0-0
+Bizim dizilis (T1-T8): 30-32-13-16-1-12-0-0
+Beklenen kayiplar (T1-T8): 7-32-0-0-1-6-0-0
+Gercek kayiplar (T1-T8): 7-32-0-0-1-6-0-0
+Beklenen toplam kan kaybi: 1050
+Gercek toplam kan kaybi: 1050
+
+Kayit 48 [Simulasyon / 63. Kademe]
+Tarih: 28.04.2026 20:45:16
+Rakip dizilis (T1-T10): 10-1-20-8-14-11-7-10-2-0
+Bizim dizilis (T1-T8): 33-20-32-8-1-21-0-0
+Beklenen kayiplar (T1-T8): 26-20-0-8-1-0-0-0
+Gercek kayiplar (T1-T8): 26-20-0-8-1-0-0-0
+Beklenen toplam kan kaybi: 890
+Gercek toplam kan kaybi: 890
+
+Kayit 49 [Simulasyon / 62. Kademe]
+Tarih: 28.04.2026 20:08:35
+Rakip dizilis (T1-T10): 10-12-17-14-13-10-11-7-1-0
+Bizim dizilis (T1-T8): 31-27-48-7-1-15-0-0
+Beklenen kayiplar (T1-T8): 13-27-0-7-1-0-0-0
+Gercek kayiplar (T1-T8): 13-27-0-7-1-0-0-0
+Beklenen toplam kan kaybi: 830
+Gercek toplam kan kaybi: 830
+
+Kayit 50 [Simulasyon / 61. Kademe]
+Tarih: 28.04.2026 15:31:04
+Rakip dizilis (T1-T10): 23-31-18-8-5-7-8-11-1-0
+Bizim dizilis (T1-T8): 65-40-33-4-1-13-0-0
+Beklenen kayiplar (T1-T8): 6-38-1-4-1-0-0-0
+Gercek kayiplar (T1-T8): 6-38-1-4-1-0-0-0
+Beklenen toplam kan kaybi: 840
+Gercek toplam kan kaybi: 840
+
+Kayit 51 [Simulasyon / 60. Kademe]
+Tarih: 28.04.2026 08:59:18
+Rakip dizilis (T1-T10): 18-31-21-9-13-6-12-7-0-0
+Bizim dizilis (T1-T8): 35-34-15-9-1-15-0-0
+Beklenen kayiplar (T1-T8): 13-34-0-0-1-0-0-0
+Gercek kayiplar (T1-T8): 13-34-0-0-1-0-0-0
+Beklenen toplam kan kaybi: 690
+Gercek toplam kan kaybi: 690
+
+Kayit 52 [Simulasyon / 57. Kademe]
+Tarih: 28.04.2026 05:04:23
+Rakip dizilis (T1-T10): 45-29-8-19-15-8-9-4-0-0
+Bizim dizilis (T1-T8): 42-47-37-1-1-12-0-0
+Beklenen kayiplar (T1-T8): 15-47-0-1-1-0-0-0
+Gercek kayiplar (T1-T8): 15-47-0-1-1-0-0-0
+Beklenen toplam kan kaybi: 940
+Gercek toplam kan kaybi: 940
+
+Kayit 53 [Simulasyon / 58. Kademe]
+Tarih: 28.04.2026 04:50:09
+Rakip dizilis (T1-T10): 19-2-7-14-12-10-12-8-0-0
+Bizim dizilis (T1-T8): 29-37-26-14-1-0-0-0
+Beklenen kayiplar (T1-T8): 12-37-0-0-1-0-0-0
+Gercek kayiplar (T1-T8): 12-37-0-0-1-0-0-0
+Beklenen toplam kan kaybi: 725
+Gercek toplam kan kaybi: 725
+
+Kayit 54 [Simulasyon / 56. Kademe]
+Tarih: 27.04.2026 23:55:04
+Rakip dizilis (T1-T10): 28-7-5-15-14-11-12-5-0-0
+Bizim dizilis (T1-T8): 36-32-52-2-1-11-0-0
+Beklenen kayiplar (T1-T8): 14-32-0-2-1-0-0-0
+Gercek kayiplar (T1-T8): 14-32-0-2-1-0-0-0
+Beklenen toplam kan kaybi: 740
+Gercek toplam kan kaybi: 740
+
+Kayit 55 [Simulasyon / 52. Kademe]
+Tarih: 27.04.2026 20:09:31
+Rakip dizilis (T1-T10): 26-34-8-12-10-14-11-1-0-0
+Bizim dizilis (T1-T8): 24-50-9-12-1-10-0-0
+Beklenen kayiplar (T1-T8): 24-45-0-12-1-0-0-0
+Gercek kayiplar (T1-T8): 24-45-0-12-1-0-0-0
+Beklenen toplam kan kaybi: 1385
+Gercek toplam kan kaybi: 1385
+
+Kayit 56 [Simulasyon / 53. Kademe]
+Tarih: 27.04.2026 20:08:17
+Rakip dizilis (T1-T10): 26-9-15-13-11-12-15-1-0-0
+Bizim dizilis (T1-T8): 27-35-55-13-1-4-0-0
+Beklenen kayiplar (T1-T8): 11-35-0-0-1-0-0-0
+Gercek kayiplar (T1-T8): 11-35-0-0-1-0-0-0
+Beklenen toplam kan kaybi: 685
+Gercek toplam kan kaybi: 685
+
+Kayit 57 [Simulasyon / 54. Kademe]
+Tarih: 27.04.2026 20:05:07
+Rakip dizilis (T1-T10): 23-4-7-12-9-14-17-2-0-0
+Bizim dizilis (T1-T8): 43-41-27-3-1-8-0-0
+Beklenen kayiplar (T1-T8): 9-41-0-3-1-5-0-0
+Gercek kayiplar (T1-T8): 9-41-0-3-1-5-0-0
+Beklenen toplam kan kaybi: 1235
+Gercek toplam kan kaybi: 1235
+
+Kayit 58 [Simulasyon / 55. Kademe]
+Tarih: 27.04.2026 20:03:12
+Rakip dizilis (T1-T10): 24-25-21-11-7-7-13-5-0-0
+Bizim dizilis (T1-T8): 30-39-32-11-1-11-0-0
+Beklenen kayiplar (T1-T8): 7-39-0-0-1-0-0-0
+Gercek kayiplar (T1-T8): 7-39-0-0-1-0-0-0
+Beklenen toplam kan kaybi: 705
+Gercek toplam kan kaybi: 705

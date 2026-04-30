@@ -1,0 +1,1705 @@
+﻿{
+  "documents": [
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777415591614_g7dc64p",
+      "fields": {
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-28T22:32:58.779Z"
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   9 Yarasalar (T1)               (  90 kan)\n-  38 Gulyabaniler (T2)            ( 570 kan)\n-   1 Nekromantlar (T5)            (  50 kan)\n-   1 Gargoyller (T6)              (  75 kan)\n\n=  49 toplam                       ( 785 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 431"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "usedCapacity": {
+          "integerValue": "431"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n-   9 Yarasalar (T1)               (  90 kan)\n-  38 Gulyabaniler (T2)            ( 570 kan)\n-   1 Nekromantlar (T5)            (  50 kan)\n\n=  48 toplam                       ( 710 kan)\n\nToplam birlik kapasitesi: 431"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "bats": {
+                "integerValue": "27"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "15"
+              },
+              "ghouls": {
+                "integerValue": "38"
+              },
+              "gargoyles": {
+                "integerValue": "8"
+              },
+              "thralls": {
+                "integerValue": "7"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "1"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "matchSignature": {
+          "stringValue": "simulation|20|27|23|11|9|8|14|1|0|0|27|38|7|15|1|8|0|0"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "zombies": {
+                "integerValue": "27"
+              },
+              "skeletons": {
+                "integerValue": "20"
+              },
+              "cultists": {
+                "integerValue": "23"
+              },
+              "bonewings": {
+                "integerValue": "11"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "9"
+              },
+              "revenants": {
+                "integerValue": "14"
+              },
+              "giants": {
+                "integerValue": "1"
+              },
+              "wraiths": {
+                "integerValue": "8"
+              }
+            }
+          }
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     8  Hayaletler (T6)               16 can     7 atk      56 toplam atk\n    11  Kemik Kanatlar (T4)           33 can     6 atk      66 toplam atk\n    23  Olumsuz Tarikatcilar (T3)     23 can     5 atk     115 toplam atk\n    14  Hortlaklar (T7)              168 can     8 atk     112 toplam atk\n    20  Iskeletler (T1)               80 can     3 atk      60 toplam atk\n    27  Zombiler (T2)                189 can     2 atk      54 toplam atk\n     1  Kemik Devler (T8)             25 can    10 atk      10 toplam atk\n     9  Sismis Cesetler (T5)          90 can     1 atk       9 toplam atk\n   ─ Dusman toplam atak: 482\n\nMUTTEFIK SAFLARI\n    38  Gulyabaniler (T2)            190 can     3 atk     114 toplam atk\n     8  Gargoyller (T6)               96 can    12 atk      96 toplam atk\n     7  Vampir Koleler (T3)           42 can     6 atk      42 toplam atk\n     1  Nekromantlar (T5)              5 can     9 atk       9 toplam atk\n    15  Bansiler (T4)                 60 can     7 atk     105 toplam atk\n    27  Yarasalar (T1)                54 can     8 atk     216 toplam atk\n   ─ Muttefik toplam atak: 582\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Hortlaklar (T7), Yarasalar (T1) hasarini %15 azaltiyor\n- Yarasalar (T1), Sismis Cesetler (T5) karsisinda tip dezavantajli (-%50 hasar)\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Sismis Cesetler (T5)\n     Hesap: 27 birim × 8 atk × 0.53 carpan = 115 hasar\n     ↳ Sismis Cesetler (T5) tamamen yok edildi\n     ↳ Sismis Cesetler (T5), Yarasalar (T1) karsisinda 18 intikam hasari verdi\n- Nekromantlar (T5), yok edilen Sismis Cesetler (T5) sayesinde +%10 hasar kazandi\n\nHamle 2\n- Hortlaklar (T7), Bansiler (T4) hasarini %15 azaltiyor\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 15 birim × 7 atk × 0.42 carpan = 45 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n- Nekromantlar (T5), yok edilen Olumsuz Tarikatcilar (T3) sayesinde +%10 hasar kazandi\n\nHamle 3\n- Hayaletler (T6), birim tipini onemsemiyor\n- Hayaletler (T6), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n- Hayaletler (T6), 2.50x hasar carpani kazandi\n  Hayaletler (T6) → Gulyabaniler (T2)\n     Hesap: 8 birim × 7 atk × 1.25 carpan = 70 hasar\n     ↳ Gulyabaniler (T2): 14 birim kaybetti, 24 birim / 120 can kaldi\n\nHamle 4\n- Kemik Kanatlar (T4), muttefik on saflari asip arka saflari hedef aldi\n  Kemik Kanatlar (T4) → Nekromantlar (T5)\n     Hesap: 11 birim × 6 atk = 66 hasar\n     ↳ Nekromantlar (T5) tamamen yok edildi\n\nHamle 5\n- Vampir Koleler (T3), Kemik Devler (T8) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Kemik Devler (T8)\n     Hesap: 7 birim × 6 atk × 2.00 carpan = 84 hasar\n     ↳ Kemik Devler (T8) tamamen yok edildi\n\nHamle 6\n- Hortlaklar (T7), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Hortlaklar (T7) → Gulyabaniler (T2)\n     Hesap: 14 birim × 8 atk × 0.50 carpan = 56 hasar\n     ↳ Gulyabaniler (T2): 11 birim kaybetti, 13 birim / 64 can kaldi\n\nHamle 7\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 8 birim × 12 atk × 1.50 carpan = 144 hasar\n     ↳ Zombiler (T2): 20 birim kaybetti, 7 birim / 45 can kaldi\n\nHamle 8\n- Iskeletler (T1), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Iskeletler (T1) → Gulyabaniler (T2)\n     Hesap: 20 birim × 3 atk × 0.50 carpan = 30 hasar\n     ↳ Gulyabaniler (T2): 6 birim kaybetti, 7 birim / 34 can kaldi\n\nHamle 9\n  Gulyabaniler (T2) → Zombiler (T2)\n     Hesap: 7 birim × 3 atk = 21 hasar\n     ↳ Zombiler (T2): 3 birim kaybetti, 4 birim / 24 can kaldi\n\nHamle 10\n- Zombiler (T2), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Zombiler (T2) → Gulyabaniler (T2)\n     Hesap: 4 birim × 2 atk × 0.50 carpan = 4 hasar\n     ↳ Gulyabaniler (T2): 1 birim kaybetti, 6 birim / 30 can kaldi\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     8  Hayaletler (T6)               16 can     7 atk      56 toplam atk\n    11  Kemik Kanatlar (T4)           33 can     6 atk      66 toplam atk\n    14  Hortlaklar (T7)              168 can     8 atk     112 toplam atk\n    20  Iskeletler (T1)               80 can     3 atk      60 toplam atk\n     4  Zombiler (T2)                 24 can     2 atk       8 toplam atk\n   ─ Dusman toplam atak: 302\n\nMUTTEFIK SAFLARI\n     6  Gulyabaniler (T2)             30 can     3 atk      18 toplam atk\n     8  Gargoyller (T6)               96 can    12 atk      96 toplam atk\n     7  Vampir Koleler (T3)           42 can     6 atk      42 toplam atk\n    15  Bansiler (T4)                 60 can     7 atk     105 toplam atk\n    18  Yarasalar (T1)                36 can     8 atk     144 toplam atk\n   ─ Muttefik toplam atak: 405\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n- Hortlaklar (T7), Yarasalar (T1) hasarini %15 azaltiyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 18 birim × 8 atk × 0.85 carpan = 123 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Hortlaklar (T7), Bansiler (T4) hasarini %15 azaltiyor\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Kemik Kanatlar (T4) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Kemik Kanatlar (T4) hasarini %25 azaltti\n  Bansiler (T4) → Kemik Kanatlar (T4)\n     Hesap: 15 birim × 7 atk × 0.42 carpan = 45 hasar\n     ↳ Kemik Kanatlar (T4) tamamen yok edildi\n\nHamle 3\n- Hayaletler (T6), birim tipini onemsemiyor\n- Hayaletler (T6), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n- Hayaletler (T6), 1.00x hasar carpani kazandi\n  Hayaletler (T6) → Gulyabaniler (T2)\n     Hesap: 8 birim × 7 atk × 0.50 carpan = 28 hasar\n     ↳ Gulyabaniler (T2): 5 birim kaybetti, 1 birim / 2 can kaldi\n\nHamle 4\n- Vampir Koleler (T3), Diriltilmis Zombiler karsisinda tip dezavantajli (-%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Diriltilmis Zombiler\n     Hesap: 7 birim × 6 atk × 0.67 carpan = 28 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\nHamle 5\n- Hortlaklar (T7), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Hortlaklar (T7) → Gulyabaniler (T2)\n     Hesap: 14 birim × 8 atk × 0.50 carpan = 56 hasar\n     ↳ Gulyabaniler (T2) tamamen yok edildi\n\nHamle 6\n- Gargoyller (T6), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Iskeletler (T1)\n     Hesap: 8 birim × 12 atk × 1.50 carpan = 144 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     8  Hayaletler (T6)               16 can     7 atk      56 toplam atk\n    14  Hortlaklar (T7)              168 can     8 atk     112 toplam atk\n   ─ Dusman toplam atak: 168\n\nMUTTEFIK SAFLARI\n     8  Gargoyller (T6)               96 can    12 atk      96 toplam atk\n     7  Vampir Koleler (T3)           42 can     6 atk      42 toplam atk\n    15  Bansiler (T4)                 60 can     7 atk     105 toplam atk\n    18  Yarasalar (T1)                36 can     8 atk     144 toplam atk\n   ─ Muttefik toplam atak: 387\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n- Hortlaklar (T7), Yarasalar (T1) hasarini %15 azaltiyor\n  Yarasalar (T1) → Hortlaklar (T7)\n     Hesap: 18 birim × 8 atk × 0.85 carpan = 123 hasar\n     ↳ Hortlaklar (T7): 10 birim kaybetti, 4 birim / 45 can kaldi\n\nHamle 2\n- Hortlaklar (T7), Bansiler (T4) hasarini %15 azaltiyor\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Hayaletler (T6) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Hayaletler (T6) hasarini %25 azaltti\n  Bansiler (T4) → Hayaletler (T6)\n     Hesap: 15 birim × 7 atk × 0.42 carpan = 45 hasar\n     ↳ Hayaletler (T6) tamamen yok edildi\n\nHamle 3\n- Vampir Koleler (T3), Hortlaklar (T7) karsisinda tip dezavantajli (-%50 hasar)\n  Vampir Koleler (T3) → Hortlaklar (T7)\n     Hesap: 7 birim × 6 atk × 0.50 carpan = 21 hasar\n     ↳ Hortlaklar (T7): 2 birim kaybetti, 2 birim / 24 can kaldi\n\nHamle 4\n- Hortlaklar (T7), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Hortlaklar (T7) → Gargoyller (T6)\n     Hesap: 2 birim × 8 atk × 0.50 carpan = 8 hasar\n- Gargoyller (T6), kendisine saldiran Hortlaklar (T7) hizini 2 azaltti; Hortlaklar (T7) hizi artik 2\n     ↳ Gargoyller (T6): 8 birim / 88 can kaldi (sadece can kaybi)\n\nHamle 5\n- Gargoyller (T6), Hortlaklar (T7) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Hortlaklar (T7)\n     Hesap: 8 birim × 12 atk × 1.50 carpan = 144 hasar\n     ↳ Hortlaklar (T7) tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     8  Gargoyller (T6)               88 can    12 atk      96 toplam atk\n     7  Vampir Koleler (T3)           42 can     6 atk      42 toplam atk\n    15  Bansiler (T4)                 60 can     7 atk     105 toplam atk\n    18  Yarasalar (T1)                36 can     8 atk     144 toplam atk\n   ─ Muttefik toplam atak: 387\n"
+        }
+      },
+      "createTime": "2026-04-28T22:33:12.755623Z",
+      "updateTime": "2026-04-28T22:33:12.755623Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777417208432_0e4b4j9",
+      "fields": {
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     4  Olumsuz Tarikatcilar (T3)      4 can     5 atk      20 toplam atk\n     4  Iskeletler (T1)               16 can     3 atk      12 toplam atk\n     7  Zombiler (T2)                 49 can     2 atk      14 toplam atk\n   ─ Dusman toplam atak: 46\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     2  Yarasalar (T1)                 4 can     8 atk      16 toplam atk\n   ─ Muttefik toplam atak: 35\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 2 birim × 8 atk × 1.25 carpan = 20 hasar\n     ↳ Zombiler (T2): 2 birim kaybetti, 5 birim / 29 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 1 birim × 7 atk × 0.50 carpan = 4 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 3 birim kaybetti, 2 birim / 11 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 4 birim × 3 atk × 0.50 carpan = 6 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 6 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 2 birim × 2 atk × 0.50 carpan = 2 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 4 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     4  Iskeletler (T1)               16 can     3 atk      12 toplam atk\n     2  Zombiler (T2)                 11 can     2 atk       4 toplam atk\n   ─ Dusman toplam atak: 16\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                4 can    12 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     2  Yarasalar (T1)                 4 can     8 atk      16 toplam atk\n   ─ Muttefik toplam atak: 35\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 2 birim × 8 atk = 16 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 1 birim × 7 atk × 1.50 carpan = 11 hasar\n     ↳ Iskeletler (T1): 2 birim kaybetti, 2 birim / 5 can kaldi\n\nHamle 3\n- Gargoyller (T6), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Iskeletler (T1)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 4\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 7 birim × 2 atk × 0.50 carpan = 7 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6) tamamen yok edildi\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     7  Diriltilmis Zombiler           7 can     2 atk      14 toplam atk\n   ─ Dusman toplam atak: 14\n\nMUTTEFIK SAFLARI\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     2  Yarasalar (T1)                 4 can     8 atk      16 toplam atk\n   ─ Muttefik toplam atak: 23\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 2 birim × 8 atk = 16 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     2  Yarasalar (T1)                 4 can     8 atk      16 toplam atk\n   ─ Muttefik toplam atak: 23\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "4"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "skeletons": {
+                "integerValue": "4"
+              },
+              "zombies": {
+                "integerValue": "7"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "matchSignature": {
+          "stringValue": "simulation|4|7|4|0|0|0|0|0|0|0|2|0|0|1|0|1|0|0"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-28T22:59:53.256Z"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 26"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "thralls": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "bats": {
+                "integerValue": "2"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "1"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "1"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "usedCapacity": {
+          "integerValue": "26"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n\nToplam birlik kapasitesi: 26"
+        }
+      },
+      "createTime": "2026-04-28T23:00:09.441187Z",
+      "updateTime": "2026-04-28T23:00:09.441187Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777417584490_jtys0za",
+      "fields": {
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     5  Olumsuz Tarikatcilar (T3)      5 can     5 atk      25 toplam atk\n     5  Iskeletler (T1)               20 can     3 atk      15 toplam atk\n    25  Zombiler (T2)                175 can     2 atk      50 toplam atk\n   ─ Dusman toplam atak: 90\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               24 can    12 atk      24 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    12  Yarasalar (T1)                24 can     8 atk      96 toplam atk\n   ─ Muttefik toplam atak: 134\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 12 birim × 8 atk × 1.25 carpan = 120 hasar\n     ↳ Zombiler (T2): 17 birim kaybetti, 8 birim / 55 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 2 birim × 7 atk × 0.50 carpan = 7 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 2 birim × 12 atk × 1.50 carpan = 36 hasar\n     ↳ Zombiler (T2): 5 birim kaybetti, 3 birim / 19 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 5 birim × 3 atk × 0.50 carpan = 8 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 2 birim / 16 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 3 birim × 2 atk × 0.50 carpan = 3 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 2 birim / 13 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     5  Iskeletler (T1)               20 can     3 atk      15 toplam atk\n     3  Zombiler (T2)                 19 can     2 atk       6 toplam atk\n   ─ Dusman toplam atak: 21\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               13 can    12 atk      24 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    12  Yarasalar (T1)                24 can     8 atk      96 toplam atk\n   ─ Muttefik toplam atak: 134\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 12 birim × 8 atk = 96 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 2 birim × 7 atk × 1.50 carpan = 21 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 2 birim × 12 atk × 1.50 carpan = 36 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               13 can    12 atk      24 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    12  Yarasalar (T1)                24 can     8 atk      96 toplam atk\n   ─ Muttefik toplam atak: 134\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "5"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "skeletons": {
+                "integerValue": "5"
+              },
+              "zombies": {
+                "integerValue": "25"
+              }
+            }
+          }
+        },
+        "matchSignature": {
+          "stringValue": "simulation|5|25|5|0|0|0|0|0|0|0|12|0|0|2|0|2|0|0"
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "2"
+              },
+              "bats": {
+                "integerValue": "12"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "2"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 68"
+        },
+        "usedCapacity": {
+          "integerValue": "68"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 68"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-28T23:06:13.283Z"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        }
+      },
+      "createTime": "2026-04-28T23:06:25.512406Z",
+      "updateTime": "2026-04-28T23:06:25.512406Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777417728351_4oifh1i",
+      "fields": {
+        "matchSignature": {
+          "stringValue": "simulation|3|33|7|0|0|0|0|0|0|0|16|0|0|2|0|2|0|0"
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     7  Olumsuz Tarikatcilar (T3)      7 can     5 atk      35 toplam atk\n     3  Iskeletler (T1)               12 can     3 atk       9 toplam atk\n    33  Zombiler (T2)                231 can     2 atk      66 toplam atk\n   ─ Dusman toplam atak: 110\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               24 can    12 atk      24 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    16  Yarasalar (T1)                32 can     8 atk     128 toplam atk\n   ─ Muttefik toplam atak: 166\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 16 birim × 8 atk × 1.25 carpan = 160 hasar\n     ↳ Zombiler (T2): 22 birim kaybetti, 11 birim / 71 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 2 birim × 7 atk × 0.50 carpan = 7 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 2 birim × 12 atk × 1.50 carpan = 36 hasar\n     ↳ Zombiler (T2): 6 birim kaybetti, 5 birim / 35 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 3 birim × 3 atk × 0.50 carpan = 5 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 2 birim / 19 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 5 birim × 2 atk × 0.50 carpan = 5 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 2 birim / 14 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     3  Iskeletler (T1)               12 can     3 atk       9 toplam atk\n     5  Zombiler (T2)                 35 can     2 atk      10 toplam atk\n   ─ Dusman toplam atak: 19\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               14 can    12 atk      24 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    16  Yarasalar (T1)                32 can     8 atk     128 toplam atk\n   ─ Muttefik toplam atak: 166\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 16 birim × 8 atk = 128 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 2 birim × 7 atk × 1.50 carpan = 21 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 2 birim × 12 atk × 1.50 carpan = 36 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               14 can    12 atk      24 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    16  Yarasalar (T1)                32 can     8 atk     128 toplam atk\n   ─ Muttefik toplam atak: 166\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "skeletons": {
+                "integerValue": "3"
+              },
+              "zombies": {
+                "integerValue": "33"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "7"
+              }
+            }
+          }
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 76"
+        },
+        "usedCapacity": {
+          "integerValue": "76"
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "witches": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              },
+              "bats": {
+                "integerValue": "16"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "2"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "2"
+              }
+            }
+          }
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 76"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-28T23:08:40.479Z"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        }
+      },
+      "createTime": "2026-04-28T23:08:49.406002Z",
+      "updateTime": "2026-04-28T23:08:49.406002Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777433313314_fksvm98",
+      "fields": {
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "gargoyles": {
+                "integerValue": "1"
+              },
+              "bats": {
+                "integerValue": "6"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "1"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "1"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 38"
+        },
+        "usedCapacity": {
+          "integerValue": "38"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 38"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T03:28:20.390Z"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     1  Olumsuz Tarikatcilar (T3)      1 can     5 atk       5 toplam atk\n     3  Iskeletler (T1)               12 can     3 atk       9 toplam atk\n    17  Zombiler (T2)                119 can     2 atk      34 toplam atk\n   ─ Dusman toplam atak: 48\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     1  Vampir Koleler (T3)            6 can     6 atk       6 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     6  Yarasalar (T1)                12 can     8 atk      48 toplam atk\n   ─ Muttefik toplam atak: 73\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 6 birim × 8 atk × 1.25 carpan = 60 hasar\n     ↳ Zombiler (T2): 8 birim kaybetti, 9 birim / 59 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 1 birim × 7 atk × 0.50 carpan = 4 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Vampir Koleler (T3), Zombiler (T2) karsisinda tip dezavantajli (-%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Zombiler (T2)\n     Hesap: 1 birim × 6 atk × 0.67 carpan = 4 hasar\n     ↳ Zombiler (T2): 1 birim kaybetti, 8 birim / 55 can kaldi\n\nHamle 4\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 2 birim kaybetti, 6 birim / 37 can kaldi\n\nHamle 5\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 3 birim × 3 atk × 0.50 carpan = 5 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 7 can kaldi (sadece can kaybi)\n\nHamle 6\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 6 birim × 2 atk × 0.50 carpan = 6 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     3  Iskeletler (T1)               12 can     3 atk       9 toplam atk\n     6  Zombiler (T2)                 37 can     2 atk      12 toplam atk\n   ─ Dusman toplam atak: 21\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     1  Vampir Koleler (T3)            6 can     6 atk       6 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     6  Yarasalar (T1)                12 can     8 atk      48 toplam atk\n   ─ Muttefik toplam atak: 73\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 6 birim × 8 atk = 48 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 1 birim × 7 atk × 1.50 carpan = 11 hasar\n     ↳ Iskeletler (T1): 2 birim kaybetti, 1 birim / 1 can kaldi\n\nHamle 3\n- Vampir Koleler (T3), Iskeletler (T1) karsisinda tip dezavantajli (-%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Iskeletler (T1)\n     Hesap: 1 birim × 6 atk × 0.67 carpan = 4 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 4\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     1  Vampir Koleler (T3)            6 can     6 atk       6 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     6  Yarasalar (T1)                12 can     8 atk      48 toplam atk\n   ─ Muttefik toplam atak: 73\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "1"
+              },
+              "skeletons": {
+                "integerValue": "3"
+              },
+              "zombies": {
+                "integerValue": "17"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "matchSignature": {
+          "stringValue": "simulation|3|17|1|0|0|0|0|0|0|0|6|0|1|1|0|1|0|0"
+        }
+      },
+      "createTime": "2026-04-29T03:28:34.021764Z",
+      "updateTime": "2026-04-29T03:28:34.021764Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777433384946_8ie12kk",
+      "fields": {
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 46"
+        },
+        "usedCapacity": {
+          "integerValue": "46"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "thralls": {
+                "integerValue": "1"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "bats": {
+                "integerValue": "10"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "1"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "1"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 46"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T03:29:38.504Z"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "matchSignature": {
+          "stringValue": "simulation|3|22|1|0|0|0|0|0|0|0|10|0|1|1|0|1|0|0"
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     1  Olumsuz Tarikatcilar (T3)      1 can     5 atk       5 toplam atk\n     3  Iskeletler (T1)               12 can     3 atk       9 toplam atk\n    22  Zombiler (T2)                154 can     2 atk      44 toplam atk\n   ─ Dusman toplam atak: 58\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     1  Vampir Koleler (T3)            6 can     6 atk       6 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n    10  Yarasalar (T1)                20 can     8 atk      80 toplam atk\n   ─ Muttefik toplam atak: 105\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 10 birim × 8 atk × 1.25 carpan = 100 hasar\n     ↳ Zombiler (T2): 14 birim kaybetti, 8 birim / 54 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 1 birim × 7 atk × 0.50 carpan = 4 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Vampir Koleler (T3), Zombiler (T2) karsisinda tip dezavantajli (-%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Zombiler (T2)\n     Hesap: 1 birim × 6 atk × 0.67 carpan = 4 hasar\n     ↳ Zombiler (T2): 8 birim / 50 can kaldi (sadece can kaybi)\n\nHamle 4\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 3 birim kaybetti, 5 birim / 32 can kaldi\n\nHamle 5\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 3 birim × 3 atk × 0.50 carpan = 5 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 7 can kaldi (sadece can kaybi)\n\nHamle 6\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 5 birim × 2 atk × 0.50 carpan = 5 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 2 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     3  Iskeletler (T1)               12 can     3 atk       9 toplam atk\n     5  Zombiler (T2)                 32 can     2 atk      10 toplam atk\n   ─ Dusman toplam atak: 19\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                2 can    12 atk      12 toplam atk\n     1  Vampir Koleler (T3)            6 can     6 atk       6 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n    10  Yarasalar (T1)                20 can     8 atk      80 toplam atk\n   ─ Muttefik toplam atak: 105\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 10 birim × 8 atk = 80 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 1 birim × 7 atk × 1.50 carpan = 11 hasar\n     ↳ Iskeletler (T1): 2 birim kaybetti, 1 birim / 1 can kaldi\n\nHamle 3\n- Vampir Koleler (T3), Iskeletler (T1) karsisinda tip dezavantajli (-%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Iskeletler (T1)\n     Hesap: 1 birim × 6 atk × 0.67 carpan = 4 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 4\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler: 21 birim kaybetti, 1 birim / 4 can kaldi\n\nHamle 5\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 1 birim × 2 atk × 0.50 carpan = 1 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     1  Diriltilmis Zombiler           4 can     2 atk       2 toplam atk\n   ─ Dusman toplam atak: 2\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     1  Vampir Koleler (T3)            6 can     6 atk       6 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n    10  Yarasalar (T1)                20 can     8 atk      80 toplam atk\n   ─ Muttefik toplam atak: 105\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 10 birim × 8 atk = 80 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     1  Vampir Koleler (T3)            6 can     6 atk       6 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n    10  Yarasalar (T1)                20 can     8 atk      80 toplam atk\n   ─ Muttefik toplam atak: 105\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "1"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "zombies": {
+                "integerValue": "22"
+              },
+              "skeletons": {
+                "integerValue": "3"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              }
+            }
+          }
+        }
+      },
+      "createTime": "2026-04-29T03:29:45.475827Z",
+      "updateTime": "2026-04-29T03:29:45.475827Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777433570779_bsn1esi",
+      "fields": {
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T03:32:40.926Z"
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gulyabaniler (T2)            (  15 kan)\n-   1 Bansiler (T4)                (  35 kan)\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   3 toplam                       ( 125 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 48"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "usedCapacity": {
+          "integerValue": "48"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n-   1 Gulyabaniler (T2)            (  15 kan)\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   2 toplam                       (  90 kan)\n\nToplam birlik kapasitesi: 48"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "gargoyles": {
+                "integerValue": "1"
+              },
+              "bats": {
+                "integerValue": "8"
+              },
+              "ghouls": {
+                "integerValue": "1"
+              },
+              "banshees": {
+                "integerValue": "2"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "matchSignature": {
+          "stringValue": "simulation|9|25|7|0|0|0|0|0|0|0|8|1|0|2|0|1|0|0"
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     7  Olumsuz Tarikatcilar (T3)      7 can     5 atk      35 toplam atk\n     9  Iskeletler (T1)               36 can     3 atk      27 toplam atk\n    25  Zombiler (T2)                175 can     2 atk      50 toplam atk\n   ─ Dusman toplam atak: 112\n\nMUTTEFIK SAFLARI\n     1  Gulyabaniler (T2)              5 can     3 atk       3 toplam atk\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n     8  Yarasalar (T1)                16 can     8 atk      64 toplam atk\n   ─ Muttefik toplam atak: 93\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 8 birim × 8 atk × 1.25 carpan = 80 hasar\n     ↳ Zombiler (T2): 11 birim kaybetti, 14 birim / 95 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 2 birim × 7 atk × 0.50 carpan = 7 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 3 birim kaybetti, 11 birim / 77 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Iskeletler (T1) → Gulyabaniler (T2)\n     Hesap: 9 birim × 3 atk × 0.50 carpan = 14 hasar\n     ↳ Gulyabaniler (T2) tamamen yok edildi\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 11 birim × 2 atk × 0.50 carpan = 11 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     9  Iskeletler (T1)               36 can     3 atk      27 toplam atk\n    11  Zombiler (T2)                 77 can     2 atk      22 toplam atk\n   ─ Dusman toplam atak: 49\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n     8  Yarasalar (T1)                16 can     8 atk      64 toplam atk\n   ─ Muttefik toplam atak: 90\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 8 birim × 8 atk = 64 hasar\n     ↳ Zombiler (T2): 9 birim kaybetti, 2 birim / 13 can kaldi\n\nHamle 2\n- Bansiler (T4), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Zombiler (T2) hasarini %25 azaltti\n  Bansiler (T4) → Zombiler (T2)\n     Hesap: 2 birim × 7 atk × 1.50 carpan = 21 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler: 24 birim kaybetti, 1 birim / 7 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 9 birim × 3 atk × 0.50 carpan = 14 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6) tamamen yok edildi\n\nHamle 5\n- Diriltilmis Zombiler, Bansiler (T4) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Bansiler (T4)\n     Hesap: 1 birim × 2 atk × 0.50 carpan = 1 hasar\n     ↳ Bansiler (T4): 2 birim / 7 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     1  Diriltilmis Zombiler           7 can     2 atk       2 toplam atk\n     9  Iskeletler (T1)               36 can     3 atk      27 toplam atk\n   ─ Dusman toplam atak: 29\n\nMUTTEFIK SAFLARI\n     2  Bansiler (T4)                  7 can     7 atk      14 toplam atk\n     8  Yarasalar (T1)                16 can     8 atk      64 toplam atk\n   ─ Muttefik toplam atak: 78\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Iskeletler (T1)\n     Hesap: 8 birim × 8 atk = 64 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 2\n- Bansiler (T4), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Diriltilmis Zombiler hasarini %25 azaltti\n  Bansiler (T4) → Diriltilmis Zombiler\n     Hesap: 2 birim × 7 atk × 1.50 carpan = 21 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     2  Bansiler (T4)                  7 can     7 atk      14 toplam atk\n     8  Yarasalar (T1)                16 can     8 atk      64 toplam atk\n   ─ Muttefik toplam atak: 78\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "7"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "zombies": {
+                "integerValue": "25"
+              },
+              "skeletons": {
+                "integerValue": "9"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              }
+            }
+          }
+        }
+      },
+      "createTime": "2026-04-29T03:32:51.676136Z",
+      "updateTime": "2026-04-29T03:32:51.676136Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777433838142_49jps8u",
+      "fields": {
+        "matchSignature": {
+          "stringValue": "simulation|4|36|8|0|0|0|0|0|0|0|22|0|0|3|0|1|0|0"
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     8  Olumsuz Tarikatcilar (T3)      8 can     5 atk      40 toplam atk\n     4  Iskeletler (T1)               16 can     3 atk      12 toplam atk\n    36  Zombiler (T2)                252 can     2 atk      72 toplam atk\n   ─ Dusman toplam atak: 124\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    22  Yarasalar (T1)                44 can     8 atk     176 toplam atk\n   ─ Muttefik toplam atak: 209\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 22 birim × 8 atk × 1.25 carpan = 220 hasar\n     ↳ Zombiler (T2): 31 birim kaybetti, 5 birim / 32 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 3 birim × 7 atk × 0.50 carpan = 11 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 3 birim kaybetti, 2 birim / 14 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 4 birim × 3 atk × 0.50 carpan = 6 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 6 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 2 birim × 2 atk × 0.50 carpan = 2 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 4 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     4  Iskeletler (T1)               16 can     3 atk      12 toplam atk\n     2  Zombiler (T2)                 14 can     2 atk       4 toplam atk\n   ─ Dusman toplam atak: 16\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                4 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    22  Yarasalar (T1)                44 can     8 atk     176 toplam atk\n   ─ Muttefik toplam atak: 209\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 22 birim × 8 atk = 176 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 3 birim × 7 atk × 1.50 carpan = 32 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler: 33 birim kaybetti, 3 birim / 18 can kaldi\n\nHamle 4\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 3 birim × 2 atk × 0.50 carpan = 3 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     3  Diriltilmis Zombiler          18 can     2 atk       6 toplam atk\n   ─ Dusman toplam atak: 6\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    22  Yarasalar (T1)                44 can     8 atk     176 toplam atk\n   ─ Muttefik toplam atak: 209\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 22 birim × 8 atk = 176 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    22  Yarasalar (T1)                44 can     8 atk     176 toplam atk\n   ─ Muttefik toplam atak: 209\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "skeletons": {
+                "integerValue": "4"
+              },
+              "zombies": {
+                "integerValue": "36"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "8"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 80"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T03:37:03.748Z"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 80"
+        },
+        "usedCapacity": {
+          "integerValue": "80"
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "bats": {
+                "integerValue": "22"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "3"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "1"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              }
+            }
+          }
+        }
+      },
+      "createTime": "2026-04-29T03:37:18.735321Z",
+      "updateTime": "2026-04-29T03:37:18.735321Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777438747744_xm78h5g",
+      "fields": {
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T04:58:58.987Z"
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 28"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "usedCapacity": {
+          "integerValue": "28"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n\nToplam birlik kapasitesi: 28"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "thralls": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "bats": {
+                "integerValue": "3"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "1"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "1"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "matchSignature": {
+          "stringValue": "simulation|4|10|2|0|0|0|0|0|0|0|3|0|0|1|0|1|0|0"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "2"
+              },
+              "skeletons": {
+                "integerValue": "4"
+              },
+              "zombies": {
+                "integerValue": "10"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     2  Olumsuz Tarikatcilar (T3)      2 can     5 atk      10 toplam atk\n     4  Iskeletler (T1)               16 can     3 atk      12 toplam atk\n    10  Zombiler (T2)                 70 can     2 atk      20 toplam atk\n   ─ Dusman toplam atak: 42\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     3  Yarasalar (T1)                 6 can     8 atk      24 toplam atk\n   ─ Muttefik toplam atak: 43\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 3 birim × 8 atk × 1.25 carpan = 30 hasar\n     ↳ Zombiler (T2): 4 birim kaybetti, 6 birim / 40 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 1 birim × 7 atk × 0.50 carpan = 4 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 2 birim kaybetti, 4 birim / 22 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 4 birim × 3 atk × 0.50 carpan = 6 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 6 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 4 birim × 2 atk × 0.50 carpan = 4 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 2 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     4  Iskeletler (T1)               16 can     3 atk      12 toplam atk\n     4  Zombiler (T2)                 22 can     2 atk       8 toplam atk\n   ─ Dusman toplam atak: 20\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                2 can    12 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     3  Yarasalar (T1)                 6 can     8 atk      24 toplam atk\n   ─ Muttefik toplam atak: 43\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 3 birim × 8 atk = 24 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 1 birim × 7 atk × 1.50 carpan = 11 hasar\n     ↳ Iskeletler (T1): 2 birim kaybetti, 2 birim / 5 can kaldi\n\nHamle 3\n- Gargoyller (T6), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Iskeletler (T1)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 4\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 10 birim × 2 atk × 0.50 carpan = 10 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6) tamamen yok edildi\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n    10  Diriltilmis Zombiler          10 can     2 atk      20 toplam atk\n   ─ Dusman toplam atak: 20\n\nMUTTEFIK SAFLARI\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     3  Yarasalar (T1)                 6 can     8 atk      24 toplam atk\n   ─ Muttefik toplam atak: 31\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 3 birim × 8 atk = 24 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     3  Yarasalar (T1)                 6 can     8 atk      24 toplam atk\n   ─ Muttefik toplam atak: 31\n"
+        }
+      },
+      "createTime": "2026-04-29T04:59:08.400873Z",
+      "updateTime": "2026-04-29T04:59:08.400873Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777438960910_lfrlabz",
+      "fields": {
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T05:02:32.948Z"
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 40"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "usedCapacity": {
+          "integerValue": "40"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 40"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "gargoyles": {
+                "integerValue": "1"
+              },
+              "bats": {
+                "integerValue": "9"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "1"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "matchSignature": {
+          "stringValue": "simulation|1|23|1|0|0|0|0|0|0|0|9|0|0|1|0|1|0|0"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "zombies": {
+                "integerValue": "23"
+              },
+              "skeletons": {
+                "integerValue": "1"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "1"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     1  Olumsuz Tarikatcilar (T3)      1 can     5 atk       5 toplam atk\n     1  Iskeletler (T1)                4 can     3 atk       3 toplam atk\n    23  Zombiler (T2)                161 can     2 atk      46 toplam atk\n   ─ Dusman toplam atak: 54\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     9  Yarasalar (T1)                18 can     8 atk      72 toplam atk\n   ─ Muttefik toplam atak: 91\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 9 birim × 8 atk × 1.25 carpan = 90 hasar\n     ↳ Zombiler (T2): 12 birim kaybetti, 11 birim / 71 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 1 birim × 7 atk × 0.50 carpan = 4 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 3 birim kaybetti, 8 birim / 53 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 1 birim × 3 atk × 0.50 carpan = 2 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 10 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 8 birim × 2 atk × 0.50 carpan = 8 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 2 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     1  Iskeletler (T1)                4 can     3 atk       3 toplam atk\n     8  Zombiler (T2)                 53 can     2 atk      16 toplam atk\n   ─ Dusman toplam atak: 19\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                2 can    12 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     9  Yarasalar (T1)                18 can     8 atk      72 toplam atk\n   ─ Muttefik toplam atak: 91\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 9 birim × 8 atk = 72 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 1 birim × 7 atk × 1.50 carpan = 11 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler: 22 birim kaybetti, 1 birim / 5 can kaldi\n\nHamle 4\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 1 birim × 2 atk × 0.50 carpan = 1 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     1  Diriltilmis Zombiler           5 can     2 atk       2 toplam atk\n   ─ Dusman toplam atak: 2\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     9  Yarasalar (T1)                18 can     8 atk      72 toplam atk\n   ─ Muttefik toplam atak: 91\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 9 birim × 8 atk = 72 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     9  Yarasalar (T1)                18 can     8 atk      72 toplam atk\n   ─ Muttefik toplam atak: 91\n"
+        }
+      },
+      "createTime": "2026-04-29T05:02:41.454539Z",
+      "updateTime": "2026-04-29T05:02:41.454539Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777440284989_cc1sdwz",
+      "fields": {
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     9  Olumsuz Tarikatcilar (T3)      9 can     5 atk      45 toplam atk\n     5  Iskeletler (T1)               20 can     3 atk      15 toplam atk\n    24  Zombiler (T2)                168 can     2 atk      48 toplam atk\n   ─ Dusman toplam atak: 108\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    14  Yarasalar (T1)                28 can     8 atk     112 toplam atk\n   ─ Muttefik toplam atak: 145\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 14 birim × 8 atk × 1.25 carpan = 140 hasar\n     ↳ Zombiler (T2): 20 birim kaybetti, 4 birim / 28 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 3 birim × 7 atk × 0.50 carpan = 11 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 2 birim kaybetti, 2 birim / 10 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 5 birim × 3 atk × 0.50 carpan = 8 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 4 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 2 birim × 2 atk × 0.50 carpan = 2 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 2 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     5  Iskeletler (T1)               20 can     3 atk      15 toplam atk\n     2  Zombiler (T2)                 10 can     2 atk       4 toplam atk\n   ─ Dusman toplam atak: 19\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                2 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    14  Yarasalar (T1)                28 can     8 atk     112 toplam atk\n   ─ Muttefik toplam atak: 145\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 14 birim × 8 atk = 112 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 3 birim × 7 atk × 1.50 carpan = 32 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler: 23 birim kaybetti, 1 birim / 6 can kaldi\n\nHamle 4\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 1 birim × 2 atk × 0.50 carpan = 1 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     1  Diriltilmis Zombiler           6 can     2 atk       2 toplam atk\n   ─ Dusman toplam atak: 2\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    14  Yarasalar (T1)                28 can     8 atk     112 toplam atk\n   ─ Muttefik toplam atak: 145\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 14 birim × 8 atk = 112 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    14  Yarasalar (T1)                28 can     8 atk     112 toplam atk\n   ─ Muttefik toplam atak: 145\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "zombies": {
+                "integerValue": "24"
+              },
+              "skeletons": {
+                "integerValue": "5"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "9"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "matchSignature": {
+          "stringValue": "simulation|5|24|9|0|0|0|0|0|0|0|14|0|0|3|0|1|0|0"
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "1"
+              },
+              "bats": {
+                "integerValue": "14"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "3"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 64"
+        },
+        "usedCapacity": {
+          "integerValue": "64"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 64"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T05:24:37.165Z"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        }
+      },
+      "createTime": "2026-04-29T05:24:45.758316Z",
+      "updateTime": "2026-04-29T05:24:45.758316Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777441496356_6fouf17",
+      "fields": {
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T05:44:42.532Z"
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gulyabaniler (T2)            (  15 kan)\n-   1 Nekromantlar (T5)            (  50 kan)\n-   2 Gargoyller (T6)              ( 150 kan)\n\n=   4 toplam                       ( 215 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 166"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "usedCapacity": {
+          "integerValue": "166"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n-   1 Gulyabaniler (T2)            (  15 kan)\n-   1 Nekromantlar (T5)            (  50 kan)\n\n=   2 toplam                       (  65 kan)\n\nToplam birlik kapasitesi: 166"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "thralls": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "1"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "2"
+              },
+              "banshees": {
+                "integerValue": "9"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "ghouls": {
+                "integerValue": "1"
+              },
+              "bats": {
+                "integerValue": "30"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "matchSignature": {
+          "stringValue": "simulation|15|42|17|10|0|0|0|0|0|0|30|1|0|9|1|2|0|0"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "cultists": {
+                "integerValue": "17"
+              },
+              "bonewings": {
+                "integerValue": "10"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "zombies": {
+                "integerValue": "42"
+              },
+              "skeletons": {
+                "integerValue": "15"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n    10  Kemik Kanatlar (T4)           30 can     6 atk      60 toplam atk\n    17  Olumsuz Tarikatcilar (T3)     17 can     5 atk      85 toplam atk\n    15  Iskeletler (T1)               60 can     3 atk      45 toplam atk\n    42  Zombiler (T2)                294 can     2 atk      84 toplam atk\n   ─ Dusman toplam atak: 274\n\nMUTTEFIK SAFLARI\n     1  Gulyabaniler (T2)              5 can     3 atk       3 toplam atk\n     2  Gargoyller (T6)               24 can    12 atk      24 toplam atk\n     1  Nekromantlar (T5)              5 can     9 atk       9 toplam atk\n     9  Bansiler (T4)                 36 can     7 atk      63 toplam atk\n    30  Yarasalar (T1)                60 can     8 atk     240 toplam atk\n   ─ Muttefik toplam atak: 339\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 30 birim × 8 atk × 1.25 carpan = 300 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n- Nekromantlar (T5), yok edilen Zombiler (T2) sayesinde +%10 hasar kazandi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 9 birim × 7 atk × 0.50 carpan = 32 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n- Nekromantlar (T5), yok edilen Olumsuz Tarikatcilar (T3) sayesinde +%10 hasar kazandi\n\nHamle 3\n- Kemik Kanatlar (T4), muttefik on saflari asip arka saflari hedef aldi\n  Kemik Kanatlar (T4) → Nekromantlar (T5)\n     Hesap: 10 birim × 6 atk = 60 hasar\n     ↳ Nekromantlar (T5) tamamen yok edildi\n\nHamle 4\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 2 birim × 12 atk × 1.50 carpan = 36 hasar\n     ↳ Diriltilmis Zombiler: 41 birim kaybetti, 1 birim / 6 can kaldi\n\nHamle 5\n- Iskeletler (T1), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Iskeletler (T1) → Gulyabaniler (T2)\n     Hesap: 15 birim × 3 atk × 0.50 carpan = 23 hasar\n     ↳ Gulyabaniler (T2) tamamen yok edildi\n\nHamle 6\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 1 birim × 2 atk × 0.50 carpan = 1 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6): 2 birim / 23 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n    10  Kemik Kanatlar (T4)           30 can     6 atk      60 toplam atk\n    15  Iskeletler (T1)               60 can     3 atk      45 toplam atk\n     1  Diriltilmis Zombiler           6 can     2 atk       2 toplam atk\n   ─ Dusman toplam atak: 107\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               23 can    12 atk      24 toplam atk\n     9  Bansiler (T4)                 36 can     7 atk      63 toplam atk\n    30  Yarasalar (T1)                60 can     8 atk     240 toplam atk\n   ─ Muttefik toplam atak: 327\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 30 birim × 8 atk = 240 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Kemik Kanatlar (T4) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Kemik Kanatlar (T4) hasarini %25 azaltti\n  Bansiler (T4) → Kemik Kanatlar (T4)\n     Hesap: 9 birim × 7 atk × 0.50 carpan = 32 hasar\n     ↳ Kemik Kanatlar (T4) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Iskeletler (T1)\n     Hesap: 2 birim × 12 atk × 1.50 carpan = 36 hasar\n     ↳ Iskeletler (T1): 9 birim kaybetti, 6 birim / 24 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 6 birim × 3 atk × 0.50 carpan = 9 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 2 birim / 14 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     6  Iskeletler (T1)               24 can     3 atk      18 toplam atk\n   ─ Dusman toplam atak: 18\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               14 can    12 atk      24 toplam atk\n     9  Bansiler (T4)                 36 can     7 atk      63 toplam atk\n    30  Yarasalar (T1)                60 can     8 atk     240 toplam atk\n   ─ Muttefik toplam atak: 327\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Iskeletler (T1)\n     Hesap: 30 birim × 8 atk = 240 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               14 can    12 atk      24 toplam atk\n     9  Bansiler (T4)                 36 can     7 atk      63 toplam atk\n    30  Yarasalar (T1)                60 can     8 atk     240 toplam atk\n   ─ Muttefik toplam atak: 327\n"
+        }
+      },
+      "createTime": "2026-04-29T05:44:56.888160Z",
+      "updateTime": "2026-04-29T05:44:56.888160Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777446230356_8vpr2ju",
+      "fields": {
+        "matchSignature": {
+          "stringValue": "simulation|5|15|5|0|0|0|0|0|0|0|7|0|0|2|0|1|0|0"
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     5  Olumsuz Tarikatcilar (T3)      5 can     5 atk      25 toplam atk\n     5  Iskeletler (T1)               20 can     3 atk      15 toplam atk\n    15  Zombiler (T2)                105 can     2 atk      30 toplam atk\n   ─ Dusman toplam atak: 70\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n     7  Yarasalar (T1)                14 can     8 atk      56 toplam atk\n   ─ Muttefik toplam atak: 82\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 7 birim × 8 atk × 1.25 carpan = 70 hasar\n     ↳ Zombiler (T2): 10 birim kaybetti, 5 birim / 35 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 2 birim × 7 atk × 0.50 carpan = 7 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 2 birim kaybetti, 3 birim / 17 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 5 birim × 3 atk × 0.50 carpan = 8 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 4 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 3 birim × 2 atk × 0.50 carpan = 3 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     5  Iskeletler (T1)               20 can     3 atk      15 toplam atk\n     3  Zombiler (T2)                 17 can     2 atk       6 toplam atk\n   ─ Dusman toplam atak: 21\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n     7  Yarasalar (T1)                14 can     8 atk      56 toplam atk\n   ─ Muttefik toplam atak: 82\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 7 birim × 8 atk = 56 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 2 birim × 7 atk × 1.50 carpan = 21 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n     7  Yarasalar (T1)                14 can     8 atk      56 toplam atk\n   ─ Muttefik toplam atak: 82\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "5"
+              },
+              "skeletons": {
+                "integerValue": "5"
+              },
+              "zombies": {
+                "integerValue": "15"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "usedCapacity": {
+          "integerValue": "43"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 43"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "gargoyles": {
+                "integerValue": "1"
+              },
+              "bats": {
+                "integerValue": "7"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "2"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T07:03:43.040Z"
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 43"
+        },
+        "actualNote": {
+          "stringValue": ""
+        }
+      },
+      "createTime": "2026-04-29T07:03:51.160346Z",
+      "updateTime": "2026-04-29T07:03:51.160346Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777446598330_ptak2wr",
+      "fields": {
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T07:09:45.553Z"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   2 Gargoyller (T6)              ( 150 kan)\n\n=   2 toplam                       ( 150 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 67"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "2"
+              },
+              "bats": {
+                "integerValue": "8"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "3"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "usedCapacity": {
+          "integerValue": "67"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n\nToplam birlik kapasitesi: 67"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "skeletons": {
+                "integerValue": "8"
+              },
+              "zombies": {
+                "integerValue": "24"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "8"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     8  Olumsuz Tarikatcilar (T3)      8 can     5 atk      40 toplam atk\n     8  Iskeletler (T1)               32 can     3 atk      24 toplam atk\n    24  Zombiler (T2)                168 can     2 atk      48 toplam atk\n   ─ Dusman toplam atak: 112\n\nMUTTEFIK SAFLARI\n     2  Gargoyller (T6)               24 can    12 atk      24 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n     8  Yarasalar (T1)                16 can     8 atk      64 toplam atk\n   ─ Muttefik toplam atak: 109\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 8 birim × 8 atk × 1.25 carpan = 80 hasar\n     ↳ Zombiler (T2): 11 birim kaybetti, 13 birim / 88 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 3 birim × 7 atk × 0.50 carpan = 11 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 2 birim × 12 atk × 1.50 carpan = 36 hasar\n     ↳ Zombiler (T2): 5 birim kaybetti, 8 birim / 52 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 8 birim × 3 atk × 0.50 carpan = 12 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim kaybetti, 1 birim / 12 can kaldi\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 8 birim × 2 atk × 0.50 carpan = 8 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 4 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     8  Iskeletler (T1)               32 can     3 atk      24 toplam atk\n     8  Zombiler (T2)                 52 can     2 atk      16 toplam atk\n   ─ Dusman toplam atak: 40\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                4 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n     8  Yarasalar (T1)                16 can     8 atk      64 toplam atk\n   ─ Muttefik toplam atak: 97\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 8 birim × 8 atk = 64 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 3 birim × 7 atk × 1.50 carpan = 32 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler: 23 birim kaybetti, 1 birim / 6 can kaldi\n\nHamle 4\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 1 birim × 2 atk × 0.50 carpan = 1 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 3 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     1  Diriltilmis Zombiler           6 can     2 atk       2 toplam atk\n   ─ Dusman toplam atak: 2\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                3 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n     8  Yarasalar (T1)                16 can     8 atk      64 toplam atk\n   ─ Muttefik toplam atak: 97\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 8 birim × 8 atk = 64 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                3 can    12 atk      12 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n     8  Yarasalar (T1)                16 can     8 atk      64 toplam atk\n   ─ Muttefik toplam atak: 97\n"
+        },
+        "matchSignature": {
+          "stringValue": "simulation|8|24|8|0|0|0|0|0|0|0|8|0|0|3|0|2|0|0"
+        }
+      },
+      "createTime": "2026-04-29T07:09:58.963993Z",
+      "updateTime": "2026-04-29T07:09:58.963993Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777454090042_59ekfny",
+      "fields": {
+        "matchSignature": {
+          "stringValue": "simulation|21|13|18|9|18|6|8|7|6|0|43|45|32|3|1|9|0|0"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "giants": {
+                "integerValue": "7"
+              },
+              "revenants": {
+                "integerValue": "8"
+              },
+              "wraiths": {
+                "integerValue": "6"
+              },
+              "broodmothers": {
+                "integerValue": "6"
+              },
+              "zombies": {
+                "integerValue": "13"
+              },
+              "skeletons": {
+                "integerValue": "21"
+              },
+              "cultists": {
+                "integerValue": "18"
+              },
+              "bonewings": {
+                "integerValue": "9"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "18"
+              }
+            }
+          }
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     6  Hayaletler (T6)               12 can     7 atk      42 toplam atk\n     9  Kemik Kanatlar (T4)           27 can     6 atk      54 toplam atk\n     6  Yavrulayan Analar (T9)       108 can     9 atk      54 toplam atk\n    18  Olumsuz Tarikatcilar (T3)     18 can     5 atk      90 toplam atk\n     8  Hortlaklar (T7)               96 can     8 atk      64 toplam atk\n    21  Iskeletler (T1)               84 can     3 atk      63 toplam atk\n    13  Zombiler (T2)                 91 can     2 atk      26 toplam atk\n     7  Kemik Devler (T8)            175 can    10 atk      70 toplam atk\n    18  Sismis Cesetler (T5)         180 can     1 atk      18 toplam atk\n   ─ Dusman toplam atak: 481\n\nMUTTEFIK SAFLARI\n    45  Gulyabaniler (T2)            225 can     3 atk     135 toplam atk\n     9  Gargoyller (T6)              108 can    12 atk     108 toplam atk\n    32  Vampir Koleler (T3)          192 can     6 atk     192 toplam atk\n     1  Nekromantlar (T5)              5 can     9 atk       9 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    43  Yarasalar (T1)                86 can     8 atk     344 toplam atk\n   ─ Muttefik toplam atak: 809\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Hortlaklar (T7), Yarasalar (T1) hasarini %15 azaltiyor\n- Yarasalar (T1), Sismis Cesetler (T5) karsisinda tip dezavantajli (-%50 hasar)\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Sismis Cesetler (T5)\n     Hesap: 43 birim × 8 atk × 0.53 carpan = 183 hasar\n     ↳ Sismis Cesetler (T5) tamamen yok edildi\n     ↳ Sismis Cesetler (T5), Yarasalar (T1) karsisinda 36 intikam hasari verdi\n- Nekromantlar (T5), yok edilen Sismis Cesetler (T5) sayesinde +%10 hasar kazandi\n\nHamle 2\n- Hortlaklar (T7), Bansiler (T4) hasarini %15 azaltiyor\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 3 birim × 7 atk × 0.42 carpan = 9 hasar\n     ↳ Olumsuz Tarikatcilar (T3): 9 birim kaybetti, 9 birim / 9 can kaldi\n\nHamle 3\n- Hayaletler (T6), birim tipini onemsemiyor\n- Hayaletler (T6), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n- Hayaletler (T6), 4.00x hasar carpani kazandi\n  Hayaletler (T6) → Gulyabaniler (T2)\n     Hesap: 6 birim × 7 atk × 2.00 carpan = 84 hasar\n     ↳ Gulyabaniler (T2): 16 birim kaybetti, 29 birim / 141 can kaldi\n\nHamle 4\n- Kemik Kanatlar (T4), muttefik on saflari asip arka saflari hedef aldi\n  Kemik Kanatlar (T4) → Nekromantlar (T5)\n     Hesap: 9 birim × 6 atk = 54 hasar\n     ↳ Nekromantlar (T5) tamamen yok edildi\n\nHamle 5\n- Vampir Koleler (T3), Kemik Devler (T8) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Kemik Devler (T8)\n     Hesap: 32 birim × 6 atk × 2.00 carpan = 384 hasar\n     ↳ Kemik Devler (T8) tamamen yok edildi\n\nHamle 6\n- Hortlaklar (T7), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Hortlaklar (T7) → Gulyabaniler (T2)\n     Hesap: 8 birim × 8 atk × 0.50 carpan = 32 hasar\n     ↳ Gulyabaniler (T2): 7 birim kaybetti, 22 birim / 109 can kaldi\n\nHamle 7\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 9 birim × 12 atk × 1.50 carpan = 162 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 8\n- Iskeletler (T1), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Iskeletler (T1) → Gulyabaniler (T2)\n     Hesap: 21 birim × 3 atk × 0.50 carpan = 32 hasar\n     ↳ Gulyabaniler (T2): 6 birim kaybetti, 16 birim / 77 can kaldi\n\nHamle 9\n- Yavrulayan Analar (T9), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Yavrulayan Analar (T9) → Gulyabaniler (T2)\n     Hesap: 6 birim × 9 atk × 0.50 carpan = 27 hasar\n     ↳ Gulyabaniler (T2): 6 birim kaybetti, 10 birim / 50 can kaldi\n\nHamle 10\n  Gulyabaniler (T2) → Diriltilmis Zombiler\n     Hesap: 10 birim × 3 atk = 30 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\nHamle 11\n- Olumsuz Tarikatcilar (T3), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n- Olumsuz Tarikatcilar (T3), -%25 azalmis hasarla saldiriyor\n  Olumsuz Tarikatcilar (T3) → Gulyabaniler (T2)\n     Hesap: 9 birim × 5 atk × 0.38 carpan = 17 hasar\n     ↳ Gulyabaniler (T2): 3 birim kaybetti, 7 birim / 33 can kaldi\n- Olumsuz Tarikatcilar (T3), Hortlaklar (T7) birimini +%10 hasar artisiyla guclendirdi\n- Yavrulayan Analar (T9), 10 yeni Orumcekler dogurdu\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n    10  Orumcekler                    10 can     1 atk      10 toplam atk\n     6  Hayaletler (T6)               12 can     7 atk      42 toplam atk\n     9  Kemik Kanatlar (T4)           27 can     6 atk      54 toplam atk\n     6  Yavrulayan Analar (T9)       108 can     9 atk      54 toplam atk\n     9  Olumsuz Tarikatcilar (T3)      9 can     5 atk      45 toplam atk\n     8  Hortlaklar (T7)               96 can     8 atk      64 toplam atk\n    21  Iskeletler (T1)               84 can     3 atk      63 toplam atk\n   ─ Dusman toplam atak: 332\n\nMUTTEFIK SAFLARI\n     7  Gulyabaniler (T2)             33 can     3 atk      21 toplam atk\n     9  Gargoyller (T6)              108 can    12 atk     108 toplam atk\n    32  Vampir Koleler (T3)          192 can     6 atk     192 toplam atk\n     3  Bansiler (T4)                 12 can     7 atk      21 toplam atk\n    25  Yarasalar (T1)                50 can     8 atk     200 toplam atk\n   ─ Muttefik toplam atak: 542\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n- Orumcekler, Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Orumcekler → Gulyabaniler (T2)\n     Hesap: 10 birim × 1 atk × 0.50 carpan = 5 hasar\n     ↳ Gulyabaniler (T2): 1 birim kaybetti, 6 birim / 28 can kaldi\n\nHamle 2\n- Hortlaklar (T7), Yarasalar (T1) hasarini %15 azaltiyor\n  Yarasalar (T1) → Iskeletler (T1)\n     Hesap: 25 birim × 8 atk × 0.85 carpan = 170 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Hortlaklar (T7), Bansiler (T4) hasarini %15 azaltiyor\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 3 birim × 7 atk × 0.42 carpan = 9 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 4\n- Hayaletler (T6), birim tipini onemsemiyor\n- Hayaletler (T6), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n- Hayaletler (T6), 1.00x hasar carpani kazandi\n  Hayaletler (T6) → Gulyabaniler (T2)\n     Hesap: 6 birim × 7 atk × 0.50 carpan = 21 hasar\n     ↳ Gulyabaniler (T2): 4 birim kaybetti, 2 birim / 7 can kaldi\n\nHamle 5\n- Kemik Kanatlar (T4), muttefik on saflari asip arka saflari hedef aldi\n- Kemik Kanatlar (T4), Bansiler (T4) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Kemik Kanatlar (T4) → Bansiler (T4)\n     Hesap: 9 birim × 6 atk × 1.50 carpan = 81 hasar\n     ↳ Bansiler (T4) tamamen yok edildi\n\nHamle 6\n- Vampir Koleler (T3), Hortlaklar (T7) karsisinda tip dezavantajli (-%50 hasar)\n  Vampir Koleler (T3) → Hortlaklar (T7)\n     Hesap: 32 birim × 6 atk × 0.50 carpan = 96 hasar\n     ↳ Hortlaklar (T7) tamamen yok edildi\n\nHamle 7\n  Gargoyller (T6) → Yavrulayan Analar (T9)\n     Hesap: 9 birim × 12 atk = 108 hasar\n     ↳ Yavrulayan Analar (T9) tamamen yok edildi\n\nHamle 8\n- Gulyabaniler (T2), Kemik Kanatlar (T4) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gulyabaniler (T2) → Kemik Kanatlar (T4)\n     Hesap: 2 birim × 3 atk × 1.50 carpan = 9 hasar\n     ↳ Kemik Kanatlar (T4): 3 birim kaybetti, 6 birim / 18 can kaldi\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n    10  Orumcekler                    10 can     1 atk      10 toplam atk\n     6  Hayaletler (T6)               12 can     7 atk      42 toplam atk\n     6  Kemik Kanatlar (T4)           18 can     6 atk      36 toplam atk\n   ─ Dusman toplam atak: 88\n\nMUTTEFIK SAFLARI\n     2  Gulyabaniler (T2)              7 can     3 atk       6 toplam atk\n     9  Gargoyller (T6)              108 can    12 atk     108 toplam atk\n    32  Vampir Koleler (T3)          192 can     6 atk     192 toplam atk\n    25  Yarasalar (T1)                50 can     8 atk     200 toplam atk\n   ─ Muttefik toplam atak: 506\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n- Orumcekler, Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n  Orumcekler → Gulyabaniler (T2)\n     Hesap: 10 birim × 1 atk × 0.50 carpan = 5 hasar\n     ↳ Gulyabaniler (T2): 1 birim kaybetti, 1 birim / 2 can kaldi\n\nHamle 2\n- Yarasalar (T1), Kemik Kanatlar (T4) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Yarasalar (T1) → Kemik Kanatlar (T4)\n     Hesap: 25 birim × 8 atk × 1.50 carpan = 300 hasar\n     ↳ Kemik Kanatlar (T4) tamamen yok edildi\n\nHamle 3\n- Hayaletler (T6), birim tipini onemsemiyor\n- Hayaletler (T6), Gulyabaniler (T2) uzerine -%50 azalmis hasarla saldiriyor\n- Hayaletler (T6), 1.00x hasar carpani kazandi\n  Hayaletler (T6) → Gulyabaniler (T2)\n     Hesap: 6 birim × 7 atk × 0.50 carpan = 21 hasar\n     ↳ Gulyabaniler (T2) tamamen yok edildi\n\nHamle 4\n  Vampir Koleler (T3) → Hayaletler (T6)\n     Hesap: 32 birim × 6 atk = 192 hasar\n     ↳ Hayaletler (T6) tamamen yok edildi\n\nHamle 5\n  Gargoyller (T6) → Orumcekler\n     Hesap: 9 birim × 12 atk = 108 hasar\n     ↳ Orumcekler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     9  Gargoyller (T6)              108 can    12 atk     108 toplam atk\n    32  Vampir Koleler (T3)          192 can     6 atk     192 toplam atk\n    25  Yarasalar (T1)                50 can     8 atk     200 toplam atk\n   ─ Muttefik toplam atak: 500\n"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-  31 Yarasalar (T1)               ( 310 kan)\n-  45 Gulyabaniler (T2)            ( 675 kan)\n-   3 Bansiler (T4)                ( 105 kan)\n-   1 Nekromantlar (T5)            (  50 kan)\n-   4 Gargoyller (T6)              ( 300 kan)\n\n=  84 toplam                       (1440 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 515"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T09:11:59.653Z"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n-  18 Yarasalar (T1)               ( 180 kan)\n-  45 Gulyabaniler (T2)            ( 675 kan)\n-   3 Bansiler (T4)                ( 105 kan)\n-   1 Nekromantlar (T5)            (  50 kan)\n\n=  67 toplam                       (1010 kan)\n\nToplam birlik kapasitesi: 515"
+        },
+        "usedCapacity": {
+          "integerValue": "515"
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "thralls": {
+                "integerValue": "32"
+              },
+              "necromancers": {
+                "integerValue": "1"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "gargoyles": {
+                "integerValue": "9"
+              },
+              "bats": {
+                "integerValue": "43"
+              },
+              "ghouls": {
+                "integerValue": "45"
+              },
+              "banshees": {
+                "integerValue": "3"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              }
+            }
+          }
+        }
+      },
+      "createTime": "2026-04-29T09:14:50.881541Z",
+      "updateTime": "2026-04-29T09:14:50.881541Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777454413260_i9hvup1",
+      "fields": {
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "2"
+              },
+              "skeletons": {
+                "integerValue": "4"
+              },
+              "zombies": {
+                "integerValue": "20"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     2  Olumsuz Tarikatcilar (T3)      2 can     5 atk      10 toplam atk\n     4  Iskeletler (T1)               16 can     3 atk      12 toplam atk\n    20  Zombiler (T2)                140 can     2 atk      40 toplam atk\n   ─ Dusman toplam atak: 62\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     2  Vampir Koleler (T3)           12 can     6 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     9  Yarasalar (T1)                18 can     8 atk      72 toplam atk\n   ─ Muttefik toplam atak: 103\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 9 birim × 8 atk × 1.25 carpan = 90 hasar\n     ↳ Zombiler (T2): 12 birim kaybetti, 8 birim / 50 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 1 birim × 7 atk × 0.50 carpan = 4 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Vampir Koleler (T3), Zombiler (T2) karsisinda tip dezavantajli (-%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Zombiler (T2)\n     Hesap: 2 birim × 6 atk × 0.67 carpan = 8 hasar\n     ↳ Zombiler (T2): 2 birim kaybetti, 6 birim / 42 can kaldi\n\nHamle 4\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 2 birim kaybetti, 4 birim / 24 can kaldi\n\nHamle 5\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 4 birim × 3 atk × 0.50 carpan = 6 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 6 can kaldi (sadece can kaybi)\n\nHamle 6\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 4 birim × 2 atk × 0.50 carpan = 4 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 2 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     4  Iskeletler (T1)               16 can     3 atk      12 toplam atk\n     4  Zombiler (T2)                 24 can     2 atk       8 toplam atk\n   ─ Dusman toplam atak: 20\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                2 can    12 atk      12 toplam atk\n     2  Vampir Koleler (T3)           12 can     6 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     9  Yarasalar (T1)                18 can     8 atk      72 toplam atk\n   ─ Muttefik toplam atak: 103\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 9 birim × 8 atk = 72 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 1 birim × 7 atk × 1.50 carpan = 11 hasar\n     ↳ Iskeletler (T1): 2 birim kaybetti, 2 birim / 5 can kaldi\n\nHamle 3\n- Vampir Koleler (T3), Iskeletler (T1) karsisinda tip dezavantajli (-%50 hasar)\n- Vampir Koleler (T3), yavas dusmana +%33 hasarla saldiriyor\n  Vampir Koleler (T3) → Iskeletler (T1)\n     Hesap: 2 birim × 6 atk × 0.67 carpan = 8 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 4\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler: 19 birim kaybetti, 1 birim / 2 can kaldi\n\nHamle 5\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 1 birim × 2 atk × 0.50 carpan = 1 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     1  Diriltilmis Zombiler           2 can     2 atk       2 toplam atk\n   ─ Dusman toplam atak: 2\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     2  Vampir Koleler (T3)           12 can     6 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     9  Yarasalar (T1)                18 can     8 atk      72 toplam atk\n   ─ Muttefik toplam atak: 103\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 9 birim × 8 atk = 72 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     2  Vampir Koleler (T3)           12 can     6 atk      12 toplam atk\n     1  Bansiler (T4)                  4 can     7 atk       7 toplam atk\n     9  Yarasalar (T1)                18 can     8 atk      72 toplam atk\n   ─ Muttefik toplam atak: 103\n"
+        },
+        "matchSignature": {
+          "stringValue": "simulation|4|20|2|0|0|0|0|0|0|0|9|0|2|1|0|1|0|0"
+        },
+        "source": {
+          "stringValue": "simulation"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "gargoyles": {
+                "integerValue": "1"
+              },
+              "banshees": {
+                "integerValue": "1"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "bats": {
+                "integerValue": "9"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "2"
+              }
+            }
+          }
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 48"
+        },
+        "usedCapacity": {
+          "integerValue": "48"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 48"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T09:20:02.017Z"
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        }
+      },
+      "createTime": "2026-04-29T09:20:13.862439Z",
+      "updateTime": "2026-04-29T09:20:13.862439Z"
+    },
+    {
+      "name": "projects/bt-analiz/databases/(default)/documents/wrongReports/wrong_1777454505436_t88nb8g",
+      "fields": {
+        "matchSignature": {
+          "stringValue": "simulation|5|20|5|0|0|0|0|0|0|0|11|0|0|2|0|1|0|0"
+        },
+        "logText": {
+          "stringValue": "======================  TUR  TUR  ANALIZ  ======================\n  her raundun olaylari ve muharebe duzeni asagidadir\n\n\n════════════════════════  RAUND 0  ═════════════════════════\n                  Baslangic muharebe duzeni\n\nDUSMAN SAFLARI\n     5  Olumsuz Tarikatcilar (T3)      5 can     5 atk      25 toplam atk\n     5  Iskeletler (T1)               20 can     3 atk      15 toplam atk\n    20  Zombiler (T2)                140 can     2 atk      40 toplam atk\n   ─ Dusman toplam atak: 80\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)               12 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    11  Yarasalar (T1)                22 can     8 atk      88 toplam atk\n   ─ Muttefik toplam atak: 114\n\n\n════════════════════════  RAUND 1  ═════════════════════════\n\nHamle 1\n- Yarasalar (T1), ilk turda +%25 hasarla saldiriyor\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 11 birim × 8 atk × 1.25 carpan = 110 hasar\n     ↳ Zombiler (T2): 15 birim kaybetti, 5 birim / 30 can kaldi\n\nHamle 2\n- Bansiler (T4), dusman on saflari asip arka saflari hedef aldi\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) karsisinda tip dezavantajli (-%50 hasar)\n- Bansiler (T4), Olumsuz Tarikatcilar (T3) hasarini %25 azaltti\n  Bansiler (T4) → Olumsuz Tarikatcilar (T3)\n     Hesap: 2 birim × 7 atk × 0.50 carpan = 7 hasar\n     ↳ Olumsuz Tarikatcilar (T3) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Zombiler (T2) karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Zombiler (T2)\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Zombiler (T2): 3 birim kaybetti, 2 birim / 12 can kaldi\n\nHamle 4\n- Iskeletler (T1), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Iskeletler (T1) → Gargoyller (T6)\n     Hesap: 5 birim × 3 atk × 0.50 carpan = 8 hasar\n- Gargoyller (T6), kendisine saldiran Iskeletler (T1) hizini 2 azaltti; Iskeletler (T1) hizi artik 1\n     ↳ Gargoyller (T6): 1 birim / 4 can kaldi (sadece can kaybi)\n\nHamle 5\n- Zombiler (T2), Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Zombiler (T2) → Gargoyller (T6)\n     Hesap: 2 birim × 2 atk × 0.50 carpan = 2 hasar\n- Gargoyller (T6), kendisine saldiran Zombiler (T2) hizini 2 azaltti; Zombiler (T2) hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 2 can kaldi (sadece can kaybi)\n\n── Raund 1 sonu ──\n\nDUSMAN SAFLARI\n     5  Iskeletler (T1)               20 can     3 atk      15 toplam atk\n     2  Zombiler (T2)                 12 can     2 atk       4 toplam atk\n   ─ Dusman toplam atak: 19\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                2 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    11  Yarasalar (T1)                22 can     8 atk      88 toplam atk\n   ─ Muttefik toplam atak: 114\n\n\n════════════════════════  RAUND 2  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Zombiler (T2)\n     Hesap: 11 birim × 8 atk = 88 hasar\n     ↳ Zombiler (T2) tamamen yok edildi\n- Zombiler (T2), her biri 1 canla geri dirildi\n\nHamle 2\n- Bansiler (T4), Iskeletler (T1) karsisinda tip ustunlugune sahip (+%50 hasar)\n- Bansiler (T4), Iskeletler (T1) hasarini %25 azaltti\n  Bansiler (T4) → Iskeletler (T1)\n     Hesap: 2 birim × 7 atk × 1.50 carpan = 21 hasar\n     ↳ Iskeletler (T1) tamamen yok edildi\n\nHamle 3\n- Gargoyller (T6), Diriltilmis Zombiler karsisinda tip ustunlugune sahip (+%50 hasar)\n  Gargoyller (T6) → Diriltilmis Zombiler\n     Hesap: 1 birim × 12 atk × 1.50 carpan = 18 hasar\n     ↳ Diriltilmis Zombiler: 19 birim kaybetti, 1 birim / 2 can kaldi\n\nHamle 4\n- Diriltilmis Zombiler, Gargoyller (T6) karsisinda tip dezavantajli (-%50 hasar)\n  Diriltilmis Zombiler → Gargoyller (T6)\n     Hesap: 1 birim × 2 atk × 0.50 carpan = 1 hasar\n- Gargoyller (T6), kendisine saldiran Diriltilmis Zombiler hizini 2 azaltti; Diriltilmis Zombiler hizi artik 0\n     ↳ Gargoyller (T6): 1 birim / 1 can kaldi (sadece can kaybi)\n\n── Raund 2 sonu ──\n\nDUSMAN SAFLARI\n     1  Diriltilmis Zombiler           2 can     2 atk       2 toplam atk\n   ─ Dusman toplam atak: 2\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    11  Yarasalar (T1)                22 can     8 atk      88 toplam atk\n   ─ Muttefik toplam atak: 114\n\n\n════════════════════════  RAUND 3  ═════════════════════════\n\nHamle 1\n  Yarasalar (T1) → Diriltilmis Zombiler\n     Hesap: 11 birim × 8 atk = 88 hasar\n     ↳ Diriltilmis Zombiler tamamen yok edildi\n\n── Raund 3 sonu ──\n\nDUSMAN SAFLARI\n   ─ Dusman toplam atak: 0\n\nMUTTEFIK SAFLARI\n     1  Gargoyller (T6)                1 can    12 atk      12 toplam atk\n     2  Bansiler (T4)                  8 can     7 atk      14 toplam atk\n    11  Yarasalar (T1)                22 can     8 atk      88 toplam atk\n   ─ Muttefik toplam atak: 114\n"
+        },
+        "enemyCounts": {
+          "mapValue": {
+            "fields": {
+              "revenants": {
+                "integerValue": "0"
+              },
+              "giants": {
+                "integerValue": "0"
+              },
+              "wraiths": {
+                "integerValue": "0"
+              },
+              "skeletons": {
+                "integerValue": "5"
+              },
+              "zombies": {
+                "integerValue": "20"
+              },
+              "broodmothers": {
+                "integerValue": "0"
+              },
+              "liches": {
+                "integerValue": "0"
+              },
+              "corpses": {
+                "integerValue": "0"
+              },
+              "bonewings": {
+                "integerValue": "0"
+              },
+              "cultists": {
+                "integerValue": "5"
+              }
+            }
+          }
+        },
+        "sourceLabel": {
+          "stringValue": "Simulasyon"
+        },
+        "reportedAt": {
+          "stringValue": "2026-04-29T09:21:36.244Z"
+        },
+        "actualSummaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n--------------------------------------------------\nKayip Birlikler\n-   1 Gargoyller (T6)              (  75 kan)\n\n=   1 toplam                       (  75 kan)\n--------------------------------------------------\nToplam birlik kapasitesi: 51"
+        },
+        "actualNote": {
+          "stringValue": ""
+        },
+        "usedCapacity": {
+          "integerValue": "51"
+        },
+        "summaryText": {
+          "stringValue": "======================  SAVAS  SONUCU  ======================\n\u003e\u003e Dusman yenildi! Zafer muttefiklerin.\n\n═════════════════════════  ZAFER  ══════════════════════════\n\nKayip Birlikler\n\n=   0 toplam                       (   0 kan)\n\nToplam birlik kapasitesi: 51"
+        },
+        "allyCounts": {
+          "mapValue": {
+            "fields": {
+              "gargoyles": {
+                "integerValue": "1"
+              },
+              "bats": {
+                "integerValue": "11"
+              },
+              "ghouls": {
+                "integerValue": "0"
+              },
+              "banshees": {
+                "integerValue": "2"
+              },
+              "rotmaws": {
+                "integerValue": "0"
+              },
+              "thralls": {
+                "integerValue": "0"
+              },
+              "necromancers": {
+                "integerValue": "0"
+              },
+              "witches": {
+                "integerValue": "0"
+              }
+            }
+          }
+        },
+        "source": {
+          "stringValue": "simulation"
+        }
+      },
+      "createTime": "2026-04-29T09:21:45.968835Z",
+      "updateTime": "2026-04-29T09:21:45.968835Z"
+    }
+  ]
+}
+
