@@ -643,11 +643,12 @@
           gargoylesReactiveReduceEvent = false;
         }
 
-        if (attackerIndex === WITCHES_INDEX && unitNumbers[WITCHES_INDEX] > 0 && roundCount % 2 === 0) {
-          witchesSplashDamage = ceilCombatValue(attackerDamage * 0.25);
-        }
+        const witchesSplashEligible = attackerIndex === WITCHES_INDEX && unitNumbers[WITCHES_INDEX] > 0 && roundCount % 2 === 0;
 
         if (unitHealth[defenderIndex] <= 0) {
+          if (witchesSplashEligible) {
+            witchesSplashDamage = ceilCombatValue(attackerDamage * 0.25);
+          }
           if (attackerIndex === LICHES_INDEX) {
             lichesSplashDamage = ceilCombatValue(attackerDamage * 0.5);
           }
@@ -793,7 +794,7 @@
 
         if (
           !detectedNextAttackerUnit &&
-          (unitNumbers[BROODMOTHERS_INDEX] > 0 || broodmothersRoundStartCount >= 6)
+          unitNumbers[BROODMOTHERS_INDEX] > 0
         ) {
           unitNumbers[SPIDERLINGS_INDEX] += 10;
           unitHealth[SPIDERLINGS_INDEX] += 10 * UNIT_DESC[SPIDERLINGS_INDEX][HEALTH_INDEX];
