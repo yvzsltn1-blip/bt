@@ -26,6 +26,8 @@ Ilk surumde kurulu gelen job:
 
 - `smoke`
   Colab ortaminda Python surumu, GPU varligi, `nvidia-smi`, repo dosyalari gibi temel saglik kontrolu yapar.
+- `optimizer_search`
+  Belirli bir battle payload'i icin uzun sureli optimizer aramasi yapar.
 
 Bu iskelet kurulduktan sonra agir battle job'larini ayni protokole baglayacagiz.
 
@@ -36,7 +38,10 @@ Bu iskelet kurulduktan sonra agir battle job'larini ayni protokole baglayacagiz.
 - `worker/colab_http_worker.py`
 - `worker/allowed_jobs.json`
 - `jobs/smoke_job.py`
+- `jobs/optimizer_search_job.py`
+- `jobs/optimizer_search_runner.js`
 - `notes/COLAB_BOOTSTRAP.md`
+- `notes/SESSION_HANDOFF.md`
 
 ## Hedef Is Akisi
 
@@ -71,6 +76,7 @@ Asagidaki 3 bilgiden biri lazim olacak:
 Detayli adimlar icin:
 
 - [notes/COLAB_BOOTSTRAP.md](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/notes/COLAB_BOOTSTRAP.md>)
+- [notes/SESSION_HANDOFF.md](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/notes/SESSION_HANDOFF.md>)
 
 ## Yerel Kullanim
 
@@ -92,6 +98,18 @@ py -3 colab-workspace\client\submit_job.py `
   --save-dir colab-workspace\runs
 ```
 
+Var olan bir remote job'i tekrar sorgulamak icin:
+
+```powershell
+py -3 colab-workspace\client\submit_job.py `
+  --endpoint https://ornek.trycloudflare.com `
+  --token SENIN_TOKENIN `
+  --job-id REMOTE_JOB_ID `
+  --wait `
+  --save-dir colab-workspace\runs
+```
+
 ## Not
 
 Bu noktadan sonra Colab ile ilgili hazirlik ve deneysel dosyalar oncelikle bu klasorde tutulacak.
+Gizli ya da oturumluk durum bilgileri icin git'e alinmayan `colab-workspace/LOCAL_STATE.md` kullanilir.

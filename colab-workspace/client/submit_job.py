@@ -42,6 +42,7 @@ def parse_args():
     parser.add_argument("--endpoint", help="Worker base URL", default=None)
     parser.add_argument("--token", help="Worker auth token", default=None)
     parser.add_argument("--job", help="Job name", default=None)
+    parser.add_argument("--job-id", help="Existing remote job id to query", default=None)
     parser.add_argument("--args-json", help="Inline JSON object passed to the job", default="{}")
     parser.add_argument("--wait", action="store_true", help="Poll until job finishes")
     parser.add_argument("--poll-interval", type=float, default=3.0)
@@ -58,26 +59,36 @@ def main():
     token = args.token or config.get("token") or ""
     job = args.job or config.get("default_job") or ""
     save_dir = args.save_dir or config.get("save_dir") or "colab-workspace/runs"
+    job_id = (args.job_id or "").strip()
 
-    if not endpoint or not token or not job:
-        raise SystemExit("endpoint, token and job are required.")
+    if not endpoint:
+        raise SystemExit("endpoint is required.")
+    if not token:
+        raise SystemExit("token is required.")
 
-    try:
-        job_args = json.loads(args.args_json)
-    except json.JSONDecodeError as error:
-        raise SystemExit(f"Invalid --args-json: {error}")
+    if job_id:
+        submitted = {"ok": True, "job_id": job_id, "status": "query"}
+        print(json.dumps(submitted, ensure_ascii=True, indent=2))
+    else:
+        if not job:
+            raise SystemExit("job is required when --job-id is not provided.")
 
-    submitted = http_json(
-        f"{endpoint}/run",
-        method="POST",
-        payload={"token": token, "job": job, "args": job_args},
-    )
-    print(json.dumps(submitted, ensure_ascii=True, indent=2))
+        try:
+            job_args = json.loads(args.args_json)
+        except json.JSONDecodeError as error:
+            raise SystemExit(f"Invalid --args-json: {error}")
 
-    if not args.wait:
-        saved = save_json(save_dir, "submitted-job", submitted)
-        print(saved)
-        return
+        submitted = http_json(
+            f"{endpoint}/run",
+            method="POST",
+            payload={"token": token, "job": job, "args": job_args},
+        )
+        print(json.dumps(submitted, ensure_ascii=True, indent=2))
+
+        if not args.wait:
+            saved = save_json(save_dir, "submitted-job", submitted)
+            print(saved)
+            return
 
     if not submitted.get("ok") or not submitted.get("job_id"):
         saved = save_json(save_dir, "job-error", submitted)

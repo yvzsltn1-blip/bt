@@ -99,6 +99,7 @@ def run_job_in_background(job_id, job_name, args):
         allowed = load_allowed_jobs()
         job_info = allowed[job_name]
         script_path = ROOT_DIR / job_info["script"]
+        timeout_seconds = int(job_info.get("timeout_seconds", 60 * 30))
         if not script_path.exists():
             raise FileNotFoundError(f"Job script not found: {script_path}")
 
@@ -106,13 +107,15 @@ def run_job_in_background(job_id, job_name, args):
 
         env = os.environ.copy()
         env["BT_COLAB_JOB_ARGS"] = json.dumps(args, ensure_ascii=True)
+        env["BT_COLAB_JOB_ID"] = job_id
+        env["BT_COLAB_RUNS_DIR"] = str(RUNS_DIR)
 
         completed = subprocess.run(
             [sys.executable, str(script_path)],
             cwd=str(ROOT_DIR),
             capture_output=True,
             text=True,
-            timeout=60 * 30,
+            timeout=timeout_seconds,
             check=False,
             env=env,
         )

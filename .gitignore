@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 .firebase/
 .backups/
+colab-workspace/runs/
+colab-workspace/LOCAL_STATE.md

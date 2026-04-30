@@ -2,5 +2,10 @@
   "smoke": {
     "script": "colab-workspace/jobs/smoke_job.py",
     "description": "Basic Colab environment smoke test"
+  },
+  "optimizer_search": {
+    "script": "colab-workspace/jobs/optimizer_search_job.py",
+    "description": "Long-running optimizer search for a specific battle payload",
+    "timeout_seconds": 21600
   }
 }

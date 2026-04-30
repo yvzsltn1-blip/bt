@@ -1,6 +1,6 @@
 # Colab Bootstrap
 
-Bu not, Colab tarafinda worker'i ayaga kaldirmak icin gereken minimum adimlari anlatir.
+Bu not, Colab tarafinda worker'i ayaga kaldirmak ve daha sonra yeniden baglanabilmek icin gereken minimum adimlari anlatir.
 
 ## Yerel Not
 
@@ -110,5 +110,21 @@ Bu test su konulari dogrular:
 
 ## Sonraki Asama
 
-Smoke gectikten sonra agir battle job'lari ekleyecegim.
-O noktada ayni worker uzerinden daha spesifik test tipleri calistiracagiz.
+Smoke gectikten sonra ayni worker uzerinden `optimizer_search` gibi daha agir battle job'lari calisabilir.
+
+## Yeniden Devam Etme
+
+Bu terminal veya notebook daha sonra kapanirsa:
+
+1. Yerelde `colab-workspace/LOCAL_STATE.md` dosyasina worker URL, token ve son job id yazilir.
+2. Proje icinde genel baglam icin `colab-workspace/notes/SESSION_HANDOFF.md` okunur.
+3. Son job'i tekrar sorgulamak icin su komut kullanilir:
+
+```powershell
+py -3 colab-workspace\client\submit_job.py `
+  --endpoint WORKER_URL `
+  --token WORKER_TOKEN `
+  --job-id JOB_ID `
+  --wait `
+  --save-dir colab-workspace\runs
+```
