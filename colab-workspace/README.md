@@ -28,6 +28,10 @@ Ilk surumde kurulu gelen job:
   Colab ortaminda Python surumu, GPU varligi, `nvidia-smi`, repo dosyalari gibi temel saglik kontrolu yapar.
 - `optimizer_search`
   Belirli bir battle payload'i icin uzun sureli optimizer aramasi yapar.
+- `surrogate_dataset`
+  GPU egitimi icin sentetik savas veri seti uretir.
+- `surrogate_train`
+  Uretilen veri setinden GPU uzerinde hizli bir surrogate model egitir.
 
 Bu iskelet kurulduktan sonra agir battle job'larini ayni protokole baglayacagiz.
 
@@ -41,6 +45,9 @@ Bu iskelet kurulduktan sonra agir battle job'larini ayni protokole baglayacagiz.
 - `jobs/smoke_job.py`
 - `jobs/optimizer_search_job.py`
 - `jobs/optimizer_search_runner.js`
+- `jobs/surrogate_dataset_job.py`
+- `jobs/surrogate_dataset_runner.js`
+- `jobs/surrogate_train_job.py`
 - `notes/COLAB_BOOTSTRAP.md`
 - `notes/SESSION_HANDOFF.md`
 
@@ -113,6 +120,47 @@ py -3 colab-workspace\client\submit_job.py `
 Bu oturumdaki aktif battle payload'i:
 
 - [config/stage75-deep-minloss.json](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/config/stage75-deep-minloss.json>)
+
+## GPU Icin Yeni Akis
+
+Optimizer'dan ayri olarak Colab GPU'sunu bos birakmamak icin iki yeni job eklendi:
+
+1. `surrogate_dataset`
+   Battle motorunu kullanip cok sayida sentetik savas ornegi uretir.
+   Cikti `jsonl` veri setidir.
+
+2. `surrogate_train`
+   Bu veri setini okuyup kazanma olasiligi ve beklenen kan kaybi icin kucuk bir PyTorch modeli egitir.
+   Amac ana motoru degistirmek degil, aday ordulari once hizli skorlayacak bir yardimci model hazirlamaktir.
+
+Ornek arguman dosyalari:
+
+- [config/surrogate-dataset.example.json](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/config/surrogate-dataset.example.json>)
+- [config/surrogate-train.example.json](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/config/surrogate-train.example.json>)
+
+Yerelden gonderim ornegi:
+
+```powershell
+py -3 colab-workspace\client\submit_job.py `
+  --endpoint WORKER_URL `
+  --token WORKER_TOKEN `
+  --job surrogate_dataset `
+  --args-file colab-workspace\config\surrogate-dataset.example.json `
+  --wait `
+  --save-dir colab-workspace\runs
+```
+
+Egitim icin:
+
+```powershell
+py -3 colab-workspace\client\submit_job.py `
+  --endpoint WORKER_URL `
+  --token WORKER_TOKEN `
+  --job surrogate_train `
+  --args-file colab-workspace\config\surrogate-train.example.json `
+  --wait `
+  --save-dir colab-workspace\runs
+```
 
 ## Not
 

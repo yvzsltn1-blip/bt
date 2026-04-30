@@ -1,0 +1,7 @@
+{
+  "sampleCount": 20000,
+  "minStage": 20,
+  "maxStage": 120,
+  "seed": 20260501,
+  "outputPath": "colab-workspace/runs/surrogate-dataset-main.jsonl"
+}

@@ -7,5 +7,15 @@
     "script": "colab-workspace/jobs/optimizer_search_job.py",
     "description": "Long-running optimizer search for a specific battle payload",
     "timeout_seconds": 21600
+  },
+  "surrogate_dataset": {
+    "script": "colab-workspace/jobs/surrogate_dataset_job.py",
+    "description": "Generate synthetic battle dataset for surrogate-model training",
+    "timeout_seconds": 21600
+  },
+  "surrogate_train": {
+    "script": "colab-workspace/jobs/surrogate_train_job.py",
+    "description": "Train a GPU-backed surrogate model from a generated battle dataset",
+    "timeout_seconds": 21600
   }
 }

@@ -1,0 +1,8 @@
+{
+  "datasetPath": "colab-workspace/runs/surrogate-dataset-main.jsonl",
+  "epochs": 16,
+  "batchSize": 1024,
+  "learningRate": 0.001,
+  "valRatio": 0.1,
+  "hiddenSizes": [128, 128, 64]
+}
