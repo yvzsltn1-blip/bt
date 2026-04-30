@@ -44,6 +44,7 @@ def parse_args():
     parser.add_argument("--job", help="Job name", default=None)
     parser.add_argument("--job-id", help="Existing remote job id to query", default=None)
     parser.add_argument("--args-json", help="Inline JSON object passed to the job", default="{}")
+    parser.add_argument("--args-file", help="Path to JSON file passed to the job", default=None)
     parser.add_argument("--wait", action="store_true", help="Poll until job finishes")
     parser.add_argument("--poll-interval", type=float, default=3.0)
     parser.add_argument("--timeout-seconds", type=float, default=600.0)
@@ -73,10 +74,19 @@ def main():
         if not job:
             raise SystemExit("job is required when --job-id is not provided.")
 
-        try:
-            job_args = json.loads(args.args_json)
-        except json.JSONDecodeError as error:
-            raise SystemExit(f"Invalid --args-json: {error}")
+        if args.args_file:
+            try:
+                with open(args.args_file, "r", encoding="utf-8") as handle:
+                    job_args = json.load(handle)
+            except FileNotFoundError as error:
+                raise SystemExit(f"Invalid --args-file: {error}")
+            except json.JSONDecodeError as error:
+                raise SystemExit(f"Invalid JSON in --args-file: {error}")
+        else:
+            try:
+                job_args = json.loads(args.args_json)
+            except json.JSONDecodeError as error:
+                raise SystemExit(f"Invalid --args-json: {error}")
 
         submitted = http_json(
             f"{endpoint}/run",
