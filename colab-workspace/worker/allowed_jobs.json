@@ -17,5 +17,10 @@
     "script": "colab-workspace/jobs/surrogate_train_job.py",
     "description": "Train a GPU-backed surrogate model from a generated battle dataset",
     "timeout_seconds": 21600
+  },
+  "report_risk_train": {
+    "script": "colab-workspace/jobs/report_risk_train_job.py",
+    "description": "Train a GPU-backed risk scorer on wrong vs correct battle reports",
+    "timeout_seconds": 21600
   }
 }

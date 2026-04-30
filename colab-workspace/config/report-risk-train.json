@@ -1,0 +1,7 @@
+{
+  "datasetPath": "colab-workspace/data/report-truth/reports-combined.jsonl",
+  "epochs": 200,
+  "repeats": 48,
+  "learningRate": 0.03,
+  "valRatio": 0.25
+}
