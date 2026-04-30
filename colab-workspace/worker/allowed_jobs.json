@@ -1,0 +1,6 @@
+{
+  "smoke": {
+    "script": "colab-workspace/jobs/smoke_job.py",
+    "description": "Basic Colab environment smoke test"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "endpoint": "https://example.trycloudflare.com",
+  "token": "CHANGE_ME",
+  "default_job": "smoke",
+  "save_dir": "colab-workspace/runs"
+}
