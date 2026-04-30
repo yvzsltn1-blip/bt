@@ -1,0 +1,9 @@
+{
+  "datasetPath": "colab-workspace/data/report-truth/reports-combined.jsonl",
+  "maxSeeds": 48,
+  "topLimit": 12,
+  "witchModes": ["on_kill_only", "any_hit"],
+  "broodModes": ["alive_only", "roundstart6"],
+  "corpseRevengeFactors": [0.18, 0.2, 0.22],
+  "bansheeReducePcts": [20, 22, 25]
+}

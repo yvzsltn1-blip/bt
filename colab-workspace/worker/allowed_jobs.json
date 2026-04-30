@@ -22,5 +22,10 @@
     "script": "colab-workspace/jobs/report_risk_train_job.py",
     "description": "Train a GPU-backed risk scorer on wrong vs correct battle reports",
     "timeout_seconds": 21600
+  },
+  "mechanic_sweep": {
+    "script": "colab-workspace/jobs/mechanic_sweep_job.py",
+    "description": "Sweep battle mechanic variants against wrong/correct report dataset",
+    "timeout_seconds": 21600
   }
 }
