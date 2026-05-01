@@ -7,9 +7,9 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260430-23">
+  <link rel="stylesheet" href="styles.css?v=20260502-03">
 </head>
-<body>
+<body class="site-gate-pending">
   <div class="page-shell">
     <header class="hero">
       <div class="hero-copy-block">
@@ -17,6 +17,7 @@
           <a class="nav-link" href="index.html">Simulasyon</a>
           <a class="nav-link" href="optimizer.html">Optimizer</a>
           <a class="nav-link" href="saved.html">Onaylananlar</a>
+          <a class="nav-link" href="fav.html">Favlar</a>
         </div>
         <p class="eyebrow">BT ANALYSS / YANLIS RAPORLARI</p>
         <h1>Yanlis Sonuclar</h1>
@@ -32,10 +33,16 @@
         <div class="panel-head">
           <h2>Kaydedilen Yanlislar</h2>
           <div class="actions actions-inline list-header-actions">
-            <a class="button button-secondary button-icon-only-mobile" href="saved.html" aria-label="Onaylananlara Don">
-              <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
-              <span class="button-label">Kaydedilenlere Don</span>
-            </a>
+            <div class="fav-wrong-row">
+              <a class="button button-secondary button-icon-only-mobile" href="fav.html" aria-label="Favlar">
+                <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.6l2.7 5.47 6.03.88-4.36 4.25 1.03 6-5.4-2.84-5.4 2.84 1.03-6L3.27 9.95l6.03-.88L12 3.6z"/></svg></span>
+                <span class="button-label">Favlar</span>
+              </a>
+              <a class="button button-secondary button-icon-only-mobile" href="saved.html" aria-label="Onaylananlara Don">
+                <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+                <span class="button-label">Kaydedilenlere Don</span>
+              </a>
+            </div>
             <div class="header-date-range">
               <label class="header-date-filter" aria-label="Baslangic tarihi">
                 <span class="sr-only">Baslangic Tarihi</span>
@@ -154,7 +161,8 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
-  <script src="firebase-client.js?v=20260429-13" defer></script>
+  <script src="site-gate.js?v=20260502-02" defer></script>
+  <script src="firebase-client.js?v=20260502-02" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
   <script src="battle-core.js?v=20260429-02" defer></script>
   <script src="bulk-regression.js?v=20260430-1" defer></script>

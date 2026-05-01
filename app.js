@@ -1159,17 +1159,14 @@ function syncSimulationAdminActions() {
 
   simulationAdminActionsPanel.innerHTML = "";
 
-  const shouldShowSingleSave = Boolean(
+  const shouldShowFavoriteActions = Boolean(
     isAdminSession &&
     currentSimulationReport &&
-    currentSimulationResult &&
-    currentVariantAnalysis &&
-    !currentVariantAnalysis.loading &&
-    currentVariantAnalysis.variants.length <= 1
+    currentSimulationResult
   );
 
-  simulationAdminActionsPanel.hidden = !shouldShowSingleSave;
-  if (!shouldShowSingleSave) {
+  simulationAdminActionsPanel.hidden = !shouldShowFavoriteActions;
+  if (!shouldShowFavoriteActions) {
     return;
   }
 
@@ -1178,7 +1175,7 @@ function syncSimulationAdminActions() {
 
   const head = document.createElement("div");
   head.className = "saved-match-head";
-  head.innerHTML = "<strong>Onayli Dovus</strong><span>Bu savasta alternatif olasilik karti yok.</span>";
+  head.innerHTML = "<strong>Kayit Islemleri</strong><span>Mevcut simulasyon sonucunu onayli veya favori olarak kaydedebilirsin.</span>";
 
   const actions = document.createElement("div");
   actions.className = "actions actions-inline";
@@ -1191,7 +1188,15 @@ function syncSimulationAdminActions() {
     await saveCurrentSimulationAsApproved(saveButton);
   });
 
-  actions.appendChild(saveButton);
+  const favoriteButton = document.createElement("button");
+  favoriteButton.type = "button";
+  favoriteButton.className = "button button-secondary";
+  favoriteButton.textContent = "Favorilere Ekle";
+  favoriteButton.addEventListener("click", async () => {
+    await saveCurrentSimulationAsFavorite(favoriteButton);
+  });
+
+  actions.append(saveButton, favoriteButton);
   card.append(head, actions);
   simulationAdminActionsPanel.appendChild(card);
 }
@@ -1393,6 +1398,108 @@ async function saveCurrentSimulationAsApproved(triggerButton) {
   }
 }
 
+async function saveCurrentSimulationAsFavorite(triggerButton) {
+  if (!isAdminSession) {
+    window.alert("Bu islem icin yavuz@gmail.com admin oturumu gerekli.");
+    return;
+  }
+  if (!currentSimulationReport || !currentSimulationResult) {
+    window.alert("Favoriye eklenecek bir savas sonucu yok.");
+    return;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.saveFavoriteStrategy !== "function") {
+    window.alert("Favori kayit servisi hazir degil.");
+    return;
+  }
+
+  try {
+    triggerButton.disabled = true;
+    const entry = createFavoriteEntryFromCurrentSimulationResult();
+    await window.BTFirebase.saveFavoriteStrategy(entry);
+    window.alert("Dizilim favorilere eklendi.");
+  } catch (error) {
+    showCopyableError("Favori Kaydedilemedi", `Favori kaydedilemedi:\n\n${error.message}`);
+  } finally {
+    triggerButton.disabled = false;
+  }
+}
+
+function showCopyableError(title, message) {
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.zIndex = "1000";
+  overlay.style.display = "grid";
+  overlay.style.placeItems = "center";
+  overlay.style.padding = "18px";
+  overlay.style.background = "rgba(6, 10, 14, 0.82)";
+
+  const card = document.createElement("div");
+  card.style.width = "min(920px, 100%)";
+  card.style.maxHeight = "calc(100vh - 36px)";
+  card.style.overflow = "auto";
+  card.style.padding = "18px";
+  card.style.border = "1px solid rgba(160, 185, 214, 0.14)";
+  card.style.borderRadius = "24px";
+  card.style.background = "rgba(10, 15, 22, 0.98)";
+  card.style.boxShadow = "0 24px 80px rgba(0, 0, 0, 0.45)";
+
+  const header = document.createElement("div");
+  header.className = "panel-head";
+  const heading = document.createElement("h2");
+  heading.textContent = title;
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "button button-ghost";
+  closeBtn.type = "button";
+  closeBtn.textContent = "Kapat";
+  header.append(heading, closeBtn);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "button button-secondary";
+  copyBtn.type = "button";
+  copyBtn.textContent = "Kopyala";
+
+  const text = document.createElement("textarea");
+  text.className = "terminal-block";
+  text.readOnly = true;
+  text.value = message;
+  text.style.width = "100%";
+  text.style.minHeight = "320px";
+  text.style.resize = "vertical";
+  text.style.whiteSpace = "pre";
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  actions.append(copyBtn);
+
+  function close() {
+    overlay.remove();
+  }
+
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      close();
+    }
+  });
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(message);
+      copyBtn.textContent = "Kopyalandi";
+    } catch {
+      text.focus();
+      text.select();
+      copyBtn.textContent = "Secildi";
+    }
+  });
+
+  card.append(header, actions, text);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  text.focus();
+  text.select();
+}
+
 function createApprovedSimulationEntry(analysis, variant) {
   const enemyCounts = { ...(analysis?.enemyCounts || {}) };
   const allyCounts = { ...(analysis?.allyCounts || {}) };
@@ -1439,6 +1546,29 @@ function createApprovedSimulationEntryFromCurrentResult() {
     usedCapacity: currentSimulationReport?.usedCapacity || 0,
     usedPoints: calculateArmyPoints(allyCounts),
     lostBlood: currentSimulationResult?.lostBloodTotal || 0
+  };
+}
+
+function createFavoriteEntryFromCurrentSimulationResult() {
+  const enemyCounts = { ...(currentSimulationReport?.enemyCounts || {}) };
+  const allyCounts = { ...(currentSimulationReport?.allyCounts || {}) };
+  return {
+    source: "simulation",
+    sourceLabel: "Simulasyon Fav",
+    savedAt: new Date().toISOString(),
+    mode: "balanced",
+    objective: "min_loss",
+    diversityMode: false,
+    stoneMode: false,
+    modeLabel: "Simulasyon Fav",
+    enemySignature: ENEMY_UNITS.map((unit) => enemyCounts[unit.key] || 0).join("|"),
+    enemyTitle: buildEnemyTitle(enemyCounts),
+    enemyCounts,
+    allyPool: allyCounts,
+    recommendationCounts: allyCounts,
+    usedPoints: calculateArmyPoints(allyCounts),
+    lostBlood: currentSimulationResult?.lostBloodTotal || 0,
+    winRate: currentSimulationResult?.winner === "enemy" ? 0 : 100
   };
 }
 

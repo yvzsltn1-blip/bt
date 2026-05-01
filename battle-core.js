@@ -617,9 +617,13 @@
         let witchesSplashDamage = 0;
         let rotmawsOverkillDamage = 0;
 
-        const attackerDamage = ceilCombatValue(
-          unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex]
-        );
+        const rawAttackerDamage =
+          unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex];
+        // Odd-sized wraith stacks align with observed results when rounded, not always ceiled.
+        const attackerDamage =
+          attackerIndex === WRAITHS_INDEX && unitNumbers[attackerIndex] % 2 === 1
+            ? Math.round(Math.max(0, rawAttackerDamage) + 1e-3)
+            : ceilCombatValue(rawAttackerDamage);
         unitHealth[defenderIndex] -= attackerDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];
         const multiplierText = Math.abs(totalDamageMultiplier - 1) < 1e-9 ? "" : ` × ${totalDamageMultiplier.toFixed(2)} carpan`;

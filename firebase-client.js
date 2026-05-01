@@ -13,10 +13,12 @@
 
   const CACHE_KEY = "btAnalyssApprovedStrategiesCache";
   const WRONG_CACHE_KEY = "btAnalyssWrongReportsCache";
+  const FAVORITE_CACHE_KEY = "btAnalyssFavoriteStrategiesCache";
   const LEGACY_KEY = "btAnalyssApprovedStrategies";
   const MIGRATION_KEY = "btAnalyssApprovedStrategiesMigrated";
   const COLLECTION = "approvedStrategies";
   const WRONG_COLLECTION = "wrongReports";
+  const FAVORITE_COLLECTION = "favoriteStrategies";
   const ENEMY_COUNT_KEYS = [
     "skeletons", "zombies", "cultists", "bonewings", "corpses",
     "wraiths", "revenants", "giants", "broodmothers", "liches"
@@ -134,6 +136,34 @@
     writeStorage(WRONG_CACHE_KEY, items);
   }
 
+  function mergeFavorites(items) {
+    const merged = new Map();
+    items.forEach((item) => {
+      const id = typeof item?.id === "string" ? item.id.trim() : "";
+      if (!id) {
+        return;
+      }
+      const nextItem = { ...item, id };
+      const current = merged.get(id);
+      if (!current) {
+        merged.set(id, nextItem);
+        return;
+      }
+      const currentStamp = current.updatedAt || current.savedAt || "";
+      const nextStamp = nextItem.updatedAt || nextItem.savedAt || "";
+      merged.set(id, nextStamp >= currentStamp ? nextItem : current);
+    });
+    return [...merged.values()];
+  }
+
+  function readFavoriteStrategies() {
+    return mergeFavorites(readStorage(FAVORITE_CACHE_KEY));
+  }
+
+  function writeFavoriteStrategies(items) {
+    writeStorage(FAVORITE_CACHE_KEY, mergeFavorites(items));
+  }
+
   function sanitizeApprovedEntry(item) {
     const source = item?.source === "simulation" ? "simulation" : "optimizer";
     const basePayload = {
@@ -249,7 +279,8 @@
 
   function sanitizeWrongReport(item) {
     const source = item?.source === "optimizer" ? "optimizer" : "simulation";
-    const payload = {
+    // Live wrongReports rules currently accept only this minimal subset on create.
+    return {
       source,
       sourceLabel: trimText(item?.sourceLabel || (source === "optimizer" ? "Optimizer" : "Simulasyon"), 30),
       reportedAt: trimText(item?.reportedAt || new Date().toISOString(), 40),
@@ -262,73 +293,32 @@
       actualSummaryText: trimText(item?.actualSummaryText || "", 40000),
       actualNote: trimText(item?.actualNote || "", 4000)
     };
+  }
 
-    const seed = sanitizeOptionalInt(item?.seed, 4294967295);
-    if (seed !== null) {
-      payload.seed = seed;
-    }
-    if (Number.isInteger(item?.stage) && item.stage >= 1 && item.stage <= 9999) {
-      payload.stage = item.stage;
-    }
-    if (item?.mode === "balanced" || item?.mode === "fast" || item?.mode === "deep") {
-      payload.mode = item.mode;
-    }
-    if (item?.objective === "min_army" || item?.objective === "min_loss") {
-      payload.objective = item.objective;
-    }
-    if ("diversityMode" in (item || {})) {
-      payload.diversityMode = Boolean(item?.diversityMode);
-    }
-    if ("stoneMode" in (item || {})) {
-      payload.stoneMode = Boolean(item?.stoneMode);
-    }
-    if (item?.modeLabel) {
-      payload.modeLabel = trimText(item.modeLabel, 80);
-    }
-    if (item?.recommendationCounts) {
-      payload.recommendationCounts = sanitizeCountMap(item.recommendationCounts, ALLY_COUNT_KEYS);
-    }
-    if (item?.expectedWinner === "ally" || item?.expectedWinner === "enemy" || item?.expectedWinner === "unknown") {
-      payload.expectedWinner = item.expectedWinner;
-    }
-    if (item?.expectedVariantSignature !== undefined) {
-      payload.expectedVariantSignature = trimText(item.expectedVariantSignature || "", 1000);
-    }
-    if (item?.actualOutcomeLine !== undefined) {
-      payload.actualOutcomeLine = trimText(item.actualOutcomeLine || "", 400);
-    }
-    if (item?.actualLosses) {
-      payload.actualLosses = sanitizeCountMap(item.actualLosses, ALLY_COUNT_KEYS);
-    }
-    if (item?.expectedAllyLosses) {
-      payload.expectedAllyLosses = sanitizeCountMap(item.expectedAllyLosses, ALLY_COUNT_KEYS);
-    }
-
-    [
-      ["expectedLostBlood", 999999],
-      ["expectedUsedCapacity", 999999],
-      ["expectedUsedPoints", 99999],
-      ["usedPoints", 99999],
-      ["lostBlood", 999999],
-      ["winRate", 100],
-      ["pointLimit", 99999],
-      ["actualCapacity", 999999],
-      ["actualLostUnitsTotal", 999999],
-      ["actualLostBlood", 999999]
-    ].forEach(([key, maxValue]) => {
-      if (item?.[key] !== undefined && item?.[key] !== null && item?.[key] !== "") {
-        payload[key] = clampInt(item[key], maxValue);
-      }
-    });
-
-    if (item?.actualWinner === "ally" || item?.actualWinner === "enemy" || item?.actualWinner === "unknown") {
-      payload.actualWinner = item.actualWinner;
-    }
-    if ("possible" in (item || {})) {
-      payload.possible = Boolean(item?.possible);
-    }
-
-    return payload;
+  function sanitizeFavoriteStrategy(item) {
+    const source = item?.source === "simulation" ? "simulation" : "optimizer";
+    const enemyCounts = sanitizeCountMap(item?.enemyCounts, ENEMY_COUNT_KEYS);
+    return {
+      source,
+      sourceLabel: trimText(item?.sourceLabel || (source === "simulation" ? "Simulasyon Fav" : "Optimizer Fav"), 30),
+      savedAt: trimText(item?.savedAt || new Date().toISOString(), 40),
+      updatedAt: trimText(new Date().toISOString(), 40),
+      ...(Number.isFinite(Number(item?.stage)) && Number(item.stage) > 0 ? { stage: clampInt(item.stage, 9999) } : {}),
+      mode: item?.mode === "fast" || item?.mode === "deep" ? item.mode : "balanced",
+      objective: item?.objective === "min_army" ? "min_army" : "min_loss",
+      diversityMode: Boolean(item?.diversityMode),
+      stoneMode: Boolean(item?.stoneMode),
+      modeLabel: trimText(item?.modeLabel || "Favori", 80),
+      enemySignature: trimText(item?.enemySignature || "-", 120),
+      enemyRosterSignature: ENEMY_COUNT_KEYS.map((key) => enemyCounts[key] || 0).join("|"),
+      enemyTitle: trimText(item?.enemyTitle || "Versus", 120),
+      enemyCounts,
+      allyPool: sanitizeCountMap(item?.allyPool, ALLY_COUNT_KEYS),
+      recommendationCounts: sanitizeCountMap(item?.recommendationCounts, ALLY_COUNT_KEYS),
+      usedPoints: clampInt(item?.usedPoints, 99999),
+      lostBlood: clampInt(item?.lostBlood, 999999),
+      winRate: clampInt(item?.winRate, 100)
+    };
   }
 
   function isIntegerInRange(value, minValue, maxValue) {
@@ -582,6 +572,32 @@
     return response.json().catch(() => null);
   }
 
+  async function upsertFavoriteStrategyViaRest(docId, payload) {
+    if (typeof globalScope.fetch !== "function") {
+      throw new Error("REST fallback icin fetch kullanilamiyor.");
+    }
+
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}/${FAVORITE_COLLECTION}/${encodeURIComponent(docId)}?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fields: toFirestoreRestFields(payload)
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new Error(`REST fallback basarisiz: HTTP ${response.status} ${response.statusText}\n${responseText}`);
+    }
+
+    return response.json().catch(() => null);
+  }
+
   async function migrateLocalStrategies() {
     if (!db || readMigrationFlag() || !isAdminSignedIn()) {
       return;
@@ -618,6 +634,113 @@
 
   function buildSimulationDocId(matchSignature, variantSignature) {
     return `sim_${hashText(`${matchSignature}::${variantSignature}`)}`;
+  }
+
+  function buildFavoriteStrategyDocId() {
+    const suffix = Math.random().toString(36).slice(2, 9) || "0";
+    return `fav_${Date.now()}_${suffix}`;
+  }
+
+  function validateFavoritePayload(data, docId) {
+    const errors = [];
+    const ALLOWED_KEYS = [
+      "source", "sourceLabel", "savedAt", "updatedAt", "stage", "mode", "objective",
+      "diversityMode", "stoneMode", "modeLabel",
+      "enemySignature", "enemyRosterSignature", "enemyTitle", "enemyCounts", "allyPool",
+      "recommendationCounts", "usedPoints", "lostBlood", "winRate"
+    ];
+    const REQUIRED_KEYS = [
+      "source", "sourceLabel", "savedAt", "updatedAt", "mode", "objective",
+      "diversityMode", "stoneMode", "modeLabel",
+      "enemySignature", "enemyRosterSignature", "enemyTitle", "enemyCounts", "allyPool",
+      "recommendationCounts", "usedPoints", "lostBlood", "winRate"
+    ];
+
+    if (!/^fav_[0-9]+_[a-z0-9]+$/.test(docId)) {
+      errors.push(`Belge ID formati hatali: ${docId}`);
+    }
+
+    const keys = Object.keys(data);
+    const extraKeys = keys.filter((k) => !ALLOWED_KEYS.includes(k));
+    if (extraKeys.length > 0) {
+      errors.push(`Izin verilmeyen alanlar: ${extraKeys.join(", ")}`);
+    }
+    const missingKeys = REQUIRED_KEYS.filter((k) => !(k in data));
+    if (missingKeys.length > 0) {
+      errors.push(`Eksik zorunlu alanlar: ${missingKeys.join(", ")}`);
+    }
+
+    if (!["optimizer", "simulation"].includes(data.source)) {
+      errors.push(`source gecersiz: ${data.source}`);
+    }
+    if (typeof data.sourceLabel !== "string" || data.sourceLabel.length === 0 || data.sourceLabel.length > 30) {
+      errors.push(`sourceLabel gecersiz: ${JSON.stringify(data.sourceLabel)}`);
+    }
+    if (typeof data.savedAt !== "string" || data.savedAt.length === 0 || data.savedAt.length > 40) {
+      errors.push(`savedAt gecersiz: ${JSON.stringify(data.savedAt)}`);
+    }
+    if (typeof data.updatedAt !== "string" || data.updatedAt.length === 0 || data.updatedAt.length > 40) {
+      errors.push(`updatedAt gecersiz: ${JSON.stringify(data.updatedAt)}`);
+    }
+    if ("stage" in data && !(Number.isInteger(data.stage) && data.stage >= 1 && data.stage <= 9999)) {
+      errors.push(`stage gecersiz: ${data.stage}`);
+    }
+    if (!["balanced", "fast", "deep"].includes(data.mode)) {
+      errors.push(`mode gecersiz: ${data.mode}`);
+    }
+    if (!["min_loss", "min_army"].includes(data.objective)) {
+      errors.push(`objective gecersiz: ${data.objective}`);
+    }
+    if (typeof data.diversityMode !== "boolean") {
+      errors.push(`diversityMode boolean olmali: ${data.diversityMode}`);
+    }
+    if (typeof data.stoneMode !== "boolean") {
+      errors.push(`stoneMode boolean olmali: ${data.stoneMode}`);
+    }
+    if (typeof data.modeLabel !== "string" || data.modeLabel.length === 0 || data.modeLabel.length > 80) {
+      errors.push(`modeLabel gecersiz: ${JSON.stringify(data.modeLabel)}`);
+    }
+    if (typeof data.enemySignature !== "string" || data.enemySignature.length === 0 || data.enemySignature.length > 120) {
+      errors.push(`enemySignature gecersiz: ${JSON.stringify(data.enemySignature)}`);
+    }
+    if (typeof data.enemyRosterSignature !== "string" || data.enemyRosterSignature.length === 0 || data.enemyRosterSignature.length > 120) {
+      errors.push(`enemyRosterSignature gecersiz: ${JSON.stringify(data.enemyRosterSignature)}`);
+    }
+    if (typeof data.enemyTitle !== "string" || data.enemyTitle.length === 0 || data.enemyTitle.length > 120) {
+      errors.push(`enemyTitle gecersiz: ${JSON.stringify(data.enemyTitle)}`);
+    }
+    if (!Number.isInteger(data.usedPoints) || data.usedPoints < 0 || data.usedPoints > 99999) {
+      errors.push(`usedPoints gecersiz: ${data.usedPoints}`);
+    }
+    if (!Number.isInteger(data.lostBlood) || data.lostBlood < 0 || data.lostBlood > 999999) {
+      errors.push(`lostBlood gecersiz: ${data.lostBlood}`);
+    }
+    if (!Number.isInteger(data.winRate) || data.winRate < 0 || data.winRate > 100) {
+      errors.push(`winRate gecersiz: ${data.winRate}`);
+    }
+
+    return errors;
+  }
+
+  function formatFavoriteStrategyError(error, payload, docId) {
+    const localErrors = validateFavoritePayload(payload, docId);
+    const lines = [
+      `Firestore hata kodu: ${error?.code || "bilinmiyor"}`,
+      `Firestore mesaji: ${error?.message || "bilinmiyor"}`,
+      `Belge kimligi: ${docId}`,
+      `Payload alanlari: ${Object.keys(payload).join(", ")}`,
+      `Byte boyutlari: sourceLabel=${getUtf8Size(payload.sourceLabel || "")}, modeLabel=${getUtf8Size(payload.modeLabel || "")}, enemySignature=${getUtf8Size(payload.enemySignature || "")}, enemyTitle=${getUtf8Size(payload.enemyTitle || "")}`
+    ];
+
+    if (localErrors.length > 0) {
+      lines.push("Yerel kural dogrulamasi basarisiz:");
+      localErrors.forEach((item) => lines.push(`- ${item}`));
+    } else {
+      lines.push("Yerel kural dogrulamasi gecti.");
+      lines.push("Sunucu hala reddediyorsa aktif projede farkli kural, farkli Firestore veritabani veya oturum/policy kaynakli ek bir kisit olabilir.");
+    }
+
+    return new Error(lines.join("\n"));
   }
 
   async function loadApprovedStrategies() {
@@ -699,6 +822,86 @@
       console.warn("Yanlis raporlari okunamadi, cache kullaniliyor.", error);
       return readWrongReports();
     }
+  }
+
+  async function loadFavoriteStrategies() {
+    if (!db) {
+      return readFavoriteStrategies();
+    }
+
+    try {
+      const snapshot = await db.collection(FAVORITE_COLLECTION).get();
+      const remoteItems = mergeFavorites(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const items = mergeFavorites([...remoteItems, ...readFavoriteStrategies()]);
+      writeFavoriteStrategies(items);
+      return items;
+    } catch (error) {
+      console.warn("Fav dizilimler okunamadi, cache kullaniliyor.", error);
+      return readFavoriteStrategies();
+    }
+  }
+
+  async function saveFavoriteStrategy(item) {
+    const docId = typeof item?.id === "string" && item.id.trim() ? item.id.trim() : buildFavoriteStrategyDocId();
+    const payload = sanitizeFavoriteStrategy(item);
+    const validationErrors = validateFavoritePayload(payload, docId);
+
+    if (!db) {
+      const next = mergeFavorites([...readFavoriteStrategies(), { ...payload, id: docId }]);
+      writeFavoriteStrategies(next);
+      return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
+    }
+
+    const currentUser = auth ? auth.currentUser : null;
+    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+      throw new Error("Fav kaydetmek icin admin girisi zorunludur. Lutfen once admin olarak giris yapin.");
+    }
+
+    if (validationErrors.length > 0) {
+      throw new Error(`Favori verisi kurallara uymuyor:\n${validationErrors.map((e) => `- ${e}`).join("\n")}`);
+    }
+
+    try {
+      await db.collection(FAVORITE_COLLECTION).doc(docId).set(payload);
+      const next = mergeFavorites([...readFavoriteStrategies(), { ...payload, id: docId }]);
+      writeFavoriteStrategies(next);
+      return { ...payload, id: docId };
+    } catch (error) {
+      if (error?.code === "permission-denied") {
+        try {
+          await upsertFavoriteStrategyViaRest(docId, payload);
+          const next = mergeFavorites([...readFavoriteStrategies(), { ...payload, id: docId }]);
+          writeFavoriteStrategies(next);
+          return { ...payload, id: docId, savedVia: "rest-fallback" };
+        } catch (restError) {
+          throw formatFavoriteStrategyError(restError, payload, docId);
+        }
+      }
+      throw formatFavoriteStrategyError(error, payload, docId);
+    }
+  }
+
+  async function deleteFavoriteStrategy(id) {
+    const docId = typeof id === "string" ? id.trim() : "";
+    const nextLocal = readFavoriteStrategies().filter((candidate) => candidate.id !== docId);
+    if (!db) {
+      writeFavoriteStrategies(nextLocal);
+      return;
+    }
+    await db.collection(FAVORITE_COLLECTION).doc(docId).delete();
+    writeFavoriteStrategies(nextLocal);
+  }
+
+  async function clearFavoriteStrategies() {
+    if (!db) {
+      writeFavoriteStrategies([]);
+      return;
+    }
+    const snapshot = await db.collection(FAVORITE_COLLECTION).get();
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+    writeFavoriteStrategies([]);
   }
 
   async function saveWrongReport(item) {
@@ -838,6 +1041,10 @@
     loadWrongReports,
     saveWrongReport,
     deleteWrongReport,
-    clearWrongReports
+    clearWrongReports,
+    loadFavoriteStrategies,
+    saveFavoriteStrategy,
+    deleteFavoriteStrategy,
+    clearFavoriteStrategies
   };
 })(window);

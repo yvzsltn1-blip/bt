@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BT Analyss Favlar</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="styles.css?v=20260502-03">
+</head>
+<body class="site-gate-pending">
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy-block">
+        <div class="top-nav">
+          <a class="nav-link" href="index.html">Simulasyon</a>
+          <a class="nav-link" href="optimizer.html">Optimizer</a>
+          <a class="nav-link" href="saved.html">Onaylananlar</a>
+          <a class="nav-link active" href="fav.html">Favlar</a>
+        </div>
+        <p class="eyebrow">BT ANALYSS / FAVORI DIZILIMLER</p>
+        <h1>Fav Dizilimler</h1>
+      </div>
+      <div class="hero-stat">
+        <span>Fav</span>
+        <strong id="favoriteCountLabel">0</strong>
+      </div>
+    </header>
+
+    <main class="single-layout">
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <h2>Kayitli Favoriler</h2>
+          <div class="actions actions-inline list-header-actions">
+            <a class="button button-secondary button-icon-only-mobile" href="saved.html" aria-label="Onaylananlar">
+              <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+              <span class="button-label">Onaylananlar</span>
+            </a>
+            <a class="button button-secondary button-icon-only-mobile" href="wrong.html" aria-label="Yanlislar">
+              <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+              <span class="button-label">Yanlislar</span>
+            </a>
+          </div>
+        </div>
+
+        <section id="favoriteList" class="saved-list">
+          <p class="summary-empty">Henuz favori dizilim yok.</p>
+        </section>
+
+        <section class="admin-auth-panel">
+          <div class="admin-auth-copy">
+            <strong>Admin Girisi</strong>
+            <span>Favori silme islemi sadece admin oturumunda acilir.</span>
+          </div>
+          <div class="admin-auth-controls">
+            <span id="adminAuthStatus" class="admin-auth-status">Admin kapali</span>
+            <input id="adminEmailInput" class="admin-auth-input" type="email" value="yavuz@gmail.com" autocomplete="username" spellcheck="false">
+            <input id="adminPasswordInput" class="admin-auth-input" type="password" placeholder="Admin sifresi" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+            <button id="adminLoginBtn" class="button button-secondary" type="button">Admin Giris</button>
+            <button id="adminLogoutBtn" class="button button-ghost" type="button" hidden>Cikis</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
+  <script src="site-gate.js?v=20260502-02" defer></script>
+  <script src="firebase-client.js?v=20260502-02" defer></script>
+  <script src="admin-auth-ui.js?v=20260425-1" defer></script>
+  <script src="battle-core.js?v=20260429-02" defer></script>
+  <script src="fav.js?v=20260502-01" defer></script>
+</body>
+</html>

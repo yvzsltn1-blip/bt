@@ -33,6 +33,7 @@ const optimizerClearBtn = document.querySelector("#optimizerClearBtn");
 const saveApprovedBtn = document.querySelector("#saveApprovedBtn");
 const topResultsBtn = document.querySelector("#topResultsBtn");
 const openSimulationFromOptimizerBtn = document.querySelector("#openSimulationFromOptimizerBtn");
+const favoriteStrategyBtn = document.querySelector("#favoriteStrategyBtn");
 const reportWrongOptimizerBtn = document.querySelector("#reportWrongOptimizerBtn");
 const langToggleOptimizerBtn = document.querySelector("#langToggleOptimizerBtn");
 const stageInput = document.querySelector("#stageInput");
@@ -60,6 +61,11 @@ const topResultsModal = document.querySelector("#topResultsModal");
 const closeTopResultsBtn = document.querySelector("#closeTopResultsBtn");
 const topResultsMeta = document.querySelector("#topResultsMeta");
 const topResultsList = document.querySelector("#topResultsList");
+const favoriteStrategiesModal = document.querySelector("#favoriteStrategiesModal");
+const closeFavoriteStrategiesBtn = document.querySelector("#closeFavoriteStrategiesBtn");
+const favoriteStrategiesMeta = document.querySelector("#favoriteStrategiesMeta");
+const favoriteStrategiesCurrentAction = document.querySelector("#favoriteStrategiesCurrentAction");
+const favoriteStrategiesList = document.querySelector("#favoriteStrategiesList");
 const adminAuthStatus = document.querySelector("#adminAuthStatus");
 const adminEmailInput = document.querySelector("#adminEmailInput");
 const adminPasswordInput = document.querySelector("#adminPasswordInput");
@@ -68,6 +74,7 @@ const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
 const ROSTER_CLIPBOARD_STORAGE_KEY = "bt-analiz.optimizer.rosterClipboard.v1";
 const ROSTER_CLIPBOARD_TTL_MS = 60 * 1000;
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const FAVORITE_STRATEGIES_STORAGE_KEY = "bt-analiz.optimizer.favorite-strategies.v1";
 const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
 
 let optimizerSearchSession = createEmptySearchSession();
@@ -84,6 +91,7 @@ let currentTopResultsSort = "default";
 let pendingWrongReport = null;
 let approvedStrategies = [];
 let wrongReports = [];
+let favoriteStrategies = [];
 let optimizerStopRequested = false;
 let isAdminSession = false;
 let optimizerLogFullscreenFallback = false;
@@ -92,6 +100,132 @@ let rosterClipboardExpiresAt = 0;
 let rosterClipboardExpiryTimer = null;
 let rosterClipboardIndicatorTimer = null;
 let optimizerIncumbentContext = null;
+let currentFavoriteModalSignature = null;
+let currentFavoriteModalPendingEntry = null;
+
+function showCopyableError(title, message) {
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.zIndex = "1000";
+  overlay.style.display = "grid";
+  overlay.style.placeItems = "center";
+  overlay.style.padding = "18px";
+  overlay.style.background = "rgba(6, 10, 14, 0.82)";
+
+  const card = document.createElement("div");
+  card.style.width = "min(920px, 100%)";
+  card.style.maxHeight = "calc(100vh - 36px)";
+  card.style.overflow = "auto";
+  card.style.padding = "18px";
+  card.style.border = "1px solid rgba(160, 185, 214, 0.14)";
+  card.style.borderRadius = "24px";
+  card.style.background = "rgba(10, 15, 22, 0.98)";
+  card.style.boxShadow = "0 24px 80px rgba(0, 0, 0, 0.45)";
+
+  const header = document.createElement("div");
+  header.className = "panel-head";
+  const heading = document.createElement("h2");
+  heading.textContent = title;
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "button button-ghost";
+  closeBtn.type = "button";
+  closeBtn.textContent = "Kapat";
+  header.append(heading, closeBtn);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "button button-secondary";
+  copyBtn.type = "button";
+  copyBtn.textContent = "Kopyala";
+
+  const text = document.createElement("textarea");
+  text.className = "terminal-block";
+  text.readOnly = true;
+  text.value = message;
+  text.style.width = "100%";
+  text.style.minHeight = "320px";
+  text.style.resize = "vertical";
+  text.style.whiteSpace = "pre";
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  actions.append(copyBtn);
+
+  function close() {
+    overlay.remove();
+  }
+
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      close();
+    }
+  });
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(message);
+      copyBtn.textContent = "Kopyalandi";
+    } catch {
+      text.focus();
+      text.select();
+      copyBtn.textContent = "Secildi";
+    }
+  });
+
+  card.append(header, actions, text);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  text.focus();
+  text.select();
+}
+
+function showInfoMessage(title, message) {
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.zIndex = "1000";
+  overlay.style.display = "grid";
+  overlay.style.placeItems = "center";
+  overlay.style.padding = "18px";
+  overlay.style.background = "rgba(6, 10, 14, 0.72)";
+
+  const card = document.createElement("div");
+  card.style.width = "min(560px, 100%)";
+  card.style.padding = "18px";
+  card.style.border = "1px solid rgba(160, 185, 214, 0.14)";
+  card.style.borderRadius = "24px";
+  card.style.background = "rgba(10, 15, 22, 0.98)";
+  card.style.boxShadow = "0 24px 80px rgba(0, 0, 0, 0.45)";
+
+  const header = document.createElement("div");
+  header.className = "panel-head";
+  const heading = document.createElement("h2");
+  heading.textContent = title;
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "button button-ghost";
+  closeBtn.type = "button";
+  closeBtn.textContent = "Kapat";
+  header.append(heading, closeBtn);
+
+  const body = document.createElement("div");
+  body.className = "terminal-block";
+  body.textContent = message;
+
+  function close() {
+    overlay.remove();
+  }
+
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      close();
+    }
+  });
+
+  card.append(header, body);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
 
 function setOptimizeButtonLabel(text) {
   optimizeBtn.textContent = text;
@@ -151,6 +285,7 @@ function syncAdminRestrictedActions() {
   if (openSimulationFromOptimizerBtn) {
     openSimulationFromOptimizerBtn.disabled = isBusy || !currentApprovedCandidate || !getPrimaryOptimizerSource(currentApprovedCandidate.result)?.counts;
   }
+  syncFavoriteStrategyButtonUi();
 }
 
 async function bindAdminAuth() {
@@ -167,12 +302,19 @@ async function bindAdminAuth() {
     onStateChange: (isAdmin) => {
       isAdminSession = isAdmin;
       syncAdminRestrictedActions();
+      renderFavoriteButtonState();
+      if (!favoriteStrategiesModal?.hidden) {
+        renderFavoriteStrategiesModal();
+      }
     }
   });
 }
 
 saveApprovedBtn.disabled = true;
 topResultsBtn.disabled = true;
+if (favoriteStrategyBtn) {
+  favoriteStrategyBtn.disabled = true;
+}
 if (openSimulationFromOptimizerBtn) {
   openSimulationFromOptimizerBtn.disabled = true;
 }
@@ -188,6 +330,7 @@ wireSequentialInputOrder([
 resetValues();
 renderPointSummary();
 applyStageFromQuery();
+void initializeFavoriteStrategies();
 void initializeApprovedStrategies();
 void initializeWrongReports();
 void bindAdminAuth();
@@ -277,6 +420,8 @@ optimizerClearBtn.addEventListener("click", () => {
   optimizerStatus.textContent = "Sifirlandi";
   currentWrongCandidate = null;
   reportWrongOptimizerBtn.disabled = true;
+  closeFavoriteStrategiesModal();
+  renderFavoriteButtonState();
 });
 
 saveApprovedBtn.addEventListener("click", async () => {
@@ -310,6 +455,45 @@ topResultsBtn.addEventListener("click", () => {
   }
   openTopResultsModal();
 });
+
+if (favoriteStrategyBtn) {
+  favoriteStrategyBtn.addEventListener("click", () => {
+    const context = getFavoriteEnemyContext();
+    if (!context) {
+      window.alert("Once kademe ve rakip dizilimini gir.");
+      return;
+    }
+
+    const modalSignature = context.enemyRosterSignature || context.enemySignature;
+    const existingFavorites = getFavoriteStrategiesForEnemySignature(modalSignature);
+    const currentMatch = findMatchingFavoriteForCurrentRecommendation();
+    const currentEntry = createFavoriteEntryFromCurrentRecommendation();
+
+    if (existingFavorites.length > 0 || currentMatch) {
+      openFavoriteStrategiesModal(modalSignature);
+      return;
+    }
+
+    if (!currentEntry || currentEntry.enemyRosterSignature !== modalSignature) {
+      window.alert("Favoriye eklemek icin once bu rakibe karsi bir sonuc uret.");
+      return;
+    }
+
+    if (!isAdminSession) {
+      window.alert("Fav kaydetmek icin admin girisi gerekli.");
+      return;
+    }
+
+    void saveFavoriteStrategy(currentEntry)
+      .then((saved) => {
+        renderFavoriteButtonState();
+        showInfoMessage("Fav Kaydedildi", `Dizilim favlandi. Artik ${saved.enemyTitle || "bu rakip"} icin favorilerde gorunecek.`);
+      })
+      .catch((error) => {
+        showCopyableError("Fav Kaydedilemedi", `Fav kaydedilemedi:\n\n${error.message}`);
+      });
+  });
+}
 
 reportWrongOptimizerBtn.addEventListener("click", () => {
   if (!currentWrongCandidate) {
@@ -465,11 +649,24 @@ topResultsModal.addEventListener("click", (event) => {
   }
 });
 
+if (closeFavoriteStrategiesBtn) {
+  closeFavoriteStrategiesBtn.addEventListener("click", closeFavoriteStrategiesModal);
+}
+
+if (favoriteStrategiesModal) {
+  favoriteStrategiesModal.addEventListener("click", (event) => {
+    if (event.target === favoriteStrategiesModal) {
+      closeFavoriteStrategiesModal();
+    }
+  });
+}
+
 async function initializeApprovedStrategies() {
   approvedStrategies = await loadApprovedStrategies();
   restoreFromQuery();
   renderPointSummary();
   renderMatchedSavedStrategy();
+  renderFavoriteButtonState();
 }
 
 async function initializeWrongReports() {
@@ -666,6 +863,7 @@ function setOptimizerBusy(isBusy) {
   syncAdminRestrictedActions();
   topResultsBtn.disabled = isBusy || !currentTopResultsContext || !currentTopResultsContext.candidates.length;
   reportWrongOptimizerBtn.disabled = isBusy || !currentWrongCandidate;
+  syncFavoriteStrategyButtonUi();
   modeButtons.forEach((button) => {
     button.disabled = isBusy;
   });
@@ -718,6 +916,7 @@ function invalidateSearchSession() {
   closeTopResultsModal();
   renderMatchedActualReport();
   renderComparisonPanel();
+  renderFavoriteButtonState();
 }
 
 function createSearchKey(stage, enemy, allyPool, mode, objective, diversityMode, stoneMode) {
@@ -758,6 +957,538 @@ async function loadWrongReports() {
     console.warn("Yanlis raporlari yuklenemedi.", error);
     return [];
   }
+}
+
+async function initializeFavoriteStrategies() {
+  favoriteStrategies = await loadFavoriteStrategies();
+  renderFavoriteButtonState();
+}
+
+function readFavoriteStrategiesCache() {
+  try {
+    const raw = window.localStorage.getItem(FAVORITE_STRATEGIES_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .map((entry, index) => normalizeFavoriteStrategyEntry(entry, index))
+      .filter(Boolean);
+  } catch (error) {
+    console.warn("Fav dizilimler okunamadi.", error);
+    return [];
+  }
+}
+
+function writeFavoriteStrategiesCache(items) {
+  try {
+    window.localStorage.setItem(FAVORITE_STRATEGIES_STORAGE_KEY, JSON.stringify(items));
+  } catch (error) {
+    console.warn("Fav dizilimler kaydedilemedi.", error);
+  }
+}
+
+async function loadFavoriteStrategies() {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadFavoriteStrategies !== "function") {
+    return readFavoriteStrategiesCache();
+  }
+  try {
+    const items = await window.BTFirebase.loadFavoriteStrategies();
+    const normalized = items
+      .map((entry, index) => normalizeFavoriteStrategyEntry(entry, index))
+      .filter(Boolean);
+    writeFavoriteStrategiesCache(normalized);
+    return normalized;
+  } catch (error) {
+    console.warn("Fav dizilimler Firestore'dan yuklenemedi.", error);
+    return readFavoriteStrategiesCache();
+  }
+}
+
+function normalizeFavoriteStrategyEntry(entry, index) {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+
+  const stage = Number.parseInt(entry.stage, 10);
+  const enemyCounts = normalizeFavoriteCounts(entry.enemyCounts, ENEMY_UNITS);
+  const recommendationCounts = normalizeFavoriteCounts(entry.recommendationCounts, ALLY_UNITS);
+  const allyPool = normalizeFavoriteCounts(entry.allyPool, ALLY_UNITS);
+  const enemyRosterSignature = entry.enemyRosterSignature || getEnemyRosterSignature(enemyCounts);
+  const enemySignature = entry.enemySignature || (Number.isFinite(stage) && stage > 0
+    ? getEnemySignature(stage, enemyCounts)
+    : enemyRosterSignature);
+
+  if (!enemySignature || !enemyRosterSignature) {
+    return null;
+  }
+
+  return {
+    id: String(entry.id || `fav_${Date.now()}_${index}`),
+    source: entry.source === "simulation" ? "simulation" : "optimizer",
+    sourceLabel: entry.sourceLabel || (entry.source === "simulation" ? "Simulasyon Fav" : "Optimizer Fav"),
+    savedAt: entry.savedAt || new Date().toISOString(),
+    stage: Number.isFinite(stage) && stage > 0 ? stage : null,
+    mode: entry.mode || "balanced",
+    objective: entry.objective || "min_loss",
+    diversityMode: Boolean(entry.diversityMode),
+    stoneMode: Boolean(entry.stoneMode),
+    modeLabel: entry.modeLabel || getModeLabel(entry.mode || "balanced", entry.objective || "min_loss", Boolean(entry.diversityMode), Boolean(entry.stoneMode)),
+    enemySignature,
+    enemyRosterSignature,
+    enemyTitle: entry.enemyTitle || buildEnemyTitle(enemyCounts),
+    enemyCounts,
+    allyPool,
+    recommendationCounts,
+    usedPoints: Number.isFinite(Number(entry.usedPoints)) ? Math.round(Number(entry.usedPoints)) : 0,
+    lostBlood: Number.isFinite(Number(entry.lostBlood)) ? Math.round(Number(entry.lostBlood)) : 0,
+    winRate: Number.isFinite(Number(entry.winRate)) ? Math.round(Number(entry.winRate)) : 0
+  };
+}
+
+function normalizeFavoriteCounts(counts, units) {
+  const normalized = {};
+  units.forEach((unit) => {
+    const value = Number.parseInt(counts?.[unit.key] || 0, 10);
+    normalized[unit.key] = Number.isFinite(value) && value > 0 ? value : 0;
+  });
+  return normalized;
+}
+
+function buildEnemyTitle(enemyCounts) {
+  const parts = ENEMY_UNITS
+    .filter((unit) => (enemyCounts?.[unit.key] || 0) > 0)
+    .map((unit) => `${enemyCounts[unit.key]} ${unit.label}`);
+  return parts.length ? parts.join(" / ") : "Versus";
+}
+
+function hasAnyEnemyUnits(enemyCounts) {
+  return ENEMY_UNITS.some((unit) => (enemyCounts?.[unit.key] || 0) > 0);
+}
+
+function getEnemyRosterSignature(enemyCounts) {
+  return ENEMY_UNITS.map((unit) => enemyCounts?.[unit.key] || 0).join("|");
+}
+
+function getFavoriteEnemyContext() {
+  const enemyCounts = collectCounts(ENEMY_UNITS);
+  const stage = getCommittedStage();
+  if (!hasAnyEnemyUnits(enemyCounts)) {
+    return null;
+  }
+  return {
+    stage,
+    enemyCounts,
+    enemySignature: stage ? getEnemySignature(stage, enemyCounts) : getEnemyRosterSignature(enemyCounts),
+    enemyRosterSignature: getEnemyRosterSignature(enemyCounts)
+  };
+}
+
+function getCountsSignature(counts, units = ALLY_UNITS) {
+  return units.map((unit) => counts?.[unit.key] || 0).join("|");
+}
+
+function createFavoriteEntryFromRecommendationCounts(recommendationCounts, options = {}) {
+  const context = options.enemyCounts ? {
+    stage: Number.isFinite(Number(options.stage)) ? Number(options.stage) : null,
+    enemyCounts: normalizeFavoriteCounts(options.enemyCounts, ENEMY_UNITS),
+    enemySignature: Number.isFinite(Number(options.stage)) && Number(options.stage) > 0
+      ? getEnemySignature(Number(options.stage), normalizeFavoriteCounts(options.enemyCounts, ENEMY_UNITS))
+      : getEnemyRosterSignature(normalizeFavoriteCounts(options.enemyCounts, ENEMY_UNITS)),
+    enemyRosterSignature: getEnemyRosterSignature(normalizeFavoriteCounts(options.enemyCounts, ENEMY_UNITS))
+  } : getFavoriteEnemyContext();
+
+  if (!context || !hasAnyEnemyUnits(context.enemyCounts)) {
+    return null;
+  }
+  const normalizedCounts = normalizeFavoriteCounts(recommendationCounts, ALLY_UNITS);
+  const normalizedPool = normalizeFavoriteCounts(
+    options.allyPool || currentApprovedCandidate?.allyPool || collectCounts(ALLY_UNITS),
+    ALLY_UNITS
+  );
+  return {
+    id: `fav_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    source: options.source === "simulation" ? "simulation" : "optimizer",
+    sourceLabel: options.sourceLabel || (options.source === "simulation" ? "Simulasyon Fav" : "Optimizer Fav"),
+    savedAt: new Date().toISOString(),
+    ...(context.stage ? { stage: context.stage } : {}),
+    mode: options.mode || currentApprovedCandidate?.mode || "balanced",
+    objective: options.objective || currentApprovedCandidate?.objective || "min_loss",
+    diversityMode: Boolean(options.diversityMode ?? currentApprovedCandidate?.diversityMode),
+    stoneMode: Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode),
+    modeLabel: options.modeLabel || getModeLabel(
+      options.mode || currentApprovedCandidate?.mode || "balanced",
+      options.objective || currentApprovedCandidate?.objective || "min_loss",
+      Boolean(options.diversityMode ?? currentApprovedCandidate?.diversityMode),
+      Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode)
+    ),
+    enemySignature: context.enemySignature,
+    enemyRosterSignature: context.enemyRosterSignature,
+    enemyTitle: buildEnemyTitle(context.enemyCounts),
+    enemyCounts: context.enemyCounts,
+    allyPool: normalizedPool,
+    recommendationCounts: normalizedCounts,
+    usedPoints: Number.isFinite(Number(options.usedPoints))
+      ? Math.round(Number(options.usedPoints))
+      : calculateArmyPoints(normalizedCounts),
+    lostBlood: Number.isFinite(Number(options.lostBlood)) ? Math.round(Number(options.lostBlood)) : 0,
+    winRate: Number.isFinite(Number(options.winRate)) ? Math.round(Number(options.winRate)) : 0
+  };
+}
+
+function createFavoriteEntryFromCurrentRecommendation() {
+  if (!currentApprovedCandidate) {
+    return null;
+  }
+  const recommendation = getPrimaryOptimizerSource(currentApprovedCandidate.result);
+  if (!recommendation?.counts) {
+    return null;
+  }
+  return createFavoriteEntryFromRecommendationCounts(recommendation.counts, {
+    stage: currentApprovedCandidate.stage,
+    enemyCounts: currentApprovedCandidate.enemyCounts,
+    allyPool: currentApprovedCandidate.allyPool,
+    mode: currentApprovedCandidate.mode,
+    objective: currentApprovedCandidate.objective || "min_loss",
+    diversityMode: Boolean(currentApprovedCandidate.diversityMode),
+    stoneMode: Boolean(currentApprovedCandidate.stoneMode),
+    usedPoints: Math.round(recommendation.avgUsedPoints || 0),
+    lostBlood: Number.isFinite(getDisplayedLossValue(recommendation)) ? Math.round(getDisplayedLossValue(recommendation)) : 0,
+    winRate: Math.round((recommendation.winRate || 0) * 100)
+  });
+}
+
+function getFavoriteStrategiesForEnemySignature(enemySignature) {
+  return favoriteStrategies
+    .filter((entry) => entry.enemyRosterSignature === enemySignature || entry.enemySignature === enemySignature)
+    .sort((left, right) => String(right.savedAt || "").localeCompare(String(left.savedAt || "")));
+}
+
+function findMatchingFavoriteForEntry(entry) {
+  if (!entry) {
+    return null;
+  }
+  const signature = getCountsSignature(entry.recommendationCounts);
+  return favoriteStrategies.find((candidate) =>
+    (candidate.enemyRosterSignature === entry.enemyRosterSignature || candidate.enemySignature === entry.enemySignature) &&
+    getCountsSignature(candidate.recommendationCounts) === signature
+  ) || null;
+}
+
+function findMatchingFavoriteForCurrentRecommendation() {
+  return findMatchingFavoriteForEntry(createFavoriteEntryFromCurrentRecommendation());
+}
+
+function syncFavoriteStrategyButtonUi() {
+  if (!favoriteStrategyBtn) {
+    return;
+  }
+
+  const context = getFavoriteEnemyContext();
+  const currentEntry = createFavoriteEntryFromCurrentRecommendation();
+  const activeSignature =
+    currentEntry?.enemyRosterSignature ||
+    currentEntry?.enemySignature ||
+    context?.enemyRosterSignature ||
+    context?.enemySignature ||
+    null;
+  const existingFavorites = activeSignature ? getFavoriteStrategiesForEnemySignature(activeSignature) : [];
+  const currentMatch = findMatchingFavoriteForEntry(currentEntry);
+  const isBusy = optimizeBtn.disabled;
+  const canUseButton = Boolean(context || currentEntry || existingFavorites.length);
+
+  favoriteStrategyBtn.disabled = isBusy || !canUseButton;
+  favoriteStrategyBtn.classList.toggle("is-active", Boolean(currentMatch));
+  favoriteStrategyBtn.classList.toggle("has-matches", existingFavorites.length > 0 && !currentMatch);
+
+  if (currentMatch) {
+    favoriteStrategyBtn.textContent = "Favli";
+    favoriteStrategyBtn.title = "Bu dizilim zaten favli. Tiklayinca kayitli favlari gorursun.";
+    return;
+  }
+
+  if (existingFavorites.length > 0) {
+    favoriteStrategyBtn.textContent = "Favlari Gor";
+    favoriteStrategyBtn.title = "Bu rakip icin kayitli favlari ac.";
+    return;
+  }
+
+  favoriteStrategyBtn.textContent = "Favorilere Ekle";
+  favoriteStrategyBtn.title = isAdminSession
+    ? "Mevcut sonucu favorilere ekle."
+    : "Fav kaydetmek icin admin girisi gerekli.";
+}
+
+async function saveFavoriteStrategy(entry) {
+  const existing = favoriteStrategies.find((candidate) =>
+    (candidate.enemyRosterSignature === entry.enemyRosterSignature || candidate.enemySignature === entry.enemySignature) &&
+    getCountsSignature(candidate.recommendationCounts) === getCountsSignature(entry.recommendationCounts)
+  );
+  if (existing) {
+    return existing;
+  }
+
+  const fallbackEntry = normalizeFavoriteStrategyEntry(entry, favoriteStrategies.length) || entry;
+  if (!window.BTFirebase || typeof window.BTFirebase.saveFavoriteStrategy !== "function") {
+    favoriteStrategies = [fallbackEntry, ...favoriteStrategies];
+    writeFavoriteStrategiesCache(favoriteStrategies);
+    return fallbackEntry;
+  }
+
+  try {
+    const saved = await window.BTFirebase.saveFavoriteStrategy(entry);
+    const normalized = normalizeFavoriteStrategyEntry(saved, favoriteStrategies.length) || fallbackEntry;
+    favoriteStrategies = [normalized, ...favoriteStrategies];
+    writeFavoriteStrategiesCache(favoriteStrategies);
+    return normalized;
+  } catch (error) {
+    console.warn("Fav dizilim Firestore'a kaydedilemedi.", error);
+    throw error;
+  }
+}
+
+async function removeFavoriteStrategy(favoriteId) {
+  if (!window.BTFirebase || typeof window.BTFirebase.deleteFavoriteStrategy !== "function") {
+    favoriteStrategies = favoriteStrategies.filter((entry) => entry.id !== favoriteId);
+    writeFavoriteStrategiesCache(favoriteStrategies);
+    renderFavoriteButtonState();
+    if (!favoriteStrategiesModal?.hidden) {
+      renderFavoriteStrategiesModal();
+    }
+    return;
+  }
+
+  try {
+    await window.BTFirebase.deleteFavoriteStrategy(favoriteId);
+    favoriteStrategies = favoriteStrategies.filter((entry) => entry.id !== favoriteId);
+    writeFavoriteStrategiesCache(favoriteStrategies);
+  } catch (error) {
+    console.warn("Fav dizilim silinemedi.", error);
+    throw error;
+  }
+  renderFavoriteButtonState();
+  if (!favoriteStrategiesModal?.hidden) {
+    renderFavoriteStrategiesModal();
+  }
+}
+
+function renderFavoriteButtonState() {
+  syncFavoriteStrategyButtonUi();
+  if (!favoriteStrategiesModal?.hidden) {
+    renderFavoriteStrategiesModal();
+  }
+  if (!topResultsModal.hidden) {
+    renderTopResultsModal();
+  }
+}
+
+function openFavoriteStrategiesModal(enemySignature = null, pendingEntry = null) {
+  const context = getFavoriteEnemyContext();
+  currentFavoriteModalSignature = enemySignature || context?.enemyRosterSignature || null;
+  currentFavoriteModalPendingEntry = pendingEntry ? { ...pendingEntry } : null;
+  renderFavoriteStrategiesModal();
+  favoriteStrategiesModal.hidden = false;
+}
+
+function closeFavoriteStrategiesModal() {
+  if (!favoriteStrategiesModal) {
+    return;
+  }
+  favoriteStrategiesModal.hidden = true;
+  currentFavoriteModalSignature = null;
+  currentFavoriteModalPendingEntry = null;
+}
+
+function renderFavoriteStrategiesModal() {
+  if (!favoriteStrategiesMeta || !favoriteStrategiesCurrentAction || !favoriteStrategiesList) {
+    return;
+  }
+
+  favoriteStrategiesMeta.innerHTML = "";
+  favoriteStrategiesCurrentAction.innerHTML = "";
+  favoriteStrategiesList.innerHTML = "";
+
+  const context = getFavoriteEnemyContext();
+  const activeSignature = currentFavoriteModalSignature || context?.enemyRosterSignature || null;
+  if (!activeSignature) {
+    favoriteStrategiesList.innerHTML = '<p class="summary-empty">Bu rakip dizilimi icin gosterilecek fav yok.</p>';
+    return;
+  }
+
+  const entries = getFavoriteStrategiesForEnemySignature(activeSignature);
+  const referenceEntry = entries[0] || currentFavoriteModalPendingEntry || createFavoriteEntryFromCurrentRecommendation();
+  const stage = referenceEntry?.stage || context?.stage || "-";
+  const enemyCounts = referenceEntry?.enemyCounts || context?.enemyCounts || {};
+  const currentEntry = currentFavoriteModalPendingEntry || createFavoriteEntryFromCurrentRecommendation();
+  const currentMatch = findMatchingFavoriteForEntry(currentEntry);
+
+  [
+    `Kademe ${stage}`,
+    buildEnemyTitle(enemyCounts),
+    `${entries.length} fav kayit`,
+    currentEntry && currentEntry.enemyRosterSignature === activeSignature
+      ? "Mevcut sonuc ekranda"
+      : "Su an yeni sonuc secili degil"
+  ].forEach((value) => {
+    const tag = document.createElement("span");
+    tag.textContent = value;
+    favoriteStrategiesMeta.appendChild(tag);
+  });
+
+  const currentActionCard = document.createElement("div");
+  currentActionCard.className = "favorite-current-box";
+  const currentActionText = document.createElement("span");
+
+  if (currentMatch) {
+    currentActionText.textContent = "Mevcut onerilen dizilim zaten favlarin arasinda.";
+  } else if (currentEntry && currentEntry.enemyRosterSignature === activeSignature) {
+    currentActionText.textContent = "Istersen secili dizilimi de bu rakip icin favlara ekleyebilirsin.";
+    const addCurrentBtn = document.createElement("button");
+    addCurrentBtn.type = "button";
+    addCurrentBtn.className = "button button-secondary";
+    addCurrentBtn.textContent = "Mevcut Sonucu Favla";
+    addCurrentBtn.disabled = !isAdminSession;
+    addCurrentBtn.title = isAdminSession ? "" : "Fav kaydetmek icin admin girisi gerekli.";
+    addCurrentBtn.addEventListener("click", () => {
+      if (!isAdminSession) {
+        window.alert("Fav kaydetmek icin admin girisi gerekli.");
+        return;
+      }
+      void saveFavoriteStrategy(currentEntry)
+        .then(() => {
+          renderFavoriteButtonState();
+          renderFavoriteStrategiesModal();
+        })
+        .catch((error) => {
+          showCopyableError("Fav Kaydedilemedi", `Fav kaydedilemedi:\n\n${error.message}`);
+        });
+    });
+    currentActionCard.append(currentActionText, addCurrentBtn);
+  } else {
+    currentActionText.textContent = "Bu rakip icin kayitli favlar altta listeleniyor.";
+  }
+
+  if (!currentActionCard.childNodes.length) {
+    currentActionCard.appendChild(currentActionText);
+  }
+  favoriteStrategiesCurrentAction.appendChild(currentActionCard);
+
+  if (!entries.length) {
+    favoriteStrategiesList.innerHTML = '<p class="summary-empty">Bu rakip dizilimi icin henuz fav yok.</p>';
+    return;
+  }
+
+  const currentAllyPool = collectCounts(ALLY_UNITS);
+  entries.forEach((entry, index) => {
+    const enoughArmy = ALLY_UNITS.every((unit) => (currentAllyPool[unit.key] || 0) >= (entry.recommendationCounts[unit.key] || 0));
+    const exactCurrent = Boolean(currentEntry) &&
+      currentEntry.enemyRosterSignature === entry.enemyRosterSignature &&
+      getCountsSignature(currentEntry.recommendationCounts) === getCountsSignature(entry.recommendationCounts);
+
+    const card = document.createElement("article");
+    card.className = `saved-match-card favorite-match-card${exactCurrent ? " is-current" : ""}`;
+
+    const head = document.createElement("div");
+    head.className = "saved-match-head";
+    head.innerHTML = `<strong>${index + 1}. Fav Dizilim${exactCurrent ? " / su anki sonuc" : ""}</strong><span>${entry.modeLabel} / ${formatDate(entry.savedAt)}</span>`;
+
+    const body = document.createElement("div");
+    body.className = "saved-match-meta";
+    body.innerHTML = `
+      <span>Kazanma orani: <strong>%${entry.winRate}</strong></span>
+      <span>Kan kaybi: <strong>${entry.lostBlood}</strong></span>
+      <span>Puan: <strong>${entry.usedPoints}</strong></span>
+      <span>Durum: <strong>${enoughArmy ? "Uygulanabilir" : "Eksik birlik var"}</strong></span>
+    `;
+
+    const note = document.createElement("p");
+    note.className = "favorite-match-note";
+    note.textContent = `${buildEnemyTitle(entry.enemyCounts)} rakibine karsi daha once kaydedildi.`;
+
+    const actions = document.createElement("div");
+    actions.className = "favorite-match-actions";
+    actions.appendChild(createOpenSimulationButton(entry.enemyCounts, entry.recommendationCounts, "Simulasyonda Ac"));
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "button button-ghost";
+    removeBtn.textContent = "Favdan Cikar";
+    removeBtn.disabled = !isAdminSession;
+    removeBtn.title = isAdminSession ? "" : "Fav silmek icin admin girisi gerekli.";
+    removeBtn.addEventListener("click", () => {
+      if (!isAdminSession) {
+        window.alert("Fav silmek icin admin girisi gerekli.");
+        return;
+      }
+      void removeFavoriteStrategy(entry.id).catch((error) => {
+        showCopyableError("Fav Silinemedi", `Fav silinemedi:\n\n${error.message}`);
+      });
+    });
+    actions.appendChild(removeBtn);
+
+    card.append(head, body, note, actions, buildTopResultUnitList(entry.recommendationCounts));
+    favoriteStrategiesList.appendChild(card);
+  });
+}
+
+function createTopResultFavoriteButton(entry) {
+  const favoriteEntry = createFavoriteEntryFromRecommendationCounts(entry.counts, {
+    stage: currentTopResultsContext?.stage,
+    enemyCounts: currentTopResultsContext?.enemyCounts || {},
+    allyPool: currentApprovedCandidate?.allyPool || collectCounts(ALLY_UNITS),
+    mode: currentTopResultsContext?.mode || currentApprovedCandidate?.mode || "balanced",
+    objective: currentTopResultsContext?.objective || currentApprovedCandidate?.objective || "min_loss",
+    diversityMode: Boolean(currentTopResultsContext?.diversityMode ?? currentApprovedCandidate?.diversityMode),
+    stoneMode: Boolean(entry.stoneMode ?? currentTopResultsContext?.stoneMode ?? currentApprovedCandidate?.stoneMode),
+    usedPoints: Math.round(entry.avgUsedPoints || 0),
+    lostBlood: Number.isFinite(getDisplayedLossValue(entry)) ? Math.round(getDisplayedLossValue(entry)) : 0,
+    winRate: Math.round((entry.winRate || 0) * 100)
+  });
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "button button-ghost top-result-favorite-button";
+  button.textContent = "Favorilere Ekle";
+
+  if (!favoriteEntry) {
+    button.disabled = true;
+    button.title = "Fav icin once gecerli rakip dizilimi gerekli.";
+    return button;
+  }
+
+  const existingEnemyFavorites = getFavoriteStrategiesForEnemySignature(favoriteEntry.enemyRosterSignature);
+  const exactMatch = findMatchingFavoriteForEntry(favoriteEntry);
+  button.classList.toggle("is-active", Boolean(exactMatch));
+  button.classList.toggle("has-matches", existingEnemyFavorites.length > 0 && !exactMatch);
+  button.textContent = exactMatch ? "Favli" : "Favorilere Ekle";
+  button.title = exactMatch
+    ? "Bu dizilim zaten favli. Tiklayinca tum favlari gorursun."
+    : existingEnemyFavorites.length > 0
+      ? "Bu rakip icin daha once favlar var. Tiklayinca liste acilir."
+      : (isAdminSession ? "Bu dizilimi favorilere ekle." : "Fav kaydetmek icin admin girisi gerekli.");
+
+  button.addEventListener("click", () => {
+    if (exactMatch || existingEnemyFavorites.length > 0) {
+      openFavoriteStrategiesModal(favoriteEntry.enemyRosterSignature, favoriteEntry);
+      return;
+    }
+    if (!isAdminSession) {
+      window.alert("Fav kaydetmek icin admin girisi gerekli.");
+      return;
+    }
+    void saveFavoriteStrategy(favoriteEntry)
+      .then(() => {
+        renderFavoriteButtonState();
+        showInfoMessage("Fav Kaydedildi", "Dizilim favorilere eklendi.");
+      })
+      .catch((error) => {
+        showCopyableError("Fav Kaydedilemedi", `Fav kaydedilemedi:\n\n${error.message}`);
+      });
+  });
+
+  return button;
 }
 
 function getRunConfig(stage, runIndex, mode, diversityMode = false) {
@@ -903,6 +1634,10 @@ function buildInputs(target, units, side) {
         renderPointSummary();
       }
       renderMatchedSavedStrategy();
+      renderFavoriteButtonState();
+      if (!favoriteStrategiesModal?.hidden) {
+        renderFavoriteStrategiesModal();
+      }
     });
 
     row.append(label, input);
@@ -1379,6 +2114,10 @@ function commitStageInput() {
   }
   renderPointSummary();
   renderMatchedSavedStrategy();
+  renderFavoriteButtonState();
+  if (!favoriteStrategiesModal?.hidden) {
+    renderFavoriteStrategiesModal();
+  }
 }
 
 function getCommittedStage() {
@@ -1480,6 +2219,10 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   reportWrongOptimizerBtn.disabled = false;
   renderMatchedActualReport();
   renderComparisonPanel();
+  renderFavoriteButtonState();
+  if (!favoriteStrategiesModal?.hidden) {
+    renderFavoriteStrategiesModal();
+  }
 }
 
 function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, meta) {
@@ -2558,12 +3301,16 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
       headRow.className = "top-result-stat-head";
       labelNode.classList.add("top-result-stat-label");
       headRow.appendChild(labelNode);
+      const scoreWrap = document.createElement("div");
+      scoreWrap.className = "top-result-score-wrap";
       if (Number.isFinite(entry.smartScore)) {
         const scoreNode = document.createElement("span");
         scoreNode.className = "top-result-smart-badge";
         scoreNode.textContent = entry.smartScore.toFixed(1);
-        headRow.appendChild(scoreNode);
+        scoreWrap.appendChild(scoreNode);
       }
+      scoreWrap.appendChild(createTopResultFavoriteButton(entry));
+      headRow.appendChild(scoreWrap);
       stat.appendChild(headRow);
       valueNode.className = "top-result-loss-value-wrap";
       const mainValue = document.createElement("span");

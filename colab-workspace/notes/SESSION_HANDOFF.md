@@ -9,7 +9,18 @@ Bu not, terminal kapanip tekrar acildiginda Colab entegrasyonu ve aktif battle a
 - `colab-workspace/` altinda izole bir Colab entegrasyon alani olusturuldu.
 - Colab tarafinda calisan HTTP worker, yerelden job gonderebilen istemci ve ilk `smoke` job'i yazildi.
 - Colab worker ile baglanti test edildi; `smoke` job basariyla calisti.
-- Simdi ikinci adima gecildi: belirli bir versus icin uzun suren optimizer aramasini Colab uzerinde kosturmak.
+- `optimizer_search` remote job'i eklendi.
+- `submit_job.py` icine `--args-file` destegi eklendi; boylece JSON payload dosyasini dogrudan gonderebiliyoruz.
+- Simdi ikinci adima gecildi: belirli bir versus icin uzun suren optimizer aramasi Colab uzerinde calisiyor.
+
+## Su Anki Durum
+
+- Yerel branch: `work-colab-hazirlik-20260430`
+- Son commit: `1aaab64`
+- Colab worker URL ve token: `LOCAL_STATE.md` icinde
+- Aktif remote job id: `c3775c48af7d43a1`
+- Son bilinen remote job durumu: `running`
+- Yerel submit kaydi: `colab-workspace/runs/submitted-job-20260430-085714.json`
 
 ## Bu Dosyalar Ne Icin
 
@@ -80,7 +91,7 @@ py -3 colab-workspace\client\submit_job.py `
   --endpoint https://WORKER_URL `
   --token WORKER_TOKEN `
   --job optimizer_search `
-  --args-json "{...}" `
+  --args-file colab-workspace\config\stage75-deep-minloss.json `
   --save-dir colab-workspace\runs
 ```
 
@@ -99,3 +110,16 @@ py -3 colab-workspace\client\submit_job.py `
 
 - Bu battle aramasi Colab'da uzaktan kosturulacak. Yerel terminal kapanabilir; tekrar geldiginde `LOCAL_STATE.md` + `submit_job.py --job-id ...` ile durum okunabilir.
 - `py` komutu bu makinede `py -3` olarak kullanilmali.
+
+## Donuste Ne Denecek
+
+Terminal geri acildiginda su iki dosyayi okumam yeterli:
+
+- [SESSION_HANDOFF.md](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/notes/SESSION_HANDOFF.md>)
+- [LOCAL_STATE.md](</C:/Users/YAVUZ/Documents/BT-Analyss - v6/colab-workspace/LOCAL_STATE.md>)
+
+Sonra hedef:
+
+1. `c3775c48af7d43a1` job'i bitmis mi diye sorgulamak
+2. bittiyse en iyi dizilimi cikarmak
+3. gerekirse ikinci daha derin job'i gondermek

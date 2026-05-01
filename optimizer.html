@@ -7,9 +7,9 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260427-08">
+  <link rel="stylesheet" href="styles.css?v=20260502-03">
 </head>
-<body>
+<body class="site-gate-pending">
   <div class="page-shell">
     <header class="hero">
       <div class="hero-copy-block">
@@ -17,6 +17,7 @@
           <a class="nav-link" href="index.html">Simulasyon</a>
           <a class="nav-link active" href="optimizer.html">Optimizer</a>
           <a class="nav-link" href="saved.html">Onaylananlar</a>
+          <a class="nav-link" href="fav.html">Favlar</a>
         </div>
         <p class="eyebrow">BT ANALYSS / ORDU OPTIMIZER</p>
         <h1>En Az Kayipla Kazan</h1>
@@ -108,6 +109,7 @@
         <div class="actions actions-inline">
           <button id="saveApprovedBtn" class="button button-secondary" type="button">Onayla ve Kaydet</button>
           <button id="topResultsBtn" class="button button-secondary" type="button" disabled>Ana Sonuc + 5 Alternatif</button>
+          <button id="favoriteStrategyBtn" class="button button-secondary favorite-strategy-button" type="button" disabled>Favorilere Ekle</button>
           <button id="openSimulationFromOptimizerBtn" class="button button-secondary" type="button" disabled>Simulasyon Ekraninda Ac</button>
         </div>
 
@@ -219,12 +221,28 @@
     </div>
   </div>
 
+  <div id="favoriteStrategiesModal" class="report-modal" hidden>
+    <div class="report-modal-card top-results-modal-card">
+      <div class="panel-head top-results-modal-head">
+        <h2>Fav Dizilimler</h2>
+        <button id="closeFavoriteStrategiesBtn" class="button button-ghost" type="button">Kapat</button>
+      </div>
+
+      <div id="favoriteStrategiesMeta" class="favorite-strategies-meta"></div>
+      <div id="favoriteStrategiesCurrentAction" class="favorite-strategies-current-action"></div>
+      <div id="favoriteStrategiesList" class="top-results-list">
+        <p class="summary-empty">Bu rakip dizilimi icin henuz fav yok.</p>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
-  <script src="firebase-client.js?v=20260429-13" defer></script>
+  <script src="site-gate.js?v=20260502-02" defer></script>
+  <script src="firebase-client.js?v=20260502-02" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
   <script src="battle-core.js?v=20260429-02" defer></script>
-  <script src="optimizer.js?v=20260429-04" defer></script>
+  <script src="optimizer.js?v=20260502-03" defer></script>
 </body>
 </html>
