@@ -653,8 +653,8 @@
         // Odd-sized wraith stacks align with observed results when rounded, not always ceiled.
         // First-round bat hits against bone giants match observed battles when rounded,
         // not ceiled; the extra 1 damage flips some fights entirely.
-        // Early T7 reports line up when witches spend even rounds on their special
-        // effect instead of adding a second full-strength direct hit.
+        // Tooltip-aligned T7 behavior works best when witches spend even rounds on
+        // their rearline special instead of adding a direct hit on that turn.
         const attackerDamage =
           attackerIndex === WITCHES_INDEX && roundCount % 2 === 0
             ? 0
@@ -688,11 +688,11 @@
         }
 
         const witchesSplashEligible = attackerIndex === WITCHES_INDEX && unitNumbers[WITCHES_INDEX] > 0 && roundCount % 2 === 0;
+        if (witchesSplashEligible) {
+          witchesSplashDamage = ceilCombatValue(unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * 0.25);
+        }
 
         if (unitHealth[defenderIndex] <= 0) {
-          if (witchesSplashEligible) {
-            witchesSplashDamage = ceilCombatValue(attackerDamage * 0.25);
-          }
           if (attackerIndex === LICHES_INDEX) {
             lichesSplashDamage = ceilCombatValue(attackerDamage * 0.5);
           }
