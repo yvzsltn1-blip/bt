@@ -111,6 +111,33 @@
     return ALLY_UNITS.reduce((sum, unit) => sum + (counts[unit.key] || 0) * POINTS_BY_ALLY_KEY[unit.key], 0);
   }
 
+  function addAllyCounts(left, right) {
+    const result = {};
+    ALLY_UNITS.forEach((unit) => {
+      result[unit.key] = (left?.[unit.key] || 0) + (right?.[unit.key] || 0);
+    });
+    return result;
+  }
+
+  function subtractAllyCounts(left, right) {
+    const result = {};
+    ALLY_UNITS.forEach((unit) => {
+      result[unit.key] = Math.max(0, (left?.[unit.key] || 0) - (right?.[unit.key] || 0));
+    });
+    return result;
+  }
+
+  function normalizeMinimumRequiredCounts(sourceCounts, availableAllyCounts) {
+    const result = createEmptyAllyCounts();
+    ALLY_UNITS.forEach((unit) => {
+      const rawValue = sourceCounts?.[unit.key];
+      const parsed = Number.isFinite(rawValue) ? rawValue : Number.parseInt(rawValue || "0", 10);
+      const normalized = Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+      result[unit.key] = Math.min(availableAllyCounts?.[unit.key] || 0, normalized);
+    });
+    return result;
+  }
+
   function getStagePointLimit(stage) {
     return stage * 10 + 10;
   }
@@ -314,6 +341,10 @@
 
   function ceilCombatValue(value) {
     return Math.ceil(Math.max(0, value) - 1e-9);
+  }
+
+  function roundCombatValue(value) {
+    return Math.round(Math.max(0, value) + 1e-3);
   }
 
   function bannerLine(text) {
@@ -620,10 +651,19 @@
         const rawAttackerDamage =
           unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex];
         // Odd-sized wraith stacks align with observed results when rounded, not always ceiled.
+        // First-round bat hits against bone giants match observed battles when rounded,
+        // not ceiled; the extra 1 damage flips some fights entirely.
+        // Early T7 reports line up when witches spend even rounds on their special
+        // effect instead of adding a second full-strength direct hit.
         const attackerDamage =
-          attackerIndex === WRAITHS_INDEX && unitNumbers[attackerIndex] % 2 === 1
-            ? Math.round(Math.max(0, rawAttackerDamage) + 1e-3)
-            : ceilCombatValue(rawAttackerDamage);
+          attackerIndex === WITCHES_INDEX && roundCount % 2 === 0
+            ? 0
+            : (
+              (attackerIndex === WRAITHS_INDEX && unitNumbers[attackerIndex] % 2 === 1) ||
+              (attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1)
+            )
+              ? roundCombatValue(rawAttackerDamage)
+              : ceilCombatValue(rawAttackerDamage);
         unitHealth[defenderIndex] -= attackerDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];
         const multiplierText = Math.abs(totalDamageMultiplier - 1) < 1e-9 ? "" : ` × ${totalDamageMultiplier.toFixed(2)} carpan`;
@@ -1802,7 +1842,37 @@
   }
 
   function optimizeArmyUsage(availableAllyCounts, enemyCounts, options = {}) {
-    const maxPoints = options.maxPoints ?? Number.POSITIVE_INFINITY;
+    let maxPoints = options.maxPoints ?? Number.POSITIVE_INFINITY;
+    const originalAvailableAllyCounts = cloneCounts(availableAllyCounts, ALLY_UNITS);
+    const requestedMinimumCounts = cloneCounts(options.minimumRequiredCounts || {}, ALLY_UNITS);
+    const minimumRequiredCounts = normalizeMinimumRequiredCounts(requestedMinimumCounts, originalAvailableAllyCounts);
+    const invalidMinimumUnits = ALLY_UNITS.filter((unit) => (requestedMinimumCounts[unit.key] || 0) > (originalAvailableAllyCounts[unit.key] || 0));
+    const minimumRequiredPoints = calculateArmyPoints(minimumRequiredCounts);
+    const hasMinimumConstraints = ALLY_UNITS.some((unit) => (minimumRequiredCounts[unit.key] || 0) > 0);
+
+    if (invalidMinimumUnits.length > 0 || (Number.isFinite(maxPoints) && minimumRequiredPoints > maxPoints)) {
+      return {
+        possible: false,
+        recommendation: null,
+        fallback: null,
+        fullArmyEvaluation: null,
+        topCandidates: [],
+        searchedCandidates: 0,
+        uniqueCandidateCount: 0,
+        uniqueCandidateSignatures: [],
+        simulationRuns: 0,
+        sampleBattle: null,
+        minimumRequiredCounts,
+        minimumRequiredPoints,
+        constraintIssue: invalidMinimumUnits.length > 0 ? "minimum-exceeds-pool" : "minimum-exceeds-points"
+      };
+    }
+
+    availableAllyCounts = subtractAllyCounts(originalAvailableAllyCounts, minimumRequiredCounts);
+    if (Number.isFinite(maxPoints)) {
+      maxPoints = Math.max(0, maxPoints - minimumRequiredPoints);
+    }
+
     const minWinRate = options.minWinRate || 0.75;
     const objective = options.objective === "min_army" ? "min_army" : "min_loss";
     const stoneMode = Boolean(options.stoneMode);
@@ -1828,6 +1898,19 @@
     const compareEntries = (left, right) => compareEvaluations(left, right, { objective, stoneMode });
     const strategicOrder = getStrategicUnitOrder(availableAllyCounts, enemyCounts);
 
+    function toEffectiveCounts(candidateCounts) {
+      return hasMinimumConstraints ? addAllyCounts(candidateCounts, minimumRequiredCounts) : cloneCounts(candidateCounts, ALLY_UNITS);
+    }
+
+    function toSearchCounts(candidateCounts) {
+      if (!candidateCounts) {
+        return createEmptyAllyCounts();
+      }
+      return hasMinimumConstraints
+        ? subtractAllyCounts(candidateCounts, minimumRequiredCounts)
+        : cloneCounts(candidateCounts, ALLY_UNITS);
+    }
+
     // Stratejik adayları ekle
     initialCandidates.push(...buildStrategicCandidates(availableAllyCounts, enemyCounts, maxPoints));
     initialCandidates.push(...buildBoundedExhaustiveCandidates(availableAllyCounts, maxPoints, exhaustiveCandidateLimit));
@@ -1842,7 +1925,7 @@
       if (!candidate) {
         return;
       }
-      initialCandidates.push(normalizeCandidateToPointLimit(cloneCounts(candidate, ALLY_UNITS), maxPoints));
+      initialCandidates.push(normalizeCandidateToPointLimit(toSearchCounts(candidate), maxPoints));
     });
     initialCandidates.push(normalizeCandidateToPointLimit(availableAllyCounts, maxPoints));
     [0.3, 0.4, 0.5, 0.6, 0.72, 0.84, 1].forEach((ratio) => {
@@ -1917,7 +2000,8 @@
     }
 
     function evaluateCandidate(counts, localTrialCount = trialCount) {
-      const signature = getCountSignature(counts, ALLY_UNITS);
+      const effectiveCounts = toEffectiveCounts(counts);
+      const signature = getCountSignature(effectiveCounts, ALLY_UNITS);
       uniqueSignatures.add(signature);
       if (evaluations.has(`${signature}:${localTrialCount}`)) {
         return evaluations.get(`${signature}:${localTrialCount}`);
@@ -1947,7 +2031,7 @@
       for (let trial = 0; trial < localTrialCount; trial += 1) {
         simulationRuns += 1;
         const seed = baseSeed + trial * 977;
-        const result = simulateBattle(enemyCounts, counts, { seed, collectLog: false });
+        const result = simulateBattle(enemyCounts, effectiveCounts, { seed, collectLog: false });
         usedCapacitySum += result.usedCapacity;
         usedPointsSum += result.usedPoints;
         enemyRemainingHealthSum += result.enemyRemainingHealth;
@@ -1979,7 +2063,8 @@
 
       const winRate = wins / localTrialCount;
       const evaluation = {
-        counts: cloneCounts(counts, ALLY_UNITS),
+        searchCounts: cloneCounts(counts, ALLY_UNITS),
+        counts: cloneCounts(effectiveCounts, ALLY_UNITS),
         signature,
         trials: localTrialCount,
         wins,
@@ -2023,7 +2108,7 @@
     function collectTopEvaluations(candidateList, localTrialCount = trialCount) {
       const unique = new Map();
       candidateList.forEach((candidate) => {
-        unique.set(getCountSignature(candidate, ALLY_UNITS), candidate);
+        unique.set(getCountSignature(toEffectiveCounts(candidate), ALLY_UNITS), candidate);
       });
       return [...unique.values()]
         .map((candidate) => evaluateCandidate(candidate, localTrialCount))
@@ -2034,7 +2119,7 @@
       const unique = new Map();
       candidateList.forEach((candidate) => {
         if (!candidate) return;
-        unique.set(getCountSignature(candidate, ALLY_UNITS), candidate);
+        unique.set(getCountSignature(toEffectiveCounts(candidate), ALLY_UNITS), candidate);
       });
       return [...unique.values()];
     }
@@ -2066,14 +2151,14 @@
 
       // Tier 2: orta seviye dogrulama
       const tier2 = tier1Top
-        .map((entry) => evaluateCandidate(entry.counts, midTrials))
+        .map((entry) => evaluateCandidate(entry.searchCounts || toSearchCounts(entry.counts), midTrials))
         .sort(compareEntries);
 
       const tier2Top = tier2.slice(0, Math.max(beamWidth * 2, Math.ceil(tier2.length * 0.5)));
 
       // Tier 3: tam dogrulama
       const tier3 = tier2Top
-        .map((entry) => evaluateCandidate(entry.counts, finalTrials))
+        .map((entry) => evaluateCandidate(entry.searchCounts || toSearchCounts(entry.counts), finalTrials))
         .sort(compareEntries);
 
       return tier3;
@@ -2122,6 +2207,7 @@
       }
       return {
         counts: cloneCounts(entry.counts, ALLY_UNITS),
+        searchCounts: cloneCounts(entry.searchCounts || toSearchCounts(entry.counts), ALLY_UNITS),
         signature: entry.signature,
         trials: entry.trials,
         wins: entry.wins,
@@ -2204,18 +2290,18 @@
     for (let iteration = 0; iteration < maxIterations; iteration += 1) {
       const mutated = [];
       beam.forEach((entry) => {
-        mutated.push(...getNeighborCandidates(entry.counts, availableAllyCounts, maxPoints));
+        mutated.push(...getNeighborCandidates(entry.searchCounts, availableAllyCounts, maxPoints));
         if (iteration % 2 === 0 || entry.feasible) {
-          mutated.push(...getBroadNeighborCandidates(entry.counts, availableAllyCounts, enemyCounts, maxPoints));
+          mutated.push(...getBroadNeighborCandidates(entry.searchCounts, availableAllyCounts, enemyCounts, maxPoints));
         }
       });
 
       // Crossover: en iyi beam uyelerinin parlak ozelliklerini birlestir.
       // Tek-aday mutasyonlarinin atlayamayacagi karisimlari uretir.
-      const crossoverPool = beam.filter((entry) => entry?.counts).slice(0, Math.min(6, beam.length));
+      const crossoverPool = beam.filter((entry) => entry?.searchCounts).slice(0, Math.min(6, beam.length));
       for (let i = 0; i < crossoverPool.length; i += 1) {
         for (let j = i + 1; j < crossoverPool.length; j += 1) {
-          mutated.push(...crossoverCandidates(crossoverPool[i].counts, crossoverPool[j].counts));
+          mutated.push(...crossoverCandidates(crossoverPool[i].searchCounts, crossoverPool[j].searchCounts));
         }
       }
 
@@ -2249,7 +2335,7 @@
 
         // 1. Asama: tek birimi azaltarak gelisme ara
         for (const unit of unitPriority) {
-          const currentCount = refined.counts[unit.key];
+          const currentCount = refined.searchCounts[unit.key];
           if (currentCount === 0) {
             continue;
           }
@@ -2265,7 +2351,7 @@
             if (nextValue >= currentCount) {
               continue;
             }
-            const candidate = cloneCounts(refined.counts, ALLY_UNITS);
+            const candidate = cloneCounts(refined.searchCounts, ALLY_UNITS);
             candidate[unit.key] = nextValue;
             const evaluation = evaluateCandidate(normalizeCandidateToPointLimit(candidate, maxPoints));
             if (evaluation.feasible && compareEntries(evaluation, refined) < 0) {
@@ -2287,11 +2373,11 @@
         // 2. Asama: birim swap (1 azalt + 1 ekle). Refinement yalnizca azaltma
         // yapinca yerel optimumda takiliyor; swap karisimi degistirebiliyor.
         for (const reduceUnit of unitPriority) {
-          const reduceFrom = refined.counts[reduceUnit.key] || 0;
+          const reduceFrom = refined.searchCounts[reduceUnit.key] || 0;
           if (reduceFrom <= 0) continue;
           for (const increaseUnit of unitPriority) {
             if (increaseUnit.key === reduceUnit.key) continue;
-            const increaseFrom = refined.counts[increaseUnit.key] || 0;
+            const increaseFrom = refined.searchCounts[increaseUnit.key] || 0;
             const increaseMax = availableAllyCounts[increaseUnit.key] || 0;
             if (increaseFrom >= increaseMax) continue;
 
@@ -2304,7 +2390,7 @@
             let swapImproved = false;
             for (const amount of swapAmounts) {
               const newReduce = Math.max(0, reduceFrom - amount);
-              const candidate = cloneCounts(refined.counts, ALLY_UNITS);
+              const candidate = cloneCounts(refined.searchCounts, ALLY_UNITS);
               candidate[reduceUnit.key] = newReduce;
               const freedPoints = (reduceFrom - newReduce) * POINTS_BY_ALLY_KEY[reduceUnit.key];
               const addCount = Math.min(
@@ -2330,8 +2416,8 @@
 
       const localNeighbors = collectTopEvaluations(
         [
-          ...getNeighborCandidates(refined.counts, availableAllyCounts, maxPoints),
-          ...getBroadNeighborCandidates(refined.counts, availableAllyCounts, enemyCounts, maxPoints)
+          ...getNeighborCandidates(refined.searchCounts, availableAllyCounts, maxPoints),
+          ...getBroadNeighborCandidates(refined.searchCounts, availableAllyCounts, enemyCounts, maxPoints)
         ],
         trialCount
       );
@@ -2356,7 +2442,7 @@
       .slice(0, Math.max(eliteCount, 6));
 
     const stableRanked = collectTopEvaluations(
-      stabilityCandidates.map((entry) => entry.counts),
+      stabilityCandidates.map((entry) => entry.searchCounts || toSearchCounts(entry.counts)),
       stabilityTrials
     );
 
@@ -2408,7 +2494,9 @@
       uniqueCandidateCount: uniqueSignatures.size,
       uniqueCandidateSignatures: [...uniqueSignatures],
       simulationRuns,
-      sampleBattle
+      sampleBattle,
+      minimumRequiredCounts,
+      minimumRequiredPoints
     };
   }
 
