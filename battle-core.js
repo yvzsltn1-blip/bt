@@ -316,6 +316,10 @@
     return Math.ceil(Math.max(0, value) - 1e-9);
   }
 
+  function roundCombatValue(value) {
+    return Math.round(Math.max(0, value) + 1e-3);
+  }
+
   function bannerLine(text) {
     const padded = "  " + text + "  ";
     const total = 60;
@@ -620,9 +624,12 @@
         const rawAttackerDamage =
           unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex];
         // Odd-sized wraith stacks align with observed results when rounded, not always ceiled.
+        // First-round bat hits against bone giants match observed battles when rounded,
+        // not ceiled; the extra 1 damage flips some fights entirely.
         const attackerDamage =
-          attackerIndex === WRAITHS_INDEX && unitNumbers[attackerIndex] % 2 === 1
-            ? Math.round(Math.max(0, rawAttackerDamage) + 1e-3)
+          (attackerIndex === WRAITHS_INDEX && unitNumbers[attackerIndex] % 2 === 1) ||
+          (attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1)
+            ? roundCombatValue(rawAttackerDamage)
             : ceilCombatValue(rawAttackerDamage);
         unitHealth[defenderIndex] -= attackerDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];

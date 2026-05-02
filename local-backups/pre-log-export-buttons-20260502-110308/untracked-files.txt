@@ -1,0 +1,10 @@
+layers_js_current.json
+layers_py_v51.json
+local-backups/pre-log-export-buttons-20260502-110308/git-status.txt
+local-backups/pre-log-export-buttons-20260502-110308/tracked.diff
+scripts/compare_py_js_datasets.py
+scripts/scan_layers_current_js.js
+scripts/scan_layers_python_sim.py
+sonuc-arsivi/dogrular.txt
+sonuc-arsivi/yanlislar.txt
+test-rounding-fix.js
