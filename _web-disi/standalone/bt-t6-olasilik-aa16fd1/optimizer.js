@@ -1,0 +1,3092 @@
+"use strict";
+
+const {
+  ENEMY_UNITS,
+  ALLY_UNITS,
+  parseCount,
+  calculateArmyPoints,
+  POINTS_BY_ALLY_KEY,
+  BLOOD_BY_ALLY_KEY,
+  getStagePointLimit,
+  optimizeArmyUsage,
+  getStoneAdjustedLossProfile,
+  simulateBattle
+} = window.BattleCore;
+
+const optimizerInputs = {};
+const actualLossInputs = {};
+const optimizerEnemyInputs = document.querySelector("#optimizerEnemyInputs");
+const optimizerAllyInputs = document.querySelector("#optimizerAllyInputs");
+const optimizerSummary = document.querySelector("#optimizerSummary");
+const recommendationPanel = document.querySelector("#recommendationPanel");
+const rosterClipboardIndicator = null;
+const optimizerLogPanel = document.querySelector("#optimizerLogPanel");
+const optimizerLogOutput = document.querySelector("#optimizerLogOutput");
+const optimizerLogFullscreenBtn = document.querySelector("#optimizerLogFullscreenBtn");
+const optimizerStatus = document.querySelector("#optimizerStatus");
+const optimizeBtn = document.querySelector("#optimizeBtn");
+const diversityModeBtn = document.querySelector("#diversityModeBtn");
+const batchRunButtons = [...document.querySelectorAll("[data-batch-runs]")];
+const stopOptimizerBtn = document.querySelector("#stopOptimizerBtn");
+const optimizerSampleBtn = document.querySelector("#optimizerSampleBtn");
+const optimizerClearBtn = document.querySelector("#optimizerClearBtn");
+const saveApprovedBtn = document.querySelector("#saveApprovedBtn");
+const topResultsBtn = document.querySelector("#topResultsBtn");
+const reportWrongOptimizerBtn = document.querySelector("#reportWrongOptimizerBtn");
+const langToggleOptimizerBtn = document.querySelector("#langToggleOptimizerBtn");
+const stageInput = document.querySelector("#stageInput");
+const optimizerPointsValue = document.querySelector("#optimizerPointsValue");
+const optimizerPointsLimit = document.querySelector("#optimizerPointsLimit");
+const modeButtons = [...document.querySelectorAll(".mode-button")];
+const objectiveButtons = [...document.querySelectorAll(".objective-button")];
+const matchedSavedPanel = document.querySelector("#matchedSavedPanel");
+const modeComparePanel = document.querySelector("#modeComparePanel");
+const compareToggleBtn = document.querySelector("#compareToggleBtn");
+const comparePanelContent = document.querySelector("#comparePanelContent");
+const wrongReportModal = document.querySelector("#wrongReportModal");
+const closeWrongReportBtn = document.querySelector("#closeWrongReportBtn");
+const cancelWrongReportBtn = document.querySelector("#cancelWrongReportBtn");
+const submitWrongReportBtn = document.querySelector("#submitWrongReportBtn");
+const actualOutcomeInput = document.querySelector("#actualOutcomeInput");
+const actualCapacityInput = document.querySelector("#actualCapacityInput");
+const actualNoteInput = document.querySelector("#actualNoteInput");
+const expectedWrongSummaryPreview = document.querySelector("#expectedWrongSummaryPreview");
+const actualWrongSummaryPreview = document.querySelector("#actualWrongSummaryPreview");
+const wrongLossInputs = document.querySelector("#wrongLossInputs");
+const matchedActualPanel = document.querySelector("#matchedActualPanel");
+const topResultsModal = document.querySelector("#topResultsModal");
+const closeTopResultsBtn = document.querySelector("#closeTopResultsBtn");
+const topResultsMeta = document.querySelector("#topResultsMeta");
+const topResultsList = document.querySelector("#topResultsList");
+const adminAuthStatus = document.querySelector("#adminAuthStatus");
+const adminEmailInput = document.querySelector("#adminEmailInput");
+const adminPasswordInput = document.querySelector("#adminPasswordInput");
+const adminLoginBtn = document.querySelector("#adminLoginBtn");
+const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
+const ROSTER_CLIPBOARD_STORAGE_KEY = "bt-analiz.optimizer.rosterClipboard.v1";
+const ROSTER_CLIPBOARD_TTL_MS = 60 * 1000;
+
+let optimizerSearchSession = createEmptySearchSession();
+let optimizerMode = "balanced";
+let optimizerObjective = "min_loss";
+let optimizerDiversityMode = false;
+let optimizerStoneMode = false;
+let optimizerComparisonCache = new Map();
+let comparePanelOpen = false;
+let currentApprovedCandidate = null;
+let currentWrongCandidate = null;
+let currentTopResultsContext = null;
+let currentTopResultsSort = "default";
+let pendingWrongReport = null;
+let approvedStrategies = [];
+let wrongReports = [];
+let optimizerStopRequested = false;
+let isAdminSession = false;
+let optimizerLogFullscreenFallback = false;
+let rosterClipboardCache = null;
+let rosterClipboardExpiresAt = 0;
+let rosterClipboardExpiryTimer = null;
+let rosterClipboardIndicatorTimer = null;
+let optimizerIncumbentContext = null;
+
+function setOptimizeButtonLabel(text) {
+  optimizeBtn.textContent = text;
+}
+
+function syncOptimizeButtonCompletionState(hasCompleted) {
+  optimizeBtn.classList.toggle("is-success", hasCompleted);
+  optimizeBtn.setAttribute("aria-pressed", hasCompleted ? "true" : "false");
+  optimizeBtn.title = hasCompleted ? "Mevcut sonuc simule edildi. Tekrar simule edebilirsin." : "";
+}
+
+function syncAdminRestrictedActions() {
+  const isBusy = optimizeBtn.disabled;
+  saveApprovedBtn.disabled = isBusy || !isAdminSession || !currentApprovedCandidate || !currentApprovedCandidate.result.possible;
+  saveApprovedBtn.title = isAdminSession ? "" : "Onayli cozum kaydetmek icin admin girisi gerekli.";
+}
+
+async function bindAdminAuth() {
+  if (!window.AdminAuthUI || typeof window.AdminAuthUI.bindAdminControls !== "function") {
+    return;
+  }
+
+  await window.AdminAuthUI.bindAdminControls({
+    statusLabel: adminAuthStatus,
+    emailInput: adminEmailInput,
+    passwordInput: adminPasswordInput,
+    loginButton: adminLoginBtn,
+    logoutButton: adminLogoutBtn,
+    onStateChange: (isAdmin) => {
+      isAdminSession = isAdmin;
+      syncAdminRestrictedActions();
+    }
+  });
+}
+
+saveApprovedBtn.disabled = true;
+topResultsBtn.disabled = true;
+reportWrongOptimizerBtn.disabled = true;
+buildWrongLossInputs();
+
+buildInputs(optimizerEnemyInputs, ENEMY_UNITS, "enemy");
+buildInputs(optimizerAllyInputs, ALLY_UNITS, "ally");
+wireSequentialInputOrder([
+  ...ENEMY_UNITS.map((unit) => optimizerInputs[unit.key]),
+  ...ALLY_UNITS.map((unit) => optimizerInputs[unit.key])
+]);
+resetValues();
+renderPointSummary();
+applyStageFromQuery();
+void initializeApprovedStrategies();
+void initializeWrongReports();
+void bindAdminAuth();
+syncDiversityModeButton();
+syncObjectiveButtons();
+syncComparePanelToggle();
+renderComparisonPanel();
+
+modeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    optimizerMode = button.dataset.mode || "balanced";
+    modeButtons.forEach((candidate) => candidate.classList.toggle("active", candidate === button));
+    invalidateSearchSession();
+  });
+});
+
+objectiveButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    optimizerObjective = button.dataset.objective === "min_army" ? "min_army" : "min_loss";
+    syncObjectiveButtons();
+    invalidateSearchSession();
+    optimizerStatus.textContent = optimizerObjective === "min_army"
+      ? "Hedef: en az orduyla kazan"
+      : "Hedef: en az kayipla kazan";
+  });
+});
+
+diversityModeBtn.addEventListener("click", () => {
+  optimizerDiversityMode = !optimizerDiversityMode;
+  syncDiversityModeButton();
+  invalidateSearchSession();
+  optimizerStatus.textContent = optimizerDiversityMode ? "Cesitlilik modu acildi" : "Cesitlilik modu kapatildi";
+});
+
+compareToggleBtn.addEventListener("click", () => {
+  comparePanelOpen = !comparePanelOpen;
+  syncComparePanelToggle();
+  renderComparisonPanel();
+});
+
+stageInput.addEventListener("input", () => {
+  stageInput.value = stageInput.value.replace(/\D+/g, "");
+  invalidateSearchSession();
+});
+
+stageInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    commitStageInput();
+  }
+});
+
+stageInput.addEventListener("blur", () => {
+  commitStageInput();
+});
+
+optimizeBtn.addEventListener("click", () => {
+  void runOptimizerSearch(1);
+});
+
+batchRunButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const batchRuns = Number.parseInt(button.dataset.batchRuns || "1", 10);
+    void runOptimizerSearch(Number.isFinite(batchRuns) && batchRuns > 1 ? batchRuns : 1);
+  });
+});
+
+stopOptimizerBtn.addEventListener("click", () => {
+  optimizerStopRequested = true;
+  stopOptimizerBtn.disabled = true;
+  optimizerStatus.textContent = "Durduruluyor";
+});
+
+optimizerSampleBtn.addEventListener("click", () => {
+  invalidateSearchSession();
+  loadSampleValues();
+  optimizerStatus.textContent = "Ornek ordu yuklendi";
+});
+
+optimizerClearBtn.addEventListener("click", () => {
+  invalidateSearchSession();
+  resetValues();
+  optimizerSummary.innerHTML = '<p class="summary-empty">Tum girdiler sifirlandi.</p>';
+  matchedActualPanel.innerHTML = "";
+  recommendationPanel.innerHTML = "";
+  optimizerLogOutput.textContent = "Analizden sonra onerilen dizilime ait bir savas gunlugu burada gosterilecek.";
+  optimizerStatus.textContent = "Sifirlandi";
+  currentWrongCandidate = null;
+  reportWrongOptimizerBtn.disabled = true;
+});
+
+saveApprovedBtn.addEventListener("click", async () => {
+  if (!isAdminSession) {
+    window.alert("Bu islem icin admin girisi gerekli.");
+    return;
+  }
+  if (!currentApprovedCandidate || !currentApprovedCandidate.result.possible) {
+    window.alert("Kaydedilecek onayli bir cozum yok.");
+    return;
+  }
+
+  const item = createSavedEntry(currentApprovedCandidate);
+  try {
+    saveApprovedBtn.disabled = true;
+    await window.BTFirebase.saveApprovedStrategy(item);
+    approvedStrategies = await loadApprovedStrategies();
+    renderMatchedSavedStrategy();
+    window.alert("Cozum onaylanip ortak kayitlara eklendi.");
+  } catch (error) {
+    window.alert(`Kayit sirasinda hata olustu: ${error.message}`);
+  } finally {
+    syncAdminRestrictedActions();
+  }
+});
+
+topResultsBtn.addEventListener("click", () => {
+  if (!currentTopResultsContext || !currentTopResultsContext.candidates.length) {
+    window.alert("Gosterilecek alternatif sonuc yok.");
+    return;
+  }
+  openTopResultsModal();
+});
+
+reportWrongOptimizerBtn.addEventListener("click", () => {
+  if (!currentWrongCandidate) {
+    window.alert("Raporlanacak bir sonuc yok.");
+    return;
+  }
+  openWrongReportModal(currentWrongCandidate);
+});
+
+function getNativeFullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null;
+}
+
+function isOptimizerLogFullscreen() {
+  return getNativeFullscreenElement() === optimizerLogPanel || optimizerLogFullscreenFallback;
+}
+
+function syncOptimizerLogFullscreenUi() {
+  if (!optimizerLogPanel || !optimizerLogFullscreenBtn) {
+    return;
+  }
+
+  const isFullscreen = isOptimizerLogFullscreen();
+  const fullscreenLabel = optimizerLogFullscreenBtn.querySelector(".button-label");
+  optimizerLogPanel.classList.toggle("is-fullscreen", isFullscreen);
+  document.body.classList.toggle("optimizer-log-fullscreen", isFullscreen);
+  if (fullscreenLabel) {
+    fullscreenLabel.textContent = isFullscreen ? "Kapat" : "Tam Ekran";
+  }
+  optimizerLogFullscreenBtn.setAttribute("aria-pressed", String(isFullscreen));
+  optimizerLogFullscreenBtn.setAttribute("aria-label", isFullscreen ? "Gunlugu eski boyuta getir" : "Gunlugu tam ekran ac");
+  optimizerLogFullscreenBtn.title = isFullscreen ? "Gunlugu eski boyuta getir" : "Gunlugu tam ekran ac";
+}
+
+async function requestOptimizerLogFullscreen() {
+  if (!optimizerLogPanel) {
+    return;
+  }
+
+  const requestFullscreen =
+    optimizerLogPanel.requestFullscreen ||
+    optimizerLogPanel.webkitRequestFullscreen ||
+    optimizerLogPanel.msRequestFullscreen;
+
+  if (typeof requestFullscreen === "function") {
+    try {
+      await requestFullscreen.call(optimizerLogPanel);
+      optimizerLogFullscreenFallback = false;
+      syncOptimizerLogFullscreenUi();
+      return;
+    } catch (error) {
+      optimizerLogFullscreenFallback = true;
+      syncOptimizerLogFullscreenUi();
+      return;
+    }
+  }
+
+  optimizerLogFullscreenFallback = true;
+  syncOptimizerLogFullscreenUi();
+}
+
+async function exitOptimizerLogFullscreen() {
+  const nativeFullscreenElement = getNativeFullscreenElement();
+
+  if (nativeFullscreenElement === optimizerLogPanel) {
+    const exitFullscreen =
+      document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.msExitFullscreen;
+
+    if (typeof exitFullscreen === "function") {
+      try {
+        await exitFullscreen.call(document);
+      } catch (error) {
+        // Native fullscreen cikisi basarisiz olursa fallback temizligi yine uygulanir.
+      }
+    }
+  }
+
+  optimizerLogFullscreenFallback = false;
+  syncOptimizerLogFullscreenUi();
+}
+
+if (optimizerLogFullscreenBtn) {
+  optimizerLogFullscreenBtn.addEventListener("click", () => {
+    if (isOptimizerLogFullscreen()) {
+      void exitOptimizerLogFullscreen();
+      return;
+    }
+    void requestOptimizerLogFullscreen();
+  });
+}
+
+document.addEventListener("fullscreenchange", () => {
+  if (getNativeFullscreenElement() !== optimizerLogPanel) {
+    optimizerLogFullscreenFallback = false;
+  }
+  syncOptimizerLogFullscreenUi();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") {
+    return;
+  }
+  if (!optimizerLogFullscreenFallback || getNativeFullscreenElement() === optimizerLogPanel) {
+    return;
+  }
+  void exitOptimizerLogFullscreen();
+});
+
+closeWrongReportBtn.addEventListener("click", closeWrongReportModal);
+cancelWrongReportBtn.addEventListener("click", closeWrongReportModal);
+
+submitWrongReportBtn.addEventListener("click", async () => {
+  if (!pendingWrongReport) {
+    return;
+  }
+
+  const report = {
+    ...pendingWrongReport,
+    actualSummaryText: buildActualSummaryText(),
+    actualNote: actualNoteInput.value.trim()
+  };
+
+  try {
+    submitWrongReportBtn.disabled = true;
+    await window.BTFirebase.saveWrongReport(report);
+    wrongReports = await loadWrongReports();
+    renderMatchedActualReport();
+    closeWrongReportModal();
+    window.alert("Optimizer icin gercek sonuc kaydedildi.");
+  } catch (error) {
+    window.alert(`Yanlis raporu kaydedilemedi: ${error.message}`);
+  } finally {
+    submitWrongReportBtn.disabled = false;
+  }
+});
+
+wrongReportModal.addEventListener("click", (event) => {
+  if (event.target === wrongReportModal) {
+    closeWrongReportModal();
+  }
+});
+
+closeTopResultsBtn.addEventListener("click", closeTopResultsModal);
+
+topResultsModal.addEventListener("click", (event) => {
+  if (event.target === topResultsModal) {
+    closeTopResultsModal();
+  }
+});
+
+async function initializeApprovedStrategies() {
+  approvedStrategies = await loadApprovedStrategies();
+  restoreFromQuery();
+  renderPointSummary();
+  renderMatchedSavedStrategy();
+}
+
+async function initializeWrongReports() {
+  wrongReports = await loadWrongReports();
+  renderMatchedActualReport();
+}
+
+async function runOptimizerSearch(batchRuns) {
+  try {
+    const enemy = collectCounts(ENEMY_UNITS);
+    const allyPool = collectCounts(ALLY_UNITS);
+    const stage = getCommittedStage();
+    if (!stage) {
+      throw new Error("Lutfen gecerli bir kademe gir ve Enter ile onayla.");
+    }
+
+    const maxPoints = getStagePointLimit(stage);
+    const totalCombinationCount = calculateTotalCombinationCount(allyPool, maxPoints);
+    const incumbentSeedCandidates = getIncumbentSeedCandidates({
+      stage,
+      enemyCounts: enemy,
+      allyPool,
+      mode: optimizerMode,
+      objective: optimizerObjective,
+      diversityMode: optimizerDiversityMode,
+      stoneMode: optimizerStoneMode
+    });
+    const searchKey = createSearchKey(stage, enemy, allyPool, optimizerMode, optimizerObjective, optimizerDiversityMode, optimizerStoneMode);
+    const continuing = optimizerSearchSession.key === searchKey;
+    let runIndex = continuing ? optimizerSearchSession.runCount : 0;
+    let bestResult = continuing ? optimizerSearchSession.bestResult : null;
+    let topCandidates = continuing ? [...optimizerSearchSession.topCandidates] : [];
+    let totalCandidates = continuing ? optimizerSearchSession.totalCandidates : 0;
+    let uniqueSignatures = continuing ? new Set(optimizerSearchSession.uniqueSignatures) : new Set();
+    let lastResult = null;
+    let lastRunConfig = null;
+    let batchSimulationRuns = 0;
+    let completedRuns = 0;
+
+    optimizerStopRequested = false;
+    syncOptimizeButtonCompletionState(false);
+    setOptimizerBusy(true);
+
+    for (let step = 1; step <= batchRuns; step += 1) {
+      if (optimizerStopRequested) {
+        break;
+      }
+      runIndex += 1;
+      lastRunConfig = getRunConfig(stage, runIndex, optimizerMode, optimizerDiversityMode);
+      optimizerStatus.textContent = batchRuns === 1 ? "Hesapliyor" : `${batchRuns} tur araniyor (${step}/${batchRuns})`;
+      setOptimizeButtonLabel(batchRuns === 1 ? "Simule Ediliyor" : `${batchRuns} Tur (${step}/${batchRuns})`);
+      await waitForNextFrame();
+
+      lastResult = optimizeArmyUsage(allyPool, enemy, {
+        maxPoints,
+        minWinRate: 0.75,
+        trialCount: lastRunConfig.trialCount,
+        fullArmyTrials: lastRunConfig.fullArmyTrials,
+        beamWidth: lastRunConfig.beamWidth,
+        maxIterations: lastRunConfig.maxIterations,
+        eliteCount: lastRunConfig.eliteCount,
+        stabilityTrials: lastRunConfig.stabilityTrials,
+        baseSeed: lastRunConfig.baseSeed,
+        objective: optimizerObjective,
+        stoneMode: optimizerStoneMode,
+        diversityMode: optimizerDiversityMode,
+        exploratoryCandidateCount: lastRunConfig.exploratoryCandidateCount,
+        exhaustiveCandidateLimit: lastRunConfig.exhaustiveCandidateLimit,
+        diversityCandidateCount: lastRunConfig.diversityCandidateCount,
+        knownSignatures: [...uniqueSignatures],
+        seedCandidates: continuing ? [] : incumbentSeedCandidates
+      });
+
+      batchSimulationRuns += lastResult.simulationRuns || 0;
+      bestResult = bestResult ? pickBetterOptimizerResult(bestResult, lastResult) : lastResult;
+      topCandidates = mergeOptimizerCandidates(topCandidates, lastResult.topCandidates || [], { limit: 120 });
+      totalCandidates += lastResult.searchedCandidates;
+      (lastResult.uniqueCandidateSignatures || []).forEach((signature) => uniqueSignatures.add(signature));
+      completedRuns += 1;
+    }
+
+    if (completedRuns === 0) {
+      setOptimizeButtonLabel("Tekrar Simule Et");
+      optimizerStatus.textContent = "Durduruldu";
+      return;
+    }
+
+    optimizerSearchSession = {
+      key: searchKey,
+      runCount: runIndex,
+      totalCandidates,
+      uniqueSignatures,
+      bestResult,
+      topCandidates
+    };
+    optimizerIncumbentContext = {
+      stage,
+      enemyCounts: { ...enemy },
+      allyPool: { ...allyPool },
+      mode: optimizerMode,
+      objective: optimizerObjective,
+      diversityMode: optimizerDiversityMode,
+      stoneMode: optimizerStoneMode,
+      topCandidates: mergeOptimizerCandidates([getPrimaryOptimizerSource(bestResult)], topCandidates, { limit: 24 })
+        .map((entry) => ({ counts: { ...(entry?.counts || {}) } }))
+    };
+
+    renderOptimizerResult({
+      ...bestResult,
+      topCandidates: mergeOptimizerCandidates([getPrimaryOptimizerSource(bestResult)], topCandidates, { limit: 120 })
+    }, stage, maxPoints, {
+      runIndex,
+      lastCandidates: lastResult.searchedCandidates,
+      totalCandidates,
+      lastUniqueCandidates: lastResult.uniqueCandidateCount || 0,
+      totalUniqueCandidates: uniqueSignatures.size,
+      runConfig: lastRunConfig,
+      mode: optimizerMode,
+      objective: optimizerObjective,
+      diversityMode: optimizerDiversityMode,
+      stoneMode: optimizerStoneMode,
+      totalCombinationCount,
+      batchRuns: completedRuns,
+      batchSimulationRuns
+    });
+
+    setOptimizeButtonLabel("Tekrar Simule Et");
+    syncOptimizeButtonCompletionState(true);
+    optimizerStatus.textContent = optimizerStopRequested ? "Durduruldu" : "Tamamlandi";
+  } catch (error) {
+    setOptimizeButtonLabel("Tekrar Simule Et");
+    syncOptimizeButtonCompletionState(false);
+    optimizerStatus.textContent = "Hata";
+    window.alert(error.message);
+  } finally {
+    setOptimizerBusy(false);
+    optimizerStopRequested = false;
+  }
+}
+
+function createEmptySearchSession() {
+  return {
+    key: "",
+    runCount: 0,
+    totalCandidates: 0,
+    uniqueSignatures: new Set(),
+    bestResult: null,
+    topCandidates: []
+  };
+}
+
+function isSupersetAllyPool(currentPool, previousPool) {
+  return ALLY_UNITS.every((unit) => (currentPool?.[unit.key] || 0) >= (previousPool?.[unit.key] || 0));
+}
+
+function isCandidateWithinPool(candidateCounts, allyPool) {
+  return ALLY_UNITS.every((unit) => (candidateCounts?.[unit.key] || 0) <= (allyPool?.[unit.key] || 0));
+}
+
+function areEnemyCountsEqual(left, right) {
+  return ENEMY_UNITS.every((unit) => (left?.[unit.key] || 0) === (right?.[unit.key] || 0));
+}
+
+function getIncumbentSeedCandidates(context) {
+  if (!optimizerIncumbentContext) {
+    return [];
+  }
+
+  const matchesScenario =
+    optimizerIncumbentContext.stage === context.stage &&
+    optimizerIncumbentContext.mode === context.mode &&
+    optimizerIncumbentContext.objective === context.objective &&
+    optimizerIncumbentContext.diversityMode === context.diversityMode &&
+    optimizerIncumbentContext.stoneMode === context.stoneMode &&
+    areEnemyCountsEqual(optimizerIncumbentContext.enemyCounts, context.enemyCounts) &&
+    isSupersetAllyPool(context.allyPool, optimizerIncumbentContext.allyPool);
+
+  if (!matchesScenario) {
+    return [];
+  }
+
+  return (optimizerIncumbentContext.topCandidates || [])
+    .map((entry) => entry?.counts || null)
+    .filter((counts) => counts && isCandidateWithinPool(counts, context.allyPool));
+}
+
+function setOptimizerBusy(isBusy) {
+  optimizeBtn.disabled = isBusy;
+  stopOptimizerBtn.disabled = !isBusy;
+  optimizerSampleBtn.disabled = isBusy;
+  optimizerClearBtn.disabled = isBusy;
+  diversityModeBtn.disabled = isBusy;
+  stageInput.disabled = isBusy;
+  syncAdminRestrictedActions();
+  topResultsBtn.disabled = isBusy || !currentTopResultsContext || !currentTopResultsContext.candidates.length;
+  reportWrongOptimizerBtn.disabled = isBusy || !currentWrongCandidate;
+  modeButtons.forEach((button) => {
+    button.disabled = isBusy;
+  });
+  objectiveButtons.forEach((button) => {
+    button.disabled = isBusy;
+  });
+  Object.values(optimizerInputs).forEach((input) => {
+    input.disabled = isBusy;
+  });
+  batchRunButtons.forEach((button) => {
+    button.disabled = isBusy;
+  });
+}
+
+function waitForNextFrame() {
+  return new Promise((resolve) => {
+    window.requestAnimationFrame(() => resolve());
+  });
+}
+
+function syncDiversityModeButton() {
+  diversityModeBtn.classList.toggle("is-active", optimizerDiversityMode);
+  diversityModeBtn.setAttribute("aria-pressed", optimizerDiversityMode ? "true" : "false");
+  diversityModeBtn.textContent = optimizerDiversityMode ? "Cesitlilik Acik" : "Cesitlilik Modu";
+}
+
+function syncObjectiveButtons() {
+  objectiveButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.objective === optimizerObjective);
+  });
+}
+
+function syncComparePanelToggle() {
+  compareToggleBtn.textContent = comparePanelOpen ? "-" : "+";
+  compareToggleBtn.setAttribute("aria-expanded", comparePanelOpen ? "true" : "false");
+  compareToggleBtn.title = comparePanelOpen ? "Mod kiyaslamayi kapat" : "Mod kiyaslamayi ac";
+  comparePanelContent.hidden = !comparePanelOpen;
+}
+
+function invalidateSearchSession() {
+  optimizerSearchSession = createEmptySearchSession();
+  setOptimizeButtonLabel("Simule Et");
+  syncOptimizeButtonCompletionState(false);
+  currentApprovedCandidate = null;
+  currentWrongCandidate = null;
+  currentTopResultsContext = null;
+  syncAdminRestrictedActions();
+  topResultsBtn.disabled = true;
+  reportWrongOptimizerBtn.disabled = true;
+  closeTopResultsModal();
+  renderMatchedActualReport();
+  renderComparisonPanel();
+}
+
+function createSearchKey(stage, enemy, allyPool, mode, objective, diversityMode, stoneMode) {
+  return JSON.stringify({
+    stage,
+    enemy,
+    allyPool,
+    mode,
+    objective,
+    diversityMode: Boolean(diversityMode),
+    stoneMode: Boolean(stoneMode)
+  });
+}
+
+function createComparisonKey(stage, enemy, allyPool, mode, objective, stoneMode) {
+  return JSON.stringify({ stage, enemy, allyPool, mode, objective, stoneMode: Boolean(stoneMode) });
+}
+
+async function loadApprovedStrategies() {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadApprovedStrategies !== "function") {
+    return [];
+  }
+  try {
+    return await window.BTFirebase.loadApprovedStrategies();
+  } catch (error) {
+    console.warn("Onayli cozumler yuklenemedi.", error);
+    return [];
+  }
+}
+
+async function loadWrongReports() {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadWrongReports !== "function") {
+    return [];
+  }
+  try {
+    return await window.BTFirebase.loadWrongReports();
+  } catch (error) {
+    console.warn("Yanlis raporlari yuklenemedi.", error);
+    return [];
+  }
+}
+
+function getRunConfig(stage, runIndex, mode, diversityMode = false) {
+  const presets = {
+    fast: {
+      trialStart: 4,
+      trialStep: 1,
+      trialMax: 12,
+      fullStart: 6,
+      fullStep: 2,
+      fullMax: 20,
+      beamStart: 7,
+      beamStep: 2,
+      beamMax: 18,
+      iterStart: 3,
+      iterStep: 1,
+      iterMax: 6,
+      eliteCount: 4,
+      stabilityMultiplier: 2,
+      exploratoryMultiplier: 6,
+      exhaustiveLimit: 1500,
+      seedOffset: 1301
+    },
+    balanced: {
+      trialStart: 6,
+      trialStep: 2,
+      trialMax: 20,
+      fullStart: 10,
+      fullStep: 4,
+      fullMax: 36,
+      beamStart: 10,
+      beamStep: 3,
+      beamMax: 28,
+      iterStart: 4,
+      iterStep: 1,
+      iterMax: 8,
+      eliteCount: 6,
+      stabilityMultiplier: 3,
+      exploratoryMultiplier: 10,
+      exhaustiveLimit: 6000,
+      seedOffset: 2603
+    },
+    deep: {
+      trialStart: 10,
+      trialStep: 3,
+      trialMax: 30,
+      fullStart: 16,
+      fullStep: 6,
+      fullMax: 48,
+      beamStart: 14,
+      beamStep: 4,
+      beamMax: 36,
+      iterStart: 5,
+      iterStep: 1,
+      iterMax: 10,
+      eliteCount: 8,
+      stabilityMultiplier: 4,
+      exploratoryMultiplier: 16,
+      exhaustiveLimit: 20000,
+      seedOffset: 5209
+    }
+  };
+
+  const preset = presets[mode] || presets.balanced;
+  const trialCount = Math.min(preset.trialStart + (runIndex - 1) * preset.trialStep, preset.trialMax);
+  const fullArmyTrials = Math.min(preset.fullStart + (runIndex - 1) * preset.fullStep, preset.fullMax);
+  const beamWidth = Math.min(preset.beamStart + (runIndex - 1) * preset.beamStep, preset.beamMax);
+  return {
+    trialCount,
+    fullArmyTrials,
+    beamWidth,
+    maxIterations: Math.min(preset.iterStart + (runIndex - 1) * preset.iterStep, preset.iterMax),
+    eliteCount: preset.eliteCount,
+    stabilityTrials: Math.max(fullArmyTrials, trialCount * preset.stabilityMultiplier),
+    exploratoryCandidateCount: Math.min(Math.max(60, beamWidth * preset.exploratoryMultiplier), 640),
+    exhaustiveCandidateLimit: preset.exhaustiveLimit,
+    diversityCandidateCount: diversityMode
+      ? Math.min(
+        Math.max(24, Math.floor((beamWidth || 0) * 3)),
+        144
+      )
+      : 0,
+    baseSeed: 41017 + stage * 31 + runIndex * 7919 + preset.seedOffset + (diversityMode ? 170003 : 0)
+  };
+}
+
+function pickBetterOptimizerResult(left, right) {
+  const leftSource = left.possible ? left.recommendation : left.fallback || left.fullArmyEvaluation;
+  const rightSource = right.possible ? right.recommendation : right.fallback || right.fullArmyEvaluation;
+  const objective = rightSource?.objective || leftSource?.objective || "min_loss";
+  const stoneMode = Boolean(rightSource?.stoneMode || leftSource?.stoneMode);
+  const lossKey = stoneMode ? "avgStoneAdjustedLostBlood" : "avgLostBlood";
+
+  if (left.possible !== right.possible) {
+    return left.possible ? left : right;
+  }
+
+  if (left.possible) {
+    if (leftSource.winRate !== rightSource.winRate) {
+      return leftSource.winRate > rightSource.winRate ? left : right;
+    }
+    if (objective === "min_army") {
+      if (leftSource.avgUsedPoints !== rightSource.avgUsedPoints) {
+        return leftSource.avgUsedPoints < rightSource.avgUsedPoints ? left : right;
+      }
+      if ((leftSource[lossKey] ?? Number.POSITIVE_INFINITY) !== (rightSource[lossKey] ?? Number.POSITIVE_INFINITY)) {
+        return (leftSource[lossKey] ?? Number.POSITIVE_INFINITY) < (rightSource[lossKey] ?? Number.POSITIVE_INFINITY) ? left : right;
+      }
+    } else {
+      if ((leftSource[lossKey] ?? Number.POSITIVE_INFINITY) !== (rightSource[lossKey] ?? Number.POSITIVE_INFINITY)) {
+        return (leftSource[lossKey] ?? Number.POSITIVE_INFINITY) < (rightSource[lossKey] ?? Number.POSITIVE_INFINITY) ? left : right;
+      }
+      if (leftSource.avgUsedPoints !== rightSource.avgUsedPoints) {
+        return leftSource.avgUsedPoints < rightSource.avgUsedPoints ? left : right;
+      }
+    }
+    return leftSource.avgUsedCapacity <= rightSource.avgUsedCapacity ? left : right;
+  }
+
+  if (leftSource.winRate !== rightSource.winRate) {
+    return leftSource.winRate > rightSource.winRate ? left : right;
+  }
+  if (leftSource.avgEnemyRemainingHealth !== rightSource.avgEnemyRemainingHealth) {
+    return leftSource.avgEnemyRemainingHealth < rightSource.avgEnemyRemainingHealth ? left : right;
+  }
+  return leftSource.avgEnemyRemainingUnits <= rightSource.avgEnemyRemainingUnits ? left : right;
+}
+
+function buildInputs(target, units, side) {
+  target.innerHTML = "";
+  units.forEach((unit) => {
+    const row = document.createElement("div");
+    row.className = "unit-row";
+
+    const label = document.createElement("label");
+    label.htmlFor = `optimizer-${unit.key}`;
+    label.textContent = unit.label;
+
+    const input = createNumberInput(`optimizer-${unit.key}`, "0");
+    input.addEventListener("input", () => {
+      invalidateSearchSession();
+      if (side === "ally") {
+        renderPointSummary();
+      }
+      renderMatchedSavedStrategy();
+    });
+
+    row.append(label, input);
+    target.appendChild(row);
+    optimizerInputs[unit.key] = input;
+  });
+}
+
+function buildWrongLossInputs() {
+  wrongLossInputs.innerHTML = "";
+  const inputs = [];
+  ALLY_UNITS.forEach((unit) => {
+    const row = document.createElement("div");
+    row.className = "unit-row";
+
+    const label = document.createElement("label");
+    label.htmlFor = `optimizer-actual-loss-${unit.key}`;
+    label.textContent = unit.label;
+
+    const input = createNumberInput(`optimizer-actual-loss-${unit.key}`, "0");
+    input.addEventListener("input", renderActualWrongSummaryPreview);
+    input.addEventListener("blur", renderActualWrongSummaryPreview);
+
+    row.append(label, input);
+    wrongLossInputs.appendChild(row);
+    actualLossInputs[unit.key] = input;
+    inputs.push(input);
+  });
+
+  wireSequentialInputOrder(inputs);
+
+  actualOutcomeInput.addEventListener("input", renderActualWrongSummaryPreview);
+  actualCapacityInput.addEventListener("input", () => {
+    actualCapacityInput.value = actualCapacityInput.value.replace(/\D+/g, "");
+    renderActualWrongSummaryPreview();
+  });
+  actualNoteInput.addEventListener("input", renderActualWrongSummaryPreview);
+}
+
+function createNumberInput(id, initialValue) {
+  const input = document.createElement("input");
+  input.id = id;
+  input.type = "text";
+  input.inputMode = "numeric";
+  input.pattern = "[0-9]*";
+  input.autocomplete = "off";
+  input.spellcheck = false;
+  input.enterKeyHint = "done";
+  input.value = initialValue;
+
+  input.addEventListener("focus", () => {
+    if (input.value === "0") {
+      input.value = "";
+      return;
+    }
+    input.select();
+  });
+
+  input.addEventListener("blur", () => {
+    if (input.value.trim() === "") {
+      input.value = "0";
+    }
+    renderPointSummary();
+  });
+
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/\D+/g, "");
+  });
+
+  return input;
+}
+
+function wireSequentialInputOrder(inputs) {
+  const filteredInputs = inputs.filter(Boolean);
+  filteredInputs.forEach((input, index) => {
+    const nextInput = filteredInputs[index + 1] || null;
+    input.enterKeyHint = nextInput ? "next" : "done";
+    input.onkeydown = (event) => {
+      if (event.key !== "Enter") {
+        return;
+      }
+      event.preventDefault();
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.select();
+        return;
+      }
+      input.blur();
+    };
+  });
+}
+
+function sanitizeRosterClipboardCount(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, Math.floor(value));
+  }
+
+  const digits = String(value ?? "").match(/\d+/)?.[0] || "";
+  return digits ? Number.parseInt(digits, 10) : 0;
+}
+
+function normalizeRosterClipboardCounts(units, source) {
+  const counts = {};
+  units.forEach((unit) => {
+    counts[unit.key] = sanitizeRosterClipboardCount(source?.[unit.key]);
+  });
+  return counts;
+}
+
+function normalizeRosterClipboardPayload(raw) {
+  if (!raw || raw.type !== "bt-analiz-roster" || !["ally", "enemy", "both"].includes(raw.scope)) {
+    return null;
+  }
+
+  const payload = {
+    type: "bt-analiz-roster",
+    version: 1,
+    scope: raw.scope
+  };
+
+  if (raw.scope === "ally" || raw.scope === "both") {
+    payload.allyCounts = normalizeRosterClipboardCounts(ALLY_UNITS, raw.allyCounts);
+  }
+
+  if (raw.scope === "enemy" || raw.scope === "both") {
+    payload.enemyCounts = normalizeRosterClipboardCounts(ENEMY_UNITS, raw.enemyCounts);
+  }
+
+  return payload;
+}
+
+function buildRosterClipboardPayload(scope) {
+  return normalizeRosterClipboardPayload({
+    type: "bt-analiz-roster",
+    version: 1,
+    scope,
+    allyCounts: scope === "ally" || scope === "both" ? collectCounts(ALLY_UNITS) : undefined,
+    enemyCounts: scope === "enemy" || scope === "both" ? collectCounts(ENEMY_UNITS) : undefined
+  });
+}
+
+function formatRosterClipboardRemaining(expiresAt) {
+  const remainingMs = Math.max(0, expiresAt - Date.now());
+  const totalSeconds = Math.ceil(remainingMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function setRosterClipboardIndicatorState(state, text) {
+  if (!rosterClipboardIndicator) {
+    return;
+  }
+
+  rosterClipboardIndicator.textContent = text;
+  rosterClipboardIndicator.classList.toggle("is-active", state === "active");
+  rosterClipboardIndicator.classList.toggle("is-expired", state === "expired");
+  rosterClipboardIndicator.classList.toggle("is-empty", state === "empty");
+}
+
+function syncRosterClipboardIndicator() {
+  if (rosterClipboardIndicatorTimer) {
+    window.clearInterval(rosterClipboardIndicatorTimer);
+    rosterClipboardIndicatorTimer = null;
+  }
+
+  if (rosterClipboardCache && rosterClipboardExpiresAt > Date.now()) {
+    setRosterClipboardIndicatorState("active", `Kopya hazir ${formatRosterClipboardRemaining(rosterClipboardExpiresAt)}`);
+    rosterClipboardIndicatorTimer = window.setInterval(() => {
+      if (!rosterClipboardCache || !(rosterClipboardExpiresAt > Date.now())) {
+        if (rosterClipboardIndicatorTimer) {
+          window.clearInterval(rosterClipboardIndicatorTimer);
+          rosterClipboardIndicatorTimer = null;
+        }
+        if (rosterClipboardCache) {
+          clearRosterClipboardPayload();
+        } else {
+          setRosterClipboardIndicatorState("empty", "Kopya yok");
+        }
+        return;
+      }
+      setRosterClipboardIndicatorState("active", `Kopya hazir ${formatRosterClipboardRemaining(rosterClipboardExpiresAt)}`);
+    }, 1000);
+    return;
+  }
+
+  setRosterClipboardIndicatorState("empty", "Kopya yok");
+}
+
+function clearRosterClipboardPayload(showExpiredMessage = true) {
+  rosterClipboardCache = null;
+  rosterClipboardExpiresAt = 0;
+  if (rosterClipboardExpiryTimer) {
+    window.clearTimeout(rosterClipboardExpiryTimer);
+    rosterClipboardExpiryTimer = null;
+  }
+  if (rosterClipboardIndicatorTimer) {
+    window.clearInterval(rosterClipboardIndicatorTimer);
+    rosterClipboardIndicatorTimer = null;
+  }
+  try {
+    window.sessionStorage.removeItem(ROSTER_CLIPBOARD_STORAGE_KEY);
+    window.localStorage.removeItem(ROSTER_CLIPBOARD_STORAGE_KEY);
+  } catch (error) {
+    // Storage erisimi engellense bile bellek ici cache temizlenmis olur.
+  }
+  if (showExpiredMessage) {
+    setRosterClipboardIndicatorState("expired", "Kopya silindi");
+    window.setTimeout(() => {
+      if (!rosterClipboardCache && !(rosterClipboardExpiresAt > Date.now())) {
+        setRosterClipboardIndicatorState("empty", "Kopya yok");
+      }
+    }, 1800);
+    return;
+  }
+  setRosterClipboardIndicatorState("empty", "Kopya yok");
+}
+
+function armRosterClipboardExpiry(expiresAt) {
+  if (rosterClipboardExpiryTimer) {
+    window.clearTimeout(rosterClipboardExpiryTimer);
+    rosterClipboardExpiryTimer = null;
+  }
+
+  if (!(expiresAt > Date.now())) {
+    clearRosterClipboardPayload();
+    return;
+  }
+
+  rosterClipboardExpiryTimer = window.setTimeout(() => {
+    clearRosterClipboardPayload();
+  }, Math.max(0, expiresAt - Date.now()));
+}
+
+function saveRosterClipboardPayload(payload) {
+  rosterClipboardCache = payload;
+  rosterClipboardExpiresAt = Date.now() + ROSTER_CLIPBOARD_TTL_MS;
+  armRosterClipboardExpiry(rosterClipboardExpiresAt);
+  syncRosterClipboardIndicator();
+  try {
+    window.sessionStorage.setItem(ROSTER_CLIPBOARD_STORAGE_KEY, JSON.stringify({
+      payload,
+      expiresAt: rosterClipboardExpiresAt
+    }));
+    window.localStorage.removeItem(ROSTER_CLIPBOARD_STORAGE_KEY);
+  } catch (error) {
+    // Storage engellense bile uygulama ici kopyalama cache ile devam eder.
+  }
+}
+
+function loadStoredRosterClipboardPayload() {
+  if (rosterClipboardCache && rosterClipboardExpiresAt > Date.now()) {
+    armRosterClipboardExpiry(rosterClipboardExpiresAt);
+    return rosterClipboardCache;
+  }
+
+  if (rosterClipboardCache) {
+    clearRosterClipboardPayload(false);
+  }
+
+  try {
+    window.localStorage.removeItem(ROSTER_CLIPBOARD_STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(ROSTER_CLIPBOARD_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+    const envelope = JSON.parse(raw);
+    const expiresAt = Number(envelope?.expiresAt || 0);
+    const parsed = normalizeRosterClipboardPayload(envelope?.payload);
+    if (parsed && expiresAt > Date.now()) {
+      rosterClipboardCache = parsed;
+      rosterClipboardExpiresAt = expiresAt;
+      armRosterClipboardExpiry(expiresAt);
+      syncRosterClipboardIndicator();
+      return parsed;
+    }
+    clearRosterClipboardPayload(false);
+    return null;
+  } catch (error) {
+    clearRosterClipboardPayload(false);
+    return null;
+  }
+}
+
+async function writeRosterClipboardToSystem(payload) {
+  if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+    return false;
+  }
+
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(payload));
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function readRosterClipboardFromSystem() {
+  if (!navigator.clipboard || typeof navigator.clipboard.readText !== "function") {
+    return null;
+  }
+
+  try {
+    const rawText = await navigator.clipboard.readText();
+    if (!rawText) {
+      return null;
+    }
+    const parsed = normalizeRosterClipboardPayload(JSON.parse(rawText));
+    if (parsed) {
+      saveRosterClipboardPayload(parsed);
+    }
+    return parsed;
+  } catch (error) {
+    return null;
+  }
+}
+
+function applyRosterCounts(units, counts) {
+  units.forEach((unit) => {
+    optimizerInputs[unit.key].value = String(counts?.[unit.key] || 0);
+  });
+}
+
+function formatAppliedRosterLabels(labels) {
+  if (labels.length <= 1) {
+    return labels[0] || "veriler";
+  }
+  return `${labels.slice(0, -1).join(", ")} ve ${labels[labels.length - 1]}`;
+}
+
+async function copyRosterSelection(scope) {
+  const payload = buildRosterClipboardPayload(scope);
+  if (!payload) {
+    return;
+  }
+
+  saveRosterClipboardPayload(payload);
+  const copiedToSystem = await writeRosterClipboardToSystem(payload);
+
+  if (scope === "both") {
+    optimizerStatus.textContent = copiedToSystem ? "Iki tarafin ordusu kopyalandi" : "Iki tarafin ordusu hafizada tutuldu";
+    return;
+  }
+
+  optimizerStatus.textContent = scope === "ally"
+    ? (copiedToSystem ? "Eldeki ordu kopyalandi" : "Eldeki ordu hafizada tutuldu")
+    : (copiedToSystem ? "Rakip ordu kopyalandi" : "Rakip ordu hafizada tutuldu");
+}
+
+async function getRosterClipboardPayload() {
+  const storedPayload = loadStoredRosterClipboardPayload();
+  if (storedPayload) {
+    return storedPayload;
+  }
+
+  return readRosterClipboardFromSystem();
+}
+
+async function pasteRosterSelection(scope) {
+  const payload = await getRosterClipboardPayload();
+  if (!payload) {
+    window.alert("Yapistirilacak bir ordu verisi bulunamadi.");
+    syncRosterClipboardIndicator();
+    return;
+  }
+
+  const appliedLabels = [];
+
+  if ((scope === "ally" || scope === "both") && payload.allyCounts) {
+    applyRosterCounts(ALLY_UNITS, payload.allyCounts);
+    appliedLabels.push("eldeki ordu");
+  }
+
+  if ((scope === "enemy" || scope === "both") && payload.enemyCounts) {
+    applyRosterCounts(ENEMY_UNITS, payload.enemyCounts);
+    appliedLabels.push("rakip ordu");
+  }
+
+  if (!appliedLabels.length) {
+    window.alert("Kopyalanan veri secilen alana uygun degil.");
+    return;
+  }
+
+  invalidateSearchSession();
+  renderPointSummary();
+  renderMatchedSavedStrategy();
+  optimizerStatus.textContent = `${formatAppliedRosterLabels(appliedLabels)} yapistirildi`;
+  syncRosterClipboardIndicator();
+}
+
+function collectCounts(units) {
+  const counts = {};
+  units.forEach((unit) => {
+    counts[unit.key] = parseCount(optimizerInputs[unit.key].value, unit.label);
+  });
+  return counts;
+}
+
+function calculateTotalCombinationCount(allyPool, maxPoints) {
+  if (!(maxPoints >= 0)) {
+    return 0n;
+  }
+
+  const activeUnits = ALLY_UNITS.filter((unit) => (allyPool[unit.key] || 0) > 0);
+  const dp = Array.from({ length: maxPoints + 1 }, () => 0n);
+  dp[0] = 1n;
+
+  activeUnits.forEach((unit) => {
+    const cost = POINTS_BY_ALLY_KEY[unit.key];
+    const maxCount = allyPool[unit.key] || 0;
+    const next = Array.from({ length: maxPoints + 1 }, () => 0n);
+
+    for (let points = 0; points <= maxPoints; points += 1) {
+      if (dp[points] === 0n) {
+        continue;
+      }
+      const maxTake = Math.min(maxCount, Math.floor((maxPoints - points) / cost));
+      for (let count = 0; count <= maxTake; count += 1) {
+        next[points + count * cost] += dp[points];
+      }
+    }
+
+    for (let index = 0; index <= maxPoints; index += 1) {
+      dp[index] = next[index];
+    }
+  });
+
+  return dp.reduce((sum, value) => sum + value, 0n);
+}
+
+function formatLargeInteger(value) {
+  if (typeof value === "bigint") {
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+  if (Number.isFinite(value)) {
+    return Math.round(value).toLocaleString("tr-TR");
+  }
+  return String(value ?? "-");
+}
+
+function resetValues() {
+  [...ENEMY_UNITS, ...ALLY_UNITS].forEach((unit) => {
+    optimizerInputs[unit.key].value = "0";
+  });
+  renderPointSummary();
+  renderMatchedSavedStrategy();
+}
+
+function loadSampleValues() {
+  ENEMY_UNITS.forEach((unit) => {
+    optimizerInputs[unit.key].value = String(unit.sample);
+  });
+  ALLY_UNITS.forEach((unit) => {
+    optimizerInputs[unit.key].value = String(unit.sample);
+  });
+  renderPointSummary();
+  renderMatchedSavedStrategy();
+}
+
+function renderPointSummary() {
+  const points = calculateArmyPoints(collectCounts(ALLY_UNITS));
+  const stage = getCommittedStage();
+  const limit = stage ? getStagePointLimit(stage) : null;
+  optimizerPointsValue.textContent = String(points);
+  optimizerPointsLimit.textContent = limit === null ? "-" : String(limit);
+}
+
+function commitStageInput() {
+  const stage = getCommittedStage();
+  if (!stage) {
+    stageInput.value = "";
+  } else {
+    stageInput.value = String(stage);
+  }
+  renderPointSummary();
+  renderMatchedSavedStrategy();
+}
+
+function getCommittedStage() {
+  const raw = stageInput.value.trim();
+  if (!raw) {
+    return null;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+}
+
+function renderOptimizerResult(result, stage, maxPoints, meta) {
+  const summaryBlock = document.createElement("div");
+  summaryBlock.className = "terminal-block";
+  const lossLabel = meta.stoneMode ? "tas sonrasi kalici kayip" : "ortalama kan kaybi";
+  const source = getPrimaryOptimizerSource(result);
+  const progressLines = [
+    `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode)}`,
+    `- toplam olasi kombinasyon: ${formatLargeInteger(meta.totalCombinationCount)}`,
+    `- deneme: ${meta.runIndex}`,
+    `- bu basista tur: ${meta.batchRuns || 1}`,
+    `- bu tur taranan: ${meta.lastCandidates}`,
+    `- toplam taranan: ${meta.totalCandidates}`,
+    `- benzersiz kombinasyon: ${meta.lastUniqueCandidates} (bu tur) / ${meta.totalUniqueCandidates} (toplam)`,
+    `- trial / aday: ${meta.runConfig.trialCount}`,
+    `- beam genisligi: ${meta.runConfig.beamWidth}`,
+    `- genis arama adaylari: ${meta.runConfig.exploratoryCandidateCount || "-"}`,
+    `- exact tarama limiti: ${meta.runConfig.exhaustiveCandidateLimit || 0}`,
+    `- elit aday: ${meta.runConfig.eliteCount}`,
+    `- stabilite testi: ${meta.runConfig.stabilityTrials}`,
+    `- bu basista savas kosusu: ${meta.batchSimulationRuns || result.simulationRuns}`
+  ];
+
+  let summaryLines;
+  if (result.possible) {
+    const recommendation = result.recommendation;
+    summaryLines = [
+      "======================  OPTIMIZER  SONUCU  ======================",
+      `>> ${stage}. kademede bu savas kazanilabilir.`,
+      `- puan limiti: ${maxPoints}`,
+      `- beklenen kazanma orani: %${Math.round(recommendation.winRate * 100)}`,
+      `- ${lossLabel}: ${Math.round(getDisplayedLossValue(recommendation))}`,
+      `- kullanilan puan: ${Math.round(recommendation.avgUsedPoints)}`,
+      ...(meta.stoneMode ? [`- ortalama tas ihtiyaci: ${formatMetricValue(source?.avgStoneCount || 0)}`] : []),
+      ...progressLines
+    ];
+  } else {
+    const fallback = result.fallback || result.fullArmyEvaluation;
+    summaryLines = [
+      "======================  OPTIMIZER  SONUCU  ======================",
+      `>> ${stage}. kademe limitiyle bu savas kazanilmaz.`,
+      `- puan limiti: ${maxPoints}`,
+      `- en iyi denenen duzen kazanamadi`,
+      `- yaklasik kazanma orani: %${Math.round(fallback.winRate * 100)}`,
+      `- rakibin ortalama kalan cani: ${Math.round(fallback.avgEnemyRemainingHealth)}`,
+      ...progressLines
+    ];
+  }
+  renderStyledLines(summaryLines, summaryBlock);
+
+  optimizerSummary.innerHTML = "";
+  optimizerSummary.appendChild(summaryBlock);
+
+  const enemyCounts = collectCounts(ENEMY_UNITS);
+  const allyPool = collectCounts(ALLY_UNITS);
+  cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, meta);
+  renderRecommendationCards(result, maxPoints, meta);
+  const battleView = renderBattleLog(result.sampleBattle.logText);
+
+  currentApprovedCandidate = {
+    stage,
+    mode: meta.mode,
+    objective: meta.objective,
+    diversityMode: meta.diversityMode,
+    stoneMode: meta.stoneMode,
+    enemyCounts,
+    allyPool,
+    result
+  };
+  syncAdminRestrictedActions();
+  currentTopResultsContext = {
+    stage,
+    maxPoints,
+    mode: meta.mode,
+    objective: meta.objective,
+    diversityMode: meta.diversityMode,
+    stoneMode: meta.stoneMode,
+    candidates: buildDisplayedTopCandidates(result)
+  };
+  currentTopResultsSort = "default";
+  topResultsBtn.disabled = !currentTopResultsContext.candidates.length;
+  currentWrongCandidate = createWrongReportEntry(result, stage, maxPoints, meta, battleView.summaryText, battleView.logText);
+  reportWrongOptimizerBtn.disabled = false;
+  renderMatchedActualReport();
+  renderComparisonPanel();
+}
+
+function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, meta) {
+  const source = getPrimaryOptimizerSource(result);
+  if (!source) {
+    return;
+  }
+
+  const key = createComparisonKey(stage, enemyCounts, allyPool, meta.mode, meta.objective, meta.stoneMode);
+  const entry = optimizerComparisonCache.get(key) || {
+    key,
+    stage,
+    mode: meta.mode,
+    objective: meta.objective,
+    stoneMode: meta.stoneMode,
+    maxPoints,
+    enemyCounts: { ...enemyCounts },
+    allyPool: { ...allyPool },
+    benchmark: null,
+    normal: null,
+    diverse: null
+  };
+
+  const lane = meta.diversityMode ? "diverse" : "normal";
+  const nextSnapshot = createComparisonSnapshot(source, meta);
+  entry.stage = stage;
+  entry.mode = meta.mode;
+  entry.objective = meta.objective;
+  entry.stoneMode = meta.stoneMode;
+  entry.maxPoints = maxPoints;
+  entry.enemyCounts = { ...enemyCounts };
+  entry.allyPool = { ...allyPool };
+  if (!areComparisonSnapshotsEqual(entry[lane], nextSnapshot)) {
+    entry.benchmark = null;
+  }
+  entry[lane] = nextSnapshot;
+  optimizerComparisonCache.set(key, entry);
+}
+
+function createComparisonSnapshot(source, meta) {
+  return {
+    label: meta.diversityMode ? "Cesitlilik" : "Standart",
+    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode),
+    feasible: Boolean(source.feasible),
+    winRate: source.winRate || 0,
+    avgLostBlood: Number.isFinite(source.avgLostBlood) ? source.avgLostBlood : null,
+    avgStoneAdjustedLostBlood: Number.isFinite(source.avgStoneAdjustedLostBlood) ? source.avgStoneAdjustedLostBlood : null,
+    avgStoneAdjustedLostUnits: Number.isFinite(source.avgStoneAdjustedLostUnits) ? source.avgStoneAdjustedLostUnits : null,
+    avgStoneCount: source.avgStoneCount || 0,
+    avgUsedPoints: source.avgUsedPoints || 0,
+    avgUsedCapacity: source.avgUsedCapacity || 0,
+    avgEnemyRemainingHealth: source.avgEnemyRemainingHealth || 0,
+    avgEnemyRemainingUnits: source.avgEnemyRemainingUnits || 0,
+    avgAllyLosses: { ...(source.avgAllyLosses || {}) },
+    avgStoneAdjustedAllyLosses: { ...(source.avgStoneAdjustedAllyLosses || {}) },
+    objective: meta.objective,
+    stoneMode: Boolean(meta.stoneMode),
+    counts: { ...(source.counts || {}) }
+  };
+}
+
+function areComparisonSnapshotsEqual(left, right) {
+  if (!left || !right) {
+    return false;
+  }
+  return getOptimizerCandidateSignature(left) === getOptimizerCandidateSignature(right);
+}
+
+function getCurrentComparisonEntry() {
+  const stage = getCommittedStage();
+  if (!stage) {
+    return null;
+  }
+
+  const enemyCounts = collectCounts(ENEMY_UNITS);
+  const allyPool = collectCounts(ALLY_UNITS);
+  const key = createComparisonKey(stage, enemyCounts, allyPool, optimizerMode, optimizerObjective, optimizerStoneMode);
+  return optimizerComparisonCache.get(key) || null;
+}
+
+function compareResultSnapshots(left, right) {
+  if (!left || !right) {
+    return 0;
+  }
+  if (left.feasible !== right.feasible) {
+    return left.feasible ? -1 : 1;
+  }
+  if (left.feasible) {
+    if (left.winRate !== right.winRate) {
+      return right.winRate - left.winRate;
+    }
+    if (left.objective === "min_army") {
+      if (left.avgUsedPoints !== right.avgUsedPoints) {
+        return left.avgUsedPoints - right.avgUsedPoints;
+      }
+      if ((getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) !== (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY)) {
+        return (getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) - (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY);
+      }
+    } else {
+      if ((getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) !== (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY)) {
+        return (getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) - (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY);
+      }
+      if (left.avgUsedPoints !== right.avgUsedPoints) {
+        return left.avgUsedPoints - right.avgUsedPoints;
+      }
+    }
+    return left.avgUsedCapacity - right.avgUsedCapacity;
+  }
+  if (left.winRate !== right.winRate) {
+    return right.winRate - left.winRate;
+  }
+  if (left.avgEnemyRemainingHealth !== right.avgEnemyRemainingHealth) {
+    return left.avgEnemyRemainingHealth - right.avgEnemyRemainingHealth;
+  }
+  return left.avgEnemyRemainingUnits - right.avgEnemyRemainingUnits;
+}
+
+function renderComparisonPanel() {
+  comparePanelContent.innerHTML = "";
+  comparePanelContent.className = "compare-panel-content";
+
+  if (!comparePanelOpen) {
+    return;
+  }
+
+  const entry = getCurrentComparisonEntry();
+  if (!entry) {
+    comparePanelContent.innerHTML = '<p class="summary-empty">Kiyaslama icin once ayni senaryoda bir sonuc uret.</p>';
+    return;
+  }
+
+  if (!entry.normal || !entry.diverse) {
+    const missingLabel = entry.normal ? "Cesitlilik modu" : "Standart mod";
+    comparePanelContent.innerHTML = `<p class="summary-empty">${missingLabel} ile de ayni senaryoyu calistir; kutu burada yan yana kiyaslayacak.</p>`;
+    return;
+  }
+
+  const benchmark = getComparisonBenchmark(entry);
+
+  const summary = document.createElement("div");
+  summary.className = "compare-summary";
+  const winner = compareResultSnapshots(benchmark.normal, benchmark.diverse) <= 0 ? benchmark.normal : benchmark.diverse;
+  const normalLoss = getDisplayedLossValue(benchmark.normal);
+  const diverseLoss = getDisplayedLossValue(benchmark.diverse);
+  const bloodDiff = Number.isFinite(normalLoss) && Number.isFinite(diverseLoss)
+    ? Math.round(Math.abs(normalLoss - diverseLoss))
+    : null;
+  const pointsDiff = Math.abs(Math.round(benchmark.normal.avgUsedPoints) - Math.round(benchmark.diverse.avgUsedPoints));
+
+  [
+    ["Daha iyi sonuc", winner.label],
+    [getLossMetricLabel(entry.stoneMode) + " farki", bloodDiff === null ? "Kiyas yok" : `${bloodDiff}`],
+    ["Puan farki", `${pointsDiff}`],
+    ["Benchmark", `${benchmark.trialCount} ortak savas`]
+  ].forEach(([label, value]) => {
+    const item = document.createElement("div");
+    item.className = "compare-summary-item";
+    const span = document.createElement("span");
+    span.textContent = label;
+    const strong = document.createElement("strong");
+    strong.textContent = value;
+    item.append(span, strong);
+    summary.appendChild(item);
+  });
+
+  const grid = document.createElement("div");
+  grid.className = "compare-grid";
+  const betterLabel = winner.label;
+  grid.append(
+    createComparisonCard(benchmark.normal, entry.maxPoints, betterLabel === benchmark.normal.label),
+    createComparisonCard(benchmark.diverse, entry.maxPoints, betterLabel === benchmark.diverse.label)
+  );
+
+  comparePanelContent.append(summary, grid);
+}
+
+function createComparisonCard(snapshot, maxPoints, isBetter) {
+  const card = document.createElement("article");
+  card.className = `compare-card${isBetter ? " is-better" : ""}`;
+
+  const head = document.createElement("div");
+  head.className = "compare-card-head";
+
+  const titleWrap = document.createElement("div");
+  const title = document.createElement("strong");
+  title.textContent = snapshot.label;
+  const subtitle = document.createElement("span");
+  subtitle.textContent = snapshot.modeLabel;
+  titleWrap.append(title, subtitle);
+
+  const badge = document.createElement("span");
+  badge.className = "compare-badge";
+  badge.textContent = snapshot.feasible ? "Kazanabilir" : "Yetersiz";
+  head.append(titleWrap, badge);
+
+  const meta = document.createElement("div");
+  meta.className = "saved-match-meta";
+  [
+    ["Kazanma orani", `%${Math.round(snapshot.winRate * 100)}`],
+    [getLossMetricLabel(snapshot.stoneMode), snapshot.feasible && Number.isFinite(getDisplayedLossValue(snapshot)) ? `${Math.round(getDisplayedLossValue(snapshot))}` : "Kazanis yok"],
+    ["Puan", `${Math.round(snapshot.avgUsedPoints)} / ${maxPoints}`],
+    ["Kullanilan birlik", `${getSelectedUnitCount(snapshot)}`]
+  ].forEach(([label, value]) => {
+    const item = document.createElement("span");
+    item.innerHTML = `${label}: <strong>${value}</strong>`;
+    meta.appendChild(item);
+  });
+
+  const list = buildTopResultUnitList(snapshot.counts, { expectedLosses: getDisplayedLossBreakdownSource(snapshot) });
+  card.append(head, meta, list);
+  return card;
+}
+
+function getComparisonBenchmark(entry) {
+  if (entry.benchmark) {
+    return entry.benchmark;
+  }
+
+  const trialCount = 180;
+  const baseHash = hashText(`${entry.key}|benchmark`);
+  const seeds = Array.from({ length: trialCount }, (_, index) => 700001 + ((baseHash + index * 977) >>> 0));
+
+  entry.benchmark = {
+    trialCount,
+    normal: evaluateComparisonSnapshot(entry.enemyCounts, entry.normal, seeds),
+    diverse: evaluateComparisonSnapshot(entry.enemyCounts, entry.diverse, seeds)
+  };
+  return entry.benchmark;
+}
+
+function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
+  let wins = 0;
+  let lostBloodSum = 0;
+  let lostUnitsSum = 0;
+  let stoneAdjustedLostBloodSum = 0;
+  let stoneAdjustedLostUnitsSum = 0;
+  let stoneCountSum = 0;
+  let usedCapacitySum = 0;
+  let usedPointsSum = 0;
+  let enemyRemainingHealthSum = 0;
+  let enemyRemainingUnitsSum = 0;
+  const allyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+  const stoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+
+  seeds.forEach((seed) => {
+    const result = simulateBattle(enemyCounts, snapshot.counts, { seed, collectLog: false });
+    usedCapacitySum += result.usedCapacity;
+    usedPointsSum += result.usedPoints;
+    enemyRemainingHealthSum += result.enemyRemainingHealth;
+    enemyRemainingUnitsSum += result.enemyRemainingUnits;
+    if (result.winner === "ally") {
+      wins += 1;
+      lostBloodSum += result.lostBloodTotal;
+      lostUnitsSum += result.lostUnitsTotal;
+      const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
+      stoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
+      stoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
+      stoneCountSum += stoneProfile.stoneCount;
+      ALLY_UNITS.forEach((unit) => {
+        allyLossesSum[unit.key] += result.allyLosses?.[unit.key] || 0;
+        stoneAdjustedAllyLossesSum[unit.key] += stoneProfile.permanentLossesByKey[unit.key] || 0;
+      });
+    }
+  });
+
+  const winRate = wins / seeds.length;
+  return {
+    ...snapshot,
+    trials: seeds.length,
+    wins,
+    winRate,
+    feasible: winRate >= 0.75,
+    avgLostBlood: wins > 0 ? lostBloodSum / wins : null,
+    avgLostUnits: wins > 0 ? lostUnitsSum / wins : null,
+    avgStoneAdjustedLostBlood: wins > 0 ? stoneAdjustedLostBloodSum / wins : null,
+    avgStoneAdjustedLostUnits: wins > 0 ? stoneAdjustedLostUnitsSum / wins : null,
+    avgStoneCount: wins > 0 ? stoneCountSum / wins : 0,
+    avgUsedCapacity: usedCapacitySum / seeds.length,
+    avgUsedPoints: usedPointsSum / seeds.length,
+    avgEnemyRemainingHealth: enemyRemainingHealthSum / seeds.length,
+    avgEnemyRemainingUnits: enemyRemainingUnitsSum / seeds.length,
+    avgAllyLosses: Object.fromEntries(
+      ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? allyLossesSum[unit.key] / wins : 0])
+    ),
+    avgStoneAdjustedAllyLosses: Object.fromEntries(
+      ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? stoneAdjustedAllyLossesSum[unit.key] / wins : 0])
+    )
+  };
+}
+
+function hashText(text) {
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function getPrimaryOptimizerSource(result) {
+  return result.possible ? result.recommendation : result.fallback || result.fullArmyEvaluation || null;
+}
+
+function getDisplayedLossValue(entry) {
+  if (!entry) {
+    return Number.POSITIVE_INFINITY;
+  }
+  const stoneMode = Boolean(entry.stoneMode);
+  const value = stoneMode ? entry.avgStoneAdjustedLostBlood : entry.avgLostBlood;
+  return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+}
+
+function getDisplayedLossUnits(entry) {
+  if (!entry) {
+    return Number.POSITIVE_INFINITY;
+  }
+  const stoneMode = Boolean(entry.stoneMode);
+  const value = stoneMode ? entry.avgStoneAdjustedLostUnits : entry.avgLostUnits;
+  return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+}
+
+function getDisplayedLossBreakdownSource(entry) {
+  return entry?.stoneMode ? (entry.avgStoneAdjustedAllyLosses || {}) : (entry?.avgAllyLosses || {});
+}
+
+function getLossMetricLabel(stoneMode) {
+  return stoneMode ? "Tas sonrasi kalici kayip" : "Ortalama kan kaybi";
+}
+
+function formatMetricValue(value) {
+  if (!Number.isFinite(value)) {
+    return "-";
+  }
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function getOptimizerCandidateSignature(entry) {
+  if (!entry) {
+    return "";
+  }
+  if (entry.signature) {
+    return entry.signature;
+  }
+  return ALLY_UNITS.map((unit) => entry.counts?.[unit.key] || 0).join("|");
+}
+
+function compareOptimizerCandidates(left, right) {
+  if (left.feasible !== right.feasible) {
+    return left.feasible ? -1 : 1;
+  }
+
+  if (left.feasible) {
+    if (left.winRate !== right.winRate) {
+      return right.winRate - left.winRate;
+    }
+    if (left.objective === "min_army") {
+      if (left.avgUsedPoints !== right.avgUsedPoints) {
+        return left.avgUsedPoints - right.avgUsedPoints;
+      }
+      if (getDisplayedLossValue(left) !== getDisplayedLossValue(right)) {
+        return getDisplayedLossValue(left) - getDisplayedLossValue(right);
+      }
+    } else {
+      if (getDisplayedLossValue(left) !== getDisplayedLossValue(right)) {
+        return getDisplayedLossValue(left) - getDisplayedLossValue(right);
+      }
+      if (left.avgUsedPoints !== right.avgUsedPoints) {
+        return left.avgUsedPoints - right.avgUsedPoints;
+      }
+    }
+    if (left.avgUsedCapacity !== right.avgUsedCapacity) {
+      return left.avgUsedCapacity - right.avgUsedCapacity;
+    }
+    if (getDisplayedLossUnits(left) !== getDisplayedLossUnits(right)) {
+      return getDisplayedLossUnits(left) - getDisplayedLossUnits(right);
+    }
+    return getOptimizerCandidateSignature(left).localeCompare(getOptimizerCandidateSignature(right));
+  }
+
+  if (left.winRate !== right.winRate) {
+    return right.winRate - left.winRate;
+  }
+  if (left.avgEnemyRemainingHealth !== right.avgEnemyRemainingHealth) {
+    return left.avgEnemyRemainingHealth - right.avgEnemyRemainingHealth;
+  }
+  if (left.avgEnemyRemainingUnits !== right.avgEnemyRemainingUnits) {
+    return left.avgEnemyRemainingUnits - right.avgEnemyRemainingUnits;
+  }
+  if (left.avgUsedPoints !== right.avgUsedPoints) {
+    return left.avgUsedPoints - right.avgUsedPoints;
+  }
+  return getOptimizerCandidateSignature(left).localeCompare(getOptimizerCandidateSignature(right));
+}
+
+function mergeOptimizerCandidates(...groups) {
+  let limit = 12;
+  if (groups.length > 0) {
+    const last = groups[groups.length - 1];
+    if (last && typeof last === "object" && !Array.isArray(last) && Number.isFinite(last.limit)) {
+      limit = Math.max(1, Math.floor(last.limit));
+      groups = groups.slice(0, -1);
+    }
+  }
+
+  const unique = new Map();
+  groups
+    .flat()
+    .filter(Boolean)
+    .forEach((entry) => {
+      const signature = getOptimizerCandidateSignature(entry);
+      const normalized = {
+        ...entry,
+        signature
+      };
+      const existing = unique.get(signature);
+      if (!existing || compareOptimizerCandidates(normalized, existing) < 0) {
+        unique.set(signature, normalized);
+      }
+    });
+
+  return [...unique.values()]
+    .sort(compareOptimizerCandidates)
+    .slice(0, limit);
+}
+
+function getRoundedLossMetrics(entry) {
+  const avgLosses = getDisplayedLossBreakdownSource(entry);
+  let singletonTypes = 0;
+  let repeatedTypes = 0;
+  let repeatedOverflow = 0;
+  let maxRepeatedStack = 0;
+  let totalRoundedLosses = 0;
+  let roundedBloodLoss = 0;
+
+  ALLY_UNITS.forEach((unit) => {
+    const rounded = Math.max(0, Math.round(avgLosses[unit.key] || 0));
+    if (rounded <= 0) {
+      return;
+    }
+
+    totalRoundedLosses += rounded;
+    roundedBloodLoss += rounded * (BLOOD_BY_ALLY_KEY[unit.key] || 0);
+
+    if (rounded === 1) {
+      singletonTypes += 1;
+      return;
+    }
+
+    repeatedTypes += 1;
+    repeatedOverflow += rounded - 1;
+    if (rounded > maxRepeatedStack) {
+      maxRepeatedStack = rounded;
+    }
+  });
+
+  return {
+    singletonTypes,
+    repeatedTypes,
+    repeatedOverflow,
+    maxRepeatedStack,
+    totalRoundedLosses,
+    roundedBloodLoss
+  };
+}
+
+function getRoundedLossBreakdown(entry) {
+  return Object.fromEntries(
+    ALLY_UNITS.map((unit) => [unit.key, Math.max(0, Math.round(getDisplayedLossBreakdownSource(entry)[unit.key] || 0))])
+  );
+}
+
+function getSelectedUnitCount(entry) {
+  return ALLY_UNITS.reduce((sum, unit) => sum + (entry?.counts?.[unit.key] || 0), 0);
+}
+
+function getSingularityPattern(entry) {
+  return Object.values(getRoundedLossBreakdown(entry))
+    .filter((value) => value > 0)
+    .sort((left, right) => left - right);
+}
+
+function compareSingularityPatterns(left, right) {
+  const minLength = Math.min(left.length, right.length);
+  for (let index = 0; index < minLength; index += 1) {
+    if (left[index] !== right[index]) {
+      return left[index] - right[index];
+    }
+  }
+  return left.length - right.length;
+}
+
+function compareTopResultsBySortMode(left, right, sortMode = "default") {
+  if (sortMode === "units") {
+    if (left.feasible !== right.feasible) {
+      return left.feasible ? -1 : 1;
+    }
+    const unitDelta = getSelectedUnitCount(left) - getSelectedUnitCount(right);
+    if (unitDelta !== 0) {
+      return unitDelta;
+    }
+    const bloodDelta = getDisplayedLossValue(left) - getDisplayedLossValue(right);
+    if (bloodDelta !== 0) {
+      return bloodDelta;
+    }
+    return compareOptimizerCandidates(left, right);
+  }
+
+  if (sortMode === "blood") {
+    if (left.feasible !== right.feasible) {
+      return left.feasible ? -1 : 1;
+    }
+    const bloodDelta = getDisplayedLossValue(left) - getDisplayedLossValue(right);
+    if (bloodDelta !== 0) {
+      return bloodDelta;
+    }
+    const unitDelta = getSelectedUnitCount(left) - getSelectedUnitCount(right);
+    if (unitDelta !== 0) {
+      return unitDelta;
+    }
+    return compareOptimizerCandidates(left, right);
+  }
+
+  if (sortMode === "singularity") {
+    if (left.feasible !== right.feasible) {
+      return left.feasible ? -1 : 1;
+    }
+    const patternDelta = compareSingularityPatterns(getSingularityPattern(left), getSingularityPattern(right));
+    if (patternDelta !== 0) {
+      return patternDelta;
+    }
+    const unitDelta = getSelectedUnitCount(left) - getSelectedUnitCount(right);
+    if (unitDelta !== 0) {
+      return unitDelta;
+    }
+    const bloodDelta = getDisplayedLossValue(left) - getDisplayedLossValue(right);
+    if (bloodDelta !== 0) {
+      return bloodDelta;
+    }
+    return compareOptimizerCandidates(left, right);
+  }
+
+  return 0;
+}
+
+function getSortedTopResultEntries() {
+  const source = currentTopResultsContext?.candidates || [];
+  if (!source.length || currentTopResultsSort === "default") {
+    return source.map((entry, sourceIndex) => ({ entry, sourceIndex }));
+  }
+
+  return source
+    .map((entry, sourceIndex) => ({ entry, sourceIndex }))
+    .sort((left, right) => {
+      const compare = compareTopResultsBySortMode(left.entry, right.entry, currentTopResultsSort);
+      if (compare !== 0) {
+        return compare;
+      }
+      return left.sourceIndex - right.sourceIndex;
+    });
+}
+
+function getRoundedSingularityProfile(entry) {
+  const roundedLosses = getRoundedLossBreakdown(entry);
+  const stoneProfile = getStoneAdjustedLossProfile(roundedLosses);
+  return {
+    roundedLosses,
+    stoneCount: stoneProfile.stoneCount,
+    permanentLostUnits: stoneProfile.permanentLostUnits,
+    permanentLostBlood: stoneProfile.permanentLostBlood,
+    revivedUnits: stoneProfile.revivedUnits
+  };
+}
+
+function getSingularityFocusMetrics(entry) {
+  const profile = getRoundedSingularityProfile(entry);
+  const roundedMetrics = getRoundedLossMetrics(entry);
+  return {
+    selectedUnits: getSelectedUnitCount(entry),
+    permanentLostBlood: profile.permanentLostBlood,
+    permanentLostUnits: profile.permanentLostUnits,
+    stoneCount: profile.stoneCount,
+    repeatedOverflow: roundedMetrics.repeatedOverflow,
+    maxRepeatedStack: roundedMetrics.maxRepeatedStack,
+    singletonTypes: roundedMetrics.singletonTypes
+  };
+}
+
+function normalizeMetric(value, min, max) {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+    return 0;
+  }
+  return (value - min) / (max - min);
+}
+
+function dominatesSingularityCandidate(left, right) {
+  const leftMetrics = getSingularityFocusMetrics(left);
+  const rightMetrics = getSingularityFocusMetrics(right);
+  const noWorse =
+    leftMetrics.selectedUnits <= rightMetrics.selectedUnits &&
+    leftMetrics.permanentLostBlood <= rightMetrics.permanentLostBlood &&
+    leftMetrics.permanentLostUnits <= rightMetrics.permanentLostUnits &&
+    leftMetrics.repeatedOverflow <= rightMetrics.repeatedOverflow;
+  const strictlyBetter =
+    leftMetrics.selectedUnits < rightMetrics.selectedUnits ||
+    leftMetrics.permanentLostBlood < rightMetrics.permanentLostBlood ||
+    leftMetrics.permanentLostUnits < rightMetrics.permanentLostUnits ||
+    leftMetrics.repeatedOverflow < rightMetrics.repeatedOverflow;
+  return noWorse && strictlyBetter;
+}
+
+function compareAlternativeTopCandidates(left, right) {
+  if (left.feasible !== right.feasible) {
+    return left.feasible ? -1 : 1;
+  }
+
+  if (left.feasible) {
+    const leftMetrics = getRoundedLossMetrics(left);
+    const rightMetrics = getRoundedLossMetrics(right);
+
+    if (leftMetrics.repeatedOverflow !== rightMetrics.repeatedOverflow) {
+      return leftMetrics.repeatedOverflow - rightMetrics.repeatedOverflow;
+    }
+    if (leftMetrics.repeatedTypes !== rightMetrics.repeatedTypes) {
+      return leftMetrics.repeatedTypes - rightMetrics.repeatedTypes;
+    }
+    if (leftMetrics.maxRepeatedStack !== rightMetrics.maxRepeatedStack) {
+      return leftMetrics.maxRepeatedStack - rightMetrics.maxRepeatedStack;
+    }
+    if (leftMetrics.roundedBloodLoss !== rightMetrics.roundedBloodLoss) {
+      return leftMetrics.roundedBloodLoss - rightMetrics.roundedBloodLoss;
+    }
+    if (leftMetrics.singletonTypes !== rightMetrics.singletonTypes) {
+      return rightMetrics.singletonTypes - leftMetrics.singletonTypes;
+    }
+  }
+
+  return compareOptimizerCandidates(left, right);
+}
+
+function compareSingularityFocusedCandidates(left, right) {
+  if (left.feasible !== right.feasible) {
+    return left.feasible ? -1 : 1;
+  }
+
+  if (left.feasible) {
+    const leftUsedUnits = getSelectedUnitCount(left);
+    const rightUsedUnits = getSelectedUnitCount(right);
+    if (leftUsedUnits !== rightUsedUnits) {
+      return leftUsedUnits - rightUsedUnits;
+    }
+
+    const leftProfile = getRoundedSingularityProfile(left);
+    const rightProfile = getRoundedSingularityProfile(right);
+
+    if (leftProfile.permanentLostBlood !== rightProfile.permanentLostBlood) {
+      return leftProfile.permanentLostBlood - rightProfile.permanentLostBlood;
+    }
+    if (leftProfile.permanentLostUnits !== rightProfile.permanentLostUnits) {
+      return leftProfile.permanentLostUnits - rightProfile.permanentLostUnits;
+    }
+    if (leftProfile.stoneCount !== rightProfile.stoneCount) {
+      return leftProfile.stoneCount - rightProfile.stoneCount;
+    }
+
+    const leftMetrics = getRoundedLossMetrics(left);
+    const rightMetrics = getRoundedLossMetrics(right);
+
+    if (leftMetrics.repeatedOverflow !== rightMetrics.repeatedOverflow) {
+      return leftMetrics.repeatedOverflow - rightMetrics.repeatedOverflow;
+    }
+    if (leftMetrics.maxRepeatedStack !== rightMetrics.maxRepeatedStack) {
+      return leftMetrics.maxRepeatedStack - rightMetrics.maxRepeatedStack;
+    }
+    if (leftMetrics.repeatedTypes !== rightMetrics.repeatedTypes) {
+      return leftMetrics.repeatedTypes - rightMetrics.repeatedTypes;
+    }
+    if (leftMetrics.singletonTypes !== rightMetrics.singletonTypes) {
+      return rightMetrics.singletonTypes - leftMetrics.singletonTypes;
+    }
+  }
+
+  return compareAlternativeTopCandidates(left, right);
+}
+
+function chooseSingularityFocusedCandidate(alternatives) {
+  if (!alternatives.length) {
+    return null;
+  }
+
+  const pool = alternatives.filter((entry) => entry.feasible);
+  const source = pool.length ? pool : alternatives;
+  const frontier = source.filter((candidate, index) =>
+    !source.some((other, otherIndex) => otherIndex !== index && dominatesSingularityCandidate(other, candidate))
+  );
+  const metricsList = frontier.map((entry) => getSingularityFocusMetrics(entry));
+  const selectedUnitsValues = metricsList.map((metrics) => metrics.selectedUnits);
+  const permanentLostBloodValues = metricsList.map((metrics) => metrics.permanentLostBlood);
+  const permanentLostUnitsValues = metricsList.map((metrics) => metrics.permanentLostUnits);
+  const repeatedOverflowValues = metricsList.map((metrics) => metrics.repeatedOverflow);
+  const singletonTypesValues = metricsList.map((metrics) => metrics.singletonTypes);
+
+  const minSelectedUnits = Math.min(...selectedUnitsValues);
+  const maxSelectedUnits = Math.max(...selectedUnitsValues);
+  const minPermanentLostBlood = Math.min(...permanentLostBloodValues);
+  const maxPermanentLostBlood = Math.max(...permanentLostBloodValues);
+  const minPermanentLostUnits = Math.min(...permanentLostUnitsValues);
+  const maxPermanentLostUnits = Math.max(...permanentLostUnitsValues);
+  const minRepeatedOverflow = Math.min(...repeatedOverflowValues);
+  const maxRepeatedOverflow = Math.max(...repeatedOverflowValues);
+  const minSingletonTypes = Math.min(...singletonTypesValues);
+  const maxSingletonTypes = Math.max(...singletonTypesValues);
+
+  return frontier
+    .map((entry) => {
+      const metrics = getSingularityFocusMetrics(entry);
+      const score =
+        normalizeMetric(metrics.selectedUnits, minSelectedUnits, maxSelectedUnits) * 0.5 +
+        normalizeMetric(metrics.permanentLostBlood, minPermanentLostBlood, maxPermanentLostBlood) * 0.3 +
+        normalizeMetric(metrics.permanentLostUnits, minPermanentLostUnits, maxPermanentLostUnits) * 0.12 +
+        normalizeMetric(metrics.repeatedOverflow, minRepeatedOverflow, maxRepeatedOverflow) * 0.08 -
+        normalizeMetric(metrics.singletonTypes, minSingletonTypes, maxSingletonTypes) * 0.04;
+      return { entry, score };
+    })
+    .sort((left, right) => {
+      if (left.score !== right.score) {
+        return left.score - right.score;
+      }
+      return compareSingularityFocusedCandidates(left.entry, right.entry);
+    })[0]?.entry || null;
+}
+
+function buildDisplayedTopCandidates(result) {
+  const primary = getPrimaryOptimizerSource(result);
+  const ranked = mergeOptimizerCandidates(primary ? [primary] : [], result.topCandidates || [], { limit: 120 });
+  if (!primary) {
+    return ranked.slice(0, 6);
+  }
+
+  const primarySignature = getOptimizerCandidateSignature(primary);
+  const alternatives = ranked
+    .filter((entry) => getOptimizerCandidateSignature(entry) !== primarySignature);
+
+  const sortedAlternatives = [...alternatives].sort(compareAlternativeTopCandidates);
+  const singularityCandidate = chooseSingularityFocusedCandidate(alternatives);
+  const singularitySignature = singularityCandidate ? getOptimizerCandidateSignature(singularityCandidate) : "";
+  const displayAlternatives = sortedAlternatives
+    .filter((entry) => getOptimizerCandidateSignature(entry) !== singularitySignature)
+    .slice(0, singularityCandidate ? 4 : 5);
+
+  if (singularityCandidate) {
+    displayAlternatives.push({
+      ...singularityCandidate,
+      specialFocus: "singleton",
+      specialFocusLabel: "Az birlik + tekillik odakli aday",
+      specialFocusBadge: "Az birlik"
+    });
+  }
+
+  return [
+    {
+      ...primary,
+      signature: primarySignature
+    },
+    ...displayAlternatives
+  ].slice(0, 6);
+}
+
+function openTopResultsModal() {
+  renderTopResultsModal();
+  topResultsModal.hidden = false;
+}
+
+function closeTopResultsModal() {
+  topResultsModal.hidden = true;
+}
+
+function renderTopResultsModal() {
+  topResultsMeta.innerHTML = "";
+  topResultsList.innerHTML = "";
+
+  if (!currentTopResultsContext || !currentTopResultsContext.candidates.length) {
+    topResultsList.innerHTML = '<p class="summary-empty">Henuz gosterilecek sonuc yok.</p>';
+    return;
+  }
+
+  [
+    ["default", "Varsayilan", "Ana", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v4H5V5zm0 5.5h9v4H5v-4zm0 5.5h14v3H5v-3z"></path></svg>'],
+    ["singularity", "Tekillik", "Tek", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.4L20 11l-4 3.9.9 5.6-4.9-2.6-4.9 2.6.9-5.6L4 11l5.4-2.6L12 3z"></path></svg>'],
+    ["units", "Kullanilan birlik", "Bir", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 11.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5zm9 0a2.5 2.5 0 110-5 2.5 2.5 0 010 5zM3.5 19a4 4 0 014-4H8a4 4 0 014 4v1H3.5v-1zm8.5 1v-1a4.7 4.7 0 00-1.3-3.2A4 4 0 0114 14h.5a4 4 0 014 4v2H12z"></path></svg>'],
+    ["blood", "Kan kaybi", "Kan", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.2 4.1 5.5 6.9 5.5 10A5.5 5.5 0 116.5 13c0-3.1 2.3-5.9 5.5-10zm0 14.5a2.5 2.5 0 002.5-2.5h-5a2.5 2.5 0 002.5 2.5z"></path></svg>']
+  ].forEach(([mode, label, shortLabel, icon]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `button button-ghost top-results-sort-button${currentTopResultsSort === mode ? " is-active" : ""}`;
+    button.innerHTML = `${icon}<span class="top-results-sort-label">${label}</span><span class="top-results-sort-label-short">${shortLabel}</span>`;
+    button.setAttribute("aria-pressed", String(currentTopResultsSort === mode));
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    button.addEventListener("click", () => {
+      if (currentTopResultsSort === mode) {
+        return;
+      }
+      currentTopResultsSort = mode;
+      renderTopResultsModal();
+    });
+    topResultsMeta.appendChild(button);
+  });
+
+  getSortedTopResultEntries().forEach(({ entry, sourceIndex }, index) => {
+    topResultsList.appendChild(createTopResultCard(entry, index, currentTopResultsContext.maxPoints, {
+      isPrimary: currentTopResultsSort === "default" && sourceIndex === 0
+    }));
+  });
+}
+
+function createTopResultCard(entry, index, maxPoints, options = {}) {
+  const isPrimary = Boolean(options.isPrimary);
+  const card = document.createElement("article");
+  card.className = `top-result-card${isPrimary ? " is-primary" : ""}`;
+
+  const head = document.createElement("div");
+  head.className = "top-result-head";
+
+  const titleWrap = document.createElement("div");
+  const title = document.createElement("strong");
+  title.textContent = isPrimary ? "Ana sonuc" : `${index + 1}. sonuc`;
+  const subtitle = document.createElement("span");
+  subtitle.textContent = entry.specialFocusLabel || (entry.feasible ? "Kazanabilir dizilim" : "Kazanamayan ama en yakin alternatif");
+  titleWrap.append(title, subtitle);
+
+  const badge = document.createElement("span");
+  badge.textContent = entry.specialFocusBadge || (entry.feasible ? "Kazanilir" : "Alternatif");
+  head.append(titleWrap, badge);
+
+  const summary = document.createElement("div");
+  summary.className = "top-result-summary";
+
+  const summaryStats = entry.feasible
+    ? [
+        ["Kazanma orani", `%${Math.round(entry.winRate * 100)}`],
+        [getLossMetricLabel(entry.stoneMode), `${Math.round(getDisplayedLossValue(entry))}`],
+        ["Kullanilan puan", `${Math.round(entry.avgUsedPoints)} / ${maxPoints}`],
+        ["Kullanilan birlik", `${getSelectedUnitCount(entry)}`],
+        ...(entry.stoneMode ? [["Ortalama tas", formatMetricValue(entry.avgStoneCount || 0)]] : [])
+      ]
+    : [
+        ["Kazanma orani", `%${Math.round(entry.winRate * 100)}`],
+        ["Rakip kalan can", `${Math.round(entry.avgEnemyRemainingHealth)}`],
+        ["Rakip kalan birlik", `${Math.round(entry.avgEnemyRemainingUnits)}`],
+        ["Kullanilan puan", `${Math.round(entry.avgUsedPoints)} / ${maxPoints}`]
+      ];
+
+  summaryStats.forEach(([label, value]) => {
+    const stat = document.createElement("div");
+    stat.className = "top-result-stat";
+    const labelNode = document.createElement("span");
+    labelNode.textContent = label;
+    const valueNode = document.createElement("strong");
+    valueNode.textContent = value;
+    stat.append(labelNode, valueNode);
+
+    if (label === getLossMetricLabel(entry.stoneMode)) {
+      const lossNote = document.createElement("small");
+      lossNote.className = "top-result-loss-note";
+      lossNote.textContent = formatCandidateLossBreakdown(entry);
+      stat.appendChild(lossNote);
+    }
+
+    summary.appendChild(stat);
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "top-result-actions";
+  const detailBtn = document.createElement("button");
+  detailBtn.className = "button button-ghost";
+  detailBtn.type = "button";
+  detailBtn.textContent = "Detay Goster";
+  actions.appendChild(detailBtn);
+
+  const details = document.createElement("div");
+  details.className = "top-result-details";
+  details.hidden = true;
+
+  const detailGrid = document.createElement("div");
+  detailGrid.className = "top-result-detail-grid";
+
+  const armyBlock = document.createElement("section");
+  armyBlock.className = "top-result-detail-block";
+  const armyTitle = document.createElement("h3");
+  armyTitle.textContent = "Birlik Dizilisi";
+  armyBlock.append(armyTitle, buildTopResultUnitList(entry.counts));
+
+  const metaBlock = document.createElement("section");
+  metaBlock.className = "top-result-detail-block";
+  const metaTitle = document.createElement("h3");
+  metaTitle.textContent = "Detay Metrikleri";
+  const metaList = document.createElement("ul");
+  metaList.className = "recommend-list";
+  [
+    ["Ornek galibiyet", entry.wins ?? 0],
+    ["Toplam trial", entry.trials ?? 0],
+    ["Kullanilan birlik", getSelectedUnitCount(entry)],
+    ["Ortalama kayip birlik", Number.isFinite(getDisplayedLossUnits(entry)) ? Math.round(getDisplayedLossUnits(entry)) : "-"],
+    ["Durum", entry.feasible ? "Kazanabilir" : "Alternatif deneme"],
+    ["Yaklasik kayip", formatCandidateLossBreakdown(entry)],
+    ...(entry.specialFocus === "singleton"
+      ? [["Tekillik sonrasi kalici kayip", formatSingularityFocusSummary(entry)]]
+      : []),
+    ...(entry.stoneMode ? [["Ortalama tas", formatMetricValue(entry.avgStoneCount || 0)]] : [])
+  ].forEach(([label, value]) => {
+    const row = document.createElement("li");
+    row.className = "recommend-row";
+    const labelNode = document.createElement("span");
+    labelNode.textContent = label;
+    const valueNode = document.createElement("strong");
+    valueNode.textContent = String(value);
+    row.append(labelNode, valueNode);
+    metaList.appendChild(row);
+  });
+  metaBlock.append(metaTitle, metaList);
+
+  const note = document.createElement("p");
+  note.className = "top-result-detail-note";
+  note.textContent = "Detay alani sadece dizilim ve ortalama metrikleri gosterir.";
+
+  detailGrid.append(armyBlock, metaBlock);
+  details.append(detailGrid, note);
+
+  detailBtn.addEventListener("click", () => {
+    const nextHidden = !details.hidden;
+    details.hidden = nextHidden;
+    detailBtn.textContent = nextHidden ? "Detay Goster" : "Detayi Gizle";
+  });
+
+  card.append(head, summary, actions, details);
+  return card;
+}
+
+function buildTopResultUnitList(counts, options = {}) {
+  const list = document.createElement("ul");
+  list.className = "recommend-list";
+  const expectedLosses = options.expectedLosses || {};
+
+  let shown = 0;
+  ALLY_UNITS.forEach((unit) => {
+    const count = counts?.[unit.key] || 0;
+    if (count <= 0) {
+      return;
+    }
+    shown += 1;
+    const row = document.createElement("li");
+    row.className = "recommend-row";
+    const label = document.createElement("span");
+    label.textContent = unit.label;
+    const value = document.createElement("strong");
+    value.textContent = String(count);
+    const expectedLoss = Math.round(expectedLosses[unit.key] || 0);
+    if (expectedLoss > 0) {
+      value.append(" / ");
+      const lossNote = document.createElement("span");
+      lossNote.className = "compare-loss-note";
+      lossNote.textContent = String(expectedLoss);
+      value.appendChild(lossNote);
+    }
+    row.append(label, value);
+    list.appendChild(row);
+  });
+
+  if (shown === 0) {
+    const row = document.createElement("li");
+    row.className = "recommend-row";
+    const label = document.createElement("span");
+    label.textContent = "Birlik secilmedi";
+    const value = document.createElement("strong");
+    value.textContent = "0 adet";
+    row.append(label, value);
+    list.appendChild(row);
+  }
+
+  return list;
+}
+
+function formatCandidateLossBreakdown(entry) {
+  const avgLosses = getDisplayedLossBreakdownSource(entry);
+  const parts = ALLY_UNITS.map((unit) => {
+    const value = avgLosses[unit.key] || 0;
+    const rounded = Math.round(value);
+    if (rounded <= 0) {
+      return null;
+    }
+    return `~${rounded} ${getSummaryUnitName(unit.key)}`;
+  }).filter(Boolean);
+
+  if (!parts.length) {
+    return entry?.feasible ? "Belirgin kayip beklenmiyor." : "Net kayip dagilimi yok.";
+  }
+
+  if (entry?.stoneMode) {
+    return `${parts.join(", ")} | ~${formatMetricValue(entry.avgStoneCount || 0)} tas`;
+  }
+  return parts.join(", ");
+}
+
+function formatSingularityFocusSummary(entry) {
+  const profile = getRoundedSingularityProfile(entry);
+  return `${profile.permanentLostBlood} kan / ${profile.permanentLostUnits} birlik | ${profile.stoneCount} tas`;
+}
+
+function renderRecommendationCards(result, maxPoints, meta) {
+  recommendationPanel.innerHTML = "";
+
+  const source = result.possible ? result.recommendation : result.fallback || result.fullArmyEvaluation;
+  if (!source) {
+    return;
+  }
+
+  const stats = [
+    ["Kullanilan puan", `${Math.round(source.avgUsedPoints)} / ${maxPoints}`],
+    [getLossMetricLabel(meta.stoneMode), result.possible ? `${Math.round(getDisplayedLossValue(source))}` : "Kazanis yok"],
+    ["Kazanma orani", `%${Math.round(source.winRate * 100)}`],
+    ["Toplam tarama", `${meta.totalCandidates} aday`],
+    ...(meta.stoneMode ? [["Ortalama tas", formatMetricValue(source.avgStoneCount || 0)]] : [])
+  ];
+
+  stats.forEach(([label, value]) => {
+    const card = document.createElement("article");
+    card.className = "stat-card";
+    const span = document.createElement("span");
+    span.textContent = label;
+    const strong = document.createElement("strong");
+    strong.textContent = value;
+    card.append(span, strong);
+    recommendationPanel.appendChild(card);
+  });
+
+  const listCard = document.createElement("article");
+  listCard.className = "stat-card";
+  listCard.style.gridColumn = "1 / -1";
+
+  const listTitle = document.createElement("span");
+  listTitle.textContent = result.possible ? "Onerilen birlik dagilimi" : "En yakin duzen";
+
+  const list = buildTopResultUnitList(source.counts, {
+    expectedLosses: getDisplayedLossBreakdownSource(source)
+  });
+
+  listCard.append(listTitle, list);
+  recommendationPanel.appendChild(listCard);
+}
+
+function renderBattleLog(logText) {
+  const lines = logText.split("\n");
+  const victoryIndex = lines.findIndex((line) => line.trim().startsWith(">>"));
+
+  let summaryLines = [];
+  let detailLines = lines;
+
+  if (victoryIndex >= 0) {
+    let splitAt = victoryIndex;
+    if (splitAt > 0 && lines[splitAt - 1].trim().startsWith("---")) {
+      splitAt -= 1;
+    }
+    summaryLines = lines.slice(splitAt);
+    detailLines = lines.slice(0, splitAt);
+  }
+
+  const summaryBlockLines = [
+    "======================  SAVAS  SONUCU  ======================",
+    ...(summaryLines.length > 0 ? summaryLines : ["  (sonuc henuz belirlenmedi)"])
+  ];
+  const outputLines = [
+    "======================  ORNEK  SAVAS  ======================",
+    ...(summaryLines.length > 0 ? summaryLines : []),
+    "",
+    "======================  TUR  TUR  ANALIZ  ======================",
+    "  onerilen duzenin ornek savas gunlugu",
+    "",
+    ...detailLines
+  ];
+  lastOptimizerLogTextTr = outputLines.join("\n");
+  paintOptimizerLogPanel();
+  return {
+    logText: outputLines.join("\n"),
+    summaryText: summaryBlockLines.join("\n")
+  };
+}
+
+let currentOptimizerLogLang = "tr";
+let lastOptimizerLogTextTr = "";
+
+function paintOptimizerLogPanel() {
+  const translate = (window.BattleCore && window.BattleCore.translateLogText) || ((t) => t);
+  const text = translate(lastOptimizerLogTextTr, currentOptimizerLogLang);
+  optimizerLogOutput.innerHTML = "";
+  if (lastOptimizerLogTextTr) {
+    renderStyledLines(text.split("\n"), optimizerLogOutput);
+  }
+}
+
+if (langToggleOptimizerBtn) {
+  langToggleOptimizerBtn.addEventListener("click", () => {
+    currentOptimizerLogLang = currentOptimizerLogLang === "tr" ? "en" : "tr";
+    langToggleOptimizerBtn.textContent = currentOptimizerLogLang === "tr" ? "EN" : "TR";
+    langToggleOptimizerBtn.classList.toggle("is-active", currentOptimizerLogLang === "en");
+    langToggleOptimizerBtn.title = currentOptimizerLogLang === "tr" ? "Gunlugu Ingilizceye cevir" : "Switch log to Turkish";
+    paintOptimizerLogPanel();
+  });
+}
+
+syncOptimizerLogFullscreenUi();
+
+function renderStyledLines(lines, target) {
+  lines.forEach((line) => {
+    const cssClass = classifyLine(line);
+    const row = document.createElement("span");
+    row.className = `log-line${cssClass ? ` ${cssClass}` : ""}`;
+    appendLineWithHighlights(row, line, cssClass);
+    target.appendChild(row);
+  });
+}
+
+const HIGHLIGHTABLE_CLASSES = new Set(["damage", "splash", "buff", "disadv", "status", "event", "ally", "enemy", "formula", "section-total", "matchup"]);
+
+const HIGHLIGHT_PATTERNS = [
+  { regex: /\b\d+\s+(?:\S+\s+){0,2}(?:hasar(?:i)?|damage)\b/g, kind: "hl-damage" },
+  { regex: /\b\d+\s+(?:toplam\s+|total\s+)?(?:can|hp|birim|units|atk)\b/g, kind: "hl-stat" },
+  { regex: /^\s*\d+(?=\s+\S)/g, kind: "hl-stat" },
+  { regex: /\+%\d+(?:\.\d+)?/g, kind: "hl-mult" },
+  { regex: /-%\d+(?:\.\d+)?/g, kind: "hl-mult-neg" },
+  { regex: /(?<!\w)x\d+(?:\.\d+)?(?=\s|$|\])/g, kind: "hl-mult" }
+];
+
+function appendLineWithHighlights(row, line, cssClass) {
+  if (!HIGHLIGHTABLE_CLASSES.has(cssClass)) {
+    row.textContent = line;
+    return;
+  }
+  const matches = [];
+  HIGHLIGHT_PATTERNS.forEach((p) => {
+    p.regex.lastIndex = 0;
+    let m;
+    while ((m = p.regex.exec(line)) !== null) {
+      matches.push({ start: m.index, end: m.index + m[0].length, text: m[0], kind: p.kind });
+    }
+  });
+  matches.sort((a, b) => a.start - b.start || b.end - a.end);
+  const filtered = [];
+  let lastEnd = 0;
+  matches.forEach((m) => {
+    if (m.start >= lastEnd) {
+      filtered.push(m);
+      lastEnd = m.end;
+    }
+  });
+  if (filtered.length === 0) {
+    row.textContent = line;
+    return;
+  }
+  let cursor = 0;
+  filtered.forEach((m) => {
+    if (m.start > cursor) {
+      row.appendChild(document.createTextNode(line.slice(cursor, m.start)));
+    }
+    const span = document.createElement("span");
+    span.className = m.kind;
+    span.textContent = m.text;
+    row.appendChild(span);
+    cursor = m.end;
+  });
+  if (cursor < line.length) {
+    row.appendChild(document.createTextNode(line.slice(cursor)));
+  }
+}
+
+function classifyLine(line) {
+  const stripped = line.trim();
+  if (stripped.startsWith("---")) {
+    return "sep";
+  }
+  if (stripped.includes("═")) {
+    return "banner";
+  }
+  if (stripped.startsWith("── Raund") && stripped.endsWith("sonu ──")) {
+    return "round-end";
+  }
+  if (stripped === "DUSMAN SAFLARI" || stripped === "MUTTEFIK SAFLARI" || stripped === "ENEMY RANKS" || stripped === "ALLY RANKS") {
+    return "section-head";
+  }
+  if (
+    stripped.startsWith("─ Dusman toplam atak") ||
+    stripped.startsWith("─ Muttefik toplam atak") ||
+    stripped.startsWith("─ Enemy total attack") ||
+    stripped.startsWith("─ Ally total attack")
+  ) {
+    return "section-total";
+  }
+  if (stripped.startsWith(">>")) {
+    return "win";
+  }
+  if (/^(?:Hamle|Turn)\s+\d+$/.test(stripped)) {
+    return "turn";
+  }
+  if (stripped.startsWith("Raund") || stripped.startsWith("Round")) {
+    return "round";
+  }
+  if (stripped.startsWith("Hesap:") || stripped.startsWith("Calc:")) {
+    return "formula";
+  }
+  if (stripped.includes(" → ") && !stripped.startsWith("-") && !stripped.startsWith("↳")) {
+    return "matchup";
+  }
+  if (
+    stripped.startsWith("Kayip Birlikler") ||
+    stripped.startsWith("Lost Units") ||
+    stripped.startsWith("Toplam birlik kapasitesi") ||
+    stripped.startsWith("Total army capacity") ||
+    stripped.includes("OPTIMIZER  SONUCU") ||
+    stripped.includes("ORNEK  SAVAS") ||
+    stripped.includes("TUR  TUR  ANALIZ")
+  ) {
+    return "header";
+  }
+  if (stripped.includes("yok edildi") || stripped.includes("completely destroyed")) {
+    return "destroy";
+  }
+  if (
+    stripped.startsWith("onerilen duzenin") ||
+    stripped.startsWith("sample battle log") ||
+    stripped.startsWith("Baslangic muharebe duzeni") ||
+    stripped.startsWith("Initial battle formation")
+  ) {
+    return "subhead";
+  }
+  if (stripped.includes("hasar vurdu") || stripped.includes("damage dealt")) {
+    return "damage";
+  }
+  if (
+    stripped.includes("yayilma hasari") ||
+    stripped.includes("intikam hasari") ||
+    stripped.includes("splash damage") ||
+    stripped.includes("revenge damage") ||
+    stripped.includes("overkill damage") ||
+    stripped.includes("(overkill)")
+  ) {
+    return "splash";
+  }
+  if (
+    stripped.includes("birim kaybetti") ||
+    stripped.includes("units lost") ||
+    stripped.includes("birim / ") ||
+    stripped.includes("units / ") ||
+    stripped.includes("birim kaldi") ||
+    stripped.includes("units remaining") ||
+    stripped.startsWith("↳")
+  ) {
+    return "status";
+  }
+  if (
+    stripped.includes("ustunlugune sahip") ||
+    stripped.includes("type advantage") ||
+    stripped.includes("carpani kazandi") ||
+    stripped.includes("damage multiplier") ||
+    stripped.includes("guclendirdi") ||
+    stripped.includes("empowered") ||
+    stripped.includes("biriktirdi") ||
+    stripped.includes("stored damage") ||
+    stripped.includes("dogurdu") ||
+    stripped.includes("spawned") ||
+    stripped.includes("geri dirildi") ||
+    stripped.includes("revived with") ||
+    /\+%\d/.test(stripped)
+  ) {
+    return "buff";
+  }
+  if (
+    stripped.includes("dezavantajli") ||
+    stripped.includes("type-disadvantaged") ||
+    stripped.includes("azalmis hasar") ||
+    stripped.includes("reduced damage") ||
+    stripped.includes("azaltti") ||
+    stripped.includes("azaltiyor") ||
+    stripped.includes("is reducing") ||
+    stripped.includes("hizini") ||
+    stripped.includes("speed by") ||
+    stripped.includes("hizi artik") ||
+    stripped.includes("speed is now") ||
+    stripped.includes("sifirlandi") ||
+    stripped.includes("was reset") ||
+    /-%\d/.test(stripped)
+  ) {
+    return "disadv";
+  }
+  if (stripped.startsWith("-") || stripped.startsWith("=")) {
+    return "event";
+  }
+  if (stripped.includes(" can") || stripped.includes(" hp")) {
+    return isAllyLine(stripped) ? "ally" : "enemy";
+  }
+  return "";
+}
+
+function isAllyLine(line) {
+  const allyNames = [
+    "Yarasalar", "Gulyabaniler", "Vampir Koleler", "Bansiler",
+    "Nekromantlar", "Gargoyller", "Kan Cadilari", "Curuk Ceneler",
+    "Bats", "Ghouls", "Thralls", "Banshees",
+    "Necromancers", "Gargoyles", "Blood Witches", "Rotmaws"
+  ];
+  return allyNames.some((name) => line.includes(name));
+}
+
+function getSearchModeLabel(mode) {
+  if (mode === "fast") {
+    return "Hizli";
+  }
+  if (mode === "deep") {
+    return "Derin";
+  }
+  return "Dengeli";
+}
+
+function getObjectiveLabel(objective) {
+  return objective === "min_army" ? "En Az Orduyla Kazan" : "En Az Kayipla Kazan";
+}
+
+function getModeLabel(mode, objective = "min_loss", diversityMode = false, stoneMode = false) {
+  const parts = [getSearchModeLabel(mode), getObjectiveLabel(objective)];
+  if (stoneMode) {
+    parts.push("Tasli");
+  }
+  if (diversityMode) {
+    parts.push("Cesitlilik");
+  }
+  return parts.join(" / ");
+}
+
+function getEnemySignature(stage, enemyCounts) {
+  return `${stage}|${ENEMY_UNITS.map((unit) => enemyCounts[unit.key] || 0).join("|")}`;
+}
+
+function createSavedEntry(candidate) {
+  const recommendation = candidate.result.recommendation;
+  const enemySignature = getEnemySignature(candidate.stage, candidate.enemyCounts);
+  const enemyTitle = ENEMY_UNITS.filter((unit) => (candidate.enemyCounts[unit.key] || 0) > 0)
+    .map((unit) => `${candidate.enemyCounts[unit.key]} ${unit.label}`)
+    .slice(0, 2)
+    .join(" / ");
+
+  return {
+    savedAt: new Date().toISOString(),
+    stage: candidate.stage,
+    mode: candidate.mode,
+    objective: candidate.objective || "min_loss",
+    diversityMode: Boolean(candidate.diversityMode),
+    stoneMode: Boolean(candidate.stoneMode),
+    modeLabel: getModeLabel(candidate.mode, candidate.objective, candidate.diversityMode, candidate.stoneMode),
+    enemySignature,
+    enemyTitle: enemyTitle || "Versus",
+    enemyCounts: candidate.enemyCounts,
+    allyPool: candidate.allyPool,
+    recommendationCounts: recommendation.counts,
+    usedPoints: Math.round(recommendation.avgUsedPoints),
+    lostBlood: Math.round(getDisplayedLossValue(recommendation)),
+    winRate: Math.round(recommendation.winRate * 100)
+  };
+}
+
+function createWrongReportEntry(result, stage, maxPoints, meta, summaryText, logText) {
+  const source = result.possible ? result.recommendation : result.fallback || result.fullArmyEvaluation;
+  const enemyCounts = collectCounts(ENEMY_UNITS);
+  const allyCounts = collectCounts(ALLY_UNITS);
+  return {
+    source: "optimizer",
+    sourceLabel: "Optimizer",
+    reportedAt: new Date().toISOString(),
+    stage,
+    mode: meta.mode,
+    objective: meta.objective,
+    diversityMode: Boolean(meta.diversityMode),
+    stoneMode: Boolean(meta.stoneMode),
+    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode),
+    enemyCounts,
+    allyCounts,
+    matchSignature: buildOptimizerMatchSignature(stage, enemyCounts, allyCounts),
+    recommendationCounts: source?.counts || null,
+    summaryText,
+    logText,
+    possible: result.possible,
+    usedPoints: source ? Math.round(source.avgUsedPoints || 0) : 0,
+    lostBlood: source && Number.isFinite(getDisplayedLossValue(source)) ? Math.round(getDisplayedLossValue(source)) : null,
+    winRate: source ? Math.round((source.winRate || 0) * 100) : 0,
+    pointLimit: maxPoints,
+    usedCapacity: Math.round(source?.avgUsedCapacity || 0)
+  };
+}
+
+function openWrongReportModal(report) {
+  pendingWrongReport = report;
+  expectedWrongSummaryPreview.innerHTML = "";
+  renderStyledLines(report.summaryText.split("\n"), expectedWrongSummaryPreview);
+  const expectedLosses = extractLossesFromSummary(report.summaryText);
+
+  actualOutcomeInput.value = extractOutcomeLine(report.summaryText);
+  actualCapacityInput.value = String(report.usedCapacity || 0);
+  actualNoteInput.value = "";
+  ALLY_UNITS.forEach((unit) => {
+    actualLossInputs[unit.key].value = String(expectedLosses[unit.key] || 0);
+  });
+  renderActualWrongSummaryPreview();
+  wrongReportModal.hidden = false;
+}
+
+function closeWrongReportModal() {
+  wrongReportModal.hidden = true;
+  pendingWrongReport = null;
+}
+
+function extractOutcomeLine(summaryText) {
+  return summaryText.split("\n").find((line) => line.trim().startsWith(">>")) || "";
+}
+
+function extractLossesFromSummary(summaryText) {
+  const nameMap = Object.fromEntries(
+    ALLY_UNITS.map((unit) => [getSummaryUnitName(unit.key), unit.key])
+  );
+  const losses = {};
+  summaryText.split("\n").forEach((line) => {
+    const match = line.match(/^-?\s*(\d+)\s+(.+?)\s+\(\s*\d+\s+kan\)$/);
+    if (!match) {
+      return;
+    }
+    const count = Number.parseInt(match[1], 10);
+    const key = nameMap[match[2].trim()];
+    if (key) {
+      losses[key] = count;
+    }
+  });
+  return losses;
+}
+
+function collectActualLosses() {
+  const losses = {};
+  ALLY_UNITS.forEach((unit) => {
+    losses[unit.key] = parseCount(actualLossInputs[unit.key].value || "0", unit.label);
+  });
+  return losses;
+}
+
+function buildActualSummaryText() {
+  const outcome = actualOutcomeInput.value.trim() || ">> Gercek sonuc girilmedi.";
+  const losses = collectActualLosses();
+  const capacity = actualCapacityInput.value.trim() === "" ? 0 : Number.parseInt(actualCapacityInput.value, 10);
+
+  const lines = [
+    "======================  SAVAS  SONUCU  ======================",
+    outcome,
+    "--------------------------------------------------",
+    "Kayip Birlikler"
+  ];
+
+  let totalUnits = 0;
+  let totalBlood = 0;
+  ALLY_UNITS.forEach((unit) => {
+    const count = losses[unit.key] || 0;
+    if (count <= 0) {
+      return;
+    }
+    const blood = count * BLOOD_BY_ALLY_KEY[unit.key];
+    totalUnits += count;
+    totalBlood += blood;
+    lines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${String(blood).padStart(4)} kan)`);
+  });
+
+  lines.push("");
+  lines.push(`= ${String(totalUnits).padStart(3)} toplam ${"".padEnd(21)} (${String(totalBlood).padStart(4)} kan)`);
+  lines.push("--------------------------------------------------");
+  lines.push(`Toplam birlik kapasitesi: ${capacity}`);
+
+  if (actualNoteInput.value.trim()) {
+    lines.push(`Not: ${actualNoteInput.value.trim()}`);
+  }
+
+  return lines.join("\n");
+}
+
+function buildOptimizerMatchSignature(stage, enemyCounts, allyCounts) {
+  const enemySignature = ENEMY_UNITS.map((unit) => enemyCounts[unit.key] || 0).join("|");
+  const allySignature = ALLY_UNITS.map((unit) => allyCounts[unit.key] || 0).join("|");
+  return `${stage}|${enemySignature}|${allySignature}`;
+}
+
+function renderMatchedActualReport() {
+  matchedActualPanel.innerHTML = "";
+  if (!currentWrongCandidate) {
+    return;
+  }
+
+  const signature = currentWrongCandidate.matchSignature || buildOptimizerMatchSignature(
+    currentWrongCandidate.stage,
+    currentWrongCandidate.enemyCounts,
+    currentWrongCandidate.allyCounts
+  );
+  const matched = wrongReports.find((item) =>
+    item.source === "optimizer" &&
+    Number(item.stage) === Number(currentWrongCandidate.stage) &&
+    (item.matchSignature === signature || buildOptimizerMatchSignature(item.stage, item.enemyCounts || {}, item.allyCounts || {}) === signature)
+  );
+
+  if (!matched || !matched.actualSummaryText) {
+    return;
+  }
+
+  const card = document.createElement("article");
+  card.className = "saved-match-card";
+
+  const head = document.createElement("div");
+  head.className = "saved-match-head";
+  head.innerHTML = `<strong>Kayitli Gercek Sonuc Var</strong><span>${formatDate(matched.reportedAt)}</span>`;
+
+  const summaryGrid = document.createElement("div");
+  summaryGrid.className = "wrong-summary-grid";
+
+  const expectedWrap = document.createElement("section");
+  expectedWrap.className = "wrong-summary-block";
+  const expectedTitle = document.createElement("h3");
+  expectedTitle.textContent = "Beklenen";
+  const expectedBlock = document.createElement("div");
+  expectedBlock.className = "terminal-block";
+  renderStyledLines((matched.summaryText || currentWrongCandidate.summaryText || "").split("\n"), expectedBlock);
+  expectedWrap.append(expectedTitle, expectedBlock);
+
+  const actualWrap = document.createElement("section");
+  actualWrap.className = "wrong-summary-block";
+  const actualTitle = document.createElement("h3");
+  actualTitle.textContent = "Gercek";
+  const actualBlock = document.createElement("div");
+  actualBlock.className = "terminal-block";
+  renderStyledLines((matched.actualSummaryText || "").split("\n"), actualBlock);
+  actualWrap.append(actualTitle, actualBlock);
+
+  summaryGrid.append(expectedWrap, actualWrap);
+  card.append(head, summaryGrid);
+  matchedActualPanel.appendChild(card);
+}
+
+function renderActualWrongSummaryPreview() {
+  actualWrongSummaryPreview.innerHTML = "";
+  renderStyledLines(buildActualSummaryText().split("\n"), actualWrongSummaryPreview);
+}
+
+function getSummaryUnitName(key) {
+  const names = {
+    bats: "Yarasalar (T1)",
+    ghouls: "Gulyabaniler (T2)",
+    thralls: "Vampir Koleler (T3)",
+    banshees: "Bansiler (T4)",
+    necromancers: "Nekromantlar (T5)",
+    gargoyles: "Gargoyller (T6)",
+    witches: "Kan Cadilari (T7)",
+    rotmaws: "Curuk Ceneler (T8)"
+  };
+  return names[key] || key;
+}
+
+function renderMatchedSavedStrategy() {
+  const stage = getCommittedStage();
+  const enemyCounts = collectCounts(ENEMY_UNITS);
+  const allyPool = collectCounts(ALLY_UNITS);
+  matchedSavedPanel.innerHTML = "";
+
+  if (!stage) {
+    return;
+  }
+
+  const enemySignature = getEnemySignature(stage, enemyCounts);
+  const matched = approvedStrategies.find((candidate) => candidate.enemySignature === enemySignature);
+  if (!matched) {
+    return;
+  }
+
+  const card = document.createElement("article");
+  card.className = "saved-match-card";
+
+  const enoughArmy = ALLY_UNITS.every((unit) => (allyPool[unit.key] || 0) >= (matched.recommendationCounts[unit.key] || 0));
+  const head = document.createElement("div");
+  head.className = "saved-match-head";
+  head.innerHTML = `<strong>Onaylanmis Cozum Bulundu</strong><span>${matched.modeLabel} / ${formatDate(matched.savedAt)}</span>`;
+
+  const body = document.createElement("div");
+  body.className = "saved-match-meta";
+  body.innerHTML = `
+    <span>Kazanma orani: <strong>%${matched.winRate}</strong></span>
+    <span>Kan kaybi: <strong>${matched.lostBlood}</strong></span>
+    <span>Puan: <strong>${matched.usedPoints}</strong></span>
+    <span>Durum: <strong>${enoughArmy ? "Uygulanabilir" : "Eksik birlik var"}</strong></span>
+  `;
+
+  const list = document.createElement("ul");
+  list.className = "recommend-list";
+  Object.entries(matched.recommendationCounts)
+    .filter(([, value]) => value > 0)
+    .forEach(([key, value]) => {
+      const row = document.createElement("li");
+      row.className = "recommend-row";
+      const owned = allyPool[key] || 0;
+      row.innerHTML = `<span>${key}</span><strong>${value} / sende ${owned}</strong>`;
+      list.appendChild(row);
+    });
+
+  if (!list.children.length) {
+    const row = document.createElement("li");
+    row.className = "recommend-row";
+    row.innerHTML = "<span>Kayitli dizilim bos</span><strong>0</strong>";
+    list.appendChild(row);
+  }
+
+  card.append(head, body, list);
+  matchedSavedPanel.appendChild(card);
+}
+
+function restoreFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const savedId = params.get("saved");
+  if (!savedId) {
+    return;
+  }
+
+  const item = approvedStrategies.find((candidate) => candidate.id === savedId);
+  if (!item) {
+    return;
+  }
+
+  stageInput.value = String(item.stage);
+  ENEMY_UNITS.forEach((unit) => {
+    optimizerInputs[unit.key].value = String(item.enemyCounts[unit.key] || 0);
+  });
+  ALLY_UNITS.forEach((unit) => {
+    optimizerInputs[unit.key].value = String(item.allyPool?.[unit.key] || item.recommendationCounts[unit.key] || 0);
+  });
+  optimizerMode = item.mode || "balanced";
+  optimizerObjective = item.objective === "min_army" ? "min_army" : "min_loss";
+  optimizerDiversityMode = Boolean(item.diversityMode);
+  optimizerStoneMode = false;
+  modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
+  syncObjectiveButtons();
+  syncDiversityModeButton();
+}
+
+function applyStageFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const stage = params.get("stage");
+  if (stage && /^\d+$/.test(stage)) {
+    stageInput.value = stage;
+  }
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "-";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString("tr-TR");
+}

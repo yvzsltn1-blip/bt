@@ -13,10 +13,17 @@ const {
   simulateBattle
 } = window.BattleCore;
 
+const optimizerVariant = document.body.dataset.optimizerVariant === "minimum" ? "minimum" : "standard";
 const optimizerInputs = {};
+const optimizerMinimumInputs = {};
 const actualLossInputs = {};
 const optimizerEnemyInputs = document.querySelector("#optimizerEnemyInputs");
 const optimizerAllyInputs = document.querySelector("#optimizerAllyInputs");
+const optimizerConstraintInfo = document.querySelector("#optimizerConstraintInfo");
+const optimizerSearchBandPresetInput = document.querySelector("#optimizerSearchBandPreset");
+const optimizerCustomBandInputs = document.querySelector("#optimizerCustomBandInputs");
+const optimizerCustomBandMinInput = document.querySelector("#optimizerCustomBandMin");
+const optimizerCustomBandMaxInput = document.querySelector("#optimizerCustomBandMax");
 const optimizerSummary = document.querySelector("#optimizerSummary");
 const recommendationPanel = document.querySelector("#recommendationPanel");
 const rosterClipboardIndicator = null;
@@ -102,6 +109,114 @@ let rosterClipboardIndicatorTimer = null;
 let optimizerIncumbentContext = null;
 let currentFavoriteModalSignature = null;
 let currentFavoriteModalPendingEntry = null;
+
+function isMinimumOptimizerVariant() {
+  return optimizerVariant === "minimum";
+}
+
+function normalizeSearchBandMode(mode) {
+  if (mode === "full" || mode === "custom") {
+    return mode;
+  }
+  return "tight75";
+}
+
+function clampBandPercent(value, fallback = 0) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.max(0, Math.min(100, parsed));
+}
+
+function getSearchBandLabel(mode) {
+  if (mode === "full") {
+    return "Tum uzay";
+  }
+  if (mode === "custom") {
+    return "Ozel bant";
+  }
+  return "%75-%100";
+}
+
+function normalizeSearchBandSettings(settings = {}) {
+  const mode = normalizeSearchBandMode(settings.mode);
+  if (mode === "full") {
+    return {
+      mode,
+      minPercent: 0,
+      maxPercent: 100
+    };
+  }
+  if (mode === "tight75") {
+    return {
+      mode,
+      minPercent: 75,
+      maxPercent: 100
+    };
+  }
+  return {
+    mode,
+    minPercent: clampBandPercent(settings.minPercent, 75),
+    maxPercent: clampBandPercent(settings.maxPercent, 100)
+  };
+}
+
+function areSearchBandSettingsEqual(left, right) {
+  const normalizedLeft = normalizeSearchBandSettings(left);
+  const normalizedRight = normalizeSearchBandSettings(right);
+  return normalizedLeft.mode === normalizedRight.mode &&
+    normalizedLeft.minPercent === normalizedRight.minPercent &&
+    normalizedLeft.maxPercent === normalizedRight.maxPercent;
+}
+
+function normalizeOptimizerObjective(objective) {
+  if (objective === "min_army" || objective === "safe_win") {
+    return objective;
+  }
+  return "min_loss";
+}
+
+function isSafeWinObjective(objective) {
+  return normalizeOptimizerObjective(objective) === "safe_win";
+}
+
+function getOptimizerObjectiveStatusText(objective) {
+  const normalizedObjective = normalizeOptimizerObjective(objective);
+  if (normalizedObjective === "min_army") {
+    return "Hedef: en az orduyla kazan";
+  }
+  if (normalizedObjective === "safe_win") {
+    return "Hedef: daha guvenli kazan";
+  }
+  return "Hedef: en az kayipla kazan";
+}
+
+function getOptimizerMinWinRate(objective) {
+  return isSafeWinObjective(objective) ? 0.9 : 0.75;
+}
+
+function getObjectiveAdjustedRunConfig(runConfig, objective) {
+  if (!isSafeWinObjective(objective)) {
+    return runConfig;
+  }
+
+  const boostedTrialCount = Math.max(runConfig.trialCount || 0, 14);
+  const boostedFullArmyTrials = Math.max(runConfig.fullArmyTrials || 0, 18);
+  return {
+    ...runConfig,
+    trialCount: boostedTrialCount,
+    fullArmyTrials: boostedFullArmyTrials,
+    eliteCount: Math.max(runConfig.eliteCount || 0, 6),
+    stabilityTrials: Math.max(
+      runConfig.stabilityTrials || 0,
+      boostedFullArmyTrials,
+      boostedTrialCount * 4
+    ),
+    exploratoryCandidateCount: Math.max(runConfig.exploratoryCandidateCount || 0, 16),
+    diversityCandidateCount: Math.max(runConfig.diversityCandidateCount || 0, 24)
+  };
+}
 
 function showCopyableError(title, message) {
   const overlay = document.createElement("div");
@@ -288,6 +403,17 @@ function syncAdminRestrictedActions() {
   syncFavoriteStrategyButtonUi();
 }
 
+function createUnitInputStack(title, input, modifierClass = "") {
+  const wrapper = document.createElement("div");
+  wrapper.className = `unit-input-stack${modifierClass ? ` ${modifierClass}` : ""}`;
+
+  const caption = document.createElement("span");
+  caption.textContent = title;
+
+  wrapper.append(caption, input);
+  return wrapper;
+}
+
 async function bindAdminAuth() {
   if (!window.AdminAuthUI || typeof window.AdminAuthUI.bindAdminControls !== "function") {
     return;
@@ -324,8 +450,17 @@ buildWrongLossInputs();
 buildInputs(optimizerEnemyInputs, ENEMY_UNITS, "enemy");
 buildInputs(optimizerAllyInputs, ALLY_UNITS, "ally");
 wireSequentialInputOrder([
+  optimizerSearchBandPresetInput,
+  optimizerCustomBandMinInput,
+  optimizerCustomBandMaxInput,
   ...ENEMY_UNITS.map((unit) => optimizerInputs[unit.key]),
-  ...ALLY_UNITS.map((unit) => optimizerInputs[unit.key])
+  ...ALLY_UNITS.flatMap((unit) => {
+    const inputs = [optimizerInputs[unit.key]];
+    if (optimizerMinimumInputs[unit.key]) {
+      inputs.push(optimizerMinimumInputs[unit.key]);
+    }
+    return inputs;
+  })
 ]);
 resetValues();
 renderPointSummary();
@@ -336,8 +471,10 @@ void initializeWrongReports();
 void bindAdminAuth();
 syncDiversityModeButton();
 syncObjectiveButtons();
+syncSearchBandControls();
 syncComparePanelToggle();
 renderComparisonPanel();
+optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
 
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -349,12 +486,37 @@ modeButtons.forEach((button) => {
 
 objectiveButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    optimizerObjective = button.dataset.objective === "min_army" ? "min_army" : "min_loss";
+    optimizerObjective = normalizeOptimizerObjective(button.dataset.objective);
     syncObjectiveButtons();
     invalidateSearchSession();
-    optimizerStatus.textContent = optimizerObjective === "min_army"
-      ? "Hedef: en az orduyla kazan"
-      : "Hedef: en az kayipla kazan";
+    optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
+  });
+});
+
+if (optimizerSearchBandPresetInput) {
+  optimizerSearchBandPresetInput.addEventListener("change", () => {
+    syncSearchBandControls();
+    invalidateSearchSession();
+    renderPointSummary();
+  });
+}
+
+[optimizerCustomBandMinInput, optimizerCustomBandMaxInput].forEach((input) => {
+  if (!input) {
+    return;
+  }
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/\D+/g, "");
+    invalidateSearchSession();
+    renderPointSummary();
+  });
+  input.addEventListener("blur", () => {
+    if (input.value.trim() === "") {
+      input.value = input === optimizerCustomBandMinInput ? "75" : "100";
+    }
+    const clamped = clampBandPercent(input.value, input === optimizerCustomBandMinInput ? 75 : 100);
+    input.value = String(clamped);
+    renderPointSummary();
   });
 });
 
@@ -678,23 +840,52 @@ async function runOptimizerSearch(batchRuns) {
   try {
     const enemy = collectCounts(ENEMY_UNITS);
     const allyPool = collectCounts(ALLY_UNITS);
+    const minimumRequiredCounts = collectMinimumRequiredCounts();
+    const searchBandSettings = collectSearchBandSettings();
     const stage = getCommittedStage();
     if (!stage) {
       throw new Error("Lutfen gecerli bir kademe gir ve Enter ile onayla.");
     }
 
     const maxPoints = getStagePointLimit(stage);
-    const totalCombinationCount = calculateTotalCombinationCount(allyPool, maxPoints);
+    const searchBandRange = getSearchBandPointRange(maxPoints, searchBandSettings);
+    validateMinimumRequiredCounts(allyPool, minimumRequiredCounts, maxPoints);
+    const totalCombinationCount = calculateTotalCombinationCount(
+      allyPool,
+      maxPoints,
+      minimumRequiredCounts,
+      0,
+      maxPoints
+    );
+    const bandCombinationCount = calculateTotalCombinationCount(
+      allyPool,
+      maxPoints,
+      minimumRequiredCounts,
+      searchBandRange.minUsedPoints,
+      searchBandRange.maxUsedPoints
+    );
     const incumbentSeedCandidates = getIncumbentSeedCandidates({
       stage,
       enemyCounts: enemy,
       allyPool,
+      minimumRequiredCounts,
+      searchBandSettings,
       mode: optimizerMode,
       objective: optimizerObjective,
       diversityMode: optimizerDiversityMode,
       stoneMode: optimizerStoneMode
     });
-    const searchKey = createSearchKey(stage, enemy, allyPool, optimizerMode, optimizerObjective, optimizerDiversityMode, optimizerStoneMode);
+    const searchKey = createSearchKey(
+      stage,
+      enemy,
+      allyPool,
+      minimumRequiredCounts,
+      searchBandSettings,
+      optimizerMode,
+      optimizerObjective,
+      optimizerDiversityMode,
+      optimizerStoneMode
+    );
     const continuing = optimizerSearchSession.key === searchKey;
     let runIndex = continuing ? optimizerSearchSession.runCount : 0;
     let bestResult = continuing ? optimizerSearchSession.bestResult : null;
@@ -715,14 +906,20 @@ async function runOptimizerSearch(batchRuns) {
         break;
       }
       runIndex += 1;
-      lastRunConfig = getRunConfig(stage, runIndex, optimizerMode, optimizerDiversityMode);
+      lastRunConfig = getObjectiveAdjustedRunConfig(
+        getRunConfig(stage, runIndex, optimizerMode, optimizerDiversityMode),
+        optimizerObjective
+      );
       optimizerStatus.textContent = batchRuns === 1 ? "Hesapliyor" : `${batchRuns} tur araniyor (${step}/${batchRuns})`;
       setOptimizeButtonLabel(batchRuns === 1 ? "Simule Ediliyor" : `${batchRuns} Tur (${step}/${batchRuns})`);
       await waitForNextFrame();
 
       lastResult = optimizeArmyUsage(allyPool, enemy, {
         maxPoints,
-        minWinRate: 0.75,
+        minimumUsedPoints: searchBandRange.minUsedPoints,
+        maximumUsedPoints: searchBandRange.maxUsedPoints,
+        minimumRequiredCounts,
+        minWinRate: getOptimizerMinWinRate(optimizerObjective),
         trialCount: lastRunConfig.trialCount,
         fullArmyTrials: lastRunConfig.fullArmyTrials,
         beamWidth: lastRunConfig.beamWidth,
@@ -730,7 +927,7 @@ async function runOptimizerSearch(batchRuns) {
         eliteCount: lastRunConfig.eliteCount,
         stabilityTrials: lastRunConfig.stabilityTrials,
         baseSeed: lastRunConfig.baseSeed,
-        objective: optimizerObjective,
+        objective: normalizeOptimizerObjective(optimizerObjective),
         stoneMode: optimizerStoneMode,
         diversityMode: optimizerDiversityMode,
         exploratoryCandidateCount: lastRunConfig.exploratoryCandidateCount,
@@ -766,6 +963,8 @@ async function runOptimizerSearch(batchRuns) {
       stage,
       enemyCounts: { ...enemy },
       allyPool: { ...allyPool },
+      minimumRequiredCounts: { ...minimumRequiredCounts },
+      searchBandSettings: { ...searchBandSettings },
       mode: optimizerMode,
       objective: optimizerObjective,
       diversityMode: optimizerDiversityMode,
@@ -784,11 +983,13 @@ async function runOptimizerSearch(batchRuns) {
       lastUniqueCandidates: lastResult.uniqueCandidateCount || 0,
       totalUniqueCandidates: uniqueSignatures.size,
       runConfig: lastRunConfig,
+      searchBandSettings,
       mode: optimizerMode,
       objective: optimizerObjective,
       diversityMode: optimizerDiversityMode,
       stoneMode: optimizerStoneMode,
       totalCombinationCount,
+      bandCombinationCount,
       batchRuns: completedRuns,
       batchSimulationRuns
     });
@@ -822,6 +1023,10 @@ function isSupersetAllyPool(currentPool, previousPool) {
   return ALLY_UNITS.every((unit) => (currentPool?.[unit.key] || 0) >= (previousPool?.[unit.key] || 0));
 }
 
+function areMinimumRequiredCountsEqual(left, right) {
+  return ALLY_UNITS.every((unit) => (left?.[unit.key] || 0) === (right?.[unit.key] || 0));
+}
+
 function isCandidateWithinPool(candidateCounts, allyPool) {
   return ALLY_UNITS.every((unit) => (candidateCounts?.[unit.key] || 0) <= (allyPool?.[unit.key] || 0));
 }
@@ -841,6 +1046,8 @@ function getIncumbentSeedCandidates(context) {
     optimizerIncumbentContext.objective === context.objective &&
     optimizerIncumbentContext.diversityMode === context.diversityMode &&
     optimizerIncumbentContext.stoneMode === context.stoneMode &&
+    areSearchBandSettingsEqual(optimizerIncumbentContext.searchBandSettings, context.searchBandSettings) &&
+    areMinimumRequiredCountsEqual(optimizerIncumbentContext.minimumRequiredCounts, context.minimumRequiredCounts) &&
     areEnemyCountsEqual(optimizerIncumbentContext.enemyCounts, context.enemyCounts) &&
     isSupersetAllyPool(context.allyPool, optimizerIncumbentContext.allyPool);
 
@@ -860,6 +1067,15 @@ function setOptimizerBusy(isBusy) {
   optimizerClearBtn.disabled = isBusy;
   diversityModeBtn.disabled = isBusy;
   stageInput.disabled = isBusy;
+  if (optimizerSearchBandPresetInput) {
+    optimizerSearchBandPresetInput.disabled = isBusy;
+  }
+  if (optimizerCustomBandMinInput) {
+    optimizerCustomBandMinInput.disabled = isBusy || optimizerCustomBandInputs?.hidden;
+  }
+  if (optimizerCustomBandMaxInput) {
+    optimizerCustomBandMaxInput.disabled = isBusy || optimizerCustomBandInputs?.hidden;
+  }
   syncAdminRestrictedActions();
   topResultsBtn.disabled = isBusy || !currentTopResultsContext || !currentTopResultsContext.candidates.length;
   reportWrongOptimizerBtn.disabled = isBusy || !currentWrongCandidate;
@@ -871,6 +1087,9 @@ function setOptimizerBusy(isBusy) {
     button.disabled = isBusy;
   });
   Object.values(optimizerInputs).forEach((input) => {
+    input.disabled = isBusy;
+  });
+  Object.values(optimizerMinimumInputs).forEach((input) => {
     input.disabled = isBusy;
   });
   batchRunButtons.forEach((button) => {
@@ -919,11 +1138,13 @@ function invalidateSearchSession() {
   renderFavoriteButtonState();
 }
 
-function createSearchKey(stage, enemy, allyPool, mode, objective, diversityMode, stoneMode) {
+function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, searchBandSettings, mode, objective, diversityMode, stoneMode) {
   return JSON.stringify({
     stage,
     enemy,
     allyPool,
+    minimumRequiredCounts,
+    searchBandSettings: normalizeSearchBandSettings(searchBandSettings),
     mode,
     objective,
     diversityMode: Boolean(diversityMode),
@@ -931,8 +1152,33 @@ function createSearchKey(stage, enemy, allyPool, mode, objective, diversityMode,
   });
 }
 
-function createComparisonKey(stage, enemy, allyPool, mode, objective, stoneMode) {
-  return JSON.stringify({ stage, enemy, allyPool, mode, objective, stoneMode: Boolean(stoneMode) });
+function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, searchBandSettings, mode, objective, stoneMode) {
+  return JSON.stringify({
+    stage,
+    enemy,
+    allyPool,
+    minimumRequiredCounts,
+    searchBandSettings: normalizeSearchBandSettings(searchBandSettings),
+    mode,
+    objective,
+    stoneMode: Boolean(stoneMode)
+  });
+}
+
+function validateMinimumRequiredCounts(allyPool, minimumRequiredCounts, maxPoints) {
+  if (!isMinimumOptimizerVariant()) {
+    return;
+  }
+
+  const exceedingUnit = ALLY_UNITS.find((unit) => (minimumRequiredCounts[unit.key] || 0) > (allyPool[unit.key] || 0));
+  if (exceedingUnit) {
+    throw new Error(`${exceedingUnit.label} icin minimum kullanim, eldeki adedi asamaz.`);
+  }
+
+  const minimumPoints = calculateArmyPoints(minimumRequiredCounts);
+  if (minimumPoints > maxPoints) {
+    throw new Error(`Minimum kullanim kisitlari puan limitini asiyor. Min ordu puani: ${minimumPoints}, limit: ${maxPoints}.`);
+  }
 }
 
 async function loadApprovedStrategies() {
@@ -1033,10 +1279,10 @@ function normalizeFavoriteStrategyEntry(entry, index) {
     savedAt: entry.savedAt || new Date().toISOString(),
     stage: Number.isFinite(stage) && stage > 0 ? stage : null,
     mode: entry.mode || "balanced",
-    objective: entry.objective || "min_loss",
+    objective: normalizeOptimizerObjective(entry.objective),
     diversityMode: Boolean(entry.diversityMode),
     stoneMode: Boolean(entry.stoneMode),
-    modeLabel: entry.modeLabel || getModeLabel(entry.mode || "balanced", entry.objective || "min_loss", Boolean(entry.diversityMode), Boolean(entry.stoneMode)),
+    modeLabel: entry.modeLabel || getModeLabel(entry.mode || "balanced", normalizeOptimizerObjective(entry.objective), Boolean(entry.diversityMode), Boolean(entry.stoneMode)),
     enemySignature,
     enemyRosterSignature,
     enemyTitle: entry.enemyTitle || buildEnemyTitle(enemyCounts),
@@ -1116,12 +1362,12 @@ function createFavoriteEntryFromRecommendationCounts(recommendationCounts, optio
     savedAt: new Date().toISOString(),
     ...(context.stage ? { stage: context.stage } : {}),
     mode: options.mode || currentApprovedCandidate?.mode || "balanced",
-    objective: options.objective || currentApprovedCandidate?.objective || "min_loss",
+    objective: normalizeOptimizerObjective(options.objective || currentApprovedCandidate?.objective),
     diversityMode: Boolean(options.diversityMode ?? currentApprovedCandidate?.diversityMode),
     stoneMode: Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode),
     modeLabel: options.modeLabel || getModeLabel(
       options.mode || currentApprovedCandidate?.mode || "balanced",
-      options.objective || currentApprovedCandidate?.objective || "min_loss",
+      normalizeOptimizerObjective(options.objective || currentApprovedCandidate?.objective),
       Boolean(options.diversityMode ?? currentApprovedCandidate?.diversityMode),
       Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode)
     ),
@@ -1130,6 +1376,10 @@ function createFavoriteEntryFromRecommendationCounts(recommendationCounts, optio
     enemyTitle: buildEnemyTitle(context.enemyCounts),
     enemyCounts: context.enemyCounts,
     allyPool: normalizedPool,
+    minimumRequiredCounts: normalizeFavoriteCounts(
+      options.minimumRequiredCounts || currentApprovedCandidate?.minimumRequiredCounts || {},
+      ALLY_UNITS
+    ),
     recommendationCounts: normalizedCounts,
     usedPoints: Number.isFinite(Number(options.usedPoints))
       ? Math.round(Number(options.usedPoints))
@@ -1151,8 +1401,9 @@ function createFavoriteEntryFromCurrentRecommendation() {
     stage: currentApprovedCandidate.stage,
     enemyCounts: currentApprovedCandidate.enemyCounts,
     allyPool: currentApprovedCandidate.allyPool,
+    minimumRequiredCounts: currentApprovedCandidate.minimumRequiredCounts,
     mode: currentApprovedCandidate.mode,
-    objective: currentApprovedCandidate.objective || "min_loss",
+    objective: normalizeOptimizerObjective(currentApprovedCandidate.objective),
     diversityMode: Boolean(currentApprovedCandidate.diversityMode),
     stoneMode: Boolean(currentApprovedCandidate.stoneMode),
     usedPoints: Math.round(recommendation.avgUsedPoints || 0),
@@ -1439,7 +1690,7 @@ function createTopResultFavoriteButton(entry) {
     enemyCounts: currentTopResultsContext?.enemyCounts || {},
     allyPool: currentApprovedCandidate?.allyPool || collectCounts(ALLY_UNITS),
     mode: currentTopResultsContext?.mode || currentApprovedCandidate?.mode || "balanced",
-    objective: currentTopResultsContext?.objective || currentApprovedCandidate?.objective || "min_loss",
+    objective: normalizeOptimizerObjective(currentTopResultsContext?.objective || currentApprovedCandidate?.objective),
     diversityMode: Boolean(currentTopResultsContext?.diversityMode ?? currentApprovedCandidate?.diversityMode),
     stoneMode: Boolean(entry.stoneMode ?? currentTopResultsContext?.stoneMode ?? currentApprovedCandidate?.stoneMode),
     usedPoints: Math.round(entry.avgUsedPoints || 0),
@@ -1578,7 +1829,16 @@ function getRunConfig(stage, runIndex, mode, diversityMode = false) {
 function pickBetterOptimizerResult(left, right) {
   const leftSource = left.possible ? left.recommendation : left.fallback || left.fullArmyEvaluation;
   const rightSource = right.possible ? right.recommendation : right.fallback || right.fullArmyEvaluation;
-  const objective = rightSource?.objective || leftSource?.objective || "min_loss";
+  if (!leftSource && !rightSource) {
+    return right?.constraintIssue ? right : left;
+  }
+  if (!leftSource) {
+    return right;
+  }
+  if (!rightSource) {
+    return left;
+  }
+  const objective = normalizeOptimizerObjective(rightSource?.objective || leftSource?.objective);
   const stoneMode = Boolean(rightSource?.stoneMode || leftSource?.stoneMode);
   const lossKey = stoneMode ? "expectedStoneAdjustedLostBlood" : "expectedLostBlood";
 
@@ -1596,6 +1856,13 @@ function pickBetterOptimizerResult(left, right) {
       }
       if ((leftSource[lossKey] ?? Number.POSITIVE_INFINITY) !== (rightSource[lossKey] ?? Number.POSITIVE_INFINITY)) {
         return (leftSource[lossKey] ?? Number.POSITIVE_INFINITY) < (rightSource[lossKey] ?? Number.POSITIVE_INFINITY) ? left : right;
+      }
+    } else if (objective === "safe_win") {
+      if ((leftSource[lossKey] ?? Number.POSITIVE_INFINITY) !== (rightSource[lossKey] ?? Number.POSITIVE_INFINITY)) {
+        return (leftSource[lossKey] ?? Number.POSITIVE_INFINITY) < (rightSource[lossKey] ?? Number.POSITIVE_INFINITY) ? left : right;
+      }
+      if (leftSource.avgUsedPoints !== rightSource.avgUsedPoints) {
+        return leftSource.avgUsedPoints > rightSource.avgUsedPoints ? left : right;
       }
     } else {
       if ((leftSource[lossKey] ?? Number.POSITIVE_INFINITY) !== (rightSource[lossKey] ?? Number.POSITIVE_INFINITY)) {
@@ -1621,7 +1888,8 @@ function buildInputs(target, units, side) {
   target.innerHTML = "";
   units.forEach((unit) => {
     const row = document.createElement("div");
-    row.className = "unit-row";
+    const isMinimumAllyRow = side === "ally" && isMinimumOptimizerVariant();
+    row.className = `unit-row${isMinimumAllyRow ? " unit-row-minimum" : ""}`;
 
     const label = document.createElement("label");
     label.htmlFor = `optimizer-${unit.key}`;
@@ -1640,7 +1908,23 @@ function buildInputs(target, units, side) {
       }
     });
 
-    row.append(label, input);
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "unit-row-inputs";
+    inputGroup.appendChild(createUnitInputStack(isMinimumAllyRow ? "Havuz" : "Adet", input, isMinimumAllyRow ? "is-stock" : ""));
+
+    if (isMinimumAllyRow) {
+      const minInput = createNumberInput(`optimizer-min-${unit.key}`, "0");
+      minInput.addEventListener("input", () => {
+        invalidateSearchSession();
+        renderPointSummary();
+      });
+      minInput.addEventListener("blur", renderPointSummary);
+      optimizerMinimumInputs[unit.key] = minInput;
+      inputGroup.classList.add("has-constraint");
+      inputGroup.appendChild(createUnitInputStack("Min", minInput, "is-minimum"));
+    }
+
+    row.append(label, inputGroup);
     target.appendChild(row);
     optimizerInputs[unit.key] = input;
   });
@@ -2036,36 +2320,148 @@ function collectCounts(units) {
   return counts;
 }
 
-function calculateTotalCombinationCount(allyPool, maxPoints) {
+function formatPointBandText(minPoints, maxPoints) {
+  if (!(maxPoints >= 0)) {
+    return "-";
+  }
+  return `${Math.max(0, Math.round(minPoints))}-${Math.round(maxPoints)}`;
+}
+
+function collectSearchBandSettings() {
+  const mode = normalizeSearchBandMode(optimizerSearchBandPresetInput?.value);
+  if (mode === "full") {
+    return normalizeSearchBandSettings({ mode });
+  }
+  if (mode === "tight75") {
+    return normalizeSearchBandSettings({ mode });
+  }
+
+  const minPercent = optimizerCustomBandMinInput
+    ? parseCount(optimizerCustomBandMinInput.value, "Ozel bant min yuzde")
+    : 75;
+  const maxPercent = optimizerCustomBandMaxInput
+    ? parseCount(optimizerCustomBandMaxInput.value, "Ozel bant max yuzde")
+    : 100;
+
+  if (minPercent > 100 || maxPercent > 100) {
+    throw new Error("Ozel bant yuzdeleri 0 ile 100 arasinda olmalidir.");
+  }
+  if (minPercent > maxPercent) {
+    throw new Error("Ozel bantta min yuzde, max yuzdeden buyuk olamaz.");
+  }
+
+  return normalizeSearchBandSettings({
+    mode,
+    minPercent,
+    maxPercent
+  });
+}
+
+function applySearchBandSettings(settings = {}) {
+  const normalized = normalizeSearchBandSettings(settings);
+  if (optimizerSearchBandPresetInput) {
+    optimizerSearchBandPresetInput.value = normalized.mode;
+  }
+  if (optimizerCustomBandMinInput) {
+    optimizerCustomBandMinInput.value = String(normalized.minPercent);
+  }
+  if (optimizerCustomBandMaxInput) {
+    optimizerCustomBandMaxInput.value = String(normalized.maxPercent);
+  }
+  syncSearchBandControls();
+}
+
+function syncSearchBandControls() {
+  const normalized = normalizeSearchBandSettings({
+    mode: optimizerSearchBandPresetInput?.value,
+    minPercent: optimizerCustomBandMinInput?.value,
+    maxPercent: optimizerCustomBandMaxInput?.value
+  });
+  const isCustom = normalized.mode === "custom";
+  if (optimizerCustomBandInputs) {
+    optimizerCustomBandInputs.hidden = !isCustom;
+  }
+  if (optimizerCustomBandMinInput) {
+    optimizerCustomBandMinInput.disabled = !isCustom;
+  }
+  if (optimizerCustomBandMaxInput) {
+    optimizerCustomBandMaxInput.disabled = !isCustom;
+  }
+}
+
+function getSearchBandPointRange(maxPoints, settings = collectSearchBandSettings()) {
+  if (!(maxPoints >= 0)) {
+    return {
+      minUsedPoints: 0,
+      maxUsedPoints: 0
+    };
+  }
+  const normalized = normalizeSearchBandSettings(settings);
+  return {
+    minUsedPoints: Math.max(0, Math.ceil(maxPoints * (normalized.minPercent / 100))),
+    maxUsedPoints: Math.max(0, Math.floor(maxPoints * (normalized.maxPercent / 100)))
+  };
+}
+
+function formatSearchBandSummary(maxPoints, settings) {
+  const normalized = normalizeSearchBandSettings(settings);
+  const range = getSearchBandPointRange(maxPoints, normalized);
+  return `${getSearchBandLabel(normalized.mode)} (%${normalized.minPercent}-%${normalized.maxPercent} / ${formatPointBandText(range.minUsedPoints, range.maxUsedPoints)} puan)`;
+}
+
+function calculateTotalCombinationCount(allyPool, maxPoints, minimumRequiredCounts = null, minimumUsedPoints = 0, maximumUsedPoints = maxPoints) {
   if (!(maxPoints >= 0)) {
     return 0n;
   }
 
-  const activeUnits = ALLY_UNITS.filter((unit) => (allyPool[unit.key] || 0) > 0);
-  const dp = Array.from({ length: maxPoints + 1 }, () => 0n);
+  const constrainedPool = {};
+  let constrainedMaxPoints = Math.min(maxPoints, Math.max(0, Math.floor(maximumUsedPoints)));
+  ALLY_UNITS.forEach((unit) => {
+    const poolCount = allyPool[unit.key] || 0;
+    const minimumCount = minimumRequiredCounts?.[unit.key] || 0;
+    if (minimumCount > poolCount) {
+      constrainedMaxPoints = -1;
+    }
+    constrainedPool[unit.key] = Math.max(0, poolCount - minimumCount);
+    constrainedMaxPoints -= minimumCount * POINTS_BY_ALLY_KEY[unit.key];
+  });
+
+  if (constrainedMaxPoints < 0) {
+    return 0n;
+  }
+
+  const constrainedMinimumPoints = Math.max(0, Math.ceil(minimumUsedPoints) - calculateArmyPoints(minimumRequiredCounts || {}));
+  if (constrainedMinimumPoints > constrainedMaxPoints) {
+    return 0n;
+  }
+
+  const activeUnits = ALLY_UNITS.filter((unit) => (constrainedPool[unit.key] || 0) > 0);
+  const dp = Array.from({ length: constrainedMaxPoints + 1 }, () => 0n);
   dp[0] = 1n;
 
   activeUnits.forEach((unit) => {
     const cost = POINTS_BY_ALLY_KEY[unit.key];
-    const maxCount = allyPool[unit.key] || 0;
-    const next = Array.from({ length: maxPoints + 1 }, () => 0n);
+    const maxCount = constrainedPool[unit.key] || 0;
+    const next = Array.from({ length: constrainedMaxPoints + 1 }, () => 0n);
 
-    for (let points = 0; points <= maxPoints; points += 1) {
+    for (let points = 0; points <= constrainedMaxPoints; points += 1) {
       if (dp[points] === 0n) {
         continue;
       }
-      const maxTake = Math.min(maxCount, Math.floor((maxPoints - points) / cost));
+      const maxTake = Math.min(maxCount, Math.floor((constrainedMaxPoints - points) / cost));
       for (let count = 0; count <= maxTake; count += 1) {
         next[points + count * cost] += dp[points];
       }
     }
 
-    for (let index = 0; index <= maxPoints; index += 1) {
+    for (let index = 0; index <= constrainedMaxPoints; index += 1) {
       dp[index] = next[index];
     }
   });
 
-  return dp.reduce((sum, value) => sum + value, 0n);
+  return dp.reduce((sum, value, index) => {
+    return index >= constrainedMinimumPoints ? sum + value : sum;
+  }, 0n);
 }
 
 function formatLargeInteger(value) {
@@ -2082,6 +2478,11 @@ function resetValues() {
   [...ENEMY_UNITS, ...ALLY_UNITS].forEach((unit) => {
     optimizerInputs[unit.key].value = "0";
   });
+  ALLY_UNITS.forEach((unit) => {
+    if (optimizerMinimumInputs[unit.key]) {
+      optimizerMinimumInputs[unit.key].value = "0";
+    }
+  });
   renderPointSummary();
   renderMatchedSavedStrategy();
 }
@@ -2092,6 +2493,9 @@ function loadSampleValues() {
   });
   ALLY_UNITS.forEach((unit) => {
     optimizerInputs[unit.key].value = String(unit.sample);
+    if (optimizerMinimumInputs[unit.key]) {
+      optimizerMinimumInputs[unit.key].value = "0";
+    }
   });
   renderPointSummary();
   renderMatchedSavedStrategy();
@@ -2103,6 +2507,7 @@ function renderPointSummary() {
   const limit = stage ? getStagePointLimit(stage) : null;
   optimizerPointsValue.textContent = String(points);
   optimizerPointsLimit.textContent = limit === null ? "-" : String(limit);
+  renderConstraintInfo();
 }
 
 function commitStageInput() {
@@ -2118,6 +2523,66 @@ function commitStageInput() {
   if (!favoriteStrategiesModal?.hidden) {
     renderFavoriteStrategiesModal();
   }
+}
+
+function collectMinimumRequiredCounts() {
+  const counts = {};
+  ALLY_UNITS.forEach((unit) => {
+    const input = optimizerMinimumInputs[unit.key];
+    counts[unit.key] = input ? parseCount(input.value, `${unit.label} minimum kullanim`) : 0;
+  });
+  return counts;
+}
+
+function getActiveMinimumRequirementEntries() {
+  if (!isMinimumOptimizerVariant()) {
+    return [];
+  }
+  const minimumRequiredCounts = collectMinimumRequiredCounts();
+  return ALLY_UNITS
+    .map((unit) => ({ unit, count: minimumRequiredCounts[unit.key] || 0 }))
+    .filter((entry) => entry.count > 0);
+}
+
+function formatMinimumRequirements(entries, maxItems = 4) {
+  if (!entries.length) {
+    return "yok";
+  }
+  const parts = entries.slice(0, maxItems).map((entry) => `${entry.unit.label}: ${entry.count}`);
+  if (entries.length > maxItems) {
+    parts.push(`+${entries.length - maxItems} daha`);
+  }
+  return parts.join(", ");
+}
+
+function renderConstraintInfo() {
+  if (!optimizerConstraintInfo) {
+    return;
+  }
+
+  const stage = getCommittedStage();
+  const pointLimit = stage ? getStagePointLimit(stage) : null;
+  const searchBandSettings = normalizeSearchBandSettings({
+    mode: optimizerSearchBandPresetInput?.value,
+    minPercent: optimizerCustomBandMinInput?.value,
+    maxPercent: optimizerCustomBandMaxInput?.value
+  });
+  const activeEntries = getActiveMinimumRequirementEntries();
+  const pointText = pointLimit === null
+    ? "Kademe secildiginde secilen arama bandi puana cevrilir."
+    : `Aktif arama bandi: ${formatSearchBandSummary(pointLimit, searchBandSettings)}. Optimizer sadece bu araliktaki dizilimleri tarar.`;
+
+  if (!isMinimumOptimizerVariant()) {
+    optimizerConstraintInfo.textContent = pointText;
+    return;
+  }
+
+  if (!activeEntries.length) {
+    optimizerConstraintInfo.textContent = `${pointText} Soldaki kutu eldeki adet, sagdaki Min kutusu ise onerilen dizilimde bu birlikten en az kac adet bulunmasi gerektigini belirler.`;
+    return;
+  }
+
+  optimizerConstraintInfo.textContent = `${pointText} Aktif min kisitlar: ${formatMinimumRequirements(activeEntries)}. Optimizer bu birlikleri tum adaylarda zorunlu tutar.`;
 }
 
 function getCommittedStage() {
@@ -2137,8 +2602,13 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   summaryBlock.className = "terminal-block";
   const lossLabel = meta.stoneMode ? "tas sonrasi kalici kayip" : "ortalama kan kaybi";
   const source = getPrimaryOptimizerSource(result);
+  const activeMinimumEntries = getActiveMinimumRequirementEntries();
+  const searchBandSettings = normalizeSearchBandSettings(meta.searchBandSettings);
   const progressLines = [
     `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode)}`,
+    `- arama bandi: ${formatSearchBandSummary(maxPoints, searchBandSettings)}`,
+    ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),
+    `- arama bandindaki kombinasyon: ${formatLargeInteger(meta.bandCombinationCount)}`,
     `- toplam olasi kombinasyon: ${formatLargeInteger(meta.totalCombinationCount)}`,
     `- deneme: ${meta.runIndex}`,
     `- bu basista tur: ${meta.batchRuns || 1}`,
@@ -2155,6 +2625,59 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   ];
 
   let summaryLines;
+  if (!source) {
+    summaryLines = [
+      "======================  OPTIMIZER  SONUCU  ======================",
+      `>> ${stage}. kademe icin gecerli bir aday uretilemedi.`,
+      `- puan limiti: ${maxPoints}`,
+      `- neden: ${getConstraintIssueMessage(result?.constraintIssue)}`,
+      ...progressLines
+    ];
+    renderStyledLines(summaryLines, summaryBlock);
+
+    optimizerSummary.innerHTML = "";
+    optimizerSummary.appendChild(summaryBlock);
+    recommendationPanel.innerHTML = '<p class="summary-empty">Bu kosullarda simulasyona acilacak bir dizilim uretilemedi.</p>';
+    optimizerLogOutput.textContent = "Gecerli bir aday uretilemedigi icin savas gunlugu hazirlanmadi.";
+    currentApprovedCandidate = {
+      stage,
+      mode: meta.mode,
+      objective: meta.objective,
+      diversityMode: meta.diversityMode,
+      stoneMode: meta.stoneMode,
+      searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+      enemyCounts: collectCounts(ENEMY_UNITS),
+      allyPool: collectCounts(ALLY_UNITS),
+      minimumRequiredCounts: collectMinimumRequiredCounts(),
+      result
+    };
+    currentTopResultsContext = {
+      stage,
+      maxPoints,
+      mode: meta.mode,
+      objective: meta.objective,
+      diversityMode: meta.diversityMode,
+      stoneMode: meta.stoneMode,
+      searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+      enemyCounts: collectCounts(ENEMY_UNITS),
+      candidates: [],
+      benchmarkedCandidates: null,
+      benchmarkPromise: null
+    };
+    currentTopResultsSort = "default";
+    topResultsBtn.disabled = true;
+    currentWrongCandidate = null;
+    reportWrongOptimizerBtn.disabled = true;
+    renderMatchedActualReport();
+    renderComparisonPanel();
+    renderFavoriteButtonState();
+    syncAdminRestrictedActions();
+    if (!favoriteStrategiesModal?.hidden) {
+      renderFavoriteStrategiesModal();
+    }
+    return;
+  }
+
   if (result.possible) {
     const recommendation = result.recommendation;
     summaryLines = [
@@ -2188,7 +2711,12 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   const allyPool = collectCounts(ALLY_UNITS);
   cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, meta);
   renderRecommendationCards(result, maxPoints, meta);
-  const battleView = renderBattleLog(result.sampleBattle.logText);
+  const battleView = result.sampleBattle?.logText
+    ? renderBattleLog(result.sampleBattle.logText)
+    : {
+        summaryText: "======================  ORNEK  SAVAS  ======================\n  (ornek savas gunlugu uretilemedi)",
+        logText: "Ornek savas gunlugu uretilemedi."
+      };
 
   currentApprovedCandidate = {
     stage,
@@ -2196,9 +2724,12 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     objective: meta.objective,
     diversityMode: meta.diversityMode,
     stoneMode: meta.stoneMode,
+    searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
     enemyCounts,
     allyPool,
-    result
+    minimumRequiredCounts: collectMinimumRequiredCounts(),
+    result,
+    battleView
   };
   syncAdminRestrictedActions();
   currentTopResultsContext = {
@@ -2208,6 +2739,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     objective: meta.objective,
     diversityMode: meta.diversityMode,
     stoneMode: meta.stoneMode,
+    searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
     enemyCounts,
     candidates: buildDisplayedTopCandidates(result),
     benchmarkedCandidates: null,
@@ -2225,13 +2757,34 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   }
 }
 
+function getConstraintIssueMessage(issue) {
+  if (issue === "minimum-exceeds-pool") {
+    return "Min kullanim kisiti eldeki ordudan buyuk.";
+  }
+  if (issue === "minimum-exceeds-points") {
+    return "Min kullanim puani kademe limitini asiyor.";
+  }
+  if (issue === "minimum-used-points-exceeds-band") {
+    return "Secilen arama bandi min puan ihtiyaci ile uyusmuyor.";
+  }
+  if (issue === "minimum-used-points-exceeds-limit") {
+    return "Min puan ihtiyaci kademe limitini asiyor.";
+  }
+  if (issue === "minimum-used-points-exceeds-pool") {
+    return "Eldeki ordu min puan kosulunu saglayamiyor.";
+  }
+  return "Gecerli sonuc uretilemedi.";
+}
+
 function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, meta) {
   const source = getPrimaryOptimizerSource(result);
   if (!source) {
     return;
   }
 
-  const key = createComparisonKey(stage, enemyCounts, allyPool, meta.mode, meta.objective, meta.stoneMode);
+  const minimumRequiredCounts = collectMinimumRequiredCounts();
+  const searchBandSettings = collectSearchBandSettings();
+  const key = createComparisonKey(stage, enemyCounts, allyPool, minimumRequiredCounts, searchBandSettings, meta.mode, meta.objective, meta.stoneMode);
   const entry = optimizerComparisonCache.get(key) || {
     key,
     stage,
@@ -2241,6 +2794,8 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
     maxPoints,
     enemyCounts: { ...enemyCounts },
     allyPool: { ...allyPool },
+    minimumRequiredCounts: { ...minimumRequiredCounts },
+    searchBandSettings: { ...searchBandSettings },
     benchmark: null,
     normal: null,
     diverse: null
@@ -2255,6 +2810,8 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
   entry.maxPoints = maxPoints;
   entry.enemyCounts = { ...enemyCounts };
   entry.allyPool = { ...allyPool };
+  entry.minimumRequiredCounts = { ...minimumRequiredCounts };
+  entry.searchBandSettings = { ...searchBandSettings };
   if (!areComparisonSnapshotsEqual(entry[lane], nextSnapshot)) {
     entry.benchmark = null;
   }
@@ -2306,7 +2863,13 @@ function getCurrentComparisonEntry() {
 
   const enemyCounts = collectCounts(ENEMY_UNITS);
   const allyPool = collectCounts(ALLY_UNITS);
-  const key = createComparisonKey(stage, enemyCounts, allyPool, optimizerMode, optimizerObjective, optimizerStoneMode);
+  const minimumRequiredCounts = collectMinimumRequiredCounts();
+  const searchBandSettings = normalizeSearchBandSettings({
+    mode: optimizerSearchBandPresetInput?.value,
+    minPercent: optimizerCustomBandMinInput?.value,
+    maxPercent: optimizerCustomBandMaxInput?.value
+  });
+  const key = createComparisonKey(stage, enemyCounts, allyPool, minimumRequiredCounts, searchBandSettings, optimizerMode, optimizerObjective, optimizerStoneMode);
   return optimizerComparisonCache.get(key) || null;
 }
 
@@ -2321,12 +2884,20 @@ function compareResultSnapshots(left, right) {
     if (left.winRate !== right.winRate) {
       return right.winRate - left.winRate;
     }
-    if (left.objective === "min_army") {
+    const objective = normalizeOptimizerObjective(left.objective || right.objective);
+    if (objective === "min_army") {
       if (left.avgUsedPoints !== right.avgUsedPoints) {
         return left.avgUsedPoints - right.avgUsedPoints;
       }
       if ((getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) !== (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY)) {
         return (getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) - (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY);
+      }
+    } else if (objective === "safe_win") {
+      if ((getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) !== (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY)) {
+        return (getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) - (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY);
+      }
+      if (left.avgUsedPoints !== right.avgUsedPoints) {
+        return right.avgUsedPoints - left.avgUsedPoints;
       }
     } else {
       if ((getDisplayedLossValue(left) ?? Number.POSITIVE_INFINITY) !== (getDisplayedLossValue(right) ?? Number.POSITIVE_INFINITY)) {
@@ -2679,12 +3250,20 @@ function compareOptimizerCandidates(left, right) {
     if (left.winRate !== right.winRate) {
       return right.winRate - left.winRate;
     }
-    if (left.objective === "min_army") {
+    const objective = normalizeOptimizerObjective(left.objective || right.objective);
+    if (objective === "min_army") {
       if (left.avgUsedPoints !== right.avgUsedPoints) {
         return left.avgUsedPoints - right.avgUsedPoints;
       }
       if (getDisplayedLossValue(left) !== getDisplayedLossValue(right)) {
         return getDisplayedLossValue(left) - getDisplayedLossValue(right);
+      }
+    } else if (objective === "safe_win") {
+      if (getDisplayedLossValue(left) !== getDisplayedLossValue(right)) {
+        return getDisplayedLossValue(left) - getDisplayedLossValue(right);
+      }
+      if (left.avgUsedPoints !== right.avgUsedPoints) {
+        return right.avgUsedPoints - left.avgUsedPoints;
       }
     } else {
       if (getDisplayedLossValue(left) !== getDisplayedLossValue(right)) {
@@ -3807,7 +4386,14 @@ function getSearchModeLabel(mode) {
 }
 
 function getObjectiveLabel(objective) {
-  return objective === "min_army" ? "En Az Orduyla Kazan" : "En Az Kayipla Kazan";
+  const normalizedObjective = normalizeOptimizerObjective(objective);
+  if (normalizedObjective === "min_army") {
+    return "En Az Orduyla Kazan";
+  }
+  if (normalizedObjective === "safe_win") {
+    return "Daha Guvenli Kazan";
+  }
+  return "En Az Kayipla Kazan";
 }
 
 function getModeLabel(mode, objective = "min_loss", diversityMode = false, stoneMode = false) {
@@ -3827,31 +4413,33 @@ function getEnemySignature(stage, enemyCounts) {
 
 function createSavedEntry(candidate) {
   const recommendation = candidate.result.recommendation;
-  const enemySignature = getEnemySignature(candidate.stage, candidate.enemyCounts);
+  const sampleBattle = candidate.result.sampleBattle;
+  const battleView = candidate.battleView || (sampleBattle?.logText ? renderBattleLog(sampleBattle.logText) : null);
   const enemyTitle = ENEMY_UNITS.filter((unit) => (candidate.enemyCounts[unit.key] || 0) > 0)
     .map((unit) => `${candidate.enemyCounts[unit.key]} ${unit.label}`)
     .slice(0, 2)
     .join(" / ");
+  const matchSignature = buildOptimizerMatchSignature(candidate.stage, candidate.enemyCounts, recommendation.counts);
 
   return {
-    source: "optimizer",
+    source: "simulation",
     sourceLabel: "Optimizer",
     savedAt: new Date().toISOString(),
     stage: candidate.stage,
-    mode: candidate.mode,
-    objective: candidate.objective || "min_loss",
-    diversityMode: Boolean(candidate.diversityMode),
-    stoneMode: Boolean(candidate.stoneMode),
-    modeLabel: getModeLabel(candidate.mode, candidate.objective, candidate.diversityMode, candidate.stoneMode),
-    enemySignature,
     enemyTitle: enemyTitle || "Versus",
     enemyCounts: candidate.enemyCounts,
-    allyPool: candidate.allyPool,
-    recommendationCounts: recommendation.counts,
-    representativeSeed: Number.isInteger(candidate.result?.sampleBattle?.seed) ? candidate.result.sampleBattle.seed : undefined,
+    allyCounts: recommendation.counts,
+    matchSignature,
+    variantSignature: "optimizer",
+    representativeSeed: Number.isInteger(sampleBattle?.seed) ? sampleBattle.seed : undefined,
+    variantTitle: "Optimizer Onerisi",
+    winner: "ally",
+    probabilityBasisPoints: Math.round(recommendation.winRate * 10000),
+    summaryText: battleView?.summaryText || "",
+    logText: battleView?.logText || "",
+    usedCapacity: sampleBattle?.usedCapacity || 0,
     usedPoints: Math.round(recommendation.avgUsedPoints),
-    lostBlood: Math.round(getDisplayedLossValue(recommendation)),
-    winRate: Math.round(recommendation.winRate * 100)
+    lostBlood: Math.round(getDisplayedLossValue(recommendation))
   };
 }
 
@@ -4136,23 +4724,32 @@ function renderMatchedSavedStrategy() {
   }
 
   const enemySignature = getEnemySignature(stage, enemyCounts);
-  const matched = approvedStrategies.find((candidate) => candidate.enemySignature === enemySignature);
+  const matched = approvedStrategies.find((candidate) => {
+    if (candidate.source === "simulation") {
+      return Number.isInteger(candidate.stage) && getEnemySignature(candidate.stage, candidate.enemyCounts) === enemySignature;
+    }
+    return candidate.enemySignature === enemySignature;
+  });
   if (!matched) {
     return;
   }
 
+  const recCounts = matched.source === "simulation" ? (matched.allyCounts || {}) : (matched.recommendationCounts || {});
+  const displayWinRate = matched.source === "simulation" ? Math.round((matched.probabilityBasisPoints || 0) / 100) : (matched.winRate || 0);
+  const displayModeLabel = matched.modeLabel || matched.sourceLabel || "-";
+
   const card = document.createElement("article");
   card.className = "saved-match-card";
 
-  const enoughArmy = ALLY_UNITS.every((unit) => (allyPool[unit.key] || 0) >= (matched.recommendationCounts[unit.key] || 0));
+  const enoughArmy = ALLY_UNITS.every((unit) => (allyPool[unit.key] || 0) >= (recCounts[unit.key] || 0));
   const head = document.createElement("div");
   head.className = "saved-match-head";
-  head.innerHTML = `<strong>Onaylanmis Cozum Bulundu</strong><span>${matched.modeLabel} / ${formatDate(matched.savedAt)}</span>`;
+  head.innerHTML = `<strong>Onaylanmis Cozum Bulundu</strong><span>${displayModeLabel} / ${formatDate(matched.savedAt)}</span>`;
 
   const body = document.createElement("div");
   body.className = "saved-match-meta";
   body.innerHTML = `
-    <span>Kazanma orani: <strong>%${matched.winRate}</strong></span>
+    <span>Kazanma orani: <strong>%${displayWinRate}</strong></span>
     <span>Kan kaybi: <strong>${matched.lostBlood}</strong></span>
     <span>Puan: <strong>${matched.usedPoints}</strong></span>
     <span>Durum: <strong>${enoughArmy ? "Uygulanabilir" : "Eksik birlik var"}</strong></span>
@@ -4160,7 +4757,7 @@ function renderMatchedSavedStrategy() {
 
   const list = document.createElement("ul");
   list.className = "recommend-list";
-  Object.entries(matched.recommendationCounts)
+  Object.entries(recCounts)
     .filter(([, value]) => value > 0)
     .forEach(([key, value]) => {
       const row = document.createElement("li");
@@ -4198,15 +4795,20 @@ function restoreFromQuery() {
     optimizerInputs[unit.key].value = String(item.enemyCounts[unit.key] || 0);
   });
   ALLY_UNITS.forEach((unit) => {
-    optimizerInputs[unit.key].value = String(item.allyPool?.[unit.key] || item.recommendationCounts[unit.key] || 0);
+    optimizerInputs[unit.key].value = String(item.allyPool?.[unit.key] || item.allyCounts?.[unit.key] || item.recommendationCounts?.[unit.key] || 0);
+    if (optimizerMinimumInputs[unit.key]) {
+      optimizerMinimumInputs[unit.key].value = String(item.minimumRequiredCounts?.[unit.key] || 0);
+    }
   });
   optimizerMode = item.mode || "balanced";
-  optimizerObjective = item.objective === "min_army" ? "min_army" : "min_loss";
+  optimizerObjective = normalizeOptimizerObjective(item.objective);
   optimizerDiversityMode = Boolean(item.diversityMode);
   optimizerStoneMode = false;
+  applySearchBandSettings(item.searchBandSettings || { mode: "tight75" });
   modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
   syncObjectiveButtons();
   syncDiversityModeButton();
+  optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
 }
 
 function applyStageFromQuery() {
@@ -4215,6 +4817,7 @@ function applyStageFromQuery() {
   if (stage && /^\d+$/.test(stage)) {
     stageInput.value = stage;
   }
+  renderConstraintInfo();
 }
 
 function formatDate(value) {

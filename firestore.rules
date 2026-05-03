@@ -5,7 +5,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null
         && request.auth.token.email != null
-        && request.auth.token.email == "yavuz@gmail.com";
+        && request.auth.token.email.matches('(?i)^yavuz@gmail\\.com$');
     }
 
     function isShortString(value, maxLen) {
@@ -63,6 +63,7 @@ service cloud.firestore {
         && data.keys().hasOnly([
           'source', 'sourceLabel', 'savedAt', 'updatedAt', 'stage', 'mode', 'objective',
           'diversityMode', 'stoneMode', 'modeLabel',
+          'promotedFromWrong', 'promotedFromWrongAt', 'promotedFromWrongId',
           'enemySignature', 'enemyTitle', 'enemyCounts', 'allyPool', 'representativeSeed',
           'recommendationCounts', 'usedPoints', 'lostBlood', 'winRate'
         ])
@@ -82,6 +83,9 @@ service cloud.firestore {
         && data.diversityMode is bool
         && data.stoneMode is bool
         && isShortString(data.modeLabel, 80)
+        && (!('promotedFromWrong' in data) || data.promotedFromWrong is bool)
+        && (!('promotedFromWrongAt' in data) || isShortString(data.promotedFromWrongAt, 40))
+        && (!('promotedFromWrongId' in data) || isShortString(data.promotedFromWrongId, 80))
         && isShortString(data.enemySignature, 120)
         && isShortString(data.enemyTitle, 120)
         && validEnemyCounts(data.enemyCounts)
@@ -97,6 +101,7 @@ service cloud.firestore {
       return documentId.matches('^sim_[0-9a-f]+$')
         && data.keys().hasOnly([
           'source', 'sourceLabel', 'savedAt', 'updatedAt', 'stage', 'enemyTitle', 'enemyCounts',
+          'promotedFromWrong', 'promotedFromWrongAt', 'promotedFromWrongId',
           'allyCounts', 'matchSignature', 'variantSignature', 'representativeSeed', 'variantTitle', 'winner',
           'probabilityBasisPoints', 'summaryText', 'logText', 'usedCapacity',
           'usedPoints', 'lostBlood'
@@ -113,6 +118,9 @@ service cloud.firestore {
         && isShortString(data.updatedAt, 40)
         && (!('stage' in data) || (data.stage is int && data.stage >= 1 && data.stage <= 9999))
         && isShortString(data.enemyTitle, 120)
+        && (!('promotedFromWrong' in data) || data.promotedFromWrong is bool)
+        && (!('promotedFromWrongAt' in data) || isShortString(data.promotedFromWrongAt, 40))
+        && (!('promotedFromWrongId' in data) || isShortString(data.promotedFromWrongId, 80))
         && validEnemyCounts(data.enemyCounts)
         && validAllyCounts(data.allyCounts)
         && isShortString(data.matchSignature, 200)
@@ -225,7 +233,7 @@ service cloud.firestore {
 
     match /approvedStrategies/{documentId} {
       allow read: if true;
-      allow create, update: if isAdmin() && validApprovedStrategy(request.resource.data, documentId);
+      allow create, update: if validApprovedStrategy(request.resource.data, documentId);
       allow delete: if isAdmin();
     }
 

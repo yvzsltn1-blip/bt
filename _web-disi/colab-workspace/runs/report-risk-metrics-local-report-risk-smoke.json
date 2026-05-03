@@ -1,0 +1,113 @@
+{
+  "ok": true,
+  "job_id": "local-report-risk-smoke",
+  "datasetPath": "C:\\Users\\YAVUZ\\Documents\\BT-Analyss - v6\\colab-workspace\\data\\report-truth\\reports-combined.jsonl",
+  "modelPath": "C:\\Users\\YAVUZ\\Documents\\BT-Analyss - v6\\colab-workspace\\runs\\report-risk-model-local-report-risk-smoke.pt",
+  "metricsPath": "C:\\Users\\YAVUZ\\Documents\\BT-Analyss - v6\\colab-workspace\\runs\\report-risk-metrics-local-report-risk-smoke.json",
+  "device": "cpu",
+  "rowCount": 105,
+  "wrongCount": 11,
+  "correctCount": 94,
+  "epochs": 80,
+  "repeats": 8,
+  "learningRate": 0.03,
+  "valRatio": 0.25,
+  "averageValidation": {
+    "loss": 0.3386108838021755,
+    "accuracy": 0.8799999952316284,
+    "precision": 0.4086309523809524,
+    "recall": 0.8125,
+    "auc": 0.8641304347826086
+  },
+  "fullDatasetMetrics": {
+    "loss": 0.29268503189086914,
+    "accuracy": 0.9142857193946838,
+    "precision": 0.5555555555555556,
+    "recall": 0.9090909090909091,
+    "auc": 0.9690522243713733
+  },
+  "topPositive": [
+    {
+      "feature": "ally_t7",
+      "weight": 1.4012396335601807
+    },
+    {
+      "feature": "enemy_t9",
+      "weight": 1.3053033351898193
+    },
+    {
+      "feature": "enemy_t10",
+      "weight": 1.1999667882919312
+    },
+    {
+      "feature": "expected_loss_rate_t5",
+      "weight": 1.1202222108840942
+    },
+    {
+      "feature": "expected_loss_rate_t7",
+      "weight": 1.031369924545288
+    },
+    {
+      "feature": "ally_t5",
+      "weight": 1.0050541162490845
+    },
+    {
+      "feature": "expected_loss_rate_t1",
+      "weight": 0.9794389009475708
+    },
+    {
+      "feature": "enemy_t5",
+      "weight": 0.8514761924743652
+    },
+    {
+      "feature": "expected_blood_norm",
+      "weight": 0.6508765816688538
+    },
+    {
+      "feature": "ally_t4",
+      "weight": 0.6442518830299377
+    }
+  ],
+  "topNegative": [
+    {
+      "feature": "expected_loss_rate_t4",
+      "weight": -1.1960352659225464
+    },
+    {
+      "feature": "expected_loss_rate_t3",
+      "weight": -0.8689905405044556
+    },
+    {
+      "feature": "enemy_t2",
+      "weight": -0.7115103006362915
+    },
+    {
+      "feature": "enemy_t6",
+      "weight": -0.5804459452629089
+    },
+    {
+      "feature": "ally_t3",
+      "weight": -0.42646557092666626
+    },
+    {
+      "feature": "enemy_t3",
+      "weight": -0.4184531271457672
+    },
+    {
+      "feature": "expected_loss_rate_t6",
+      "weight": -0.38820111751556396
+    },
+    {
+      "feature": "enemy_t1",
+      "weight": -0.28219348192214966
+    },
+    {
+      "feature": "enemy_t8",
+      "weight": -0.25249505043029785
+    },
+    {
+      "feature": "ally_t1",
+      "weight": -0.0972839891910553
+    }
+  ]
+}

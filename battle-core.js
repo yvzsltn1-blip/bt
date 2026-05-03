@@ -1192,7 +1192,7 @@
     return candidates;
   }
 
-  function buildBoundedExhaustiveCandidates(availableAllyCounts, maxPoints, limit) {
+  function buildBoundedExhaustiveCandidates(availableAllyCounts, maxPoints, limit, minimumPoints = 0) {
     if (!(limit > 0) || !(maxPoints >= 0)) {
       return [];
     }
@@ -1201,14 +1201,16 @@
     const counts = createEmptyAllyCounts();
     let overflow = false;
 
-    function walk(unitIndex, remainingPoints) {
+    function walk(unitIndex, remainingPoints, usedPoints) {
       if (overflow) {
         return;
       }
       if (unitIndex >= ALLY_UNITS.length) {
-        candidates.push(cloneCounts(counts, ALLY_UNITS));
-        if (candidates.length > limit) {
-          overflow = true;
+        if (usedPoints >= minimumPoints) {
+          candidates.push(cloneCounts(counts, ALLY_UNITS));
+          if (candidates.length > limit) {
+            overflow = true;
+          }
         }
         return;
       }
@@ -1218,7 +1220,7 @@
       const maxCount = Math.min(availableAllyCounts[unit.key] || 0, Math.floor(remainingPoints / cost));
       for (let count = 0; count <= maxCount; count += 1) {
         counts[unit.key] = count;
-        walk(unitIndex + 1, remainingPoints - count * cost);
+        walk(unitIndex + 1, remainingPoints - count * cost, usedPoints + count * cost);
         if (overflow) {
           return;
         }
@@ -1226,7 +1228,7 @@
       counts[unit.key] = 0;
     }
 
-    walk(0, maxPoints);
+    walk(0, maxPoints, 0);
     return overflow ? [] : candidates;
   }
 
@@ -1315,7 +1317,9 @@
   }
 
   function compareEvaluations(a, b, options = {}) {
-    const objective = options.objective === "min_army" ? "min_army" : "min_loss";
+    const objective = options.objective === "min_army" || options.objective === "safe_win"
+      ? options.objective
+      : "min_loss";
     const stoneMode = Boolean(options.stoneMode);
     const lossMetricKey = stoneMode ? "expectedStoneAdjustedLostBlood" : "expectedLostBlood";
     const lossUnitsMetricKey = stoneMode ? "expectedStoneAdjustedLostUnits" : "expectedLostUnits";
@@ -1333,6 +1337,13 @@
         }
         if ((a[lossMetricKey] ?? Number.POSITIVE_INFINITY) !== (b[lossMetricKey] ?? Number.POSITIVE_INFINITY)) {
           return (a[lossMetricKey] ?? Number.POSITIVE_INFINITY) - (b[lossMetricKey] ?? Number.POSITIVE_INFINITY);
+        }
+      } else if (objective === "safe_win") {
+        if ((a[lossMetricKey] ?? Number.POSITIVE_INFINITY) !== (b[lossMetricKey] ?? Number.POSITIVE_INFINITY)) {
+          return (a[lossMetricKey] ?? Number.POSITIVE_INFINITY) - (b[lossMetricKey] ?? Number.POSITIVE_INFINITY);
+        }
+        if (a.avgUsedPoints !== b.avgUsedPoints) {
+          return b.avgUsedPoints - a.avgUsedPoints;
         }
       } else {
         if ((a[lossMetricKey] ?? Number.POSITIVE_INFINITY) !== (b[lossMetricKey] ?? Number.POSITIVE_INFINITY)) {
@@ -1694,6 +1705,7 @@
     const scores = orderedUnits.map((unit) => Math.max(0.05, getUnitStrategicScore(unit, enemyCounts)));
     const candidates = [];
     const attempts = Math.max(candidateCount * 5, 30);
+    const minimumPoints = Math.max(0, Math.min(maxPoints, Math.ceil(options.minimumPoints || 0)));
 
     function pickWeightedUnit() {
       const total = scores.reduce((sum, score) => sum + score, 0);
@@ -1709,7 +1721,12 @@
 
     for (let attempt = 0; attempt < attempts && candidates.length < candidateCount; attempt += 1) {
       const candidate = createEmptyAllyCounts();
-      const targetPoints = Math.max(1, Math.floor(maxPoints * (0.34 + random() * 0.66)));
+      const targetPoints = minimumPoints >= maxPoints
+        ? maxPoints
+        : Math.max(
+          Math.max(1, minimumPoints),
+          Math.floor(minimumPoints + (maxPoints - minimumPoints) * random())
+        );
       let points = 0;
       let stalled = 0;
 
@@ -1846,11 +1863,23 @@
     const originalAvailableAllyCounts = cloneCounts(availableAllyCounts, ALLY_UNITS);
     const requestedMinimumCounts = cloneCounts(options.minimumRequiredCounts || {}, ALLY_UNITS);
     const minimumRequiredCounts = normalizeMinimumRequiredCounts(requestedMinimumCounts, originalAvailableAllyCounts);
+    const minimumTotalPoints = Number.isFinite(options.minimumUsedPoints)
+      ? Math.max(0, Math.ceil(options.minimumUsedPoints))
+      : 0;
+    const maximumTotalPoints = Number.isFinite(options.maximumUsedPoints)
+      ? Math.max(0, Math.floor(options.maximumUsedPoints))
+      : Number.POSITIVE_INFINITY;
     const invalidMinimumUnits = ALLY_UNITS.filter((unit) => (requestedMinimumCounts[unit.key] || 0) > (originalAvailableAllyCounts[unit.key] || 0));
     const minimumRequiredPoints = calculateArmyPoints(minimumRequiredCounts);
     const hasMinimumConstraints = ALLY_UNITS.some((unit) => (minimumRequiredCounts[unit.key] || 0) > 0);
 
-    if (invalidMinimumUnits.length > 0 || (Number.isFinite(maxPoints) && minimumRequiredPoints > maxPoints)) {
+    if (
+      invalidMinimumUnits.length > 0 ||
+      (Number.isFinite(maxPoints) && minimumRequiredPoints > maxPoints) ||
+      (Number.isFinite(maxPoints) && minimumTotalPoints > maxPoints) ||
+      (Number.isFinite(maxPoints) && maximumTotalPoints < minimumRequiredPoints) ||
+      maximumTotalPoints < minimumTotalPoints
+    ) {
       return {
         possible: false,
         recommendation: null,
@@ -1864,7 +1893,15 @@
         sampleBattle: null,
         minimumRequiredCounts,
         minimumRequiredPoints,
-        constraintIssue: invalidMinimumUnits.length > 0 ? "minimum-exceeds-pool" : "minimum-exceeds-points"
+        minimumUsedPoints: minimumTotalPoints,
+        maximumUsedPoints: maximumTotalPoints,
+        constraintIssue: invalidMinimumUnits.length > 0
+          ? "minimum-exceeds-pool"
+          : minimumRequiredPoints > maxPoints
+            ? "minimum-exceeds-points"
+            : maximumTotalPoints < minimumTotalPoints
+              ? "minimum-used-points-exceeds-band"
+              : "minimum-used-points-exceeds-limit"
       };
     }
 
@@ -1872,9 +1909,42 @@
     if (Number.isFinite(maxPoints)) {
       maxPoints = Math.max(0, maxPoints - minimumRequiredPoints);
     }
+    const maximumSearchPoints = Number.isFinite(maximumTotalPoints)
+      ? Math.max(0, Math.min(maxPoints, maximumTotalPoints - minimumRequiredPoints))
+      : maxPoints;
+    const minimumSearchPoints = Math.max(0, minimumTotalPoints - minimumRequiredPoints);
+    const maxAchievableTotalPoints = minimumRequiredPoints + Math.min(
+      calculateArmyPoints(availableAllyCounts),
+      Number.isFinite(maximumSearchPoints) ? maximumSearchPoints : Number.POSITIVE_INFINITY
+    );
+
+    if (minimumSearchPoints > maximumSearchPoints || maxAchievableTotalPoints < minimumTotalPoints) {
+      return {
+        possible: false,
+        recommendation: null,
+        fallback: null,
+        fullArmyEvaluation: null,
+        topCandidates: [],
+        searchedCandidates: 0,
+        uniqueCandidateCount: 0,
+        uniqueCandidateSignatures: [],
+        simulationRuns: 0,
+        sampleBattle: null,
+        minimumRequiredCounts,
+        minimumRequiredPoints,
+        minimumUsedPoints: minimumTotalPoints,
+        maximumUsedPoints: maximumTotalPoints,
+        constraintIssue: minimumSearchPoints > maximumSearchPoints
+          ? "minimum-used-points-exceeds-band"
+          : "minimum-used-points-exceeds-pool"
+      };
+    }
+    maxPoints = maximumSearchPoints;
 
     const minWinRate = options.minWinRate || 0.75;
-    const objective = options.objective === "min_army" ? "min_army" : "min_loss";
+    const objective = options.objective === "min_army" || options.objective === "safe_win"
+      ? options.objective
+      : "min_loss";
     const stoneMode = Boolean(options.stoneMode);
     const trialCount = options.trialCount || 10;
     const fullArmyTrials = options.fullArmyTrials || 12;
@@ -1911,15 +1981,29 @@
         : cloneCounts(candidateCounts, ALLY_UNITS);
     }
 
+    function isSearchCandidateEligible(candidateCounts) {
+      if (!candidateCounts) {
+        return false;
+      }
+      const usedPoints = calculateArmyPoints(candidateCounts);
+      return usedPoints >= minimumSearchPoints && usedPoints <= maxPoints;
+    }
+
     // Stratejik adayları ekle
     initialCandidates.push(...buildStrategicCandidates(availableAllyCounts, enemyCounts, maxPoints));
-    initialCandidates.push(...buildBoundedExhaustiveCandidates(availableAllyCounts, maxPoints, exhaustiveCandidateLimit));
+    initialCandidates.push(...buildBoundedExhaustiveCandidates(
+      availableAllyCounts,
+      maxPoints,
+      exhaustiveCandidateLimit,
+      minimumSearchPoints
+    ));
     initialCandidates.push(...buildStrategicGridCandidates(availableAllyCounts, enemyCounts, maxPoints, {
       limit: Math.max(300, beamWidth * 32)
     }));
     initialCandidates.push(...buildStrategicRandomCandidates(availableAllyCounts, enemyCounts, maxPoints, {
       count: exploratoryCandidateCount,
-      seed: baseSeed + 91009
+      seed: baseSeed + 91009,
+      minimumPoints: minimumSearchPoints
     }));
     seedCandidates.forEach((candidate) => {
       if (!candidate) {
@@ -2108,6 +2192,9 @@
     function collectTopEvaluations(candidateList, localTrialCount = trialCount) {
       const unique = new Map();
       candidateList.forEach((candidate) => {
+        if (!isSearchCandidateEligible(candidate)) {
+          return;
+        }
         unique.set(getCountSignature(toEffectiveCounts(candidate), ALLY_UNITS), candidate);
       });
       return [...unique.values()]
@@ -2118,7 +2205,7 @@
     function dedupeCandidates(candidateList) {
       const unique = new Map();
       candidateList.forEach((candidate) => {
-        if (!candidate) return;
+        if (!candidate || !isSearchCandidateEligible(candidate)) return;
         unique.set(getCountSignature(toEffectiveCounts(candidate), ALLY_UNITS), candidate);
       });
       return [...unique.values()];
@@ -2353,7 +2440,11 @@
             }
             const candidate = cloneCounts(refined.searchCounts, ALLY_UNITS);
             candidate[unit.key] = nextValue;
-            const evaluation = evaluateCandidate(normalizeCandidateToPointLimit(candidate, maxPoints));
+            const normalizedCandidate = normalizeCandidateToPointLimit(candidate, maxPoints);
+            if (!isSearchCandidateEligible(normalizedCandidate)) {
+              continue;
+            }
+            const evaluation = evaluateCandidate(normalizedCandidate);
             if (evaluation.feasible && compareEntries(evaluation, refined) < 0) {
               refined = evaluation;
               improved = true;
@@ -2400,7 +2491,11 @@
               if (addCount <= 0) continue;
               candidate[increaseUnit.key] = increaseFrom + addCount;
 
-              const evaluation = evaluateCandidate(normalizeCandidateToPointLimit(candidate, maxPoints));
+              const normalizedCandidate = normalizeCandidateToPointLimit(candidate, maxPoints);
+              if (!isSearchCandidateEligible(normalizedCandidate)) {
+                continue;
+              }
+              const evaluation = evaluateCandidate(normalizedCandidate);
               if (evaluation.feasible && compareEntries(evaluation, refined) < 0) {
                 refined = evaluation;
                 improved = true;
@@ -2496,7 +2591,9 @@
       simulationRuns,
       sampleBattle,
       minimumRequiredCounts,
-      minimumRequiredPoints
+      minimumRequiredPoints,
+      minimumUsedPoints: minimumTotalPoints,
+      maximumUsedPoints: maximumTotalPoints
     };
   }
 

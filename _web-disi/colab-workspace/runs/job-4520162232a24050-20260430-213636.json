@@ -1,0 +1,92 @@
+{
+  "ok": true,
+  "job": {
+    "id": "4520162232a24050",
+    "job": "surrogate_train",
+    "args": {
+      "datasetPath": "colab-workspace/runs/surrogate-dataset-main.jsonl",
+      "epochs": 16,
+      "batchSize": 1024,
+      "learningRate": 0.001,
+      "valRatio": 0.1,
+      "hiddenSizes": [
+        128,
+        128,
+        64
+      ]
+    },
+    "status": "completed",
+    "created_at": "2026-04-30T21:36:21.751493+00:00",
+    "started_at": "2026-04-30T21:36:21.752199+00:00",
+    "finished_at": "2026-04-30T21:36:37.271963+00:00",
+    "result": {
+      "ok": true,
+      "job_id": "4520162232a24050",
+      "datasetPath": "/content/bt/colab-workspace/runs/surrogate-dataset-main.jsonl",
+      "modelPath": "/content/bt/colab-workspace/runs/surrogate-model-4520162232a24050.pt",
+      "metricsPath": "/content/bt/colab-workspace/runs/surrogate-metrics-4520162232a24050.json",
+      "device": "cuda",
+      "rowCount": 20000,
+      "epochs": 16,
+      "batchSize": 1024,
+      "learningRate": 0.001,
+      "hiddenSizes": [
+        128,
+        128,
+        64
+      ],
+      "finalValidation": {
+        "epoch": 16,
+        "train_loss": 0.257923165957133,
+        "loss": 0.24999184906482697,
+        "win_loss": 0.23515339195728302,
+        "blood_loss": 0.01483845990151167,
+        "win_accuracy": 0.9015000462532043
+      },
+      "history": [
+        {
+          "epoch": 12,
+          "train_loss": 0.28046612524323994,
+          "loss": 0.280260294675827,
+          "win_loss": 0.26353707909584045,
+          "blood_loss": 0.01672321744263172,
+          "win_accuracy": 0.8925000429153442
+        },
+        {
+          "epoch": 13,
+          "train_loss": 0.27796124335792327,
+          "loss": 0.261583149433136,
+          "win_loss": 0.24596340954303741,
+          "blood_loss": 0.015619734302163124,
+          "win_accuracy": 0.8975000381469727
+        },
+        {
+          "epoch": 14,
+          "train_loss": 0.27073857602145934,
+          "loss": 0.25943875312805176,
+          "win_loss": 0.2440667748451233,
+          "blood_loss": 0.015371966175734997,
+          "win_accuracy": 0.8955000638961792
+        },
+        {
+          "epoch": 15,
+          "train_loss": 0.2643483074174987,
+          "loss": 0.2544323205947876,
+          "win_loss": 0.23918934166431427,
+          "blood_loss": 0.0152429835870862,
+          "win_accuracy": 0.9020000696182251
+        },
+        {
+          "epoch": 16,
+          "train_loss": 0.257923165957133,
+          "loss": 0.24999184906482697,
+          "win_loss": 0.23515339195728302,
+          "blood_loss": 0.01483845990151167,
+          "win_accuracy": 0.9015000462532043
+        }
+      ]
+    },
+    "error": null,
+    "snapshot_path": "/content/bt/colab-workspace/runs/4520162232a24050.json"
+  }
+}

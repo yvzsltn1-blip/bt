@@ -1,0 +1,133 @@
+{
+  "ok": true,
+  "job": {
+    "id": "ae3266d3a1b844ab",
+    "job": "report_risk_train",
+    "args": {
+      "datasetPath": "colab-workspace/data/report-truth/reports-combined.jsonl",
+      "epochs": 200,
+      "repeats": 48,
+      "learningRate": 0.03,
+      "valRatio": 0.25
+    },
+    "status": "completed",
+    "created_at": "2026-04-30T22:14:31.115023+00:00",
+    "started_at": "2026-04-30T22:14:31.115758+00:00",
+    "finished_at": "2026-04-30T22:14:44.700168+00:00",
+    "result": {
+      "ok": true,
+      "job_id": "ae3266d3a1b844ab",
+      "datasetPath": "/content/bt/colab-workspace/data/report-truth/reports-combined.jsonl",
+      "modelPath": "/content/bt/colab-workspace/runs/report-risk-model-ae3266d3a1b844ab.pt",
+      "metricsPath": "/content/bt/colab-workspace/runs/report-risk-metrics-ae3266d3a1b844ab.json",
+      "device": "cuda",
+      "rowCount": 105,
+      "wrongCount": 11,
+      "correctCount": 94,
+      "epochs": 200,
+      "repeats": 48,
+      "learningRate": 0.03,
+      "valRatio": 0.25,
+      "averageValidation": {
+        "loss": 0.34977996939172346,
+        "accuracy": 0.8599999981621901,
+        "precision": 0.38290343915343916,
+        "recall": 0.6770833333333334,
+        "auc": 0.8414855072463768
+      },
+      "fullDatasetMetrics": {
+        "loss": 0.201636403799057,
+        "accuracy": 0.9714285731315613,
+        "precision": 0.8333333333333334,
+        "recall": 0.9090909090909091,
+        "auc": 0.9864603481624759
+      },
+      "topPositive": [
+        {
+          "feature": "enemy_t9",
+          "weight": 3.010401725769043
+        },
+        {
+          "feature": "expected_loss_rate_t5",
+          "weight": 2.0415780544281006
+        },
+        {
+          "feature": "enemy_t5",
+          "weight": 1.9318327903747559
+        },
+        {
+          "feature": "ally_t7",
+          "weight": 1.893701434135437
+        },
+        {
+          "feature": "ally_t6",
+          "weight": 1.7812014818191528
+        },
+        {
+          "feature": "enemy_t10",
+          "weight": 1.746369481086731
+        },
+        {
+          "feature": "expected_loss_rate_t1",
+          "weight": 1.605432152748108
+        },
+        {
+          "feature": "ally_t5",
+          "weight": 1.517253041267395
+        },
+        {
+          "feature": "expected_loss_rate_t7",
+          "weight": 1.1906145811080933
+        },
+        {
+          "feature": "expected_blood_norm",
+          "weight": 1.014736533164978
+        }
+      ],
+      "topNegative": [
+        {
+          "feature": "enemy_t6",
+          "weight": -2.2174243927001953
+        },
+        {
+          "feature": "ally_t3",
+          "weight": -2.1706113815307617
+        },
+        {
+          "feature": "expected_loss_rate_t4",
+          "weight": -1.7042012214660645
+        },
+        {
+          "feature": "enemy_t8",
+          "weight": -1.5020846128463745
+        },
+        {
+          "feature": "expected_loss_rate_t3",
+          "weight": -1.388306736946106
+        },
+        {
+          "feature": "expected_loss_rate_t6",
+          "weight": -0.9097878932952881
+        },
+        {
+          "feature": "enemy_t2",
+          "weight": -0.5866799354553223
+        },
+        {
+          "feature": "enemy_t3",
+          "weight": -0.3565903604030609
+        },
+        {
+          "feature": "enemy_t1",
+          "weight": -0.04642530158162117
+        },
+        {
+          "feature": "ally_t8",
+          "weight": 0.01616775617003441
+        }
+      ]
+    },
+    "error": null,
+    "snapshot_path": "/content/bt/colab-workspace/runs/ae3266d3a1b844ab.json"
+  }
+}

@@ -18,6 +18,8 @@ const simulationMetaPanel = document.querySelector("#simulationMetaPanel");
 const logOutput = document.querySelector("#logOutput");
 const simulationLogPanel = document.querySelector("#simulationLogPanel");
 const simulationLogFullscreenBtn = document.querySelector("#simulationLogFullscreenBtn");
+const downloadLogTxtBtn = document.querySelector("#downloadLogTxtBtn");
+const downloadLogPngBtn = document.querySelector("#downloadLogPngBtn");
 const statusLabel = document.querySelector("#statusLabel");
 const simulateBtn = document.querySelector("#simulateBtn");
 const sampleBtn = document.querySelector("#sampleBtn");
@@ -49,6 +51,7 @@ const variantLogSummary = document.querySelector("#variantLogSummary");
 const variantLogInfo = document.querySelector("#variantLogInfo");
 const variantLogOutput = document.querySelector("#variantLogOutput");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const LOSS_REDUCTION_ICON_URL = "https://s66-tr.bitefight.gameforge.com/img/voodoo/res3_rotation.gif";
 let currentSimulationReport = null;
 let pendingWrongSimulationReport = null;
 let wrongReports = [];
@@ -60,6 +63,7 @@ let currentVariantAnalysis = null;
 let variantAnalysisRunId = 0;
 let isAdminSession = false;
 let currentSimulationResult = null;
+let isLossReductionActive = false;
 let pendingHydratedSimulationSeed = null;
 const VARIANT_SAMPLE_COUNT = 480;
 const VARIANT_INITIAL_VISIBLE_COUNT = 20;
@@ -110,6 +114,7 @@ clearBtn.addEventListener("click", () => {
   currentSimulationReport = null;
   currentSimulationResult = null;
   currentVariantAnalysis = null;
+  isLossReductionActive = false;
   pendingHydratedSimulationSeed = null;
   reportWrongSimulationBtn.disabled = true;
   renderSimulationMeta();
@@ -217,6 +222,300 @@ if (simulationLogFullscreenBtn) {
       return;
     }
     void requestSimulationLogFullscreen();
+  });
+}
+
+function buildSimulationLogExportFilename(extension) {
+  const lang = currentLogLang === "en" ? "en" : "tr";
+  const seedPart = Number.isInteger(currentSimulationReport?.seed) ? `seed-${currentSimulationReport.seed}` : "manual";
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  return `tam-gunluk-${seedPart}-${lang}-${timestamp}.${extension}`;
+}
+
+function getRenderedLogPlainText() {
+  if (!logOutput) {
+    return "";
+  }
+  const renderedLines = Array.from(logOutput.querySelectorAll(".log-line"));
+  if (renderedLines.length > 0) {
+    return renderedLines.map((row) => row.textContent || "").join("\n");
+  }
+  return (logOutput.textContent || "").trim();
+}
+
+function triggerBlobDownload(blob, filename) {
+  const objectUrl = URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
+  downloadLink.href = objectUrl;
+  downloadLink.download = filename;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
+function parsePixelValue(value, fallback = 0) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function buildCanvasFont(style) {
+  const fontStyle = style.fontStyle && style.fontStyle !== "normal" ? `${style.fontStyle} ` : "";
+  const fontWeight = style.fontWeight && style.fontWeight !== "normal" ? `${style.fontWeight} ` : "";
+  const fontSize = style.fontSize || "13px";
+  const fontFamily = style.fontFamily || "monospace";
+  return `${fontStyle}${fontWeight}${fontSize} ${fontFamily}`.trim();
+}
+
+function hasVisibleFill(colorValue) {
+  return Boolean(colorValue) && colorValue !== "transparent" && colorValue !== "rgba(0, 0, 0, 0)";
+}
+
+function measureAndDrawText(ctx, text, x, y, letterSpacing = 0, shouldDraw = true) {
+  if (!text) {
+    return 0;
+  }
+  if (!letterSpacing) {
+    if (shouldDraw) {
+      ctx.fillText(text, x, y);
+    }
+    return ctx.measureText(text).width;
+  }
+
+  let cursor = x;
+  const chars = Array.from(text);
+  chars.forEach((char, index) => {
+    if (shouldDraw) {
+      ctx.fillText(char, cursor, y);
+    }
+    cursor += ctx.measureText(char).width;
+    if (index < chars.length - 1) {
+      cursor += letterSpacing;
+    }
+  });
+  return cursor - x;
+}
+
+function drawLogTextNode(ctx, text, x, y, style) {
+  ctx.font = buildCanvasFont(style);
+  ctx.fillStyle = style.color || "#d6dff0";
+  ctx.textBaseline = "top";
+  const letterSpacing = parsePixelValue(style.letterSpacing, 0);
+  return measureAndDrawText(ctx, text, x, y, letterSpacing, true);
+}
+
+function drawLogLineToCanvas(ctx, row, contentOriginX, contentOriginY, contentWidth) {
+  const rowStyle = window.getComputedStyle(row);
+  const rowTop = contentOriginY + row.offsetTop;
+  const rowHeight = Math.max(row.offsetHeight, parsePixelValue(rowStyle.lineHeight, parsePixelValue(rowStyle.fontSize, 13) * 1.4));
+  const rowPaddingTop = parsePixelValue(rowStyle.paddingTop, 0);
+
+  if (hasVisibleFill(rowStyle.backgroundColor)) {
+    ctx.fillStyle = rowStyle.backgroundColor;
+    ctx.fillRect(contentOriginX, rowTop, contentWidth, rowHeight);
+  }
+
+  let cursorX = contentOriginX;
+  const textY = rowTop + rowPaddingTop;
+  Array.from(row.childNodes).forEach((childNode) => {
+    if (childNode.nodeType === Node.TEXT_NODE) {
+      cursorX += drawLogTextNode(ctx, childNode.textContent || "", cursorX, textY, rowStyle);
+      return;
+    }
+    if (childNode.nodeType === Node.ELEMENT_NODE) {
+      const childStyle = window.getComputedStyle(childNode);
+      cursorX += drawLogTextNode(ctx, childNode.textContent || "", cursorX, textY, childStyle);
+    }
+  });
+}
+
+function drawRoundedPanel(ctx, x, y, width, height, radius, fillColor, borderColor, borderWidth) {
+  const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
+  ctx.beginPath();
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(x, y, width, height, safeRadius);
+  } else {
+    ctx.moveTo(x + safeRadius, y);
+    ctx.arcTo(x + width, y, x + width, y + height, safeRadius);
+    ctx.arcTo(x + width, y + height, x, y + height, safeRadius);
+    ctx.arcTo(x, y + height, x, y, safeRadius);
+    ctx.arcTo(x, y, x + width, y, safeRadius);
+    ctx.closePath();
+  }
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  if (borderWidth > 0 && hasVisibleFill(borderColor)) {
+    ctx.lineWidth = borderWidth;
+    ctx.strokeStyle = borderColor;
+    ctx.stroke();
+  }
+}
+
+function canvasToBlob(canvas, type) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+      reject(new Error("Canvas PNG olarak disa aktarilamadi."));
+    }, type);
+  });
+}
+
+async function exportSimulationLogAsPng() {
+  if (!simulationLogPanel || !logOutput) {
+    throw new Error("Gunluk paneli bulunamadi.");
+  }
+
+  if (document.fonts?.ready) {
+    try {
+      await document.fonts.ready;
+    } catch (error) {
+      // Fontlar hazir degilse export mevcut durumla devam eder.
+    }
+  }
+
+  const panelRect = simulationLogPanel.getBoundingClientRect();
+  const panelWidth = Math.max(1, Math.ceil(panelRect.width));
+  const logHead = simulationLogPanel.querySelector(".log-head");
+  const logHeadTitle = simulationLogPanel.querySelector(".log-head-title");
+  const headHeight = logHead ? Math.ceil(logHead.getBoundingClientRect().height) : 0;
+  const panelStyles = window.getComputedStyle(simulationLogPanel);
+  const headStyles = logHead ? window.getComputedStyle(logHead) : null;
+  const titleStyles = logHeadTitle ? window.getComputedStyle(logHeadTitle) : null;
+  const outputStyles = window.getComputedStyle(logOutput);
+  const renderedLines = Array.from(logOutput.querySelectorAll(".log-line"));
+  const borderTop = parseFloat(panelStyles.borderTopWidth) || 0;
+  const borderBottom = parseFloat(panelStyles.borderBottomWidth) || 0;
+  const renderedLogBottom = renderedLines.reduce((maxBottom, row) => {
+    const rowBottom = row.offsetTop + row.offsetHeight;
+    return Math.max(maxBottom, rowBottom);
+  }, 0);
+  const exportLogHeight = Math.max(
+    logOutput.scrollHeight,
+    Math.ceil(logOutput.getBoundingClientRect().height),
+    Math.ceil(renderedLogBottom + parsePixelValue(outputStyles.paddingBottom, 18))
+  );
+  const exportHeight = Math.max(1, Math.ceil(headHeight + exportLogHeight + borderTop + borderBottom));
+  const baseScale = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 3);
+  const MAX_CANVAS_WIDTH = 8192;
+  const MAX_CANVAS_HEIGHT = 8192;
+  const MAX_CANVAS_AREA = 32 * 1024 * 1024;
+  const widthLimitedScale = MAX_CANVAS_WIDTH / panelWidth;
+  const heightLimitedScale = MAX_CANVAS_HEIGHT / exportHeight;
+  const areaLimitedScale = Math.sqrt(MAX_CANVAS_AREA / (panelWidth * exportHeight));
+  const scale = Math.max(0.1, Math.min(baseScale, widthLimitedScale, heightLimitedScale, areaLimitedScale));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(panelWidth * scale));
+  canvas.height = Math.max(1, Math.round(exportHeight * scale));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Canvas baglami olusturulamadi.");
+  }
+
+  ctx.scale(scale, scale);
+  ctx.imageSmoothingEnabled = true;
+
+  const borderRadius = parsePixelValue(panelStyles.borderRadius, 20);
+  const borderWidth = parsePixelValue(panelStyles.borderTopWidth, 1);
+  drawRoundedPanel(
+    ctx,
+    borderWidth / 2,
+    borderWidth / 2,
+    panelWidth - borderWidth,
+    exportHeight - borderWidth,
+    borderRadius,
+    panelStyles.backgroundColor || "#0a0f15",
+    panelStyles.borderColor || "rgba(160, 185, 214, 0.18)",
+    borderWidth
+  );
+
+  if (headStyles) {
+    const headPaddingLeft = parsePixelValue(headStyles.paddingLeft, 16);
+    const headPaddingTop = parsePixelValue(headStyles.paddingTop, 12);
+    const titleText = logHeadTitle?.textContent || "Tam Gunluk";
+    const dividerY = headHeight - parsePixelValue(headStyles.borderBottomWidth, 1) / 2;
+
+    if (parsePixelValue(headStyles.borderBottomWidth, 0) > 0 && hasVisibleFill(headStyles.borderBottomColor)) {
+      ctx.beginPath();
+      ctx.moveTo(0, dividerY);
+      ctx.lineTo(panelWidth, dividerY);
+      ctx.lineWidth = parsePixelValue(headStyles.borderBottomWidth, 1);
+      ctx.strokeStyle = headStyles.borderBottomColor;
+      ctx.stroke();
+    }
+
+    if (titleStyles) {
+      ctx.font = buildCanvasFont(titleStyles);
+      ctx.fillStyle = titleStyles.color || "#98a7bf";
+      ctx.textBaseline = "top";
+      measureAndDrawText(
+        ctx,
+        titleText,
+        headPaddingLeft,
+        headPaddingTop,
+        parsePixelValue(titleStyles.letterSpacing, 0),
+        true
+      );
+    }
+  }
+
+  const contentOriginX = parsePixelValue(outputStyles.paddingLeft, 16);
+  const contentOriginY = headHeight;
+  const contentWidth = panelWidth - contentOriginX - parsePixelValue(outputStyles.paddingRight, 16);
+
+  if (hasVisibleFill(outputStyles.backgroundColor)) {
+    ctx.fillStyle = outputStyles.backgroundColor;
+    ctx.fillRect(
+      borderWidth,
+      contentOriginY,
+      Math.max(0, panelWidth - borderWidth * 2),
+      Math.max(0, exportHeight - contentOriginY - borderWidth)
+    );
+  }
+
+  if (renderedLines.length > 0) {
+    renderedLines.forEach((row) => {
+      drawLogLineToCanvas(ctx, row, contentOriginX, contentOriginY, contentWidth);
+    });
+  } else {
+    ctx.font = buildCanvasFont(outputStyles);
+    ctx.fillStyle = outputStyles.color || "#d6dff0";
+    ctx.textBaseline = "top";
+    measureAndDrawText(
+      ctx,
+      logOutput.textContent || "Gunluk henuz olusturulmadi.",
+      contentOriginX,
+      contentOriginY + parsePixelValue(outputStyles.paddingTop, 18),
+      parsePixelValue(outputStyles.letterSpacing, 0),
+      true
+    );
+  }
+
+  const pngBlob = await canvasToBlob(canvas, "image/png");
+  triggerBlobDownload(pngBlob, buildSimulationLogExportFilename("png"));
+}
+
+if (downloadLogTxtBtn) {
+  downloadLogTxtBtn.addEventListener("click", () => {
+    const logText = getRenderedLogPlainText();
+    const exportText = logText || "Gunluk henuz olusturulmadi.";
+    const txtBlob = new Blob(["\uFEFF", exportText], { type: "text/plain;charset=utf-8" });
+    triggerBlobDownload(txtBlob, buildSimulationLogExportFilename("txt"));
+  });
+}
+
+if (downloadLogPngBtn) {
+  downloadLogPngBtn.addEventListener("click", async () => {
+    downloadLogPngBtn.disabled = true;
+    try {
+      await exportSimulationLogAsPng();
+    } catch (error) {
+      window.alert(error?.message || "Gunluk PNG olarak indirilemedi.");
+    } finally {
+      downloadLogPngBtn.disabled = false;
+    }
   });
 }
 
@@ -502,6 +801,125 @@ function consumeSimulationSeed() {
   return buildRuntimeSeed();
 }
 
+function normalizeLossCount(value) {
+  return Math.max(0, Math.floor(Number(value) || 0));
+}
+
+function hasPositiveLosses(losses = {}) {
+  return Object.values(losses || {}).some((value) => normalizeLossCount(value) > 0);
+}
+
+function getReducedLossCount(value) {
+  const count = normalizeLossCount(value);
+  if (count <= 0) {
+    return 0;
+  }
+  return Math.max(0, count - Math.ceil(count / 5));
+}
+
+function applyLossReductionToLosses(losses = {}) {
+  const reduced = {};
+  ALLY_UNITS.forEach((unit) => {
+    const nextCount = getReducedLossCount(losses?.[unit.key] || 0);
+    if (nextCount > 0) {
+      reduced[unit.key] = nextCount;
+    }
+  });
+  return reduced;
+}
+
+function calculateLostBloodFromLosses(losses = {}) {
+  return ALLY_UNITS.reduce((sum, unit) =>
+    sum + normalizeLossCount(losses?.[unit.key] || 0) * (BLOOD_BY_ALLY_KEY[unit.key] || 0), 0);
+}
+
+function buildLossSummaryText(summaryText, losses = {}) {
+  const lines = String(summaryText || "").split("\n");
+  const lossHeaderIndex = lines.findIndex((line) => {
+    const trimmed = line.trim();
+    return trimmed === "Kayip Birlikler" || trimmed === "Lost Units";
+  });
+  if (lossHeaderIndex < 0) {
+    return String(summaryText || "");
+  }
+
+  const capacityIndex = lines.findIndex((line, index) => {
+    if (index <= lossHeaderIndex) {
+      return false;
+    }
+    const trimmed = line.trim();
+    return trimmed.startsWith("Toplam birlik kapasitesi") || trimmed.startsWith("Total army capacity");
+  });
+
+  const unitLines = [];
+  let totalUnits = 0;
+  let totalBlood = 0;
+  ALLY_UNITS.forEach((unit) => {
+    const count = normalizeLossCount(losses?.[unit.key] || 0);
+    if (count <= 0) {
+      return;
+    }
+    const blood = count * (BLOOD_BY_ALLY_KEY[unit.key] || 0);
+    totalUnits += count;
+    totalBlood += blood;
+    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
+  });
+
+  const before = lines.slice(0, lossHeaderIndex + 1);
+  const after = capacityIndex >= 0 ? lines.slice(capacityIndex) : [];
+  return [
+    ...before,
+    ...unitLines,
+    "",
+    `= ${String(totalUnits).padStart(3)} toplam ${"".padEnd(21)} (${totalBlood} kan)`,
+    "--------------------------------------------------",
+    ...after
+  ].join("\n");
+}
+
+function getDisplayedSimulationLosses(report) {
+  const baseLosses = report?.expectedAllyLosses && hasPositiveLosses(report.expectedAllyLosses)
+    ? report.expectedAllyLosses
+    : extractLossesFromSummary(report?.summaryText || "");
+  return isLossReductionActive ? applyLossReductionToLosses(baseLosses) : baseLosses;
+}
+
+function getDisplayedSimulationLostBlood(report, result) {
+  const displayedLosses = getDisplayedSimulationLosses(report);
+  if (isLossReductionActive && hasPositiveLosses(displayedLosses)) {
+    return calculateLostBloodFromLosses(displayedLosses);
+  }
+  return result?.lostBloodTotal ?? report?.lostBlood ?? 0;
+}
+
+function getLossAdjustedSummaryText(summaryText, losses) {
+  if (!isLossReductionActive) {
+    return String(summaryText || "");
+  }
+  return buildLossSummaryText(summaryText, applyLossReductionToLosses(losses));
+}
+
+function createMetaField(label, value) {
+  const field = document.createElement("span");
+  field.innerHTML = `${label}: <strong>${value}</strong>`;
+  return field;
+}
+
+function createLossReductionToggleButton(isActive, onToggle) {
+  const button = document.createElement("button");
+  button.className = `loss-toggle-button${isActive ? " is-active" : ""}`;
+  button.type = "button";
+  button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  button.title = isActive
+    ? "Azaltilmis kayiplari gosteriyorsun. Tekrar basarsan normal sonuc doner."
+    : "Kayiplari birlik bazinda 5'te 1 azaltip goster.";
+  button.innerHTML = `
+    <img src="${LOSS_REDUCTION_ICON_URL}" alt="" loading="lazy">
+  `;
+  button.addEventListener("click", onToggle);
+  return button;
+}
+
 function renderSimulationMeta(report = null, result = null) {
   if (!simulationMetaPanel) {
     return;
@@ -511,15 +929,14 @@ function renderSimulationMeta(report = null, result = null) {
     return;
   }
 
-  const metaParts = [
-    Number.isInteger(report.seed) ? `<span>Seed: <strong>${report.seed}</strong></span>` : "",
-    `<span>Sonuc: <strong>${result.winner === "enemy" ? "Maglubiyet" : "Zafer"}</strong></span>`,
-    `<span>Kan kaybi: <strong>${result.lostBloodTotal ?? 0}</strong></span>`,
-    `<span>Kullanilan puan: <strong>${report.usedPoints ?? 0}</strong></span>`,
-    `<span>Kapasite: <strong>${report.usedCapacity ?? 0}</strong></span>`
-  ].filter(Boolean);
-
-  simulationMetaPanel.innerHTML = metaParts.join("");
+  simulationMetaPanel.innerHTML = "";
+  if (Number.isInteger(report.seed)) {
+    simulationMetaPanel.appendChild(createMetaField("Seed", report.seed));
+  }
+  simulationMetaPanel.appendChild(createMetaField("Sonuc", result.winner === "enemy" ? "Maglubiyet" : "Zafer"));
+  simulationMetaPanel.appendChild(createMetaField("Kan kaybi", getDisplayedSimulationLostBlood(report, result)));
+  simulationMetaPanel.appendChild(createMetaField("Kullanilan puan", report.usedPoints ?? 0));
+  simulationMetaPanel.appendChild(createMetaField("Kapasite", report.usedCapacity ?? 0));
 }
 
 function renderSimulation(result, options = {}) {
@@ -554,6 +971,7 @@ function renderSimulation(result, options = {}) {
     ...detailLines
   ].join("\n");
 
+  isLossReductionActive = false;
   lastSummaryTextTr = summaryText;
   lastLogTextTr = detailText;
   paintLogPanels();
@@ -800,7 +1218,11 @@ function renderMatchedActualReport() {
   expectedTitle.textContent = "Beklenen";
   const expectedBlock = document.createElement("div");
   expectedBlock.className = "terminal-block";
-  renderStyledLines((matched.summaryText || currentSimulationReport.summaryText || "").split("\n"), expectedBlock);
+  const expectedSummaryText = getLossAdjustedSummaryText(
+    matched.summaryText || currentSimulationReport.summaryText || "",
+    matched.expectedAllyLosses || extractLossesFromSummary(matched.summaryText || currentSimulationReport.summaryText || "")
+  );
+  renderStyledLines(expectedSummaryText.split("\n"), expectedBlock);
   expectedWrap.append(expectedTitle, expectedBlock);
 
   const actualWrap = document.createElement("section");
@@ -809,7 +1231,11 @@ function renderMatchedActualReport() {
   actualTitle.textContent = "Gercek";
   const actualBlock = document.createElement("div");
   actualBlock.className = "terminal-block";
-  renderStyledLines((matched.actualSummaryText || "").split("\n"), actualBlock);
+  const actualSummaryText = getLossAdjustedSummaryText(
+    matched.actualSummaryText || "",
+    matched.actualLosses || extractLossesFromSummary(matched.actualSummaryText || "")
+  );
+  renderStyledLines(actualSummaryText.split("\n"), actualBlock);
   actualWrap.append(actualTitle, actualBlock);
 
   summaryGrid.append(expectedWrap, actualWrap);
@@ -849,15 +1275,34 @@ function getSummaryUnitName(key) {
 
 function paintLogPanels() {
   const translate = (window.BattleCore && window.BattleCore.translateLogText) || ((t) => t);
-  const summaryText = translate(lastSummaryTextTr, currentLogLang);
+  const baseSummaryText = getLossAdjustedSummaryText(
+    lastSummaryTextTr,
+    currentSimulationReport?.expectedAllyLosses || extractLossesFromSummary(lastSummaryTextTr)
+  );
+  const summaryText = translate(baseSummaryText, currentLogLang);
   const detailText = translate(lastLogTextTr, currentLogLang);
 
   summaryPanel.innerHTML = "";
   if (lastSummaryTextTr) {
+    const summaryShell = document.createElement("div");
+    summaryShell.className = "loss-summary-shell";
+    const summaryHead = document.createElement("div");
+    summaryHead.className = "loss-summary-head";
+    const summaryTitle = document.createElement("span");
+    summaryTitle.className = "loss-summary-label";
+    summaryTitle.textContent = "Kayip Ozeti";
+    summaryHead.appendChild(summaryTitle);
+    summaryHead.appendChild(createLossReductionToggleButton(isLossReductionActive, () => {
+      isLossReductionActive = !isLossReductionActive;
+      renderSimulationMeta(currentSimulationReport, currentSimulationResult);
+      paintLogPanels();
+      renderMatchedActualReport();
+    }));
     const summaryBlock = document.createElement("div");
     summaryBlock.className = "terminal-block";
     renderStyledLines(summaryText.split("\n"), summaryBlock);
-    summaryPanel.appendChild(summaryBlock);
+    summaryShell.append(summaryHead, summaryBlock);
+    summaryPanel.appendChild(summaryShell);
   }
 
   logOutput.innerHTML = "";

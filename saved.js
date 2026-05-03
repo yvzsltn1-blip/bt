@@ -31,6 +31,7 @@ const adminPasswordInput = document.querySelector("#adminPasswordInput");
 const adminLoginBtn = document.querySelector("#adminLoginBtn");
 const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const LOSS_REDUCTION_ICON_URL = "https://s66-tr.bitefight.gameforge.com/img/voodoo/res3_rotation.gif";
 const PAGE_SIZE = 10;
 const UNIT_DEFS = [...ENEMY_UNITS, ...ALLY_UNITS];
 const FILTERABLE_UNITS = UNIT_DEFS.map((unit) => ({
@@ -129,6 +130,114 @@ async function renderSavedStrategies() {
   applySavedFilters();
 }
 
+function normalizeLossCount(value) {
+  return Math.max(0, Math.floor(Number(value) || 0));
+}
+
+function hasPositiveLosses(losses = {}) {
+  return Object.values(losses || {}).some((value) => normalizeLossCount(value) > 0);
+}
+
+function getReducedLossCount(value) {
+  const count = normalizeLossCount(value);
+  if (count <= 0) {
+    return 0;
+  }
+  return Math.max(0, count - Math.ceil(count / 5));
+}
+
+function applyLossReductionToLosses(losses = {}) {
+  const reduced = {};
+  ALLY_UNITS.forEach((unit) => {
+    const nextCount = getReducedLossCount(losses?.[unit.key] || 0);
+    if (nextCount > 0) {
+      reduced[unit.key] = nextCount;
+    }
+  });
+  return reduced;
+}
+
+function buildLossSummaryText(summaryText, losses = {}) {
+  const lines = String(summaryText || "").split("\n");
+  const lossHeaderIndex = lines.findIndex((line) => line.trim() === "Kayip Birlikler");
+  if (lossHeaderIndex < 0) {
+    return String(summaryText || "");
+  }
+
+  const capacityIndex = lines.findIndex((line, index) =>
+    index > lossHeaderIndex && line.trim().startsWith("Toplam birlik kapasitesi"));
+  const before = lines.slice(0, lossHeaderIndex + 1);
+  const after = capacityIndex >= 0 ? lines.slice(capacityIndex) : [];
+
+  const unitLines = [];
+  let totalUnits = 0;
+  let totalBlood = 0;
+  ALLY_UNITS.forEach((unit) => {
+    const count = normalizeLossCount(losses?.[unit.key] || 0);
+    if (count <= 0) {
+      return;
+    }
+    const blood = count * (BLOOD_BY_ALLY_KEY[unit.key] || 0);
+    totalUnits += count;
+    totalBlood += blood;
+    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
+  });
+
+  return [
+    ...before,
+    ...unitLines,
+    "",
+    `= ${String(totalUnits).padStart(3)} toplam ${"".padEnd(21)} (${totalBlood} kan)`,
+    "--------------------------------------------------",
+    ...after
+  ].join("\n");
+}
+
+function createMetaField(label, value) {
+  const field = document.createElement("span");
+  field.innerHTML = `${label}: <strong>${value}</strong>`;
+  return field;
+}
+
+function createSavedOriginBadge(label) {
+  const badge = document.createElement("span");
+  badge.className = "saved-origin-badge";
+  badge.textContent = label;
+  return badge;
+}
+
+function isPromotedFromWrong(item) {
+  return item?.promotedFromWrong === true;
+}
+
+function createLossReductionToggleButton(isActive, onToggle) {
+  const button = document.createElement("button");
+  button.className = `loss-toggle-button${isActive ? " is-active" : ""}`;
+  button.type = "button";
+  button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  button.title = isActive
+    ? "Azaltilmis kayiplari gosteriyorsun. Tekrar basarsan normal sonuc doner."
+    : "Kayiplari birlik bazinda 5'te 1 azaltip goster.";
+  button.innerHTML = `
+    <img src="${LOSS_REDUCTION_ICON_URL}" alt="" loading="lazy">
+  `;
+  button.addEventListener("click", onToggle);
+  return button;
+}
+
+function getDisplayedSavedLosses(item, isLossReductionActive) {
+  const baseLosses = extractSavedLosses(item);
+  return isLossReductionActive ? applyLossReductionToLosses(baseLosses) : baseLosses;
+}
+
+function getDisplayedSavedLostBlood(item, displayedLosses, isLossReductionActive) {
+  const storedLostBlood = parseFiniteNumber(item?.lostBlood);
+  if (isLossReductionActive && hasPositiveLosses(displayedLosses)) {
+    return calculateLostBlood(displayedLosses);
+  }
+  return storedLostBlood !== null ? storedLostBlood : calculateLostBlood(displayedLosses);
+}
+
 function renderSavedPage(items) {
   savedList.innerHTML = "";
 
@@ -143,13 +252,14 @@ function renderSavedPage(items) {
     const source = getApprovedSource(item);
     const card = document.createElement("article");
     card.className = "saved-card";
+    let isLossReductionActive = false;
 
     const head = document.createElement("div");
     head.className = "saved-card-head";
 
     const title = document.createElement("div");
     if (source === "simulation") {
-      title.innerHTML = `<strong>${item.variantTitle || "Onayli Dovus"} / ${item.enemyTitle || "Versus"}</strong><span>${item.stage ? `${item.stage}. Kademe / ` : ""}Simulasyon / ${formatDate(item.savedAt)}</span>`;
+      title.innerHTML = `<strong>${item.variantTitle || "Onayli Dovus"} / ${item.enemyTitle || "Versus"}</strong><span>${item.stage ? `${item.stage}. Kademe / ` : ""}${item.sourceLabel || "Simulasyon"} / ${formatDate(item.savedAt)}</span>`;
     } else {
       title.innerHTML = `<strong>${item.stage}. Kademe / ${item.enemyTitle || "Versus"}</strong><span>${formatDate(item.savedAt)}</span>`;
     }
@@ -180,7 +290,8 @@ function renderSavedPage(items) {
     } else {
       const openBtn = document.createElement("a");
       openBtn.className = "button button-secondary";
-      openBtn.href = `optimizer.html?stage=${encodeURIComponent(item.stage)}&saved=${encodeURIComponent(item.id)}`;
+      const optimizerPage = hasMinimumRequiredCounts(item.minimumRequiredCounts) ? "optimizer-minimum.html" : "optimizer.html";
+      openBtn.href = `${optimizerPage}?stage=${encodeURIComponent(item.stage)}&saved=${encodeURIComponent(item.id)}`;
       openBtn.textContent = "Optimizer'da Ac";
       actions.append(openBtn);
     }
@@ -205,23 +316,39 @@ function renderSavedPage(items) {
 
     const meta = document.createElement("div");
     meta.className = "saved-meta";
-    if (source === "simulation") {
-      meta.innerHTML = `
-        <span>Sonuc: <strong>${item.winner === "enemy" ? "Maglubiyet" : "Zafer"}</strong></span>
-        <span>Olasilik: <strong>%${formatStoredProbability(item.probabilityBasisPoints)}</strong></span>
-        <span>Kan kaybi: <strong>${item.lostBlood ?? 0}</strong></span>
-        <span>Kullanilan puan: <strong>${item.usedPoints ?? 0}</strong></span>
-        ${Number.isInteger(item.representativeSeed) ? `<span>Seed: <strong>${item.representativeSeed}</strong></span>` : ""}
-      `;
-    } else {
-      meta.innerHTML = `
-        <span>Kullanilan puan: <strong>${item.usedPoints}</strong></span>
-        <span>Kan kaybi: <strong>${item.lostBlood}</strong></span>
-        <span>Kazanma orani: <strong>%${item.winRate}</strong></span>
-        <span>Mod: <strong>${item.modeLabel}</strong></span>
-        ${Number.isInteger(item.representativeSeed) ? `<span>Seed: <strong>${item.representativeSeed}</strong></span>` : ""}
-      `;
-    }
+    const simulationDetails = source === "simulation" ? renderSimulationSavedDetails(item) : null;
+    simulationDetails?.bindToggle(() => {
+      isLossReductionActive = !isLossReductionActive;
+      renderMeta();
+      simulationDetails?.setLossReduction(isLossReductionActive);
+    });
+
+    const renderMeta = () => {
+      meta.innerHTML = "";
+      if (isPromotedFromWrong(item)) {
+        meta.appendChild(createSavedOriginBadge("Once yanlisti"));
+      }
+      if (source === "simulation") {
+        const displayedLosses = getDisplayedSavedLosses(item, isLossReductionActive);
+        meta.appendChild(createMetaField("Sonuc", item.winner === "enemy" ? "Maglubiyet" : "Zafer"));
+        meta.appendChild(createMetaField("Olasilik", `%${formatStoredProbability(item.probabilityBasisPoints)}`));
+        meta.appendChild(createMetaField("Kan kaybi", getDisplayedSavedLostBlood(item, displayedLosses, isLossReductionActive)));
+        meta.appendChild(createMetaField("Kullanilan puan", item.usedPoints ?? 0));
+
+        if (Number.isInteger(item.representativeSeed)) {
+          meta.appendChild(createMetaField("Seed", item.representativeSeed));
+        }
+      } else {
+        meta.appendChild(createMetaField("Kullanilan puan", item.usedPoints ?? 0));
+        meta.appendChild(createMetaField("Kan kaybi", item.lostBlood ?? 0));
+        meta.appendChild(createMetaField("Kazanma orani", `%${item.winRate ?? 0}`));
+        meta.appendChild(createMetaField("Mod", item.modeLabel || "-"));
+        if (Number.isInteger(item.representativeSeed)) {
+          meta.appendChild(createMetaField("Seed", item.representativeSeed));
+        }
+      }
+    };
+    renderMeta();
 
     const grid = document.createElement("div");
     grid.className = "saved-columns";
@@ -243,7 +370,7 @@ function renderSavedPage(items) {
       if (isAdminSession) {
         card.appendChild(renderSimulationStageEditor(item));
       }
-      card.appendChild(renderSimulationSavedDetails(item));
+      card.appendChild(simulationDetails.element);
     }
 
     savedList.appendChild(card);
@@ -252,6 +379,10 @@ function renderSavedPage(items) {
 
 function getApprovedSource(item) {
   return item?.source === "simulation" ? "simulation" : "optimizer";
+}
+
+function hasMinimumRequiredCounts(counts) {
+  return ALLY_UNITS.some((unit) => (counts?.[unit.key] || 0) > 0);
 }
 
 function getSavedAllyCounts(item) {
@@ -437,6 +568,7 @@ function matchesSavedSearch(item, searchText) {
     item.id,
     item.source,
     item.sourceLabel,
+    item.promotedFromWrong ? "yanlistan dogrulandi once yanlisti" : "",
     item.enemyTitle,
     item.variantTitle,
     item.modeLabel,
@@ -739,12 +871,25 @@ function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
 function renderSimulationSavedDetails(item) {
   const wrap = document.createElement("div");
   wrap.className = "saved-simulation-details";
+  let summaryBlock = null;
+  let summaryToggle = null;
+  let toggleHandler = () => {};
 
   if (item.summaryText) {
-    const summaryBlock = document.createElement("div");
+    const summaryShell = document.createElement("div");
+    summaryShell.className = "loss-summary-shell";
+    const summaryHead = document.createElement("div");
+    summaryHead.className = "loss-summary-head";
+    const summaryLabel = document.createElement("span");
+    summaryLabel.className = "loss-summary-label";
+    summaryLabel.textContent = "Kayip Ozeti";
+    summaryToggle = createLossReductionToggleButton(false, toggleHandler);
+    summaryHead.append(summaryLabel, summaryToggle);
+    summaryBlock = document.createElement("div");
     summaryBlock.className = "terminal-block saved-text-block";
     summaryBlock.textContent = item.summaryText;
-    wrap.appendChild(summaryBlock);
+    summaryShell.append(summaryHead, summaryBlock);
+    wrap.appendChild(summaryShell);
   }
 
   if (item.logText) {
@@ -762,7 +907,32 @@ function renderSimulationSavedDetails(item) {
     wrap.appendChild(logWrap);
   }
 
-  return wrap;
+  return {
+    element: wrap,
+    setLossReduction(isLossReductionActive) {
+      if (!summaryBlock) {
+        return;
+      }
+      if (summaryToggle) {
+        const nextToggle = createLossReductionToggleButton(isLossReductionActive, toggleHandler);
+        summaryToggle.replaceWith(nextToggle);
+        summaryToggle = nextToggle;
+      }
+      const displayedLosses = getDisplayedSavedLosses(item, isLossReductionActive);
+      summaryBlock.textContent = isLossReductionActive
+        ? buildLossSummaryText(item.summaryText || "", displayedLosses)
+        : (item.summaryText || "");
+    },
+    bindToggle(handler) {
+      toggleHandler = handler;
+      if (!summaryToggle) {
+        return;
+      }
+      const nextToggle = createLossReductionToggleButton(false, toggleHandler);
+      summaryToggle.replaceWith(nextToggle);
+      summaryToggle = nextToggle;
+    }
+  };
 }
 
 function renderSimulationStageEditor(item) {

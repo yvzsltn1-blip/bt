@@ -171,6 +171,14 @@
       savedAt: trimText(item?.savedAt || new Date().toISOString(), 40),
       updatedAt: trimText(new Date().toISOString(), 40)
     };
+    if (item?.promotedFromWrong === true) {
+      basePayload.promotedFromWrong = true;
+      basePayload.promotedFromWrongAt = trimText(item?.promotedFromWrongAt || new Date().toISOString(), 40);
+      const promotedFromWrongId = trimText(item?.promotedFromWrongId || "", 80);
+      if (promotedFromWrongId) {
+        basePayload.promotedFromWrongId = promotedFromWrongId;
+      }
+    }
 
     if (source === "simulation") {
       const payload = {
@@ -494,6 +502,193 @@
     return errors;
   }
 
+  function validateApprovedPayload(payload, docId) {
+    const errors = [];
+
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return ["Approved payload obje olmali."];
+    }
+
+    if (payload.source === "simulation") {
+      const allowedKeys = [
+        "source", "sourceLabel", "savedAt", "updatedAt", "stage", "enemyTitle", "enemyCounts",
+        "promotedFromWrong", "promotedFromWrongAt", "promotedFromWrongId",
+        "allyCounts", "matchSignature", "variantSignature", "representativeSeed", "variantTitle", "winner",
+        "probabilityBasisPoints", "summaryText", "logText", "usedCapacity",
+        "usedPoints", "lostBlood"
+      ];
+      const requiredKeys = [
+        "source", "sourceLabel", "savedAt", "updatedAt", "enemyTitle", "enemyCounts",
+        "allyCounts", "matchSignature", "variantSignature", "variantTitle", "winner",
+        "probabilityBasisPoints", "summaryText", "logText", "usedCapacity",
+        "usedPoints", "lostBlood"
+      ];
+
+      if (!/^sim_[0-9a-f]+$/.test(docId)) {
+        errors.push(`Belge ID formati hatali: ${docId}`);
+      }
+      const extraKeys = Object.keys(payload).filter((key) => !allowedKeys.includes(key));
+      if (extraKeys.length > 0) {
+        errors.push(`Izin verilmeyen alanlar: ${extraKeys.join(", ")}`);
+      }
+      const missingKeys = requiredKeys.filter((key) => !(key in payload));
+      if (missingKeys.length > 0) {
+        errors.push(`Eksik zorunlu alanlar: ${missingKeys.join(", ")}`);
+      }
+      if (payload.source !== "simulation") {
+        errors.push(`source gecersiz: ${String(payload.source)}`);
+      }
+      if (!validateShortString(payload.sourceLabel, 30)) {
+        errors.push("sourceLabel 1..30 karakter olmali.");
+      }
+      if (!validateShortString(payload.savedAt, 40)) {
+        errors.push("savedAt 1..40 karakter olmali.");
+      }
+      if (!validateShortString(payload.updatedAt, 40)) {
+        errors.push("updatedAt 1..40 karakter olmali.");
+      }
+      if ("stage" in payload && !isIntegerInRange(payload.stage, 1, 9999)) {
+        errors.push("stage 1..9999 araliginda tam sayi olmali.");
+      }
+      if (!validateShortString(payload.enemyTitle, 120)) {
+        errors.push("enemyTitle 1..120 karakter olmali.");
+      }
+      validateCountMap(payload.enemyCounts, ENEMY_COUNT_KEYS, "enemyCounts", errors);
+      validateCountMap(payload.allyCounts, ALLY_COUNT_KEYS, "allyCounts", errors);
+      if (!validateShortString(payload.matchSignature, 200)) {
+        errors.push("matchSignature 1..200 karakter olmali.");
+      }
+      if (!validateTextString(payload.variantSignature, 500)) {
+        errors.push("variantSignature en fazla 500 karakter olmali.");
+      }
+      if ("representativeSeed" in payload && !isIntegerInRange(payload.representativeSeed, 0, 4294967295)) {
+        errors.push("representativeSeed 0..4294967295 araliginda tam sayi olmali.");
+      }
+      if (!validateShortString(payload.variantTitle, 80)) {
+        errors.push("variantTitle 1..80 karakter olmali.");
+      }
+      if (!["ally", "enemy"].includes(payload.winner)) {
+        errors.push(`winner gecersiz: ${String(payload.winner)}`);
+      }
+      if (!isIntegerInRange(payload.probabilityBasisPoints, 0, 10000)) {
+        errors.push("probabilityBasisPoints 0..10000 araliginda tam sayi olmali.");
+      }
+      if (!validateTextString(payload.summaryText, 40000)) {
+        errors.push("summaryText en fazla 40000 karakter olmali.");
+      }
+      if (!validateTextString(payload.logText, 400000)) {
+        errors.push("logText en fazla 400000 karakter olmali.");
+      }
+      if (!isIntegerInRange(payload.usedCapacity, 0, 999999)) {
+        errors.push("usedCapacity 0..999999 araliginda tam sayi olmali.");
+      }
+      if (!isIntegerInRange(payload.usedPoints, 0, 99999)) {
+        errors.push("usedPoints 0..99999 araliginda tam sayi olmali.");
+      }
+      if (!isIntegerInRange(payload.lostBlood, 0, 999999)) {
+        errors.push("lostBlood 0..999999 araliginda tam sayi olmali.");
+      }
+      if ("promotedFromWrong" in payload && typeof payload.promotedFromWrong !== "boolean") {
+        errors.push("promotedFromWrong boolean olmali.");
+      }
+      if ("promotedFromWrongAt" in payload && !validateShortString(payload.promotedFromWrongAt, 40)) {
+        errors.push("promotedFromWrongAt 1..40 karakter olmali.");
+      }
+      if ("promotedFromWrongId" in payload && !validateShortString(payload.promotedFromWrongId, 80)) {
+        errors.push("promotedFromWrongId 1..80 karakter olmali.");
+      }
+      return errors;
+    }
+
+    const allowedKeys = [
+      "source", "sourceLabel", "savedAt", "updatedAt", "stage", "mode", "objective",
+      "diversityMode", "stoneMode", "modeLabel",
+      "promotedFromWrong", "promotedFromWrongAt", "promotedFromWrongId",
+      "enemySignature", "enemyTitle", "enemyCounts", "allyPool", "representativeSeed",
+      "recommendationCounts", "usedPoints", "lostBlood", "winRate"
+    ];
+    const requiredKeys = [
+      "source", "sourceLabel", "savedAt", "updatedAt", "stage", "mode", "objective",
+      "diversityMode", "stoneMode", "modeLabel",
+      "enemySignature", "enemyTitle", "enemyCounts", "allyPool",
+      "recommendationCounts", "usedPoints", "lostBlood", "winRate"
+    ];
+
+    if (!/^stage_[0-9]+_[0-9a-f]+$/.test(docId)) {
+      errors.push(`Belge ID formati hatali: ${docId}`);
+    }
+    const extraKeys = Object.keys(payload).filter((key) => !allowedKeys.includes(key));
+    if (extraKeys.length > 0) {
+      errors.push(`Izin verilmeyen alanlar: ${extraKeys.join(", ")}`);
+    }
+    const missingKeys = requiredKeys.filter((key) => !(key in payload));
+    if (missingKeys.length > 0) {
+      errors.push(`Eksik zorunlu alanlar: ${missingKeys.join(", ")}`);
+    }
+    if (payload.source !== "optimizer") {
+      errors.push(`source gecersiz: ${String(payload.source)}`);
+    }
+    if (!validateShortString(payload.sourceLabel, 30)) {
+      errors.push("sourceLabel 1..30 karakter olmali.");
+    }
+    if (!validateShortString(payload.savedAt, 40)) {
+      errors.push("savedAt 1..40 karakter olmali.");
+    }
+    if (!validateShortString(payload.updatedAt, 40)) {
+      errors.push("updatedAt 1..40 karakter olmali.");
+    }
+    if (!isIntegerInRange(payload.stage, 1, 9999)) {
+      errors.push("stage 1..9999 araliginda tam sayi olmali.");
+    }
+    if (!["balanced", "fast", "deep"].includes(payload.mode)) {
+      errors.push(`mode gecersiz: ${String(payload.mode)}`);
+    }
+    if (!["min_loss", "min_army"].includes(payload.objective)) {
+      errors.push(`objective gecersiz: ${String(payload.objective)}`);
+    }
+    if (typeof payload.diversityMode !== "boolean") {
+      errors.push("diversityMode boolean olmali.");
+    }
+    if (typeof payload.stoneMode !== "boolean") {
+      errors.push("stoneMode boolean olmali.");
+    }
+    if (!validateShortString(payload.modeLabel, 80)) {
+      errors.push("modeLabel 1..80 karakter olmali.");
+    }
+    if ("promotedFromWrong" in payload && typeof payload.promotedFromWrong !== "boolean") {
+      errors.push("promotedFromWrong boolean olmali.");
+    }
+    if ("promotedFromWrongAt" in payload && !validateShortString(payload.promotedFromWrongAt, 40)) {
+      errors.push("promotedFromWrongAt 1..40 karakter olmali.");
+    }
+    if ("promotedFromWrongId" in payload && !validateShortString(payload.promotedFromWrongId, 80)) {
+      errors.push("promotedFromWrongId 1..80 karakter olmali.");
+    }
+    if (!validateShortString(payload.enemySignature, 120)) {
+      errors.push("enemySignature 1..120 karakter olmali.");
+    }
+    if (!validateShortString(payload.enemyTitle, 120)) {
+      errors.push("enemyTitle 1..120 karakter olmali.");
+    }
+    validateCountMap(payload.enemyCounts, ENEMY_COUNT_KEYS, "enemyCounts", errors);
+    validateCountMap(payload.allyPool, ALLY_COUNT_KEYS, "allyPool", errors);
+    if ("representativeSeed" in payload && !isIntegerInRange(payload.representativeSeed, 0, 4294967295)) {
+      errors.push("representativeSeed 0..4294967295 araliginda tam sayi olmali.");
+    }
+    validateCountMap(payload.recommendationCounts, ALLY_COUNT_KEYS, "recommendationCounts", errors);
+    if (!isIntegerInRange(payload.usedPoints, 0, 99999)) {
+      errors.push("usedPoints 0..99999 araliginda tam sayi olmali.");
+    }
+    if (!isIntegerInRange(payload.lostBlood, 0, 999999)) {
+      errors.push("lostBlood 0..999999 araliginda tam sayi olmali.");
+    }
+    if (!isIntegerInRange(payload.winRate, 0, 100)) {
+      errors.push("winRate 0..100 araliginda tam sayi olmali.");
+    }
+
+    return errors;
+  }
+
   function formatWrongReportError(error, payload, docId) {
     const localErrors = validateWrongReportPayload(payload, docId);
     const lines = [
@@ -583,6 +778,36 @@
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fields: toFirestoreRestFields(payload)
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new Error(`REST fallback basarisiz: HTTP ${response.status} ${response.statusText}\n${responseText}`);
+    }
+
+    return response.json().catch(() => null);
+  }
+
+  async function upsertApprovedStrategyViaRest(docId, payload, idToken) {
+    if (typeof globalScope.fetch !== "function") {
+      throw new Error("REST fallback icin fetch kullanilamiyor.");
+    }
+    if (!idToken) {
+      throw new Error("REST fallback icin Firebase ID token gerekli.");
+    }
+
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}/${COLLECTION}/${encodeURIComponent(docId)}?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
         },
         body: JSON.stringify({
           fields: toFirestoreRestFields(payload)
@@ -764,9 +989,13 @@
   async function saveApprovedStrategy(item) {
     const docId = buildApprovedEntryId(item);
     const payload = sanitizeApprovedEntry(item);
+    const validationErrors = validateApprovedPayload(payload, docId);
 
     if (!docId) {
       throw new Error("Kayit kimligi olusturulamadi.");
+    }
+    if (validationErrors.length > 0) {
+      throw new Error(`Onayli kayit verisi kurallara uymuyor:\n${validationErrors.map((entry) => `- ${entry}`).join("\n")}`);
     }
 
     if (!db) {
@@ -775,10 +1004,46 @@
       return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
     }
 
+    const currentUser = auth ? auth.currentUser : null;
+    if (!isAdminUser(currentUser)) {
+      throw new Error("Onayli kayit kaydetmek icin admin girisi zorunludur. Lutfen once admin olarak giris yapin.");
+    }
+
     try {
+      if (typeof currentUser.getIdToken === "function") {
+        await currentUser.getIdToken(true);
+      }
       await db.collection(COLLECTION).doc(docId).set(payload, { merge: true });
       return { ...payload, id: docId };
     } catch (error) {
+      if (error?.code === "permission-denied") {
+        try {
+          const idToken = typeof currentUser.getIdToken === "function"
+            ? await currentUser.getIdToken(true)
+            : "";
+          await upsertApprovedStrategyViaRest(docId, payload, idToken);
+          return { ...payload, id: docId, savedVia: "rest-fallback" };
+        } catch (retryError) {
+          const activeUser = auth ? auth.currentUser : null;
+          const activeEmail = activeUser?.email ? normalizeEmail(activeUser.email) : "-";
+          const tokenResult = typeof activeUser?.getIdTokenResult === "function"
+            ? await activeUser.getIdTokenResult().catch(() => null)
+            : null;
+          const claimEmail = tokenResult?.claims?.email ? normalizeEmail(tokenResult.claims.email) : "-";
+          throw new Error(
+            [
+              "Onayli kayit Firestore tarafinda reddedildi.",
+              `Auth durum: ${activeUser ? "aktif" : "yok"}`,
+              `Auth email: ${activeEmail}`,
+              `Token email claim: ${claimEmail}`,
+              `Beklenen admin: ${ADMIN_EMAIL}`,
+              `Hata kodu: ${retryError?.code || error?.code || "bilinmiyor"}`,
+              validationErrors.length > 0 ? `Yerel kural hatalari: ${validationErrors.join(" | ")}` : "Yerel kural dogrulamasi gecti.",
+              "Admin paneli acik gorunse bile Firestore istegi yetkisiz kaldi. Sayfayi yenileyip yeniden admin girisi deneyin."
+            ].join("\n")
+          );
+        }
+      }
       console.warn("Firestore kaydi basarisiz, yerel cache kullaniliyor.", error);
       const next = mergeStrategies([...readLocalStrategies(), { ...payload, id: docId }]);
       writeCache(next);
@@ -988,14 +1253,27 @@
     if (normalizedEmail !== ADMIN_EMAIL) {
       throw new Error("Bu panel sadece tanimli admin hesabi ile kullanilabilir.");
     }
-
-    const credential = await auth.signInWithEmailAndPassword(normalizedEmail, String(password || ""));
-    if (!isAdminUser(credential.user)) {
-      await auth.signOut();
-      throw new Error("Bu hesap admin yetkisine sahip degil.");
+    const rawPassword = String(password || "");
+    if (!rawPassword.trim()) {
+      throw new Error("Admin girisi icin Firebase Auth sifresini girmelisin.");
     }
 
-    return credential.user;
+    try {
+      const credential = await auth.signInWithEmailAndPassword(normalizedEmail, rawPassword);
+      if (!isAdminUser(credential.user)) {
+        await auth.signOut();
+        throw new Error("Bu hesap admin yetkisine sahip degil.");
+      }
+      return credential.user;
+    } catch (error) {
+      if (error?.code === "auth/invalid-credential" || error?.code === "auth/wrong-password" || error?.code === "auth/user-not-found") {
+        throw new Error("Firebase Auth girisi basarisiz. Bu alan site giris sifresi degil, admin Firebase hesabinin sifresi olmali.");
+      }
+      if (error?.code === "auth/too-many-requests") {
+        throw new Error("Cok fazla basarisiz giris denemesi oldu. Biraz bekleyip tekrar dene.");
+      }
+      throw error;
+    }
   }
 
   async function signOutAdmin() {
@@ -1022,8 +1300,15 @@
       throw new Error("Admin dogrulamasi kullanilamiyor.");
     }
     const credential = provider.credential(normalizeEmail(user.email), rawPassword);
-    await user.reauthenticateWithCredential(credential);
-    return true;
+    try {
+      await user.reauthenticateWithCredential(credential);
+      return true;
+    } catch (error) {
+      if (error?.code === "auth/invalid-credential" || error?.code === "auth/wrong-password") {
+        throw new Error("Tekrar girilen Firebase Auth sifresi hatali.");
+      }
+      throw error;
+    }
   }
 
   globalScope.BTFirebase = {

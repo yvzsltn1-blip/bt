@@ -1,0 +1,513 @@
+--------------------------------------------------
+round: 0, turn: 0
+- initial battlefield positions
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  6 immortal cultists       6 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                63 hp
+  7 bone giants           175 hp
+ 14 bloated corpses       140 hp
+
+ 62 ghouls                310 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 necromancers            5 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 33 bats                   66 hp
+--------------------------------------------------
+round: 1, turn: 1
+- revenants reduce bats damage by -15%
+- bats have type disadvantage against bloated corpses and gain -50% damage reduction
+- bats attack with +25% damage increase in first round
+- bats attack bloated corpses with 140 damage
+- bloated corpses are eliminated
+- bloated corpses retaliate against bats with 28 damage
+- necromancers gain +10% damage increase for eliminated bloated corpses
+- necromancers now have 110% damage
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  6 immortal cultists       6 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                63 hp
+  7 bone giants           175 hp
+
+ 62 ghouls                310 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 necromancers            5 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 2
+- revenants reduce banshees damage by -15%
+- banshees bypass enemy front units and attack enemy rear units
+- banshees have type disadvantage against immortal cultists and gain -50% damage reduction
+- banshees reduce immortal cultists damage by -25% for this round
+- banshees attack immortal cultists with 80 damage
+- immortal cultists are eliminated
+- necromancers gain +10% damage increase for eliminated immortal cultists
+- necromancers now have 120% damage
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                63 hp
+  7 bone giants           175 hp
+
+ 62 ghouls                310 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 necromancers            5 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 3
+- bonewings bypass ally front units and attack ally rear units
+- bonewings attack necromancers with 114 damage
+- necromancers are eliminated
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                63 hp
+  7 bone giants           175 hp
+
+ 62 ghouls                310 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 4
+- wraiths ignore unit typing
+- wraiths attack ghouls with -50% damage reduction
+- wraiths gain 6.50 damage multiplier
+- wraiths attack ghouls with 114 damage
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                63 hp
+  7 bone giants           175 hp
+
+ 40 ghouls                196 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 5
+- vampire thralls have type advantage against bone giants and gain +50% damage increase
+- vampire thralls attack slow enemy unit with +33% damage increase
+- vampire thralls attack bone giants with 431 damage
+- bone giants are eliminated
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                63 hp
+
+ 40 ghouls                196 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 6
+- revenants attack ghouls with -50% damage reduction
+- revenants attack ghouls with 36 damage
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                63 hp
+
+ 32 ghouls                160 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 7
+- revenants reduce blood witches damage by -15%
+- blood witches have type disadvantage against zombies and gain -50% damage reduction
+- blood witches attack zombies with 6 damage
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                57 hp
+
+ 32 ghouls                160 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 8
+- liches attack ghouls with -50% damage reduction
+- liches attack ghouls with 80 damage
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 zombies                57 hp
+
+ 16 ghouls                 80 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 9
+- gargoyles have type advantage against zombies and gain +50% damage increase
+- gargoyles attack zombies with 72 damage
+- zombies are eliminated
+- zombies are revived
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 revived zombies         9 hp
+
+ 16 ghouls                 80 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 10
+- skeletons attack ghouls with -50% damage reduction
+- skeletons attack ghouls with 33 damage
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 revived zombies         9 hp
+
+ 10 ghouls                 47 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 11
+- broodmothers attack ghouls with -50% damage reduction
+- broodmothers attack ghouls with 23 damage
+
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+  9 revived zombies         9 hp
+
+  5 ghouls                 24 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 1, turn: 12
+- ghouls attack revived zombies with 15 damage
+- revived zombies are eliminated
+- broodmothers spawn 10 more spiderlings
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+
+  5 ghouls                 24 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 2, turn: 1
+- spiderlings attack ghouls with -50% damage reduction
+- spiderlings attack ghouls with 5 damage
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+ 22 skeletons              88 hp
+
+  4 ghouls                 19 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 2, turn: 2
+- revenants reduce bats damage by -15%
+- bats attack skeletons with 129 damage
+- skeletons are eliminated
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  5 broodmothers           90 hp
+  9 revenants             108 hp
+
+  4 ghouls                 19 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 2, turn: 3
+- revenants reduce banshees damage by -15%
+- banshees bypass enemy front units and attack enemy rear units
+- banshees reduce broodmothers damage by -25% for this round
+- banshees attack broodmothers with 161 damage
+- broodmothers are eliminated
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  9 revenants             108 hp
+
+  4 ghouls                 19 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+  1 blood witches           8 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 2, turn: 4
+- bonewings bypass ally front units and attack ally rear units
+- bonewings attack blood witches with 114 damage
+- blood witches are eliminated
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  9 revenants             108 hp
+
+  4 ghouls                 19 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 2, turn: 5
+- wraiths ignore unit typing
+- wraiths attack ghouls with -50% damage reduction
+- wraiths gain 1.00 damage multiplier
+- wraiths attack ghouls with 18 damage
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+  9 revenants             108 hp
+
+  1 ghouls                  1 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 2, turn: 6
+- vampire thralls have type disadvantage against revenants and gain -50% damage reduction
+- vampire thralls attack revenants with 108 damage
+- revenants are eliminated
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+
+  1 ghouls                  1 hp
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+ 27 banshees              108 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 2, turn: 7
+- liches attack ghouls with -50% damage reduction
+- liches attack ghouls with 80 damage
+- ghouls are eliminated
+- liches attack banshees with 40 splash damage
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                100 hp
+
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+ 17 banshees               68 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 2, turn: 8
+- gargoyles have type disadvantage against liches and gain -50% damage reduction
+- gargoyles attack liches with 24 damage
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                 76 hp
+
+  4 gargoyles              48 hp
+ 36 vampire thralls       216 hp
+ 17 banshees               68 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 3, turn: 1
+- spiderlings attack gargoyles with 10 damage
+- gargoyles reduce spiderlings speed by -2
+- spiderlings now have 4 speed
+
+ 10 spiderlings            10 hp
+  5 wraiths                10 hp
+ 19 bonewings              57 hp
+  4 liches                 76 hp
+
+  4 gargoyles              38 hp
+ 36 vampire thralls       216 hp
+ 17 banshees               68 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 3, turn: 2
+- bats have type advantage against liches and gain +50% damage increase
+- bats attack liches with 228 damage
+- liches are eliminated
+
+  5 wraiths                10 hp
+ 10 spiderlings            10 hp
+ 19 bonewings              57 hp
+
+  4 gargoyles              38 hp
+ 36 vampire thralls       216 hp
+ 17 banshees               68 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 3, turn: 3
+- banshees bypass enemy front units and attack enemy rear units
+- banshees have type disadvantage against bonewings and gain -50% damage reduction
+- banshees reduce bonewings damage by -25% for this round
+- banshees attack bonewings with 60 damage
+- bonewings are eliminated
+
+  5 wraiths                10 hp
+ 10 spiderlings            10 hp
+
+  4 gargoyles              38 hp
+ 36 vampire thralls       216 hp
+ 17 banshees               68 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 3, turn: 4
+- wraiths ignore unit typing
+- wraiths gain 1.00 damage multiplier
+- wraiths attack gargoyles with 35 damage
+- gargoyles reduce wraiths speed by -2
+- wraiths now have 2 speed
+
+  5 wraiths                10 hp
+ 10 spiderlings            10 hp
+
+  1 gargoyles               3 hp
+ 36 vampire thralls       216 hp
+ 17 banshees               68 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 3, turn: 5
+- vampire thralls attack slow enemy unit with +33% damage increase
+- vampire thralls attack wraiths with 287 damage
+- wraiths are eliminated
+
+ 10 spiderlings            10 hp
+
+  1 gargoyles               3 hp
+ 36 vampire thralls       216 hp
+ 17 banshees               68 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+round: 3, turn: 6
+- gargoyles attack spiderlings with 12 damage
+- spiderlings are eliminated
+
+
+  1 gargoyles               3 hp
+ 36 vampire thralls       216 hp
+ 17 banshees               68 hp
+ 19 bats                   38 hp
+--------------------------------------------------
+enemy lost
+--------------------------------------------------
+units lost
+-  14 bats                 ( 140 blood)
+-  62 ghouls               ( 930 blood)
+-  10 banshees             ( 350 blood)
+-   1 necromancers         (  50 blood)
+-   3 gargoyles            ( 225 blood)
+-   1 blood witches        (  90 blood)
+
+=  91 total                (1785 blood)
+--------------------------------------------------
+unit capacity: 673
+--------------------------------------------------

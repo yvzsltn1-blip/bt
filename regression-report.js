@@ -3,7 +3,8 @@
 const {
   ENEMY_UNITS,
   ALLY_UNITS,
-  simulateBattle
+  simulateBattle,
+  calculateArmyPoints
 } = window.BattleCore;
 
 const {
@@ -30,15 +31,33 @@ const reportChangedList = document.querySelector("#reportChangedList");
 const reportSkippedList = document.querySelector("#reportSkippedList");
 const changedSectionMeta = document.querySelector("#changedSectionMeta");
 const skippedSectionMeta = document.querySelector("#skippedSectionMeta");
+const reportPromotionPanel = document.querySelector("#reportPromotionPanel");
+const reportPromotionHint = document.querySelector("#reportPromotionHint");
+const reportPromotionStatus = document.querySelector("#reportPromotionStatus");
+const moveConfirmedWrongBtn = document.querySelector("#moveConfirmedWrongBtn");
+const reportAdminPanel = document.querySelector("#reportAdminPanel");
+const reportAdminAuthStatus = document.querySelector("#reportAdminAuthStatus");
+const reportAdminEmailInput = document.querySelector("#reportAdminEmailInput");
+const reportAdminPasswordInput = document.querySelector("#reportAdminPasswordInput");
+const reportAdminLoginBtn = document.querySelector("#reportAdminLoginBtn");
+const reportAdminLogoutBtn = document.querySelector("#reportAdminLogoutBtn");
 const RANDOM_FALLBACK_SEED_COUNT = 64;
 
 let currentPayload = readPayload();
+let lastAuditResults = [];
+let promotableResults = [];
+let isAdminSession = false;
+let isPromotionRunning = false;
 
 hydrateReportShell();
 rerunReportBtn?.addEventListener("click", () => {
   void runRegressionAudit();
 });
+moveConfirmedWrongBtn?.addEventListener("click", () => {
+  void promoteMatchedWrongReports();
+});
 
+void bindAdminAuth();
 void runRegressionAudit();
 
 function hydrateReportShell() {
@@ -50,6 +69,7 @@ function hydrateReportShell() {
       reportBackLink.href = "saved.html";
       reportBackLink.textContent = "Onaylananlar";
     }
+    syncPromotionUi();
     return;
   }
 
@@ -60,6 +80,70 @@ function hydrateReportShell() {
     reportBackLink.href = currentPayload.backHref || "saved.html";
     reportBackLink.textContent = currentPayload.backLabel || "Kaynak Sayfa";
   }
+  syncPromotionUi();
+}
+
+async function bindAdminAuth() {
+  if (!reportAdminPanel) {
+    return;
+  }
+  if (!window.AdminAuthUI || typeof window.AdminAuthUI.bindAdminControls !== "function") {
+    syncPromotionUi("Admin girisi hazir degil.");
+    return;
+  }
+
+  await window.AdminAuthUI.bindAdminControls({
+    statusLabel: reportAdminAuthStatus,
+    emailInput: reportAdminEmailInput,
+    passwordInput: reportAdminPasswordInput,
+    loginButton: reportAdminLoginBtn,
+    logoutButton: reportAdminLogoutBtn,
+    onStateChange: (isAdmin) => {
+      isAdminSession = isAdmin;
+      syncPromotionUi();
+    }
+  });
+}
+
+function syncPromotionUi(statusOverride = "") {
+  const isWrongPayload = currentPayload?.kind === "wrong";
+  if (reportPromotionPanel) {
+    reportPromotionPanel.hidden = !isWrongPayload;
+  }
+  if (reportAdminPanel) {
+    reportAdminPanel.hidden = !isWrongPayload;
+  }
+  if (!isWrongPayload) {
+    return;
+  }
+
+  const candidateCount = promotableResults.length;
+  if (reportPromotionHint) {
+    reportPromotionHint.textContent = candidateCount > 0
+      ? `${candidateCount} kayit artik kayitli gercekle eslesiyor. Bu islem kayitlari Yanlislar listesinden silip Onaylananlar listesine tasir.`
+      : "Toplu testte tasinabilecek bir kayit bulunmadi.";
+  }
+
+  if (moveConfirmedWrongBtn) {
+    moveConfirmedWrongBtn.textContent = candidateCount > 0
+      ? `${candidateCount} Dogrulanani Tasi`
+      : "Dogrulananlari Tasi";
+    moveConfirmedWrongBtn.disabled = !isAdminSession || isPromotionRunning || candidateCount === 0;
+  }
+
+  if (reportPromotionStatus) {
+    if (statusOverride) {
+      reportPromotionStatus.textContent = statusOverride;
+    } else if (isPromotionRunning) {
+      reportPromotionStatus.textContent = "Tasima islemi suruyor...";
+    } else if (!isAdminSession) {
+      reportPromotionStatus.textContent = "Tasima icin admin girisi gerekli.";
+    } else if (candidateCount === 0) {
+      reportPromotionStatus.textContent = "Tasinacak kayit yok.";
+    } else {
+      reportPromotionStatus.textContent = "Tasima icin hazir.";
+    }
+  }
 }
 
 async function runRegressionAudit() {
@@ -67,6 +151,8 @@ async function runRegressionAudit() {
   hydrateReportShell();
 
   if (!currentPayload || !Array.isArray(currentPayload.items) || currentPayload.items.length === 0) {
+    lastAuditResults = [];
+    promotableResults = [];
     reportProgress.textContent = "Rapor verisi yok";
     reportSummaryGrid.innerHTML = `
       <article class="report-summary-card report-summary-card-wide">
@@ -78,9 +164,12 @@ async function runRegressionAudit() {
     reportSkippedList.innerHTML = '<p class="summary-empty">Atlanan kayit yok.</p>';
     changedSectionMeta.textContent = "0 kayit";
     skippedSectionMeta.textContent = "0 kayit";
+    syncPromotionUi();
     return;
   }
 
+  lastAuditResults = [];
+  promotableResults = [];
   rerunReportBtn.disabled = true;
   reportProgress.textContent = `0 / ${currentPayload.items.length}`;
   reportSummaryGrid.innerHTML = `
@@ -91,6 +180,7 @@ async function runRegressionAudit() {
   `;
   reportChangedList.innerHTML = '<p class="summary-empty">Kontrol suruyor...</p>';
   reportSkippedList.innerHTML = '<p class="summary-empty">Kontrol suruyor...</p>';
+  syncPromotionUi();
 
   const results = [];
   for (let index = 0; index < currentPayload.items.length; index += 1) {
@@ -343,6 +433,8 @@ function areLossMapsEqual(left, right) {
 
 function buildComparedRecord(item, details) {
   return {
+    id: item.id || "",
+    source: item.source || "simulation",
     status: details.status,
     title: buildRecordTitle(item),
     subtitle: buildRecordSubtitle(item),
@@ -355,6 +447,7 @@ function buildComparedRecord(item, details) {
     actualNote: details.actualNote || "",
     samplingNote: details.samplingNote || "",
     simulationTarget: details.simulationTarget || null,
+    sourceItem: item,
     versusLabel: buildRosterLabel(item.enemyCounts, ENEMY_UNITS, 2) || item.enemyTitle || "Versus",
     allyLabel: buildRosterLabel(item.allyCounts, ALLY_UNITS) || "Kayitli dizilim yok"
   };
@@ -362,6 +455,7 @@ function buildComparedRecord(item, details) {
 
 function buildSkippedRecord(item, title, reason) {
   return {
+    id: item.id || "",
     status: "skipped",
     title: buildRecordTitle(item),
     subtitle: buildRecordSubtitle(item),
@@ -391,12 +485,14 @@ function buildRecordSubtitle(item) {
 }
 
 function renderAuditResults(results) {
+  lastAuditResults = results.slice();
   const sameCount = results.filter((item) => item.status === "same").length;
   const changedItems = results.filter((item) => item.status === "changed");
   const skippedItems = results.filter((item) => item.status === "skipped");
   const changedCount = changedItems.length;
   const skippedCount = skippedItems.length;
   const actualMatchCount = results.filter((item) => item.matchesStoredActual).length;
+  promotableResults = getPromotableResults(results);
 
   reportSummaryGrid.innerHTML = "";
   reportSummaryGrid.append(
@@ -407,6 +503,7 @@ function renderAuditResults(results) {
 
   if (currentPayload?.kind === "wrong") {
     reportSummaryGrid.appendChild(createSummaryCard("Gercekle eslesen", String(actualMatchCount), "actual"));
+    reportSummaryGrid.appendChild(createSummaryCard("Tasinabilir", String(promotableResults.length), "promoted"));
   }
 
   changedSectionMeta.textContent = `${changedCount} kayit`;
@@ -414,6 +511,7 @@ function renderAuditResults(results) {
 
   renderChangedItems(changedItems);
   renderSkippedItems(skippedItems);
+  syncPromotionUi();
 }
 
 function createSummaryCard(label, value, tone) {
@@ -424,6 +522,16 @@ function createSummaryCard(label, value, tone) {
     <strong>${value}</strong>
   `;
   return card;
+}
+
+function getPromotableResults(results) {
+  return (results || []).filter((item) => (
+    item.status !== "skipped" &&
+    item.matchesStoredActual &&
+    item.simulationTarget &&
+    hasAnyPositiveCounts(item.simulationTarget.enemyCounts) &&
+    hasAnyPositiveCounts(item.simulationTarget.allyCounts)
+  ));
 }
 
 function renderChangedItems(items) {
@@ -469,6 +577,7 @@ function renderChangedItems(items) {
       '<span class="report-status is-changed">Degisti</span>',
       `<span>Kontrol: <strong>${escapeHtml(item.auditLabel)}</strong></span>`,
       item.seed !== null ? `<span>Seed: <strong>${item.seed}</strong></span>` : "",
+      item.matchesStoredActual ? '<span class="report-status is-promoted">Tasinabilir</span>' : "",
       item.matchesStoredActual ? '<span>Durum: <strong>Kayitli gercekle artik ayni</strong></span>' : ""
     ].filter(Boolean);
     meta.innerHTML = metaParts.join("");
@@ -570,6 +679,194 @@ function renderSkippedItems(items) {
   });
 }
 
+async function promoteMatchedWrongReports() {
+  if (currentPayload?.kind !== "wrong") {
+    return;
+  }
+  if (!isAdminSession) {
+    window.alert("Bu islem icin admin oturumu gerekli.");
+    return;
+  }
+  if (!promotableResults.length) {
+    window.alert("Tasinabilecek dogrulanan kayit yok.");
+    return;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.saveApprovedStrategy !== "function" || typeof window.BTFirebase.deleteWrongReport !== "function") {
+    window.alert("Kayit tasima servisi hazir degil.");
+    return;
+  }
+
+  const total = promotableResults.length;
+  if (!window.confirm(`${total} kayit Yanlislar listesinden silinip Onaylananlar listesine tasinsin mi?`)) {
+    return;
+  }
+
+  isPromotionRunning = true;
+  rerunReportBtn.disabled = true;
+  syncPromotionUi("Tasima basladi...");
+
+  const movedIds = new Set();
+  const failures = [];
+
+  try {
+    for (let index = 0; index < promotableResults.length; index += 1) {
+      const item = promotableResults[index];
+      syncPromotionUi(`${index + 1} / ${total} tasiniyor...`);
+      try {
+        await promoteSingleWrongResult(item);
+        movedIds.add(item.id);
+      } catch (error) {
+        failures.push(`${item.title}: ${String(error?.message || error || "Bilinmeyen hata")}`);
+      }
+      if ((index + 1) % 2 === 0) {
+        await waitForNextFrame();
+      }
+    }
+
+    updatePayloadAfterPromotion(movedIds);
+    const movedCount = movedIds.size;
+    if (movedCount > 0) {
+      syncPromotionUi(`${movedCount} kayit tasindi, rapor yenileniyor...`);
+      await runRegressionAudit();
+    }
+
+    if (failures.length > 0) {
+      window.alert([
+        `${movedCount} kayit tasindi.`,
+        `${failures.length} kayit tasinamadi:`,
+        ...failures
+      ].join("\n"));
+    } else if (movedCount > 0) {
+      window.alert(`${movedCount} kayit yanlis listesinden alinip onaylananlara tasindi.`);
+    }
+  } finally {
+    isPromotionRunning = false;
+    rerunReportBtn.disabled = false;
+    syncPromotionUi();
+  }
+}
+
+async function promoteSingleWrongResult(item) {
+  const approvedEntry = createApprovedEntryFromWrongResult(item);
+  await window.BTFirebase.saveApprovedStrategy(approvedEntry);
+  try {
+    await window.BTFirebase.deleteWrongReport(item.id);
+  } catch (error) {
+    throw new Error(`Yanlis kaydi silinemedi. Onay kaydi olusmus olabilir. ${String(error?.message || error || "")}`.trim());
+  }
+}
+
+function createApprovedEntryFromWrongResult(item) {
+  const sourceItem = item.sourceItem || {};
+  const rerun = rerunPromotedSimulation(item);
+  const enemyCounts = cloneCountMap(item.simulationTarget?.enemyCounts || sourceItem.enemyCounts || {}, ENEMY_UNITS);
+  const allyCounts = cloneCountMap(item.simulationTarget?.allyCounts || sourceItem.allyCounts || {}, ALLY_UNITS);
+  const matchSignature = sourceItem.matchSignature || buildMatchSignature("simulation", enemyCounts, allyCounts);
+  const enemyTitle = sourceItem.enemyTitle || buildEnemyTitle(enemyCounts);
+  const promotedAt = new Date().toISOString();
+
+  return {
+    source: "simulation",
+    sourceLabel: "Simulasyon",
+    savedAt: promotedAt,
+    stage: Number.isInteger(sourceItem.stage) ? sourceItem.stage : undefined,
+    enemyTitle,
+    enemyCounts,
+    allyCounts,
+    matchSignature,
+    representativeSeed: Number.isInteger(rerun.seed) ? rerun.seed : undefined,
+    variantSignature: buildVariantSignature(rerun.result),
+    variantTitle: `${rerun.result.winner === "enemy" ? "Maglubiyet" : "Zafer"} senaryosu`,
+    probabilityBasisPoints: 10000,
+    winner: rerun.result.winner === "enemy" ? "enemy" : "ally",
+    summaryText: rerun.summaryText,
+    logText: rerun.detailText,
+    usedCapacity: rerun.result.usedCapacity,
+    usedPoints: calculateArmyPoints(allyCounts),
+    lostBlood: rerun.result.lostBloodTotal,
+    promotedFromWrong: true,
+    promotedFromWrongAt: promotedAt,
+    promotedFromWrongId: item.id
+  };
+}
+
+function rerunPromotedSimulation(item) {
+  const enemyCounts = cloneCountMap(item.simulationTarget?.enemyCounts || {}, ENEMY_UNITS);
+  const allyCounts = cloneCountMap(item.simulationTarget?.allyCounts || {}, ALLY_UNITS);
+  const seed = Number.isInteger(item.seed) ? item.seed : null;
+  const result = simulateBattle(enemyCounts, allyCounts, {
+    seed,
+    collectLog: true
+  });
+  const actualFingerprint = getResultFingerprint(result);
+
+  if (!isFingerprintExactMatch(actualFingerprint, item.actual)) {
+    throw new Error("Temsilci seed tekrar calistirildiginda rapordaki dogrulanan sonuc yeniden uretilemedi.");
+  }
+
+  return {
+    seed,
+    result,
+    ...buildSimulationTextsFromLog(result.logText || "", seed)
+  };
+}
+
+function buildSimulationTextsFromLog(logText, seed) {
+  const lines = String(logText || "").split("\n");
+  const victoryIndex = lines.findIndex((line) => line.trim().startsWith(">>"));
+
+  let summaryLines = [];
+  let detailLines = lines;
+
+  if (victoryIndex >= 0) {
+    let splitAt = victoryIndex;
+    if (splitAt > 0 && lines[splitAt - 1].trim().startsWith("---")) {
+      splitAt -= 1;
+    }
+    summaryLines = lines.slice(splitAt);
+    detailLines = lines.slice(0, splitAt);
+  }
+
+  return {
+    summaryText: [
+      "======================  SAVAS  SONUCU  ======================",
+      ...(summaryLines.length > 0 ? summaryLines : ["  (sonuc henuz belirlenmedi)"])
+    ].join("\n"),
+    detailText: [
+      "======================  TUR  TUR  ANALIZ  ======================",
+      `  seed: ${seed ?? "-"}`,
+      "  her raundun olaylari ve muharebe duzeni asagidadir",
+      "",
+      ...detailLines
+    ].join("\n")
+  };
+}
+
+function updatePayloadAfterPromotion(movedIds) {
+  if (!movedIds.size || !currentPayload || !Array.isArray(currentPayload.items)) {
+    return;
+  }
+  const remainingItems = currentPayload.items.filter((item) => !movedIds.has(item.id));
+  const selectedCount = remainingItems.length;
+  const currentTotalCount = Number(currentPayload.totalCount || currentPayload.items.length || 0);
+  const nextPayload = {
+    ...currentPayload,
+    items: remainingItems,
+    selectedCount,
+    totalCount: Math.max(0, currentTotalCount - movedIds.size)
+  };
+  currentPayload = nextPayload;
+  writeReportPayload(nextPayload);
+}
+
+function writeReportPayload(payload) {
+  const storageKey = window.BulkBattleRegression?.STORAGE_KEY;
+  if (!storageKey) {
+    return;
+  }
+  window.sessionStorage.setItem(storageKey, JSON.stringify(payload));
+}
+
 function waitForNextFrame() {
   return new Promise((resolve) => {
     window.setTimeout(resolve, 0);
@@ -579,6 +876,8 @@ function waitForNextFrame() {
 function evaluateSeedSample(enemyCounts, allyCounts, seeds, expected, actualTruth) {
   let representative = null;
   let representativeSeed = null;
+  let actualRepresentative = null;
+  let actualRepresentativeSeed = null;
   let bestScore = Number.POSITIVE_INFINITY;
   let expectedMatchCount = 0;
   let actualMatchCount = 0;
@@ -606,6 +905,10 @@ function evaluateSeedSample(enemyCounts, allyCounts, seeds, expected, actualTrut
 
     if (actualTruth && isFingerprintExactMatch(actualTruth, fingerprint)) {
       actualMatchCount += 1;
+      if (!actualRepresentative) {
+        actualRepresentative = fingerprint;
+        actualRepresentativeSeed = seed;
+      }
     }
 
     const score = fingerprintDistance(expected, fingerprint);
@@ -620,8 +923,8 @@ function evaluateSeedSample(enemyCounts, allyCounts, seeds, expected, actualTrut
     right.count - left.count || fingerprintDistance(expected, left.fingerprint) - fingerprintDistance(expected, right.fingerprint)
   )[0] || null;
 
-  const finalRepresentative = representative || fallbackRepresentative?.fingerprint || expected;
-  const finalSeed = representativeSeed ?? fallbackRepresentative?.seed ?? seeds[0] ?? null;
+  const finalRepresentative = representative || actualRepresentative || fallbackRepresentative?.fingerprint || expected;
+  const finalSeed = representativeSeed ?? actualRepresentativeSeed ?? fallbackRepresentative?.seed ?? seeds[0] ?? null;
   const hasExpectedMatch = expectedMatchCount > 0;
 
   return {
@@ -694,6 +997,16 @@ function hashText(text) {
     hash = Math.imul(hash, 16777619);
   }
   return hash >>> 0;
+}
+
+function buildMatchSignature(source, enemyCounts, allyCounts) {
+  const enemySignature = ENEMY_UNITS.map((unit) => enemyCounts?.[unit.key] || 0).join("|");
+  const allySignature = ALLY_UNITS.map((unit) => allyCounts?.[unit.key] || 0).join("|");
+  return `${source}|${enemySignature}|${allySignature}`;
+}
+
+function buildEnemyTitle(enemyCounts) {
+  return buildRosterLabel(enemyCounts, ENEMY_UNITS, 2) || "Versus";
 }
 
 function buildRosterLabel(counts, units, limit = null) {

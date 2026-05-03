@@ -179,6 +179,8 @@
       reportedAt: String(item?.reportedAt || ""),
       stage: Number.isInteger(item?.stage) ? item.stage : null,
       modeLabel: String(item?.modeLabel || ""),
+      enemyTitle: String(item?.enemyTitle || ""),
+      matchSignature: String(item?.matchSignature || ""),
       enemyCounts: cloneCountMap(item?.enemyCounts || {}, getEnemyUnits()),
       allyCounts: getWrongSimulationCounts(item),
       recommendationCounts: cloneCountMap(item?.recommendationCounts || {}, getAllyUnits()),
@@ -186,6 +188,10 @@
       summaryText: String(item?.summaryText || ""),
       actualSummaryText: String(item?.actualSummaryText || ""),
       actualNote: String(item?.actualNote || ""),
+      logText: String(item?.logText || ""),
+      pointLimit: Number.isFinite(Number(item?.pointLimit)) ? Number(item.pointLimit) : null,
+      usedPoints: Number.isFinite(Number(item?.usedPoints)) ? Number(item.usedPoints) : null,
+      usedCapacity: Number.isFinite(Number(item?.usedCapacity)) ? Number(item.usedCapacity) : null,
       expectedWinner: item?.expectedWinner === "enemy"
         ? "enemy"
         : (item?.expectedWinner === "ally" ? "ally" : "unknown"),

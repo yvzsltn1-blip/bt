@@ -1,0 +1,1113 @@
+{
+  "ok": true,
+  "job": {
+    "id": "8a5eb8d453154deb",
+    "job": "mechanic_sweep",
+    "args": {
+      "datasetPath": "colab-workspace/data/report-truth/reports-combined.jsonl",
+      "maxSeeds": 48,
+      "topLimit": 12,
+      "witchModes": [
+        "on_kill_only",
+        "any_hit"
+      ],
+      "broodModes": [
+        "alive_only",
+        "roundstart6"
+      ],
+      "corpseRevengeFactors": [
+        0.18,
+        0.2,
+        0.22
+      ],
+      "bansheeReducePcts": [
+        20,
+        22,
+        25
+      ]
+    },
+    "status": "completed",
+    "created_at": "2026-04-30T22:21:06.118982+00:00",
+    "started_at": "2026-04-30T22:21:06.119909+00:00",
+    "finished_at": "2026-04-30T22:21:19.496366+00:00",
+    "result": {
+      "ok": true,
+      "datasetPath": "/content/bt/colab-workspace/data/report-truth/reports-combined.jsonl",
+      "rowCount": 105,
+      "maxSeeds": 48,
+      "variantCount": 36,
+      "baseline": {
+        "id": "witch_on_kill_only__brood_alive_only__corpse_0_2__banshee_25",
+        "variant": {
+          "id": "witch_on_kill_only__brood_alive_only__corpse_0_2__banshee_25",
+          "witchSplashMode": "on_kill_only",
+          "broodSpawnMode": "alive_only",
+          "corpseRevengeFactor": 0.2,
+          "bansheeReducePct": 25
+        },
+        "wrong": {
+          "count": 11,
+          "exact": 0,
+          "exactRate": 0,
+          "avgWeightedLossDiff": 203.1818181818182,
+          "avgBloodAbsDiff": 190.45454545454547,
+          "avgPerTierAbsDiff": [
+            1.2727272727272727,
+            0.18181818181818182,
+            0.9090909090909091,
+            1.4545454545454546,
+            0,
+            1.3636363636363635,
+            0.18181818181818182,
+            0
+          ],
+          "sampleRepairs": [
+            {
+              "rowIndex": 0,
+              "seed": 1,
+              "exact": false,
+              "weightedLossDiff": 375,
+              "bloodAbsDiff": 375
+            },
+            {
+              "rowIndex": 1,
+              "seed": 8,
+              "exact": false,
+              "weightedLossDiff": 100,
+              "bloodAbsDiff": 100
+            },
+            {
+              "rowIndex": 2,
+              "seed": 1,
+              "exact": false,
+              "weightedLossDiff": 130,
+              "bloodAbsDiff": 10
+            },
+            {
+              "rowIndex": 3,
+              "seed": 1,
+              "exact": false,
+              "weightedLossDiff": 30,
+              "bloodAbsDiff": 10
+            },
+            {
+              "rowIndex": 4,
+              "seed": 1,
+              "exact": false,
+              "weightedLossDiff": 20,
+              "bloodAbsDiff": 20
+            }
+          ]
+        },
+        "correct": {
+          "count": 94,
+          "exact": 94,
+          "exactRate": 1,
+          "avgWeightedLossDiff": 0,
+          "avgBloodAbsDiff": 0,
+          "avgPerTierAbsDiff": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "sampleRepairs": []
+        }
+      },
+      "top": [
+        {
+          "id": "witch_on_kill_only__brood_roundstart6__corpse_0_2__banshee_25",
+          "variant": {
+            "id": "witch_on_kill_only__brood_roundstart6__corpse_0_2__banshee_25",
+            "witchSplashMode": "on_kill_only",
+            "broodSpawnMode": "roundstart6",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 25
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 197.72727272727272,
+            "avgBloodAbsDiff": 185,
+            "avgPerTierAbsDiff": [
+              1.2727272727272727,
+              0.09090909090909091,
+              1.1818181818181819,
+              1.4545454545454546,
+              0,
+              1.4545454545454546,
+              0,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 30,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 60,
+                "bloodAbsDiff": 60
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 94,
+            "exactRate": 1,
+            "avgWeightedLossDiff": 0,
+            "avgBloodAbsDiff": 0,
+            "avgPerTierAbsDiff": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_on_kill_only__brood_alive_only__corpse_0_2__banshee_25",
+          "variant": {
+            "id": "witch_on_kill_only__brood_alive_only__corpse_0_2__banshee_25",
+            "witchSplashMode": "on_kill_only",
+            "broodSpawnMode": "alive_only",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 25
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 203.1818181818182,
+            "avgBloodAbsDiff": 190.45454545454547,
+            "avgPerTierAbsDiff": [
+              1.2727272727272727,
+              0.18181818181818182,
+              0.9090909090909091,
+              1.4545454545454546,
+              0,
+              1.3636363636363635,
+              0.18181818181818182,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 30,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 20,
+                "bloodAbsDiff": 20
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 94,
+            "exactRate": 1,
+            "avgWeightedLossDiff": 0,
+            "avgBloodAbsDiff": 0,
+            "avgPerTierAbsDiff": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_any_hit__brood_roundstart6__corpse_0_2__banshee_25",
+          "variant": {
+            "id": "witch_any_hit__brood_roundstart6__corpse_0_2__banshee_25",
+            "witchSplashMode": "any_hit",
+            "broodSpawnMode": "roundstart6",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 25
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 280.45454545454544,
+            "avgBloodAbsDiff": 238.63636363636363,
+            "avgPerTierAbsDiff": [
+              1.3636363636363635,
+              0.09090909090909091,
+              1.4545454545454546,
+              1.4545454545454546,
+              0,
+              1.8181818181818181,
+              0.5454545454545454,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 12,
+                "exact": false,
+                "weightedLossDiff": 160,
+                "bloodAbsDiff": 120
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 765,
+                "bloodAbsDiff": 765
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 94,
+            "exactRate": 1,
+            "avgWeightedLossDiff": 0,
+            "avgBloodAbsDiff": 0,
+            "avgPerTierAbsDiff": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_any_hit__brood_alive_only__corpse_0_2__banshee_25",
+          "variant": {
+            "id": "witch_any_hit__brood_alive_only__corpse_0_2__banshee_25",
+            "witchSplashMode": "any_hit",
+            "broodSpawnMode": "alive_only",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 25
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 284.09090909090907,
+            "avgBloodAbsDiff": 269.54545454545456,
+            "avgPerTierAbsDiff": [
+              1.3636363636363635,
+              0.18181818181818182,
+              1.3636363636363635,
+              0.9090909090909091,
+              0,
+              1.9090909090909092,
+              0.7272727272727273,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 12,
+                "exact": false,
+                "weightedLossDiff": 160,
+                "bloodAbsDiff": 120
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 765,
+                "bloodAbsDiff": 765
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 94,
+            "exactRate": 1,
+            "avgWeightedLossDiff": 0,
+            "avgBloodAbsDiff": 0,
+            "avgPerTierAbsDiff": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_on_kill_only__brood_roundstart6__corpse_0_2__banshee_22",
+          "variant": {
+            "id": "witch_on_kill_only__brood_roundstart6__corpse_0_2__banshee_22",
+            "witchSplashMode": "on_kill_only",
+            "broodSpawnMode": "roundstart6",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 22
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 195.9090909090909,
+            "avgBloodAbsDiff": 185,
+            "avgPerTierAbsDiff": [
+              1.2727272727272727,
+              0.09090909090909091,
+              1.0909090909090908,
+              1.4545454545454546,
+              0,
+              1.4545454545454546,
+              0,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 10,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 60,
+                "bloodAbsDiff": 60
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 90,
+            "exactRate": 0.9574468085106383,
+            "avgWeightedLossDiff": 11.27659574468085,
+            "avgBloodAbsDiff": 11.27659574468085,
+            "avgPerTierAbsDiff": [
+              0.26595744680851063,
+              0,
+              0.05319148936170213,
+              0.010638297872340425,
+              0,
+              0.09574468085106383,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_on_kill_only__brood_roundstart6__corpse_0_2__banshee_20",
+          "variant": {
+            "id": "witch_on_kill_only__brood_roundstart6__corpse_0_2__banshee_20",
+            "witchSplashMode": "on_kill_only",
+            "broodSpawnMode": "roundstart6",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 20
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 197.72727272727272,
+            "avgBloodAbsDiff": 186.8181818181818,
+            "avgPerTierAbsDiff": [
+              1.2727272727272727,
+              0.09090909090909091,
+              1.1818181818181819,
+              1.4545454545454546,
+              0,
+              1.4545454545454546,
+              0,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 30,
+                "bloodAbsDiff": 30
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 60,
+                "bloodAbsDiff": 60
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 90,
+            "exactRate": 0.9574468085106383,
+            "avgWeightedLossDiff": 11.27659574468085,
+            "avgBloodAbsDiff": 11.27659574468085,
+            "avgPerTierAbsDiff": [
+              0.26595744680851063,
+              0,
+              0.05319148936170213,
+              0.010638297872340425,
+              0,
+              0.09574468085106383,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_on_kill_only__brood_alive_only__corpse_0_2__banshee_22",
+          "variant": {
+            "id": "witch_on_kill_only__brood_alive_only__corpse_0_2__banshee_22",
+            "witchSplashMode": "on_kill_only",
+            "broodSpawnMode": "alive_only",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 22
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 201.36363636363637,
+            "avgBloodAbsDiff": 190.45454545454547,
+            "avgPerTierAbsDiff": [
+              1.2727272727272727,
+              0.18181818181818182,
+              0.8181818181818182,
+              1.4545454545454546,
+              0,
+              1.3636363636363635,
+              0.18181818181818182,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 10,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 20,
+                "bloodAbsDiff": 20
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 90,
+            "exactRate": 0.9574468085106383,
+            "avgWeightedLossDiff": 11.27659574468085,
+            "avgBloodAbsDiff": 11.27659574468085,
+            "avgPerTierAbsDiff": [
+              0.26595744680851063,
+              0,
+              0.05319148936170213,
+              0.010638297872340425,
+              0,
+              0.09574468085106383,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_on_kill_only__brood_alive_only__corpse_0_2__banshee_20",
+          "variant": {
+            "id": "witch_on_kill_only__brood_alive_only__corpse_0_2__banshee_20",
+            "witchSplashMode": "on_kill_only",
+            "broodSpawnMode": "alive_only",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 20
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 203.1818181818182,
+            "avgBloodAbsDiff": 192.27272727272728,
+            "avgPerTierAbsDiff": [
+              1.2727272727272727,
+              0.18181818181818182,
+              0.9090909090909091,
+              1.4545454545454546,
+              0,
+              1.3636363636363635,
+              0.18181818181818182,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 30,
+                "bloodAbsDiff": 30
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 20,
+                "bloodAbsDiff": 20
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 90,
+            "exactRate": 0.9574468085106383,
+            "avgWeightedLossDiff": 11.27659574468085,
+            "avgBloodAbsDiff": 11.27659574468085,
+            "avgPerTierAbsDiff": [
+              0.26595744680851063,
+              0,
+              0.05319148936170213,
+              0.010638297872340425,
+              0,
+              0.09574468085106383,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_any_hit__brood_roundstart6__corpse_0_2__banshee_20",
+          "variant": {
+            "id": "witch_any_hit__brood_roundstart6__corpse_0_2__banshee_20",
+            "witchSplashMode": "any_hit",
+            "broodSpawnMode": "roundstart6",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 20
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 280.45454545454544,
+            "avgBloodAbsDiff": 238.63636363636363,
+            "avgPerTierAbsDiff": [
+              1.3636363636363635,
+              0.09090909090909091,
+              1.4545454545454546,
+              1.4545454545454546,
+              0,
+              1.8181818181818181,
+              0.5454545454545454,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 12,
+                "exact": false,
+                "weightedLossDiff": 160,
+                "bloodAbsDiff": 120
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 765,
+                "bloodAbsDiff": 765
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 90,
+            "exactRate": 0.9574468085106383,
+            "avgWeightedLossDiff": 11.27659574468085,
+            "avgBloodAbsDiff": 11.27659574468085,
+            "avgPerTierAbsDiff": [
+              0.26595744680851063,
+              0,
+              0.05319148936170213,
+              0.010638297872340425,
+              0,
+              0.09574468085106383,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_any_hit__brood_roundstart6__corpse_0_2__banshee_22",
+          "variant": {
+            "id": "witch_any_hit__brood_roundstart6__corpse_0_2__banshee_22",
+            "witchSplashMode": "any_hit",
+            "broodSpawnMode": "roundstart6",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 22
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 280.45454545454544,
+            "avgBloodAbsDiff": 238.63636363636363,
+            "avgPerTierAbsDiff": [
+              1.3636363636363635,
+              0.09090909090909091,
+              1.4545454545454546,
+              1.4545454545454546,
+              0,
+              1.8181818181818181,
+              0.5454545454545454,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 12,
+                "exact": false,
+                "weightedLossDiff": 160,
+                "bloodAbsDiff": 120
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 765,
+                "bloodAbsDiff": 765
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 90,
+            "exactRate": 0.9574468085106383,
+            "avgWeightedLossDiff": 11.27659574468085,
+            "avgBloodAbsDiff": 11.27659574468085,
+            "avgPerTierAbsDiff": [
+              0.26595744680851063,
+              0,
+              0.05319148936170213,
+              0.010638297872340425,
+              0,
+              0.09574468085106383,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_any_hit__brood_alive_only__corpse_0_2__banshee_20",
+          "variant": {
+            "id": "witch_any_hit__brood_alive_only__corpse_0_2__banshee_20",
+            "witchSplashMode": "any_hit",
+            "broodSpawnMode": "alive_only",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 20
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 284.09090909090907,
+            "avgBloodAbsDiff": 269.54545454545456,
+            "avgPerTierAbsDiff": [
+              1.3636363636363635,
+              0.18181818181818182,
+              1.3636363636363635,
+              0.9090909090909091,
+              0,
+              1.9090909090909092,
+              0.7272727272727273,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 12,
+                "exact": false,
+                "weightedLossDiff": 160,
+                "bloodAbsDiff": 120
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 765,
+                "bloodAbsDiff": 765
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 90,
+            "exactRate": 0.9574468085106383,
+            "avgWeightedLossDiff": 11.27659574468085,
+            "avgBloodAbsDiff": 11.27659574468085,
+            "avgPerTierAbsDiff": [
+              0.26595744680851063,
+              0,
+              0.05319148936170213,
+              0.010638297872340425,
+              0,
+              0.09574468085106383,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        },
+        {
+          "id": "witch_any_hit__brood_alive_only__corpse_0_2__banshee_22",
+          "variant": {
+            "id": "witch_any_hit__brood_alive_only__corpse_0_2__banshee_22",
+            "witchSplashMode": "any_hit",
+            "broodSpawnMode": "alive_only",
+            "corpseRevengeFactor": 0.2,
+            "bansheeReducePct": 22
+          },
+          "wrong": {
+            "count": 11,
+            "exact": 0,
+            "exactRate": 0,
+            "avgWeightedLossDiff": 284.09090909090907,
+            "avgBloodAbsDiff": 269.54545454545456,
+            "avgPerTierAbsDiff": [
+              1.3636363636363635,
+              0.18181818181818182,
+              1.3636363636363635,
+              0.9090909090909091,
+              0,
+              1.9090909090909092,
+              0.7272727272727273,
+              0
+            ],
+            "sampleRepairs": [
+              {
+                "rowIndex": 0,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 375,
+                "bloodAbsDiff": 375
+              },
+              {
+                "rowIndex": 1,
+                "seed": 8,
+                "exact": false,
+                "weightedLossDiff": 100,
+                "bloodAbsDiff": 100
+              },
+              {
+                "rowIndex": 2,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 130,
+                "bloodAbsDiff": 10
+              },
+              {
+                "rowIndex": 3,
+                "seed": 12,
+                "exact": false,
+                "weightedLossDiff": 160,
+                "bloodAbsDiff": 120
+              },
+              {
+                "rowIndex": 4,
+                "seed": 1,
+                "exact": false,
+                "weightedLossDiff": 765,
+                "bloodAbsDiff": 765
+              }
+            ]
+          },
+          "correct": {
+            "count": 94,
+            "exact": 90,
+            "exactRate": 0.9574468085106383,
+            "avgWeightedLossDiff": 11.27659574468085,
+            "avgBloodAbsDiff": 11.27659574468085,
+            "avgPerTierAbsDiff": [
+              0.26595744680851063,
+              0,
+              0.05319148936170213,
+              0.010638297872340425,
+              0,
+              0.09574468085106383,
+              0,
+              0
+            ],
+            "sampleRepairs": []
+          }
+        }
+      ],
+      "job_id": "8a5eb8d453154deb",
+      "node_path": "/tools/node/bin/node"
+    },
+    "error": null,
+    "snapshot_path": "/content/bt/colab-workspace/runs/8a5eb8d453154deb.json"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "job_id": "local-smoke",
+  "datasetPath": "C:\\Users\\YAVUZ\\Documents\\BT-Analyss - v6\\colab-workspace\\runs\\surrogate-dataset-smoke.jsonl",
+  "modelPath": "C:\\Users\\YAVUZ\\Documents\\BT-Analyss - v6\\colab-workspace\\runs\\surrogate-model-local-smoke.pt",
+  "metricsPath": "C:\\Users\\YAVUZ\\Documents\\BT-Analyss - v6\\colab-workspace\\runs\\surrogate-metrics-local-smoke.json",
+  "device": "cpu",
+  "rowCount": 16,
+  "epochs": 2,
+  "batchSize": 16,
+  "learningRate": 0.001,
+  "hiddenSizes": [
+    32,
+    32
+  ],
+  "finalValidation": {
+    "epoch": 2,
+    "train_loss": 0.7632216811180115,
+    "loss": 0.7441602945327759,
+    "win_loss": 0.6955382227897644,
+    "blood_loss": 0.048622071743011475,
+    "win_accuracy": 0.3333333432674408
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.7797499895095825,
+      "loss": 0.73650062084198,
+      "win_loss": 0.6884552836418152,
+      "blood_loss": 0.0480453260242939,
+      "win_accuracy": 0.6666666865348816
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.7632216811180115,
+      "loss": 0.7441602945327759,
+      "win_loss": 0.6955382227897644,
+      "blood_loss": 0.048622071743011475,
+      "win_accuracy": 0.3333333432674408
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(py -c \"import ast; ast.parse\\(open\\(r'C:/Users/YAVUZ/Downloads/BT-Analyss/bt_gui.py', encoding='utf-8'\\).read\\(\\)\\); print\\('syntax ok'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\(r'C:/Users/YAVUZ/Downloads/BT-Analyss/bt_gui.py', encoding='utf-8'\\).read\\(\\)\\); print\\('syntax ok'\\)\")",
+      "Bash(py *)",
+      "Bash(node --check app.js)",
+      "Bash(node --check optimizer.js)",
+      "Bash(node --check wrong.js)",
+      "Bash(node --check battle-core.js)",
+      "Bash(node *)",
+      "Bash(firebase --version)",
+      "Bash(firebase deploy *)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(command -v firebase)",
+      "Bash(firebase projects:list)"
+    ]
+  }
+}

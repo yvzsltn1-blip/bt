@@ -40,9 +40,9 @@
       if (passwordInput) {
         if (isAdmin) {
           passwordInput.value = "";
-          passwordInput.placeholder = "Silme icin sifreyi tekrar gir";
+          passwordInput.placeholder = "Firebase Auth sifresini tekrar gir";
         } else {
-          passwordInput.placeholder = "Admin sifresi";
+          passwordInput.placeholder = "Firebase Auth admin sifresi";
         }
       }
       if (onStateChange) {

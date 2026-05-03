@@ -27,6 +27,7 @@ const adminPasswordInput = document.querySelector("#adminPasswordInput");
 const adminLoginBtn = document.querySelector("#adminLoginBtn");
 const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const LOSS_REDUCTION_ICON_URL = "https://s66-tr.bitefight.gameforge.com/img/voodoo/res3_rotation.gif";
 const PAGE_SIZE = 10;
 const unitLabelMap = new Map(
   [...ENEMY_UNITS, ...ALLY_UNITS].map((unit) => [unit.key, unit.label])
@@ -127,6 +128,100 @@ async function renderWrongReports() {
   applyWrongFilters();
 }
 
+function normalizeLossCount(value) {
+  return Math.max(0, Math.floor(Number(value) || 0));
+}
+
+function hasPositiveLosses(losses = {}) {
+  return Object.values(losses || {}).some((value) => normalizeLossCount(value) > 0);
+}
+
+function getReducedLossCount(value) {
+  const count = normalizeLossCount(value);
+  if (count <= 0) {
+    return 0;
+  }
+  return Math.max(0, count - Math.ceil(count / 5));
+}
+
+function applyLossReductionToLosses(losses = {}) {
+  const reduced = {};
+  ALLY_UNITS.forEach((unit) => {
+    const nextCount = getReducedLossCount(losses?.[unit.key] || 0);
+    if (nextCount > 0) {
+      reduced[unit.key] = nextCount;
+    }
+  });
+  return reduced;
+}
+
+function buildLossSummaryText(summaryText, losses = {}) {
+  const lines = String(summaryText || "").split("\n");
+  const lossHeaderIndex = lines.findIndex((line) => line.trim() === "Kayip Birlikler");
+  if (lossHeaderIndex < 0) {
+    return String(summaryText || "");
+  }
+
+  const capacityIndex = lines.findIndex((line, index) =>
+    index > lossHeaderIndex && line.trim().startsWith("Toplam birlik kapasitesi"));
+  const before = lines.slice(0, lossHeaderIndex + 1);
+  const after = capacityIndex >= 0 ? lines.slice(capacityIndex) : [];
+
+  const unitLines = [];
+  let totalUnits = 0;
+  let totalBlood = 0;
+  ALLY_UNITS.forEach((unit) => {
+    const count = normalizeLossCount(losses?.[unit.key] || 0);
+    if (count <= 0) {
+      return;
+    }
+    const blood = count * (BLOOD_BY_ALLY_KEY[unit.key] || 0);
+    totalUnits += count;
+    totalBlood += blood;
+    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
+  });
+
+  return [
+    ...before,
+    ...unitLines,
+    "",
+    `= ${String(totalUnits).padStart(3)} toplam ${"".padEnd(21)} (${totalBlood} kan)`,
+    "--------------------------------------------------",
+    ...after
+  ].join("\n");
+}
+
+function createMetaField(label, value) {
+  const field = document.createElement("span");
+  field.innerHTML = `${label}: <strong>${value}</strong>`;
+  return field;
+}
+
+function createLossReductionToggleButton(isActive, onToggle) {
+  const button = document.createElement("button");
+  button.className = `loss-toggle-button${isActive ? " is-active" : ""}`;
+  button.type = "button";
+  button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  button.title = isActive
+    ? "Azaltilmis kayiplari gosteriyorsun. Tekrar basarsan normal sonuc doner."
+    : "Kayiplari birlik bazinda 5'te 1 azaltip goster.";
+  button.innerHTML = `
+    <img src="${LOSS_REDUCTION_ICON_URL}" alt="" loading="lazy">
+  `;
+  button.addEventListener("click", onToggle);
+  return button;
+}
+
+function getDisplayedExpectedLosses(item, isLossReductionActive) {
+  const baseLosses = getExpectedLosses(item);
+  return isLossReductionActive ? applyLossReductionToLosses(baseLosses) : baseLosses;
+}
+
+function getDisplayedActualLosses(item, isLossReductionActive) {
+  const baseLosses = getActualLosses(item);
+  return isLossReductionActive ? applyLossReductionToLosses(baseLosses) : baseLosses;
+}
+
 function renderWrongPage(items) {
   wrongList.innerHTML = "";
 
@@ -140,6 +235,7 @@ function renderWrongPage(items) {
   items.forEach((item) => {
     const card = document.createElement("article");
     card.className = "saved-card";
+    let isLossReductionActive = false;
 
     const head = document.createElement("div");
     head.className = "saved-card-head";
@@ -193,17 +289,46 @@ function renderWrongPage(items) {
 
     const meta = document.createElement("div");
     meta.className = "saved-meta";
-    const metaParts = [
-      `<span>Kaynak: <strong>${item.sourceLabel || "-"}</strong></span>`,
-      item.stage ? `<span>Kademe: <strong>${item.stage}</strong></span>` : "",
-      item.modeLabel ? `<span>Mod: <strong>${item.modeLabel}</strong></span>` : "",
-      Number.isInteger(item.seed) ? `<span>Seed: <strong>${item.seed}</strong></span>` : "",
-      Number.isFinite(item.pointLimit) ? `<span>Limit: <strong>${item.pointLimit}</strong></span>` : "",
-      Number.isFinite(item.usedPoints) ? `<span>Kullanilan puan: <strong>${item.usedPoints}</strong></span>` : "",
-      Number.isFinite(item.winRate) ? `<span>Kazanma orani: <strong>%${item.winRate}</strong></span>` : "",
-      Number.isFinite(item.lostBlood) ? `<span>Kan kaybi: <strong>${item.lostBlood}</strong></span>` : ""
-    ].filter(Boolean);
-    meta.innerHTML = metaParts.join("");
+    const summaryController = createWrongSummaryController(item);
+    summaryController.bindToggle(() => {
+      isLossReductionActive = !isLossReductionActive;
+      renderMeta();
+      summaryController.setLossReduction(isLossReductionActive);
+    });
+
+    const renderMeta = () => {
+      const displayedExpectedLosses = getDisplayedExpectedLosses(item, isLossReductionActive);
+      const displayedExpectedLostBlood = isLossReductionActive && hasPositiveLosses(displayedExpectedLosses)
+        ? calculateLostBlood(displayedExpectedLosses)
+        : getExpectedLostBlood(item, getExpectedLosses(item));
+
+      meta.innerHTML = "";
+      meta.appendChild(createMetaField("Kaynak", item.sourceLabel || "-"));
+      if (item.stage) {
+        meta.appendChild(createMetaField("Kademe", item.stage));
+      }
+      if (item.modeLabel) {
+        meta.appendChild(createMetaField("Mod", item.modeLabel));
+      }
+      if (Number.isInteger(item.seed)) {
+        meta.appendChild(createMetaField("Seed", item.seed));
+      }
+      if (Number.isFinite(item.pointLimit)) {
+        meta.appendChild(createMetaField("Limit", item.pointLimit));
+      }
+      if (Number.isFinite(item.usedPoints)) {
+        meta.appendChild(createMetaField("Kullanilan puan", item.usedPoints));
+      }
+
+      if (Number.isFinite(item.winRate)) {
+        meta.appendChild(createMetaField("Kazanma orani", `%${item.winRate}`));
+      }
+      if (Number.isFinite(item.lostBlood)) {
+        meta.appendChild(createMetaField("Kan kaybi", displayedExpectedLostBlood));
+      }
+    };
+    renderMeta();
+    summaryController.setLossReduction(false);
 
     const grid = document.createElement("div");
     grid.className = "saved-columns";
@@ -212,28 +337,6 @@ function renderWrongPage(items) {
     if (item.recommendationCounts) {
       grid.append(renderCountBlock("Onerilen Cozum", item.recommendationCounts, ALLY_UNITS));
     }
-
-    const summaryGrid = document.createElement("div");
-    summaryGrid.className = "wrong-summary-grid";
-
-    const expectedWrap = document.createElement("section");
-    expectedWrap.className = "wrong-summary-block";
-    const expectedHeading = document.createElement("h3");
-    expectedHeading.textContent = "Beklenen Sonuc";
-    const expectedBlock = document.createElement("div");
-    expectedBlock.className = "terminal-block";
-    renderStyledLines((item.summaryText || "").split("\n"), expectedBlock);
-    expectedWrap.append(expectedHeading, expectedBlock);
-
-    const actualWrap = document.createElement("section");
-    actualWrap.className = "wrong-summary-block";
-    const actualHeading = document.createElement("h3");
-    actualHeading.textContent = "Gercek Sonuc";
-    const actualBlock = document.createElement("div");
-    actualBlock.className = "terminal-block";
-    renderStyledLines((item.actualSummaryText || "Gercek sonuc girilmemis.").split("\n"), actualBlock);
-    actualWrap.append(actualHeading, actualBlock);
-    summaryGrid.append(expectedWrap, actualWrap);
 
     const logWrap = document.createElement("details");
     logWrap.className = "wrong-log-wrap";
@@ -248,12 +351,72 @@ function renderWrongPage(items) {
       const note = document.createElement("p");
       note.className = "summary-empty";
       note.textContent = `Not: ${item.actualNote}`;
-      card.append(head, meta, grid, summaryGrid, note, logWrap);
+      card.append(head, meta, grid, summaryController.element, note, logWrap);
     } else {
-      card.append(head, meta, grid, summaryGrid, logWrap);
+      card.append(head, meta, grid, summaryController.element, logWrap);
     }
     wrongList.appendChild(card);
   });
+}
+
+function createWrongSummaryController(item) {
+  const summaryGrid = document.createElement("div");
+  summaryGrid.className = "wrong-summary-grid";
+  let toggleHandler = () => {};
+
+  const expectedWrap = document.createElement("section");
+  expectedWrap.className = "wrong-summary-block";
+  const expectedHead = document.createElement("div");
+  expectedHead.className = "loss-summary-head";
+  const expectedHeading = document.createElement("h3");
+  expectedHeading.textContent = "Beklenen Sonuc";
+  let expectedToggle = createLossReductionToggleButton(false, toggleHandler);
+  const expectedBlock = document.createElement("div");
+  expectedBlock.className = "terminal-block";
+  expectedHead.append(expectedHeading, expectedToggle);
+  expectedWrap.append(expectedHead, expectedBlock);
+
+  const actualWrap = document.createElement("section");
+  actualWrap.className = "wrong-summary-block";
+  const actualHeading = document.createElement("h3");
+  actualHeading.textContent = "Gercek Sonuc";
+  const actualBlock = document.createElement("div");
+  actualBlock.className = "terminal-block";
+  actualWrap.append(actualHeading, actualBlock);
+
+  summaryGrid.append(expectedWrap, actualWrap);
+
+  const renderSummary = (target, text) => {
+    target.innerHTML = "";
+    renderStyledLines(String(text || "").split("\n"), target);
+  };
+
+  return {
+    element: summaryGrid,
+    setLossReduction(isLossReductionActive) {
+      const expectedLosses = getDisplayedExpectedLosses(item, isLossReductionActive);
+      const actualLosses = getDisplayedActualLosses(item, isLossReductionActive);
+      renderSummary(
+        expectedBlock,
+        isLossReductionActive ? buildLossSummaryText(item.summaryText || "", expectedLosses) : (item.summaryText || "")
+      );
+      renderSummary(
+        actualBlock,
+        isLossReductionActive
+          ? buildLossSummaryText(item.actualSummaryText || "Gercek sonuc girilmemis.", actualLosses)
+          : (item.actualSummaryText || "Gercek sonuc girilmemis.")
+      );
+      const nextToggle = createLossReductionToggleButton(isLossReductionActive, toggleHandler);
+      expectedToggle.replaceWith(nextToggle);
+      expectedToggle = nextToggle;
+    },
+    bindToggle(handler) {
+      toggleHandler = handler;
+      const nextToggle = createLossReductionToggleButton(false, toggleHandler);
+      expectedToggle.replaceWith(nextToggle);
+      expectedToggle = nextToggle;
+    }
+  };
 }
 
 function hasCountsForSimulation(item) {

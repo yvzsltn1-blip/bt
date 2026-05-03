@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BT Analyss Yanlislar</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="styles.css?v=20260427-01">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy-block">
+        <div class="top-nav">
+          <a class="nav-link" href="index.html">Simulasyon</a>
+          <a class="nav-link" href="optimizer.html">Optimizer</a>
+          <a class="nav-link" href="saved.html">Onaylananlar</a>
+        </div>
+        <p class="eyebrow">BT ANALYSS / YANLIS RAPORLARI</p>
+        <h1>Yanlis Sonuclar</h1>
+      </div>
+      <div class="hero-stat">
+        <span>Rapor</span>
+        <strong id="wrongCountLabel">0</strong>
+      </div>
+    </header>
+
+    <main class="single-layout">
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <h2>Kaydedilen Yanlislar</h2>
+          <div class="actions actions-inline">
+            <a class="button button-secondary" href="saved.html">Kaydedilenlere Don</a>
+            <button id="clearWrongBtn" class="button button-ghost" type="button">Tumunu Sil</button>
+          </div>
+        </div>
+
+        <section id="wrongList" class="saved-list">
+          <p class="summary-empty">Henuz kaydedilmis yanlis raporu yok.</p>
+        </section>
+
+        <section class="admin-auth-panel">
+          <div class="admin-auth-copy">
+            <strong>Admin Girisi</strong>
+            <span>Yanlis raporlarini silmek ve temizlemek sadece admin oturumunda acilir.</span>
+          </div>
+          <div class="admin-auth-controls">
+            <span id="adminAuthStatus" class="admin-auth-status">Admin kapali</span>
+            <input id="adminEmailInput" class="admin-auth-input" type="email" value="yavuz@gmail.com" autocomplete="username" spellcheck="false">
+            <input id="adminPasswordInput" class="admin-auth-input" type="password" placeholder="Admin sifresi" autocomplete="current-password">
+            <button id="adminLoginBtn" class="button button-secondary" type="button">Admin Giris</button>
+            <button id="adminLogoutBtn" class="button button-ghost" type="button" hidden>Cikis</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
+  <script src="firebase-client.js?v=20260423-9" defer></script>
+  <script src="admin-auth-ui.js?v=20260425-1" defer></script>
+  <script src="battle-core.js?v=20260427-02" defer></script>
+  <script src="wrong.js?v=20260423-9" defer></script>
+</body>
+</html>

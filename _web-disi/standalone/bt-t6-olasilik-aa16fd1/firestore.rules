@@ -1,0 +1,138 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email == "yavuz@gmail.com";
+    }
+
+    function isShortString(value, maxLen) {
+      return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    function isTextString(value, maxLen) {
+      return value is string && value.size() <= maxLen;
+    }
+
+    function isCount(value) {
+      return value is int && value >= 0 && value <= 9999;
+    }
+
+    function validEnemyCounts(data) {
+      return data is map
+        && data.keys().hasOnly([
+          'skeletons', 'zombies', 'cultists', 'bonewings', 'corpses',
+          'wraiths', 'revenants', 'giants', 'broodmothers', 'liches'
+        ])
+        && (!('skeletons' in data) || isCount(data.skeletons))
+        && (!('zombies' in data) || isCount(data.zombies))
+        && (!('cultists' in data) || isCount(data.cultists))
+        && (!('bonewings' in data) || isCount(data.bonewings))
+        && (!('corpses' in data) || isCount(data.corpses))
+        && (!('wraiths' in data) || isCount(data.wraiths))
+        && (!('revenants' in data) || isCount(data.revenants))
+        && (!('giants' in data) || isCount(data.giants))
+        && (!('broodmothers' in data) || isCount(data.broodmothers))
+        && (!('liches' in data) || isCount(data.liches));
+    }
+
+    function validAllyCounts(data) {
+      return data is map
+        && data.keys().hasOnly([
+          'bats', 'ghouls', 'thralls', 'banshees',
+          'necromancers', 'gargoyles', 'witches', 'rotmaws'
+        ])
+        && (!('bats' in data) || isCount(data.bats))
+        && (!('ghouls' in data) || isCount(data.ghouls))
+        && (!('thralls' in data) || isCount(data.thralls))
+        && (!('banshees' in data) || isCount(data.banshees))
+        && (!('necromancers' in data) || isCount(data.necromancers))
+        && (!('gargoyles' in data) || isCount(data.gargoyles))
+        && (!('witches' in data) || isCount(data.witches))
+        && (!('rotmaws' in data) || isCount(data.rotmaws));
+    }
+
+    function validApprovedStrategy(data, documentId) {
+      return documentId.matches('^stage_[0-9]+_[0-9a-f]+$')
+        && data.keys().hasOnly([
+          'savedAt', 'updatedAt', 'stage', 'mode', 'diversityMode', 'modeLabel',
+          'enemySignature', 'enemyTitle', 'enemyCounts', 'allyPool',
+          'recommendationCounts', 'usedPoints', 'lostBlood', 'winRate'
+        ])
+        && data.keys().hasAll([
+          'savedAt', 'updatedAt', 'stage', 'mode', 'diversityMode', 'modeLabel',
+          'enemySignature', 'enemyTitle', 'enemyCounts', 'allyPool',
+          'recommendationCounts', 'usedPoints', 'lostBlood', 'winRate'
+        ])
+        && isShortString(data.savedAt, 40)
+        && isShortString(data.updatedAt, 40)
+        && data.stage is int && data.stage >= 1 && data.stage <= 9999
+        && data.mode in ['balanced', 'fast', 'deep']
+        && data.diversityMode is bool
+        && isShortString(data.modeLabel, 40)
+        && isShortString(data.enemySignature, 120)
+        && isShortString(data.enemyTitle, 120)
+        && validEnemyCounts(data.enemyCounts)
+        && validAllyCounts(data.allyPool)
+        && validAllyCounts(data.recommendationCounts)
+        && data.usedPoints is int && data.usedPoints >= 0 && data.usedPoints <= 99999
+        && data.lostBlood is int && data.lostBlood >= 0 && data.lostBlood <= 999999
+        && data.winRate is int && data.winRate >= 0 && data.winRate <= 100;
+    }
+
+    function validWrongReport(data, documentId) {
+      return documentId.matches('^wrong_[0-9]+_[a-z0-9]+$')
+        && data.keys().hasOnly([
+          'source', 'sourceLabel', 'reportedAt', 'stage', 'mode', 'diversityMode',
+          'modeLabel', 'enemyCounts', 'allyCounts', 'matchSignature',
+          'recommendationCounts', 'summaryText', 'logText', 'possible',
+          'usedPoints', 'lostBlood', 'winRate', 'pointLimit', 'usedCapacity',
+          'actualSummaryText', 'actualNote'
+        ])
+        && data.keys().hasAll([
+          'source', 'sourceLabel', 'reportedAt', 'enemyCounts', 'allyCounts',
+          'matchSignature', 'summaryText', 'logText', 'usedCapacity',
+          'actualSummaryText', 'actualNote'
+        ])
+        && data.source in ['simulation', 'optimizer']
+        && isShortString(data.sourceLabel, 30)
+        && isShortString(data.reportedAt, 40)
+        && (!('stage' in data) || (data.stage is int && data.stage >= 1 && data.stage <= 9999))
+        && (!('mode' in data) || data.mode in ['balanced', 'fast', 'deep'])
+        && (!('diversityMode' in data) || data.diversityMode is bool)
+        && (!('modeLabel' in data) || isShortString(data.modeLabel, 40))
+        && validEnemyCounts(data.enemyCounts)
+        && validAllyCounts(data.allyCounts)
+        && (!('recommendationCounts' in data) || data.recommendationCounts == null || validAllyCounts(data.recommendationCounts))
+        && isShortString(data.matchSignature, 200)
+        && isTextString(data.summaryText, 20000)
+        && isTextString(data.logText, 120000)
+        && (!('possible' in data) || data.possible is bool)
+        && (!('usedPoints' in data) || (data.usedPoints is int && data.usedPoints >= 0 && data.usedPoints <= 99999))
+        && (!('lostBlood' in data) || data.lostBlood == null || (data.lostBlood is int && data.lostBlood >= 0 && data.lostBlood <= 999999))
+        && (!('winRate' in data) || (data.winRate is int && data.winRate >= 0 && data.winRate <= 100))
+        && (!('pointLimit' in data) || (data.pointLimit is int && data.pointLimit >= 0 && data.pointLimit <= 99999))
+        && data.usedCapacity is int && data.usedCapacity >= 0 && data.usedCapacity <= 999999
+        && isTextString(data.actualSummaryText, 20000)
+        && isTextString(data.actualNote, 2000);
+    }
+
+    match /approvedStrategies/{documentId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validApprovedStrategy(request.resource.data, documentId);
+      allow delete: if isAdmin();
+    }
+
+    match /wrongReports/{documentId} {
+      allow read: if true;
+      allow create: if validWrongReport(request.resource.data, documentId);
+      allow update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

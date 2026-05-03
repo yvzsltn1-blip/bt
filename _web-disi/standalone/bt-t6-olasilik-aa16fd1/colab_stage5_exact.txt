@@ -1,0 +1,418 @@
+import json
+import math
+import subprocess
+import urllib.request
+from IPython.display import display, HTML
+from tqdm.auto import tqdm
+
+BATTLE_CORE_URL = "https://bt-analiz.web.app/battle-core.js"
+
+CONFIG = {
+    "stage": 5,
+    "pointLimit": 60,
+    "objective": "min_loss",   # "min_loss" veya "min_army"
+    "stoneMode": False,        # tasli bakmak istersen True yap
+    "minWinRate": 0.75,
+    "trialsPerCandidate": 40,  # bu senaryo kucuk; 40-100 arasi kullanabilirsin
+    "baseSeed": 42042,
+    "reportEvery": 250,
+
+    "enemy": {
+        "skeletons": 4,
+        "zombies": 17,
+        "cultists": 4,
+        "bonewings": 0,
+        "corpses": 0,
+        "wraiths": 0,
+        "revenants": 0,
+        "giants": 0,
+        "broodmothers": 0,
+        "liches": 0
+    },
+    "allyPool": {
+        "bats": 100,
+        "ghouls": 100,
+        "thralls": 100,
+        "banshees": 100,
+        "necromancers": 100,
+        "gargoyles": 0,
+        "witches": 0,
+        "rotmaws": 0
+    }
+}
+
+JS_CODE = r"""
+"use strict";
+
+const fs = require("fs");
+require("./battle-core.js");
+
+const {
+  ALLY_UNITS,
+  POINTS_BY_ALLY_KEY,
+  simulateBattle,
+  getStoneAdjustedLossProfile
+} = globalThis.BattleCore;
+
+const config = JSON.parse(fs.readFileSync("config.json", "utf8"));
+const objective = config.objective === "min_army" ? "min_army" : "min_loss";
+const stoneMode = Boolean(config.stoneMode);
+const minWinRate = Number.isFinite(config.minWinRate) ? config.minWinRate : 0.75;
+const trials = Math.max(1, Math.floor(config.trialsPerCandidate || 1));
+const pointLimit = Math.floor(config.pointLimit || 0);
+const reportEvery = Math.max(1, Math.floor(config.reportEvery || 250));
+const baseSeed = Math.floor(config.baseSeed || 42042);
+
+const activeUnits = ALLY_UNITS.filter((unit) => (config.allyPool?.[unit.key] || 0) > 0);
+const tierByKey = Object.fromEntries(ALLY_UNITS.map((unit, index) => [unit.key, index + 1]));
+
+function emit(payload) {
+  process.stdout.write(JSON.stringify(payload) + "\n");
+}
+
+function cloneCounts(counts) {
+  return Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, counts[unit.key] || 0]));
+}
+
+function getSignature(counts) {
+  return ALLY_UNITS.map((unit) => counts[unit.key] || 0).join("|");
+}
+
+function formatCounts(counts) {
+  const parts = activeUnits.map((unit) => {
+    const count = counts[unit.key] || 0;
+    return count > 0 ? `T${tierByKey[unit.key]}:${count}` : null;
+  }).filter(Boolean);
+  return parts.length ? parts.join(" ; ") : "(bos)";
+}
+
+function formatNumber(value) {
+  if (!Number.isFinite(value)) {
+    return "inf";
+  }
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function summarize(entry) {
+  if (!entry) {
+    return {
+      loss: "-",
+      points: "-",
+      winRate: "-",
+      stones: "-",
+      counts: "-"
+    };
+  }
+  return {
+    loss: formatNumber(entry.displayedLoss),
+    points: formatNumber(entry.avgUsedPoints),
+    winRate: `%${Math.round((entry.winRate || 0) * 100)}`,
+    stones: stoneMode ? formatNumber(entry.avgStoneCount || 0) : "-",
+    counts: formatCounts(entry.counts || {})
+  };
+}
+
+function compareEntries(left, right) {
+  if (left.feasible !== right.feasible) {
+    return left.feasible ? -1 : 1;
+  }
+
+  if (left.feasible) {
+    if (left.winRate !== right.winRate) {
+      return right.winRate - left.winRate;
+    }
+
+    if (objective === "min_army") {
+      if (left.avgUsedPoints !== right.avgUsedPoints) {
+        return left.avgUsedPoints - right.avgUsedPoints;
+      }
+      if (left.displayedLoss !== right.displayedLoss) {
+        return left.displayedLoss - right.displayedLoss;
+      }
+    } else {
+      if (left.displayedLoss !== right.displayedLoss) {
+        return left.displayedLoss - right.displayedLoss;
+      }
+      if (left.avgUsedPoints !== right.avgUsedPoints) {
+        return left.avgUsedPoints - right.avgUsedPoints;
+      }
+    }
+
+    if (left.avgUsedCapacity !== right.avgUsedCapacity) {
+      return left.avgUsedCapacity - right.avgUsedCapacity;
+    }
+
+    const leftUnits = stoneMode ? left.avgPermanentLostUnits : left.avgRawLostUnits;
+    const rightUnits = stoneMode ? right.avgPermanentLostUnits : right.avgRawLostUnits;
+    if (leftUnits !== rightUnits) {
+      return leftUnits - rightUnits;
+    }
+
+    return left.signature.localeCompare(right.signature);
+  }
+
+  if (left.winRate !== right.winRate) {
+    return right.winRate - left.winRate;
+  }
+  if (left.avgEnemyRemainingHealth !== right.avgEnemyRemainingHealth) {
+    return left.avgEnemyRemainingHealth - right.avgEnemyRemainingHealth;
+  }
+  if (left.avgEnemyRemainingUnits !== right.avgEnemyRemainingUnits) {
+    return left.avgEnemyRemainingUnits - right.avgEnemyRemainingUnits;
+  }
+  return left.signature.localeCompare(right.signature);
+}
+
+function countTotalCombinations() {
+  const dp = Array(pointLimit + 1).fill(0n);
+  dp[0] = 1n;
+  for (const unit of activeUnits) {
+    const cost = POINTS_BY_ALLY_KEY[unit.key];
+    const maxCount = config.allyPool?.[unit.key] || 0;
+    const next = Array(pointLimit + 1).fill(0n);
+    for (let s = 0; s <= pointLimit; s += 1) {
+      if (dp[s] === 0n) {
+        continue;
+      }
+      const maxTake = Math.min(maxCount, Math.floor((pointLimit - s) / cost));
+      for (let k = 0; k <= maxTake; k += 1) {
+        next[s + k * cost] += dp[s];
+      }
+    }
+    for (let i = 0; i <= pointLimit; i += 1) {
+      dp[i] = next[i];
+    }
+  }
+  return dp.reduce((a, b) => a + b, 0n);
+}
+
+function evaluateCandidate(counts) {
+  const signature = getSignature(counts);
+  let wins = 0;
+  let rawLostBloodSum = 0;
+  let rawLostUnitsSum = 0;
+  let permanentLostBloodSum = 0;
+  let permanentLostUnitsSum = 0;
+  let stoneCountSum = 0;
+  let usedPointsSum = 0;
+  let usedCapacitySum = 0;
+  let enemyRemainingHealthSum = 0;
+  let enemyRemainingUnitsSum = 0;
+
+  for (let trial = 0; trial < trials; trial += 1) {
+    const seed = baseSeed + trial * 977 + signature.length * 13;
+    const result = simulateBattle(config.enemy, counts, { seed, collectLog: false });
+
+    usedPointsSum += result.usedPoints;
+    usedCapacitySum += result.usedCapacity;
+    enemyRemainingHealthSum += result.enemyRemainingHealth;
+    enemyRemainingUnitsSum += result.enemyRemainingUnits;
+
+    if (result.winner === "ally") {
+      wins += 1;
+      rawLostBloodSum += result.lostBloodTotal;
+      rawLostUnitsSum += result.lostUnitsTotal;
+      const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
+      permanentLostBloodSum += stoneProfile.permanentLostBlood;
+      permanentLostUnitsSum += stoneProfile.permanentLostUnits;
+      stoneCountSum += stoneProfile.stoneCount;
+    }
+  }
+
+  const winRate = wins / trials;
+  const feasible = winRate >= minWinRate;
+  const avgRawLostBlood = wins > 0 ? rawLostBloodSum / wins : Number.POSITIVE_INFINITY;
+  const avgRawLostUnits = wins > 0 ? rawLostUnitsSum / wins : Number.POSITIVE_INFINITY;
+  const avgPermanentLostBlood = wins > 0 ? permanentLostBloodSum / wins : Number.POSITIVE_INFINITY;
+  const avgPermanentLostUnits = wins > 0 ? permanentLostUnitsSum / wins : Number.POSITIVE_INFINITY;
+  const avgStoneCount = wins > 0 ? stoneCountSum / wins : 0;
+  const displayedLoss = stoneMode ? avgPermanentLostBlood : avgRawLostBlood;
+
+  return {
+    counts: cloneCounts(counts),
+    signature,
+    feasible,
+    wins,
+    winRate,
+    avgUsedPoints: usedPointsSum / trials,
+    avgUsedCapacity: usedCapacitySum / trials,
+    avgEnemyRemainingHealth: enemyRemainingHealthSum / trials,
+    avgEnemyRemainingUnits: enemyRemainingUnitsSum / trials,
+    avgRawLostBlood,
+    avgRawLostUnits,
+    avgPermanentLostBlood,
+    avgPermanentLostUnits,
+    avgStoneCount,
+    displayedLoss
+  };
+}
+
+const total = countTotalCombinations();
+emit({
+  type: "start",
+  total: total.toString(),
+  trials,
+  stoneMode,
+  objective
+});
+
+let checked = 0n;
+let best = null;
+let last = null;
+const partial = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+const startedAt = Date.now();
+
+function maybeReport(force = false) {
+  if (!force && checked % BigInt(reportEvery) !== 0n) {
+    return;
+  }
+  emit({
+    type: "progress",
+    checked: checked.toString(),
+    total: total.toString(),
+    elapsedMs: Date.now() - startedAt,
+    last: summarize(last),
+    best: summarize(best)
+  });
+}
+
+function walk(index, remainingPoints) {
+  if (index >= activeUnits.length) {
+    checked += 1n;
+    const entry = evaluateCandidate(partial);
+    last = entry;
+    if (!best || compareEntries(entry, best) < 0) {
+      best = entry;
+      emit({
+        type: "best",
+        checked: checked.toString(),
+        total: total.toString(),
+        elapsedMs: Date.now() - startedAt,
+        best: summarize(best)
+      });
+    }
+    maybeReport(false);
+    return;
+  }
+
+  const unit = activeUnits[index];
+  const cost = POINTS_BY_ALLY_KEY[unit.key];
+  const maxCount = Math.min(config.allyPool?.[unit.key] || 0, Math.floor(remainingPoints / cost));
+
+  for (let count = 0; count <= maxCount; count += 1) {
+    partial[unit.key] = count;
+    walk(index + 1, remainingPoints - count * cost);
+  }
+  partial[unit.key] = 0;
+}
+
+walk(0, pointLimit);
+maybeReport(true);
+
+emit({
+  type: "done",
+  checked: checked.toString(),
+  total: total.toString(),
+  elapsedMs: Date.now() - startedAt,
+  best: summarize(best)
+});
+"""
+
+def sh(cmd):
+    return subprocess.run(cmd, shell=True, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+def fmt_int(value):
+    try:
+        return f"{int(value):,}".replace(",", ".")
+    except Exception:
+        return str(value)
+
+def fmt_elapsed(seconds):
+    if not math.isfinite(seconds):
+        return "--:--:--"
+    seconds = max(0, int(seconds))
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return f"{h:02d}:{m:02d}:{s:02d}"
+
+def build_line_1(payload):
+    checked = int(payload["checked"])
+    total = int(payload["total"])
+    elapsed = payload["elapsedMs"] / 1000.0
+    speed = checked / elapsed if elapsed > 0 else 0.0
+    pct = (checked / total * 100.0) if total else 0.0
+    eta = (total - checked) / speed if speed > 0 else math.inf
+    last = payload.get("last") or {}
+    return (
+        f"Anlik aday | sure {fmt_elapsed(elapsed)} | {fmt_int(checked)} / {fmt_int(total)} (%{pct:.4f}) "
+        f"| hiz {speed:,.0f} komb/sn | ETA {fmt_elapsed(eta)} | kayip {last.get('loss', '-')} "
+        f"| puan {last.get('points', '-')} | win {last.get('winRate', '-')} | tas {last.get('stones', '-')} "
+        f"| dizilis {last.get('counts', '-')}"
+    )
+
+def build_line_2(payload):
+    best = payload.get("best") or {}
+    return (
+        f"En iyi sonuc | minimum kayip {best.get('loss', '-')} | puan {best.get('points', '-')} "
+        f"| win {best.get('winRate', '-')} | tas {best.get('stones', '-')} | dizilis {best.get('counts', '-')}"
+    )
+
+try:
+    sh("command -v node >/dev/null 2>&1")
+except Exception:
+    sh("apt-get update -qq && apt-get install -y nodejs -qq")
+
+urllib.request.urlretrieve(BATTLE_CORE_URL, "battle-core.js")
+with open("exact_stage5.js", "w", encoding="utf-8") as f:
+    f.write(JS_CODE)
+with open("config.json", "w", encoding="utf-8") as f:
+    json.dump(CONFIG, f, ensure_ascii=False, indent=2)
+
+status_1 = display(HTML("<pre>Hazirlaniyor...</pre>"), display_id=True)
+status_2 = display(HTML("<pre>En iyi sonuc bekleniyor...</pre>"), display_id=True)
+bar = tqdm(total=1, desc="Tum kombinasyonlar", unit="komb", leave=True)
+
+proc = subprocess.Popen(
+    ["node", "exact_stage5.js"],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    text=True,
+    bufsize=1
+)
+
+for raw_line in proc.stdout:
+    raw_line = raw_line.strip()
+    if not raw_line:
+        continue
+
+    payload = json.loads(raw_line)
+    kind = payload.get("type")
+
+    if kind == "start":
+        total = int(payload["total"])
+        bar.total = total
+        bar.n = 0
+        bar.refresh()
+        status_1.update(HTML(
+            f"<pre>Basladi | toplam kombinasyon {fmt_int(total)} | trial {payload['trials']} | stoneMode {payload['stoneMode']} | objective {payload['objective']}</pre>"
+        ))
+        continue
+
+    if kind in {"progress", "best", "done"}:
+        checked = int(payload["checked"])
+        bar.n = checked
+        bar.refresh()
+        if kind == "progress":
+          status_1.update(HTML(f"<pre>{build_line_1(payload)}</pre>"))
+        status_2.update(HTML(f"<pre>{build_line_2(payload)}</pre>"))
+
+stderr = proc.stderr.read()
+code = proc.wait()
+bar.close()
+
+if code != 0:
+    raise RuntimeError(stderr.strip() or "Search failed")
+
+print("Exact tarama tamamlandi.")
