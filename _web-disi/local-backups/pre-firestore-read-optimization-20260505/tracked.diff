@@ -1,0 +1,1446 @@
+diff --git a/battle-core.js b/battle-core.js
+index 5146c5b..7c59dba 100644
+--- a/battle-core.js
++++ b/battle-core.js
+@@ -356,33 +356,33 @@
+     return "=".repeat(left) + padded + "=".repeat(right);
+   }
+ 
+-  function formatUnitLine(count, name, hp, attack) {
+-    const totalAttack = count * attack;
+-    return `   ${String(count).padStart(3)}  ${name.padEnd(26)}  ${String(hp).padStart(4)} can   ${String(attack).padStart(3)} atk   ${String(totalAttack).padStart(5)} toplam atk`;
+-  }
+-
+-  function printBattlefield(log, unitNumbers, unitHealth, order, side) {
+-    const sectionLabel = side === "enemy" ? "DUSMAN SAFLARI" : "MUTTEFIK SAFLARI";
+-    const totalLabel = side === "enemy" ? "Dusman toplam atak" : "Muttefik toplam atak";
+-    log(sectionLabel);
+-    let sideTotalAttack = 0;
+-    if (side === "enemy") {
+-      for (let i = order.length - 1; i >= 0; i -= 1) {
+-        const index = order[i];
+-        if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
+-          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX]));
+-          sideTotalAttack += unitNumbers[index] * UNIT_DESC[index][ATTACK_INDEX];
+-        }
+-      }
+-    } else {
+-      for (let i = 0; i < order.length; i += 1) {
+-        const index = order[i];
+-        if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
+-          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX]));
+-          sideTotalAttack += unitNumbers[index] * UNIT_DESC[index][ATTACK_INDEX];
+-        }
+-      }
+-    }
++  function formatUnitLine(count, name, hp, attack, speed) {
++    const totalAttack = count * attack;
++    return `   ${String(count).padStart(3)}  ${name.padEnd(26)}  ${String(hp).padStart(4)} can   ${String(attack).padStart(3)} atk   ${String(speed).padStart(2)} hiz   ${String(totalAttack).padStart(5)} toplam atk`;
++  }
++
++  function printBattlefield(log, unitNumbers, unitHealth, unitSpeed, order, side) {
++    const sectionLabel = side === "enemy" ? "DUSMAN SAFLARI" : "MUTTEFIK SAFLARI";
++    const totalLabel = side === "enemy" ? "Dusman toplam atak" : "Muttefik toplam atak";
++    log(sectionLabel);
++    let sideTotalAttack = 0;
++    if (side === "enemy") {
++      for (let i = order.length - 1; i >= 0; i -= 1) {
++        const index = order[i];
++        if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
++          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX], unitSpeed[index]));
++          sideTotalAttack += unitNumbers[index] * UNIT_DESC[index][ATTACK_INDEX];
++        }
++      }
++    } else {
++      for (let i = 0; i < order.length; i += 1) {
++        const index = order[i];
++        if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
++          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX], unitSpeed[index]));
++          sideTotalAttack += unitNumbers[index] * UNIT_DESC[index][ATTACK_INDEX];
++        }
++      }
++    }
+     log(`   ¦ ${totalLabel}: ${sideTotalAttack}`);
+   }
+ 
+@@ -442,9 +442,9 @@
+     log(bannerLine("RAUND 0"));
+     log("                  Baslangic muharebe duzeni");
+     log("");
+-    printBattlefield(log, unitNumbers, unitHealth, defenderOrderFrontFirst, "enemy");
++    printBattlefield(log, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, "enemy");
+     log("");
+-    printBattlefield(log, unitNumbers, unitHealth, defenderOrderFrontFirst, "ally");
++    printBattlefield(log, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, "ally");
+     log("");
+ 
+     while (enemyCapable && allyCapable) {
+@@ -850,9 +850,9 @@
+ 
+       log(`¦¦ Raund ${roundCount} sonu ¦¦`);
+       log("");
+-      printBattlefield(log, unitNumbers, unitHealth, defenderOrderFrontFirst, "enemy");
++      printBattlefield(log, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, "enemy");
+       log("");
+-      printBattlefield(log, unitNumbers, unitHealth, defenderOrderFrontFirst, "ally");
++      printBattlefield(log, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, "ally");
+       log("");
+     }
+ 
+diff --git a/fav.html b/fav.html
+index e80bf49..6a9b5f7 100644
+--- a/fav.html
++++ b/fav.html
+@@ -14,11 +14,13 @@
+     <header class="hero">
+       <div class="hero-copy-block">
+         <div class="top-nav">
+-          <a class="nav-link" href="index.html">Simulasyon</a>
+-          <a class="nav-link" href="optimizer.html">Optimizer</a>
+-          <a class="nav-link" href="optimizer-minimum.html">Min Kisit</a>
+-          <a class="nav-link" href="saved.html">Onaylananlar</a>
+-          <a class="nav-link active" href="fav.html">Favlar</a>
++          <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
++          <a class="nav-link nav-opt" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
++          <a class="nav-link nav-opt2" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
++          <a class="nav-link nav-min" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
++          <a class="nav-link nav-rel" href="reliability.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/><path d="m9.5 12 1.8 1.8 3.7-3.8"/></svg></span><span class="nav-link-label">Guvenilirlik</span></a>
++          <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
++          <a class="nav-link nav-fav active" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
+         </div>
+         <p class="eyebrow">BT ANALYSS / FAVORI DIZILIMLER</p>
+         <h1>Fav Dizilimler</h1>
+diff --git a/index.html b/index.html
+index 474412f..dd20837 100644
+--- a/index.html
++++ b/index.html
+@@ -14,11 +14,13 @@
+     <header class="hero">
+       <div class="hero-copy-block">
+         <div class="top-nav">
+-          <a class="nav-link active" href="index.html">Simulasyon</a>
+-          <a class="nav-link" href="optimizer.html">Optimizer</a>
+-          <a class="nav-link" href="optimizer-minimum.html">Min Kisit</a>
+-          <a class="nav-link" href="saved.html">Onaylananlar</a>
+-          <a class="nav-link" href="fav.html">Favlar</a>
++          <a class="nav-link nav-sim active" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
++          <a class="nav-link nav-opt" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
++          <a class="nav-link nav-opt2" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
++          <a class="nav-link nav-min" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
++          <a class="nav-link nav-rel" href="reliability.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/><path d="m9.5 12 1.8 1.8 3.7-3.8"/></svg></span><span class="nav-link-label">Guvenilirlik</span></a>
++          <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
++          <a class="nav-link nav-fav" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
+         </div>
+         <p class="eyebrow">BT ANALYSS / WEB PORT</p>
+         <h1>Savas Simulasyonu</h1>
+diff --git a/optimizer-minimum.html b/optimizer-minimum.html
+index f981193..55875a9 100644
+--- a/optimizer-minimum.html
++++ b/optimizer-minimum.html
+@@ -7,21 +7,22 @@
+   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+   <meta http-equiv="Pragma" content="no-cache">
+   <meta http-equiv="Expires" content="0">
+-  <link rel="stylesheet" href="styles.css?v=20260502-06">
++  <link rel="stylesheet" href="styles.css?v=20260503-09">
+ </head>
+ <body class="site-gate-pending" data-optimizer-variant="minimum">
+   <div class="page-shell">
+     <header class="hero">
+       <div class="hero-copy-block">
+         <div class="top-nav">
+-          <a class="nav-link" href="index.html">Simulasyon</a>
+-          <a class="nav-link" href="optimizer.html">Optimizer</a>
+-          <a class="nav-link active" href="optimizer-minimum.html">Min Kisit</a>
+-          <a class="nav-link" href="saved.html">Onaylananlar</a>
+-          <a class="nav-link" href="fav.html">Favlar</a>
++          <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
++          <a class="nav-link nav-opt" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
++          <a class="nav-link nav-opt2" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
++          <a class="nav-link nav-min active" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
++          <a class="nav-link nav-rel" href="reliability.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/><path d="m9.5 12 1.8 1.8 3.7-3.8"/></svg></span><span class="nav-link-label">Guvenilirlik</span></a>
++          <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
++          <a class="nav-link nav-fav" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
+         </div>
+-        <p class="eyebrow">BT ANALYSS / MINIMUM KULLANIM OPTIMIZER</p>
+-        <h1>Zorunlu Birlikli Optimumu Bul</h1>
++        <h1 class="minimum-hero-title">BT- Analiz</h1>
+       </div>
+       <div class="hero-stat">
+         <span>Durum</span>
+@@ -34,19 +35,34 @@
+         <div class="panel-head">
+           <h2>Ordu Girisleri</h2>
+           <div class="panel-head-tools">
+-            <label class="select-wrap" for="stageInput">
++            <label class="select-wrap stage-dual-wrap" for="stageInput">
+               <span>Kademe</span>
+-              <input id="stageInput" class="stage-select" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Kademe gir">
++              <div class="stage-split-input" role="group" aria-label="Kademe alanlari">
++                <input id="stageInput" class="stage-select stage-select-editable" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Kademe gir">
++                <span class="stage-split-divider" aria-hidden="true"></span>
++                <input id="simulatedStageDisplay" class="stage-select stage-select-readonly" type="text" value="-" readonly tabindex="-1" aria-label="Simule edilen kademe">
++                <span class="stage-split-divider" aria-hidden="true"></span>
++                <button id="stageAutoAdvanceToggleBtn" class="stage-select stage-select-toggle" type="button" aria-pressed="false" aria-label="Kademe +1 kapali" title="Kademe +1 kapali">
++                  <span class="stage-toggle-icon" aria-hidden="true"></span>
++                </button>
++              </div>
+             </label>
+-            <div class="mode-switch" aria-label="Arama modu">
++            <div class="mode-switch optimizer-run-mode-switch" aria-label="Arama modu">
+               <button class="mode-button" data-mode="fast" type="button">Hizli</button>
+               <button class="mode-button active" data-mode="balanced" type="button">Dengeli</button>
+               <button class="mode-button" data-mode="deep" type="button">Derin</button>
++              <div class="optimizer-band-mobile">
++                <select id="optimizerSearchBandPresetMobile" class="stage-select optimizer-band-mobile-select" aria-label="Arama bandi">
++                  <option value="full">Tum uzay</option>
++                  <option value="tight75" selected>%75-%100</option>
++                  <option value="custom">Ozel bant</option>
++                </select>
++              </div>
+             </div>
+           </div>
+         </div>
+ 
+-        <div class="panel-head-tools panel-head-tools-secondary">
++        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
+           <div class="mode-switch" aria-label="Hedef modu">
+             <button class="objective-button active" data-objective="min_loss" type="button">En Az Kayipla Kazan</button>
+             <button class="objective-button" data-objective="min_army" type="button">En Az Orduyla Kazan</button>
+@@ -54,8 +70,8 @@
+           </div>
+         </div>
+ 
+-        <div class="panel-head-tools panel-head-tools-secondary optimizer-band-controls">
+-          <label class="select-wrap" for="optimizerSearchBandPreset">
++        <div class="panel-head-tools panel-head-tools-secondary optimizer-band-controls optimizer-secondary-inline">
++          <label class="select-wrap optimizer-band-preset-wrap" for="optimizerSearchBandPreset">
+             <span>Arama BandI</span>
+             <select id="optimizerSearchBandPreset" class="stage-select">
+               <option value="full">Tum uzay</option>
+@@ -138,6 +154,7 @@
+           <button id="saveApprovedBtn" class="button button-secondary" type="button">Onayla ve Kaydet</button>
+           <button id="topResultsBtn" class="button button-secondary" type="button" disabled>Ana Sonuc + 5 Alternatif</button>
+           <button id="favoriteStrategyBtn" class="button button-secondary favorite-strategy-button" type="button" disabled>Favorilere Ekle</button>
++          <button id="openReliabilityFromOptimizerBtn" class="button button-secondary" type="button" disabled>Guvenilirlik Analizi</button>
+           <button id="openSimulationFromOptimizerBtn" class="button button-secondary" type="button" disabled>Simulasyon Ekraninda Ac</button>
+         </div>
+ 
+@@ -271,6 +288,6 @@
+   <script src="firebase-client.js?v=20260502-02" defer></script>
+   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
+   <script src="battle-core.js?v=20260503-02" defer></script>
+-  <script src="optimizer.js?v=20260503-02" defer></script>
++  <script src="optimizer.js?v=20260504-01" defer></script>
+ </body>
+ </html>
+diff --git a/optimizer.html b/optimizer.html
+index c2955bc..8f169a0 100644
+--- a/optimizer.html
++++ b/optimizer.html
+@@ -7,18 +7,20 @@
+   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+   <meta http-equiv="Pragma" content="no-cache">
+   <meta http-equiv="Expires" content="0">
+-  <link rel="stylesheet" href="styles.css?v=20260502-06">
++  <link rel="stylesheet" href="styles.css?v=20260503-08">
+ </head>
+ <body class="site-gate-pending">
+   <div class="page-shell">
+     <header class="hero">
+       <div class="hero-copy-block">
+         <div class="top-nav">
+-          <a class="nav-link" href="index.html">Simulasyon</a>
+-          <a class="nav-link active" href="optimizer.html">Optimizer</a>
+-          <a class="nav-link" href="optimizer-minimum.html">Min Kisit</a>
+-          <a class="nav-link" href="saved.html">Onaylananlar</a>
+-          <a class="nav-link" href="fav.html">Favlar</a>
++          <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
++          <a class="nav-link nav-opt active" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
++          <a class="nav-link nav-opt2" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
++          <a class="nav-link nav-min" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
++          <a class="nav-link nav-rel" href="reliability.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/><path d="m9.5 12 1.8 1.8 3.7-3.8"/></svg></span><span class="nav-link-label">Guvenilirlik</span></a>
++          <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
++          <a class="nav-link nav-fav" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
+         </div>
+         <p class="eyebrow">BT ANALYSS / ORDU OPTIMIZER</p>
+         <h1>En Az Kayipla Kazan</h1>
+@@ -34,19 +36,34 @@
+         <div class="panel-head">
+           <h2>Ordu Girisleri</h2>
+           <div class="panel-head-tools">
+-            <label class="select-wrap" for="stageInput">
++            <label class="select-wrap stage-dual-wrap" for="stageInput">
+               <span>Kademe</span>
+-              <input id="stageInput" class="stage-select" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Kademe gir">
++              <div class="stage-split-input" role="group" aria-label="Kademe alanlari">
++                <input id="stageInput" class="stage-select stage-select-editable" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Kademe gir">
++                <span class="stage-split-divider" aria-hidden="true"></span>
++                <input id="simulatedStageDisplay" class="stage-select stage-select-readonly" type="text" value="-" readonly tabindex="-1" aria-label="Simule edilen kademe">
++                <span class="stage-split-divider" aria-hidden="true"></span>
++                <button id="stageAutoAdvanceToggleBtn" class="stage-select stage-select-toggle" type="button" aria-pressed="false" aria-label="Kademe +1 kapali" title="Kademe +1 kapali">
++                  <span class="stage-toggle-icon" aria-hidden="true"></span>
++                </button>
++              </div>
+             </label>
+-            <div class="mode-switch" aria-label="Arama modu">
++            <div class="mode-switch optimizer-run-mode-switch" aria-label="Arama modu">
+               <button class="mode-button" data-mode="fast" type="button">Hizli</button>
+               <button class="mode-button active" data-mode="balanced" type="button">Dengeli</button>
+               <button class="mode-button" data-mode="deep" type="button">Derin</button>
++              <div class="optimizer-band-mobile">
++                <select id="optimizerSearchBandPresetMobile" class="stage-select optimizer-band-mobile-select" aria-label="Arama bandi">
++                  <option value="full">Tum uzay</option>
++                  <option value="tight75" selected>%75-%100</option>
++                  <option value="custom">Ozel bant</option>
++                </select>
++              </div>
+             </div>
+           </div>
+         </div>
+ 
+-        <div class="panel-head-tools panel-head-tools-secondary">
++        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
+           <div class="mode-switch" aria-label="Hedef modu">
+             <button class="objective-button active" data-objective="min_loss" type="button">En Az Kayýpla Kazan</button>
+             <button class="objective-button" data-objective="min_army" type="button">En Az Orduyla Kazan</button>
+@@ -54,8 +71,8 @@
+           </div>
+         </div>
+ 
+-        <div class="panel-head-tools panel-head-tools-secondary optimizer-band-controls">
+-          <label class="select-wrap" for="optimizerSearchBandPreset">
++        <div class="panel-head-tools panel-head-tools-secondary optimizer-band-controls optimizer-secondary-inline">
++          <label class="select-wrap optimizer-band-preset-wrap" for="optimizerSearchBandPreset">
+             <span>Arama BandI</span>
+             <select id="optimizerSearchBandPreset" class="stage-select">
+               <option value="full">Tum uzay</option>
+@@ -138,6 +155,7 @@
+           <button id="saveApprovedBtn" class="button button-secondary" type="button">Onayla ve Kaydet</button>
+           <button id="topResultsBtn" class="button button-secondary" type="button" disabled>Ana Sonuc + 5 Alternatif</button>
+           <button id="favoriteStrategyBtn" class="button button-secondary favorite-strategy-button" type="button" disabled>Favorilere Ekle</button>
++          <button id="openReliabilityFromOptimizerBtn" class="button button-secondary" type="button" disabled>Guvenilirlik Analizi</button>
+           <button id="openSimulationFromOptimizerBtn" class="button button-secondary" type="button" disabled>Simulasyon Ekraninda Ac</button>
+         </div>
+ 
+@@ -271,6 +289,6 @@
+   <script src="firebase-client.js?v=20260502-02" defer></script>
+   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
+   <script src="battle-core.js?v=20260503-02" defer></script>
+-  <script src="optimizer.js?v=20260503-02" defer></script>
++  <script src="optimizer.js?v=20260504-01" defer></script>
+ </body>
+ </html>
+diff --git a/optimizer.js b/optimizer.js
+index ac465f3..2bf7063 100644
+--- a/optimizer.js
++++ b/optimizer.js
+@@ -21,6 +21,7 @@ const optimizerEnemyInputs = document.querySelector("#optimizerEnemyInputs");
+ const optimizerAllyInputs = document.querySelector("#optimizerAllyInputs");
+ const optimizerConstraintInfo = document.querySelector("#optimizerConstraintInfo");
+ const optimizerSearchBandPresetInput = document.querySelector("#optimizerSearchBandPreset");
++const optimizerSearchBandPresetMobileInput = document.querySelector("#optimizerSearchBandPresetMobile");
+ const optimizerCustomBandInputs = document.querySelector("#optimizerCustomBandInputs");
+ const optimizerCustomBandMinInput = document.querySelector("#optimizerCustomBandMin");
+ const optimizerCustomBandMaxInput = document.querySelector("#optimizerCustomBandMax");
+@@ -39,11 +40,14 @@ const optimizerSampleBtn = document.querySelector("#optimizerSampleBtn");
+ const optimizerClearBtn = document.querySelector("#optimizerClearBtn");
+ const saveApprovedBtn = document.querySelector("#saveApprovedBtn");
+ const topResultsBtn = document.querySelector("#topResultsBtn");
++const openReliabilityFromOptimizerBtn = document.querySelector("#openReliabilityFromOptimizerBtn");
+ const openSimulationFromOptimizerBtn = document.querySelector("#openSimulationFromOptimizerBtn");
+ const favoriteStrategyBtn = document.querySelector("#favoriteStrategyBtn");
+ const reportWrongOptimizerBtn = document.querySelector("#reportWrongOptimizerBtn");
+ const langToggleOptimizerBtn = document.querySelector("#langToggleOptimizerBtn");
+ const stageInput = document.querySelector("#stageInput");
++const simulatedStageDisplay = document.querySelector("#simulatedStageDisplay");
++const stageAutoAdvanceToggleBtn = document.querySelector("#stageAutoAdvanceToggleBtn");
+ const optimizerPointsValue = document.querySelector("#optimizerPointsValue");
+ const optimizerPointsLimit = document.querySelector("#optimizerPointsLimit");
+ const modeButtons = [...document.querySelectorAll(".mode-button")];
+@@ -81,7 +85,9 @@ const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
+ const ROSTER_CLIPBOARD_STORAGE_KEY = "bt-analiz.optimizer.rosterClipboard.v1";
+ const ROSTER_CLIPBOARD_TTL_MS = 60 * 1000;
+ const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
++const OPTIMIZER_RELIABILITY_STORAGE_KEY = "bt-analiz.optimizer-reliability.v1";
+ const FAVORITE_STRATEGIES_STORAGE_KEY = "bt-analiz.optimizer.favorite-strategies.v1";
++const AUTO_STAGE_ADVANCE_STORAGE_KEY = "bt-analiz.optimizer.autoStageAdvance.v1";
+ const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
+ 
+ let optimizerSearchSession = createEmptySearchSession();
+@@ -109,6 +115,7 @@ let rosterClipboardIndicatorTimer = null;
+ let optimizerIncumbentContext = null;
+ let currentFavoriteModalSignature = null;
+ let currentFavoriteModalPendingEntry = null;
++let autoStageAdvanceEnabled = false;
+ 
+ function isMinimumOptimizerVariant() {
+   return optimizerVariant === "minimum";
+@@ -374,6 +381,59 @@ function createOpenSimulationButton(enemyCounts, allyCounts, label = "Simule Et"
+   return button;
+ }
+ 
++function openReliabilityForCounts(enemyCounts, allyCounts, context = {}) {
++  try {
++    window.sessionStorage.setItem(OPTIMIZER_RELIABILITY_STORAGE_KEY, JSON.stringify({
++      enemyCounts,
++      allyCounts,
++      stage: context.stage || null,
++      mode: context.mode || "balanced",
++      objective: context.objective || "min_loss",
++      diversityMode: Boolean(context.diversityMode),
++      stoneMode: Boolean(context.stoneMode),
++      optimizerWinRate: Number.isFinite(context.optimizerWinRate) ? context.optimizerWinRate : null,
++      optimizerDisplayedLoss: Number.isFinite(context.optimizerDisplayedLoss) ? context.optimizerDisplayedLoss : null,
++      optimizerAvgLostBlood: Number.isFinite(context.optimizerAvgLostBlood) ? context.optimizerAvgLostBlood : null,
++      optimizerExpectedLostBlood: Number.isFinite(context.optimizerExpectedLostBlood) ? context.optimizerExpectedLostBlood : null
++    }));
++    const opened = window.open("reliability.html", "_blank");
++    if (!opened) {
++      window.alert("Guvenilirlik sayfasi yeni sekmede acilamadi. Lutfen popup engelleyiciyi kontrol edin.");
++      return;
++    }
++    opened.focus?.();
++  } catch (error) {
++    window.alert(`Guvenilirlik sayfasi acilamadi: ${error.message}`);
++  }
++}
++
++function openReliabilityForCurrentCandidate() {
++  if (!currentApprovedCandidate) {
++    return;
++  }
++  const source = getPrimaryOptimizerSource(currentApprovedCandidate.result);
++  if (!source?.counts) {
++    return;
++  }
++  openReliabilityForCounts(currentApprovedCandidate.enemyCounts, source.counts, {
++    stage: currentApprovedCandidate.stage,
++    mode: currentApprovedCandidate.mode,
++    objective: currentApprovedCandidate.objective,
++    diversityMode: currentApprovedCandidate.diversityMode,
++    stoneMode: currentApprovedCandidate.stoneMode,
++    optimizerWinRate: source.winRate,
++    optimizerDisplayedLoss: getDisplayedLossValue(source),
++    optimizerAvgLostBlood: source.avgLostBlood,
++    optimizerExpectedLostBlood: source.expectedLostBlood
++  });
++}
++
++if (openReliabilityFromOptimizerBtn) {
++  openReliabilityFromOptimizerBtn.addEventListener("click", () => {
++    openReliabilityForCurrentCandidate();
++  });
++}
++
+ if (openSimulationFromOptimizerBtn) {
+   openSimulationFromOptimizerBtn.addEventListener("click", () => {
+     if (!currentApprovedCandidate) {
+@@ -397,6 +457,9 @@ function syncAdminRestrictedActions() {
+   const isBusy = optimizeBtn.disabled;
+   saveApprovedBtn.disabled = isBusy || !isAdminSession || !currentApprovedCandidate || !currentApprovedCandidate.result.possible;
+   saveApprovedBtn.title = isAdminSession ? "" : "Onayli cozum kaydetmek icin admin girisi gerekli.";
++  if (openReliabilityFromOptimizerBtn) {
++    openReliabilityFromOptimizerBtn.disabled = isBusy || !currentApprovedCandidate || !getPrimaryOptimizerSource(currentApprovedCandidate.result)?.counts;
++  }
+   if (openSimulationFromOptimizerBtn) {
+     openSimulationFromOptimizerBtn.disabled = isBusy || !currentApprovedCandidate || !getPrimaryOptimizerSource(currentApprovedCandidate.result)?.counts;
+   }
+@@ -441,6 +504,9 @@ topResultsBtn.disabled = true;
+ if (favoriteStrategyBtn) {
+   favoriteStrategyBtn.disabled = true;
+ }
++if (openReliabilityFromOptimizerBtn) {
++  openReliabilityFromOptimizerBtn.disabled = true;
++}
+ if (openSimulationFromOptimizerBtn) {
+   openSimulationFromOptimizerBtn.disabled = true;
+ }
+@@ -463,6 +529,8 @@ wireSequentialInputOrder([
+   })
+ ]);
+ resetValues();
++loadAutoStageAdvanceSetting();
++syncAutoStageAdvanceToggle();
+ renderPointSummary();
+ applyStageFromQuery();
+ void initializeFavoriteStrategies();
+@@ -495,6 +563,20 @@ objectiveButtons.forEach((button) => {
+ 
+ if (optimizerSearchBandPresetInput) {
+   optimizerSearchBandPresetInput.addEventListener("change", () => {
++    if (optimizerSearchBandPresetMobileInput && optimizerSearchBandPresetMobileInput.value !== optimizerSearchBandPresetInput.value) {
++      optimizerSearchBandPresetMobileInput.value = optimizerSearchBandPresetInput.value;
++    }
++    syncSearchBandControls();
++    invalidateSearchSession();
++    renderPointSummary();
++  });
++}
++
++if (optimizerSearchBandPresetMobileInput) {
++  optimizerSearchBandPresetMobileInput.addEventListener("change", () => {
++    if (optimizerSearchBandPresetInput && optimizerSearchBandPresetInput.value !== optimizerSearchBandPresetMobileInput.value) {
++      optimizerSearchBandPresetInput.value = optimizerSearchBandPresetMobileInput.value;
++    }
+     syncSearchBandControls();
+     invalidateSearchSession();
+     renderPointSummary();
+@@ -549,6 +631,15 @@ stageInput.addEventListener("blur", () => {
+   commitStageInput();
+ });
+ 
++if (stageAutoAdvanceToggleBtn) {
++  stageAutoAdvanceToggleBtn.addEventListener("click", () => {
++    autoStageAdvanceEnabled = !autoStageAdvanceEnabled;
++    persistAutoStageAdvanceSetting();
++    syncAutoStageAdvanceToggle();
++    optimizerStatus.textContent = autoStageAdvanceEnabled ? "Kademe +1 acildi" : "Kademe +1 kapatildi";
++  });
++}
++
+ optimizeBtn.addEventListener("click", () => {
+   void runOptimizerSearch(1);
+ });
+@@ -993,6 +1084,7 @@ async function runOptimizerSearch(batchRuns) {
+       batchRuns: completedRuns,
+       batchSimulationRuns
+     });
++    syncStageAfterSimulation(stage);
+ 
+     setOptimizeButtonLabel("Tekrar Simule Et");
+     syncOptimizeButtonCompletionState(true);
+@@ -1067,9 +1159,15 @@ function setOptimizerBusy(isBusy) {
+   optimizerClearBtn.disabled = isBusy;
+   diversityModeBtn.disabled = isBusy;
+   stageInput.disabled = isBusy;
++  if (stageAutoAdvanceToggleBtn) {
++    stageAutoAdvanceToggleBtn.disabled = isBusy;
++  }
+   if (optimizerSearchBandPresetInput) {
+     optimizerSearchBandPresetInput.disabled = isBusy;
+   }
++  if (optimizerSearchBandPresetMobileInput) {
++    optimizerSearchBandPresetMobileInput.disabled = isBusy;
++  }
+   if (optimizerCustomBandMinInput) {
+     optimizerCustomBandMinInput.disabled = isBusy || optimizerCustomBandInputs?.hidden;
+   }
+@@ -1109,6 +1207,33 @@ function syncDiversityModeButton() {
+   diversityModeBtn.textContent = optimizerDiversityMode ? "Cesitlilik Acik" : "Cesitlilik Modu";
+ }
+ 
++function syncAutoStageAdvanceToggle() {
++  if (!stageAutoAdvanceToggleBtn) {
++    return;
++  }
++  stageAutoAdvanceToggleBtn.classList.toggle("is-active", autoStageAdvanceEnabled);
++  stageAutoAdvanceToggleBtn.setAttribute("aria-pressed", autoStageAdvanceEnabled ? "true" : "false");
++  stageAutoAdvanceToggleBtn.setAttribute("aria-label", autoStageAdvanceEnabled ? "Kademe +1 acik" : "Kademe +1 kapali");
++  stageAutoAdvanceToggleBtn.title = autoStageAdvanceEnabled ? "Kademe +1 acik" : "Kademe +1 kapali";
++}
++
++function loadAutoStageAdvanceSetting() {
++  try {
++    const raw = window.localStorage.getItem(AUTO_STAGE_ADVANCE_STORAGE_KEY);
++    autoStageAdvanceEnabled = raw === "1";
++  } catch (_error) {
++    autoStageAdvanceEnabled = false;
++  }
++}
++
++function persistAutoStageAdvanceSetting() {
++  try {
++    window.localStorage.setItem(AUTO_STAGE_ADVANCE_STORAGE_KEY, autoStageAdvanceEnabled ? "1" : "0");
++  } catch (_error) {
++    // localStorage erisimi yoksa ayar sadece bu sayfa oturumunda kalir.
++  }
++}
++
+ function syncObjectiveButtons() {
+   objectiveButtons.forEach((button) => {
+     button.classList.toggle("active", button.dataset.objective === optimizerObjective);
+@@ -2362,6 +2487,9 @@ function applySearchBandSettings(settings = {}) {
+   if (optimizerSearchBandPresetInput) {
+     optimizerSearchBandPresetInput.value = normalized.mode;
+   }
++  if (optimizerSearchBandPresetMobileInput) {
++    optimizerSearchBandPresetMobileInput.value = normalized.mode;
++  }
+   if (optimizerCustomBandMinInput) {
+     optimizerCustomBandMinInput.value = String(normalized.minPercent);
+   }
+@@ -2377,6 +2505,12 @@ function syncSearchBandControls() {
+     minPercent: optimizerCustomBandMinInput?.value,
+     maxPercent: optimizerCustomBandMaxInput?.value
+   });
++  if (optimizerSearchBandPresetInput && optimizerSearchBandPresetInput.value !== normalized.mode) {
++    optimizerSearchBandPresetInput.value = normalized.mode;
++  }
++  if (optimizerSearchBandPresetMobileInput && optimizerSearchBandPresetMobileInput.value !== normalized.mode) {
++    optimizerSearchBandPresetMobileInput.value = normalized.mode;
++  }
+   const isCustom = normalized.mode === "custom";
+   if (optimizerCustomBandInputs) {
+     optimizerCustomBandInputs.hidden = !isCustom;
+@@ -2475,6 +2609,7 @@ function formatLargeInteger(value) {
+ }
+ 
+ function resetValues() {
++  renderSimulatedStageDisplay(null);
+   [...ENEMY_UNITS, ...ALLY_UNITS].forEach((unit) => {
+     optimizerInputs[unit.key].value = "0";
+   });
+@@ -2525,6 +2660,25 @@ function commitStageInput() {
+   }
+ }
+ 
++function renderSimulatedStageDisplay(stage) {
++  if (!simulatedStageDisplay) {
++    return;
++  }
++  simulatedStageDisplay.value = Number.isFinite(stage) && stage > 0 ? String(stage) : "-";
++}
++
++function syncStageAfterSimulation(stage) {
++  if (!Number.isFinite(stage) || stage <= 0) {
++    return;
++  }
++  renderSimulatedStageDisplay(stage);
++  if (!autoStageAdvanceEnabled) {
++    return;
++  }
++  stageInput.value = String(stage + 1);
++  commitStageInput();
++}
++
+ function collectMinimumRequiredCounts() {
+   const counts = {};
+   ALLY_UNITS.forEach((unit) => {
+diff --git a/saved.html b/saved.html
+index a80c5f3..b1db845 100644
+--- a/saved.html
++++ b/saved.html
+@@ -14,11 +14,13 @@
+     <header class="hero">
+       <div class="hero-copy-block">
+         <div class="top-nav">
+-          <a class="nav-link" href="index.html">Simulasyon</a>
+-          <a class="nav-link" href="optimizer.html">Optimizer</a>
+-          <a class="nav-link" href="optimizer-minimum.html">Min Kisit</a>
+-          <a class="nav-link active" href="saved.html">Onaylananlar</a>
+-          <a class="nav-link" href="fav.html">Favlar</a>
++          <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
++          <a class="nav-link nav-opt" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
++          <a class="nav-link nav-opt2" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
++          <a class="nav-link nav-min" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
++          <a class="nav-link nav-rel" href="reliability.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/><path d="m9.5 12 1.8 1.8 3.7-3.8"/></svg></span><span class="nav-link-label">Guvenilirlik</span></a>
++          <a class="nav-link nav-saved active" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
++          <a class="nav-link nav-fav" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
+         </div>
+         <p class="eyebrow">BT ANALYSS / KAYITLI COZUMLER</p>
+         <h1>Onaylanan Versuslar</h1>
+diff --git a/styles.css b/styles.css
+index 499d1c9..5a0e986 100644
+--- a/styles.css
++++ b/styles.css
+@@ -166,7 +166,7 @@ body.site-gate-ready .page-shell {
+ 
+ .hero {
+   display: grid;
+-  grid-template-columns: minmax(0, 1fr) 180px;
++  grid-template-columns: minmax(0, 1fr) auto;
+   gap: 16px;
+   align-items: center;
+   padding: 10px 6px 0;
+@@ -190,6 +190,7 @@ body.site-gate-ready .page-shell {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
++  gap: 8px;
+   min-height: 48px;
+   padding: 10px 12px;
+   border-radius: 18px;
+@@ -203,6 +204,72 @@ body.site-gate-ready .page-shell {
+   transition: border-color 140ms ease, color 140ms ease, background 140ms ease, transform 140ms ease;
+ }
+ 
++.nav-link-icon {
++  width: 16px;
++  height: 16px;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  flex: 0 0 auto;
++  color: currentColor;
++}
++
++.nav-link-icon svg {
++  width: 16px;
++  height: 16px;
++  fill: none;
++  stroke: currentColor;
++  stroke-width: 1.8;
++  stroke-linecap: round;
++  stroke-linejoin: round;
++}
++
++.nav-link-label {
++  display: inline-block;
++}
++
++.nav-sim {
++  --nav-tone: linear-gradient(180deg, rgba(30, 48, 72, 0.94), rgba(14, 24, 38, 0.96));
++  --nav-border: rgba(93, 140, 198, 0.32);
++  --nav-icon: #8ebeff;
++}
++
++.nav-opt {
++  --nav-tone: linear-gradient(180deg, rgba(42, 54, 83, 0.94), rgba(19, 26, 45, 0.96));
++  --nav-border: rgba(112, 140, 211, 0.3);
++  --nav-icon: #afc7ff;
++}
++
++.nav-opt2 {
++  --nav-tone: linear-gradient(180deg, rgba(47, 55, 74, 0.94), rgba(24, 29, 42, 0.96));
++  --nav-border: rgba(152, 144, 206, 0.28);
++  --nav-icon: #cbbfff;
++}
++
++.nav-min {
++  --nav-tone: linear-gradient(180deg, rgba(46, 57, 53, 0.94), rgba(20, 30, 27, 0.96));
++  --nav-border: rgba(105, 171, 136, 0.28);
++  --nav-icon: #9dd9b4;
++}
++
++.nav-rel {
++  --nav-tone: linear-gradient(180deg, rgba(58, 51, 39, 0.94), rgba(31, 26, 18, 0.96));
++  --nav-border: rgba(183, 151, 87, 0.28);
++  --nav-icon: #e1c27a;
++}
++
++.nav-saved {
++  --nav-tone: linear-gradient(180deg, rgba(34, 59, 52, 0.94), rgba(14, 30, 25, 0.96));
++  --nav-border: rgba(79, 172, 149, 0.28);
++  --nav-icon: #88e3cd;
++}
++
++.nav-fav {
++  --nav-tone: linear-gradient(180deg, rgba(61, 42, 48, 0.94), rgba(31, 20, 24, 0.96));
++  --nav-border: rgba(186, 104, 127, 0.28);
++  --nav-icon: #f1a1b8;
++}
++
+ .nav-link.active {
+   color: var(--text);
+   background: linear-gradient(180deg, rgba(108, 182, 255, 0.2), rgba(108, 182, 255, 0.12));
+@@ -229,6 +296,10 @@ body.site-gate-ready .page-shell {
+   line-height: 0.98;
+ }
+ 
++body[data-optimizer-variant="minimum"] .minimum-hero-title {
++  margin-left: 14px;
++}
++
+ .hero-support {
+   margin: 10px 0 0;
+   color: var(--muted);
+@@ -236,29 +307,81 @@ body.site-gate-ready .page-shell {
+ }
+ 
+ .hero-stat {
+-  padding: 14px 16px;
+-  border: 1px solid var(--line);
++  position: relative;
++  width: clamp(208px, 18vw, 260px);
++  min-height: 58px;
++  padding: 11px 16px 11px 18px;
++  border: 1px solid rgba(146, 173, 214, 0.16);
+   border-radius: 18px;
+-  background: var(--panel);
+-  box-shadow: var(--shadow);
+-  align-self: stretch;
+-  display: flex;
+-  flex-direction: column;
+-  justify-content: center;
++  background:
++    radial-gradient(circle at 85% 18%, rgba(108, 182, 255, 0.12), transparent 28%),
++    linear-gradient(180deg, rgba(14, 20, 31, 0.94), rgba(10, 15, 24, 0.98));
++  box-shadow:
++    inset 0 1px 0 rgba(255, 255, 255, 0.03),
++    0 14px 28px rgba(3, 8, 16, 0.2);
++  align-self: start;
++  justify-self: end;
++  display: grid;
++  grid-template-columns: auto 1fr;
++  align-items: center;
++  column-gap: 12px;
++  row-gap: 0;
++  overflow: hidden;
++}
++
++.hero-stat::before {
++  content: "";
++  position: absolute;
++  inset: 0 auto 0 0;
++  width: 4px;
++  border-radius: 22px 0 0 22px;
++  background: linear-gradient(180deg, rgba(107, 174, 255, 0.92), rgba(57, 116, 201, 0.9));
++}
++
++.hero-stat::after {
++  content: "";
++  position: absolute;
++  top: 11px;
++  right: 11px;
++  width: 8px;
++  height: 8px;
++  border-radius: 999px;
++  background: rgba(127, 197, 255, 0.9);
++  box-shadow: 0 0 0 6px rgba(127, 197, 255, 0.08);
+ }
+ 
+ .hero-stat span {
+-  display: block;
+-  color: var(--muted);
+-  font-size: 0.78rem;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  min-height: 20px;
++  padding: 0 9px;
++  border-radius: 999px;
++  width: fit-content;
++  color: #99b4da;
++  font-size: 0.62rem;
++  font-weight: 700;
+   text-transform: uppercase;
+-  letter-spacing: 0.14em;
++  letter-spacing: 0.18em;
++  background: rgba(255, 255, 255, 0.04);
++  border: 1px solid rgba(160, 185, 214, 0.1);
+ }
+ 
+ .hero-stat strong {
+-  display: block;
+-  margin-top: 8px;
++  display: -webkit-box;
++  margin-top: 0;
++  max-width: 13ch;
++  color: #f5f8ff;
+   font-size: 1rem;
++  font-weight: 800;
++  line-height: 1.05;
++  letter-spacing: -0.02em;
++  overflow: hidden;
++  -webkit-box-orient: vertical;
++  -webkit-line-clamp: 2;
++  text-wrap: balance;
++  text-align: right;
++  justify-self: end;
+ }
+ 
+ .layout {
+@@ -837,6 +960,27 @@ body[data-optimizer-variant="minimum"] .layout {
+   .variant-summary-secondary {
+     grid-template-columns: 1fr;
+   }
++
++  .optimizer-constraint-note {
++    display: none;
++  }
++
++  .optimizer-secondary-inline {
++    display: flex;
++    margin-right: 0;
++  }
++
++  .optimizer-secondary-inline .mode-switch {
++    flex-wrap: wrap;
++  }
++
++  .optimizer-band-mobile {
++    display: block;
++  }
++
++  .optimizer-band-controls .optimizer-band-preset-wrap {
++    display: none;
++  }
+ }
+ 
+ .unit-grid {
+@@ -964,6 +1108,60 @@ body[data-optimizer-variant="minimum"] .layout {
+   gap: 10px;
+ }
+ 
++.optimizer-band-mobile {
++  display: none;
++}
++
++.optimizer-band-mobile-select {
++  min-width: 0;
++  border: 0;
++  border-radius: 10px;
++  background: transparent;
++  color: var(--muted);
++  font: inherit;
++  font-size: 0.8rem;
++  font-weight: 700;
++  text-align: center;
++  padding: 8px 10px;
++}
++
++.optimizer-band-preset-wrap > span {
++  display: none;
++}
++
++.optimizer-secondary-inline {
++  display: inline-flex;
++  vertical-align: top;
++  margin-right: 14px;
++}
++
++.optimizer-secondary-inline .mode-switch {
++  flex-wrap: nowrap;
++}
++
++@media (max-width: 720px) {
++  .optimizer-band-mobile {
++    display: block;
++    min-width: 0;
++  }
++
++  .optimizer-run-mode-switch {
++    display: grid;
++    grid-template-columns: repeat(4, minmax(0, 1fr));
++    width: 100%;
++    gap: 6px;
++  }
++
++  .optimizer-run-mode-switch .mode-button,
++  .optimizer-run-mode-switch .optimizer-band-mobile-select {
++    width: 100%;
++  }
++
++  .optimizer-band-controls .optimizer-band-preset-wrap {
++    display: none;
++  }
++}
++
+ .optimizer-custom-band {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(120px, 1fr));
+@@ -1234,6 +1432,91 @@ body[data-optimizer-variant="minimum"] .layout {
+   margin: 0;
+ }
+ 
++.stage-dual-wrap {
++  flex-wrap: wrap;
++}
++
++.stage-split-input {
++  display: inline-flex;
++  align-items: stretch;
++  min-width: 256px;
++  max-width: 100%;
++  border: 1px solid rgba(160, 185, 214, 0.16);
++  border-radius: 12px;
++  background: rgba(255, 255, 255, 0.04);
++  overflow: hidden;
++}
++
++.stage-split-input:focus-within {
++  border-color: var(--accent);
++  background: rgba(255, 255, 255, 0.08);
++}
++
++.stage-split-input .stage-select {
++  min-width: 0;
++  border: 0;
++  border-radius: 0;
++  background: transparent;
++  color-scheme: dark;
++  text-align: center;
++  font-size: 1rem;
++  font-weight: 700;
++}
++
++.stage-select-editable {
++  flex: 0 0 100px;
++  width: 100px;
++}
++
++.stage-select-readonly {
++  flex: 0 0 100px;
++  width: 100px;
++  padding-right: 8px;
++  text-align: center;
++  color: rgba(233, 239, 247, 0.9);
++  cursor: default;
++}
++
++.stage-select-readonly[readonly] {
++  pointer-events: none;
++}
++
++.stage-split-divider {
++  width: 1px;
++  background: rgba(160, 185, 214, 0.22);
++}
++
++.stage-select-toggle {
++  flex: 0 0 54px;
++  width: 54px;
++  padding: 9px 4px;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  cursor: pointer;
++}
++
++.stage-select-toggle:hover {
++  background: rgba(255, 255, 255, 0.08);
++}
++
++.stage-toggle-icon {
++  width: 14px;
++  height: 14px;
++  border-radius: 999px;
++  background: #d05757;
++  box-shadow: 0 0 0 2px rgba(208, 87, 87, 0.18);
++}
++
++.stage-select-toggle.is-active {
++  background: rgba(88, 166, 255, 0.14);
++}
++
++.stage-select-toggle.is-active .stage-toggle-icon {
++  background: #39b36b;
++  box-shadow: 0 0 0 2px rgba(57, 179, 107, 0.18);
++}
++
+ .mode-switch {
+   display: inline-flex;
+   flex-wrap: wrap;
+@@ -1262,6 +1545,34 @@ body[data-optimizer-variant="minimum"] .layout {
+   color: var(--text);
+ }
+ 
++@media (max-width: 720px) {
++  .optimizer-run-mode-switch {
++    display: grid;
++    grid-template-columns: repeat(4, minmax(0, 1fr));
++    width: 100%;
++    flex: 1 1 100%;
++    gap: 6px;
++  }
++
++  .optimizer-run-mode-switch .mode-button,
++  .optimizer-run-mode-switch .optimizer-band-mobile {
++    width: 100%;
++    min-width: 0;
++  }
++
++  .optimizer-run-mode-switch .optimizer-band-mobile {
++    display: block;
++  }
++
++  .optimizer-run-mode-switch .optimizer-band-mobile-select {
++    width: 100%;
++    min-width: 0;
++    height: 100%;
++    font-size: 0.7rem;
++    padding: 8px 4px;
++  }
++}
++
+ .recommendation-grid {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+@@ -1502,6 +1813,44 @@ body[data-optimizer-variant="minimum"] .layout {
+ }
+ 
+ @media (max-width: 720px) {
++  .controls-panel .panel-head {
++    flex-direction: column;
++    align-items: stretch;
++  }
++
++  .controls-panel .panel-head h2 {
++    width: 100%;
++    font-size: 0.84rem;
++    text-align: center;
++  }
++
++  .controls-panel .panel-head-tools {
++    width: 100%;
++  }
++
++  .controls-panel .stage-dual-wrap {
++    width: 100%;
++  }
++
++  .controls-panel .stage-dual-wrap > span {
++    display: none;
++  }
++
++  .controls-panel .stage-split-input {
++    width: 100%;
++  }
++
++  .controls-panel .stage-select-editable,
++  .controls-panel .stage-select-readonly {
++    flex: 1 1 0;
++    width: auto;
++  }
++
++  .controls-panel .stage-select-toggle {
++    flex: 0 0 58px;
++    width: 58px;
++  }
++
+   .compare-summary,
+   .compare-grid {
+     grid-template-columns: 1fr;
+@@ -1757,6 +2106,159 @@ body[data-optimizer-variant="minimum"] .layout {
+   color: var(--text);
+ }
+ 
++.reliability-scenario-card {
++  position: relative;
++  padding: 14px;
++  border-radius: 20px;
++  background:
++    radial-gradient(circle at top right, rgba(255, 255, 255, 0.04), transparent 42%),
++    linear-gradient(180deg, rgba(11, 16, 24, 0.84), rgba(8, 12, 18, 0.94));
++  overflow: hidden;
++}
++
++.reliability-scenario-card::before {
++  content: "";
++  position: absolute;
++  inset: 0 auto 0 0;
++  width: 4px;
++  border-radius: 20px 0 0 20px;
++  background: rgba(160, 185, 214, 0.16);
++}
++
++.reliability-scenario-card.is-clean::before {
++  background: linear-gradient(180deg, rgba(92, 184, 132, 0.9), rgba(43, 110, 72, 0.92));
++}
++
++.reliability-scenario-card.is-costly::before {
++  background: linear-gradient(180deg, rgba(181, 140, 84, 0.9), rgba(96, 65, 28, 0.92));
++}
++
++.reliability-scenario-card.is-edge::before {
++  background: linear-gradient(180deg, rgba(171, 105, 126, 0.9), rgba(93, 42, 56, 0.92));
++}
++
++.reliability-scenario-head {
++  align-items: center;
++  gap: 14px;
++}
++
++.reliability-scenario-title-wrap {
++  display: grid;
++  gap: 8px;
++  min-width: 0;
++}
++
++.reliability-scenario-badges {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 8px;
++}
++
++.reliability-scenario-badge {
++  display: inline-flex;
++  align-items: center;
++  min-height: 26px;
++  padding: 0 10px;
++  border-radius: 999px;
++  border: 1px solid rgba(160, 185, 214, 0.14);
++  background: rgba(255, 255, 255, 0.04);
++  color: var(--muted);
++  font-size: 0.72rem;
++  font-weight: 700;
++  letter-spacing: 0.04em;
++  text-transform: uppercase;
++}
++
++.reliability-scenario-card.is-win .reliability-scenario-badge-outcome {
++  background: rgba(71, 167, 112, 0.16);
++  border-color: rgba(92, 184, 132, 0.28);
++  color: #9fe0b9;
++}
++
++.reliability-scenario-card.is-loss .reliability-scenario-badge-outcome {
++  background: rgba(177, 83, 105, 0.16);
++  border-color: rgba(198, 96, 120, 0.28);
++  color: #efadc0;
++}
++
++.reliability-scenario-card.is-clean .reliability-scenario-badge-category {
++  color: #a7e7bc;
++}
++
++.reliability-scenario-card.is-costly .reliability-scenario-badge-category {
++  color: #e7c38b;
++}
++
++.reliability-scenario-card.is-edge .reliability-scenario-badge-category {
++  color: #f0b1c3;
++}
++
++.reliability-scenario-seed {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  min-height: 30px;
++  padding: 0 12px;
++  border-radius: 999px;
++  border: 1px solid rgba(160, 185, 214, 0.12);
++  background: rgba(14, 20, 31, 0.9);
++  color: #b1bfd6;
++  font-size: 0.74rem;
++  font-weight: 700;
++  white-space: nowrap;
++}
++
++.reliability-scenario-stats {
++  grid-template-columns: repeat(2, minmax(0, 1fr));
++  gap: 10px;
++  margin-bottom: 12px;
++}
++
++.reliability-scenario-stats > span {
++  display: grid;
++  gap: 4px;
++  padding: 10px 12px;
++  border-radius: 14px;
++  border: 1px solid rgba(160, 185, 214, 0.1);
++  background: rgba(255, 255, 255, 0.025);
++}
++
++.reliability-scenario-stats small {
++  color: #8c9ab2;
++  font-size: 0.68rem;
++  font-weight: 700;
++  letter-spacing: 0.05em;
++  text-transform: uppercase;
++}
++
++.reliability-scenario-stats strong {
++  font-size: 0.98rem;
++}
++
++.reliability-scenario-losses {
++  margin-top: 0;
++  margin-bottom: 12px;
++  border-radius: 16px;
++  border-color: rgba(91, 122, 197, 0.24);
++  background:
++    linear-gradient(180deg, rgba(12, 18, 30, 0.96), rgba(10, 15, 25, 0.96));
++  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
++}
++
++.reliability-scenario-losses .log-line {
++  padding: 2px 0;
++}
++
++.reliability-scenario-actions {
++  margin-top: 0;
++  gap: 10px;
++}
++
++.reliability-scenario-actions .button {
++  min-width: 0;
++  padding-inline: 14px;
++}
++
+ .saved-origin-badge {
+   display: inline-flex;
+   align-items: center;
+@@ -2624,6 +3126,8 @@ body[data-optimizer-variant="minimum"] .layout {
+ 
+ #logOutput,
+ #optimizerLogOutput,
++.scenario-log-output,
++#scenarioLogOutput,
+ .variant-log-output {
+   margin: 0;
+   min-height: 320px;
+@@ -2687,6 +3191,24 @@ body.simulation-log-fullscreen {
+   .optimizer-log-panel:is(.is-fullscreen, :fullscreen) #optimizerLogOutput {
+     padding: 16px 12px 20px;
+   }
++
++  .reliability-scenario-head {
++    align-items: flex-start;
++  }
++
++  .reliability-scenario-seed {
++    min-height: 28px;
++    padding-inline: 10px;
++  }
++
++  .reliability-scenario-stats {
++    grid-template-columns: 1fr;
++  }
++
++  .reliability-scenario-actions .button {
++    flex: 1 1 0;
++    justify-content: center;
++  }
+ }
+ 
+ .log-line {
+@@ -2699,6 +3221,7 @@ body.simulation-log-fullscreen {
+ 
+ #logOutput .log-line,
+ #optimizerLogOutput .log-line,
++#scenarioLogOutput .log-line,
+ .variant-log-output .log-line {
+   white-space: pre;
+   overflow-wrap: normal;
+@@ -2857,14 +3380,14 @@ body.simulation-log-fullscreen {
+   }
+ 
+   .hero-stat {
+-    flex-direction: row;
+-    align-items: center;
+-    justify-content: space-between;
+-    padding: 10px 12px;
++    min-height: 72px;
++    padding: 12px 14px 12px 16px;
+   }
+ 
+   .hero-stat strong {
+-    margin-top: 0;
++    margin-top: 8px;
++    max-width: none;
++    font-size: 1rem;
+   }
+ 
+   .roster-grid {
+@@ -2962,31 +3485,74 @@ body.simulation-log-fullscreen {
+   }
+ 
+   .hero-stat {
+-    padding: 8px 10px;
+-    border-radius: 14px;
++    min-height: 64px;
++    padding: 10px 12px 10px 14px;
++    border-radius: 16px;
+   }
+ 
+   .hero-stat span {
+-    font-size: 0.66rem;
++    min-height: 22px;
++    padding-inline: 8px;
++    font-size: 0.62rem;
+   }
+ 
+   .hero-stat strong {
+-    font-size: 0.92rem;
++    margin-top: 6px;
++    font-size: 0.9rem;
+   }
+ 
+   .top-nav {
+     width: 100%;
+-    gap: 0;
++    gap: 4px;
+     margin-bottom: 6px;
+-    padding: 3px;
+-    border-radius: 20px;
++    padding: 4px;
++    border-radius: 22px;
++    grid-auto-columns: minmax(0, 1fr);
+   }
+ 
+   .nav-link {
+-    min-height: 44px;
+-    padding: 8px 4px;
+-    font-size: 0.58rem;
+-    border-radius: 15px;
++    min-height: 46px;
++    padding: 0;
++    font-size: 0;
++    border-radius: 14px;
++    background: var(--nav-tone, rgba(20, 26, 38, 0.96));
++    box-shadow: inset 0 0 0 1px var(--nav-border, rgba(160, 185, 214, 0.14));
++    color: var(--nav-icon, #c9d6ea);
++  }
++
++  .nav-link-label {
++    position: absolute;
++    width: 1px;
++    height: 1px;
++    padding: 0;
++    margin: -1px;
++    overflow: hidden;
++    clip: rect(0, 0, 0, 0);
++    white-space: nowrap;
++    border: 0;
++  }
++
++  .nav-link-icon,
++  .nav-link-icon svg {
++    width: 18px;
++    height: 18px;
++  }
++
++  .nav-link.active {
++    background:
++      linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
++      var(--nav-tone, rgba(20, 26, 38, 0.96));
++    color: #f3f7ff;
++    box-shadow:
++      inset 0 0 0 1px rgba(214, 228, 255, 0.22),
++      0 0 0 1px rgba(214, 228, 255, 0.08);
++  }
++
++  .nav-link:not(.active):hover {
++    background:
++      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
++      var(--nav-tone, rgba(20, 26, 38, 0.96));
++    color: #eef4ff;
+   }
+ 
+   .eyebrow {
+@@ -2999,6 +3565,10 @@ body.simulation-log-fullscreen {
+     line-height: 1;
+   }
+ 
++  body[data-optimizer-variant="minimum"] .minimum-hero-title {
++    margin-left: 10px;
++  }
++
+   .layout {
+     gap: 8px;
+   }
+diff --git a/wrong.html b/wrong.html
+index b5d7ecd..029896d 100644
+--- a/wrong.html
++++ b/wrong.html
+@@ -14,11 +14,13 @@
+     <header class="hero">
+       <div class="hero-copy-block">
+         <div class="top-nav">
+-          <a class="nav-link" href="index.html">Simulasyon</a>
+-          <a class="nav-link" href="optimizer.html">Optimizer</a>
+-          <a class="nav-link" href="optimizer-minimum.html">Min Kisit</a>
+-          <a class="nav-link" href="saved.html">Onaylananlar</a>
+-          <a class="nav-link" href="fav.html">Favlar</a>
++          <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
++          <a class="nav-link nav-opt" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
++          <a class="nav-link nav-opt2" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
++          <a class="nav-link nav-min" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
++          <a class="nav-link nav-rel" href="reliability.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/><path d="m9.5 12 1.8 1.8 3.7-3.8"/></svg></span><span class="nav-link-label">Guvenilirlik</span></a>
++          <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
++          <a class="nav-link nav-fav" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
+         </div>
+         <p class="eyebrow">BT ANALYSS / YANLIS RAPORLARI</p>
+         <h1>Yanlis Sonuclar</h1>

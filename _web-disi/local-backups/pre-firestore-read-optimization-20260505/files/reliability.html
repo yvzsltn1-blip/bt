@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BT Analyss Guvenilirlik</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="styles.css?v=20260503-09">
+</head>
+<body class="site-gate-pending">
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy-block">
+        <div class="top-nav">
+          <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
+          <a class="nav-link nav-opt" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
+          <a class="nav-link nav-opt2" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
+          <a class="nav-link nav-min" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
+          <a class="nav-link nav-rel active" href="reliability.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/><path d="m9.5 12 1.8 1.8 3.7-3.8"/></svg></span><span class="nav-link-label">Guvenilirlik</span></a>
+          <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
+          <a class="nav-link nav-fav" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
+        </div>
+        <p class="eyebrow">BT ANALYSS / SABIT SEED ANALIZI</p>
+        <h1>Guvenilirlik Analizi</h1>
+      </div>
+      <div class="hero-stat">
+        <span>Durum</span>
+        <strong id="reliabilityStatus">Hazir</strong>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel controls-panel">
+        <div class="panel-head">
+          <h2>Dizilim</h2>
+        </div>
+
+        <p class="optimizer-constraint-note">
+          Bu ekran tek savas yerine ayni dizilimi coklu seed ile tarar. Boylece "kazaniyor gibi gorunup bazen kaybeden" duzenleri ayiklayabilirsin.
+        </p>
+
+        <div class="roster-grid">
+          <section class="roster-card roster-card-enemy">
+            <div class="roster-head">
+              <span class="roster-dot" aria-hidden="true"></span>
+              <h3>Rakip Ordu</h3>
+            </div>
+            <div id="reliabilityEnemyInputs" class="unit-grid"></div>
+          </section>
+
+          <section class="roster-card roster-card-ally">
+            <div class="roster-head">
+              <span class="roster-dot" aria-hidden="true"></span>
+              <h3>Denenen Dizilim</h3>
+              <span class="roster-metric">Puan <strong id="reliabilityPointsValue">0</strong></span>
+            </div>
+            <div id="reliabilityAllyInputs" class="unit-grid"></div>
+          </section>
+        </div>
+
+        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
+          <label class="select-wrap" for="analysisSampleCount">
+            <span>Seed Ornegi</span>
+            <select id="analysisSampleCount" class="stage-select">
+              <option value="fixed:750" selected>750 sabit seed</option>
+              <option value="random:750">750 random seed</option>
+              <option value="fixed:1500">1500 sabit seed</option>
+              <option value="random:1500">1500 random seed</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="analyzeReliabilityBtn" class="button button-primary" type="button">Analizi Baslat</button>
+          <button id="loadOptimizerPayloadBtn" class="button button-secondary" type="button">Optimizer'dan Yukle</button>
+          <button id="sampleReliabilityBtn" class="button button-secondary" type="button">Ornek Ordu</button>
+          <button id="clearReliabilityBtn" class="button button-ghost" type="button">Sifirla</button>
+        </div>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <h2>Toplu Sonuc</h2>
+          <p>v2 tipi kayip = sadece kazanilan seedlerde ortalama. v6 tipi kayip = tum seedlerin beklenen ortalamasi.</p>
+        </div>
+
+        <section id="reliabilitySummaryPanel" class="summary-panel">
+          <p class="summary-empty">Analiz henuz calismadi.</p>
+        </section>
+
+        <section id="reliabilityMetaPanel" class="recommendation-grid"></section>
+
+        <section id="reliabilityNotesPanel" class="saved-match-panel"></section>
+
+        <section class="saved-match-panel">
+          <div class="panel-head">
+            <h2>Seed Senaryolari</h2>
+          </div>
+          <div id="scenarioList" class="saved-list">
+            <p class="summary-empty">Analizden sonra ornek seed senaryolari burada listelenecek.</p>
+          </div>
+        </section>
+
+        <section class="log-panel">
+          <div class="log-head">
+            <span class="log-head-title">Secilen Seed Gunlugu</span>
+          </div>
+          <div id="scenarioLogOutput">Bir seed senaryosu secildiginde tam savas gunlugu burada gosterilecek.</div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="site-gate.js?v=20260502-02" defer></script>
+  <script src="battle-core.js?v=20260503-02" defer></script>
+  <script src="reliability.js?v=20260504-02" defer></script>
+</body>
+</html>

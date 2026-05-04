@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BT Analyss Optimizer v2</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="styles.css?v=20260423-11">
+</head>
+<body class="site-gate-pending">
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy-block">
+        <div class="top-nav">
+          <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
+          <a class="nav-link nav-opt" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
+          <a class="nav-link nav-opt2 active" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
+          <a class="nav-link nav-min" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
+          <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
+          <a class="nav-link nav-fav" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
+        </div>
+        <p class="eyebrow">BT ANALYSS / V2 OPTIMIZER MOTORU</p>
+        <h1>Optimizer v2</h1>
+      </div>
+      <div class="hero-stat">
+        <span>Durum</span>
+        <strong id="optimizerStatus">Hazir</strong>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel controls-panel">
+        <div class="panel-head">
+          <h2>Ordu Girisleri</h2>
+          <div class="panel-head-tools">
+            <label class="select-wrap" for="stageInput">
+              <span>Kademe</span>
+              <input id="stageInput" class="stage-select" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Kademe gir">
+            </label>
+            <div class="mode-switch" aria-label="Arama modu">
+              <button class="mode-button" data-mode="fast" type="button">Hizli</button>
+              <button class="mode-button active" data-mode="balanced" type="button">Dengeli</button>
+              <button class="mode-button" data-mode="deep" type="button">Derin</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="roster-grid">
+          <section class="roster-card roster-card-ally">
+            <div class="roster-head">
+              <span class="roster-dot"></span>
+              <h3>Eldeki Ordu</h3>
+              <span class="roster-metric">Puan <strong id="optimizerPointsValue">0</strong></span>
+              <span class="roster-metric">Limit <strong id="optimizerPointsLimit">-</strong></span>
+            </div>
+            <div id="optimizerAllyInputs" class="unit-grid"></div>
+          </section>
+
+          <section class="roster-card roster-card-enemy">
+            <div class="roster-head">
+              <span class="roster-dot"></span>
+              <h3>Rakip Ordu</h3>
+            </div>
+            <div id="optimizerEnemyInputs" class="unit-grid"></div>
+          </section>
+        </div>
+
+        <div class="actions">
+          <button id="optimizeBtn" class="button button-primary" type="button">Simule Et</button>
+          <button id="diversityModeBtn" class="button button-secondary" type="button" aria-pressed="false">Cesitlilik Modu</button>
+          <button class="button button-secondary button-batch-run" data-batch-runs="10" type="button">10 Tur</button>
+          <button class="button button-secondary button-batch-run" data-batch-runs="20" type="button">20 Tur</button>
+          <button class="button button-secondary button-batch-run" data-batch-runs="30" type="button">30 Tur</button>
+          <button id="stopOptimizerBtn" class="button button-ghost" type="button" disabled>Durdur</button>
+          <button id="optimizerSampleBtn" class="button button-secondary" type="button">Ornek Ordu</button>
+          <button id="optimizerClearBtn" class="button button-ghost" type="button">Sifirla</button>
+        </div>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <h2>Oneri</h2>
+        </div>
+
+        <p class="optimizer-constraint-note">
+          Bu ekran v2 optimizer mantigini aynen kullanir. Onerilen dizilim v2 motorundan gelir; simulasyon butonu sonucu v6 simulasyon ekraninda acar.
+        </p>
+
+        <section id="optimizerSummary" class="summary-panel">
+          <p class="summary-empty">Hesaplama henuz calismadi.</p>
+        </section>
+
+        <section id="matchedSavedPanel" class="saved-match-panel"></section>
+        <section id="matchedActualPanel" class="saved-match-panel"></section>
+        <section id="modeComparePanel" class="compare-panel">
+          <div class="compare-head">
+            <div class="compare-head-copy">
+              <strong>Mod Kiyaslama</strong>
+              <span>Standart ve cesitlilik sonuclarini ayni senaryoda karsilastir.</span>
+            </div>
+            <button id="compareToggleBtn" class="button button-ghost button-icon" type="button" aria-expanded="false" aria-controls="comparePanelContent" title="Mod kiyaslamayi ac">+</button>
+          </div>
+          <div id="comparePanelContent" hidden></div>
+        </section>
+
+        <div class="actions actions-inline">
+          <button id="saveApprovedBtn" class="button button-secondary" type="button">Onayla ve Kaydet</button>
+          <button id="topResultsBtn" class="button button-secondary" type="button" disabled>Ilk 5 Sonucu Goster</button>
+          <button id="openSimulationFromOptimizerV2Btn" class="button button-secondary" type="button" disabled>v6 Simulasyonda Ac</button>
+        </div>
+
+        <section id="recommendationPanel" class="recommendation-grid"></section>
+
+        <section class="log-panel">
+          <div class="log-head">
+            <span>Ornek Savas Gunlugu</span>
+            <button id="reportWrongOptimizerBtn" class="button button-danger button-icon" type="button" aria-label="Yanlis sonucu bildir" title="Yanlis sonucu bildir">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3l8 3v6c0 5.2-3.4 9-8 10-4.6-1-8-4.8-8-10V6l8-3zm0 5.2a1.1 1.1 0 00-1.1 1.1v4.2a1.1 1.1 0 002.2 0V9.3A1.1 1.1 0 0012 8.2zm0 8.1a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"></path>
+              </svg>
+            </button>
+          </div>
+          <div id="optimizerLogOutput">Analizden sonra onerilen dizilime ait bir savas gunlugu burada gosterilecek.</div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="wrongReportModal" class="report-modal" hidden>
+    <div class="report-modal-card">
+      <div class="panel-head">
+        <h2>Yanlis Sonucu Duzenle</h2>
+        <button id="closeWrongReportBtn" class="button button-ghost" type="button">Kapat</button>
+      </div>
+
+      <div class="report-preview-grid">
+        <section class="report-preview-block">
+          <h3>Beklenen Sonuc</h3>
+          <div id="expectedWrongSummaryPreview" class="terminal-block"></div>
+        </section>
+
+        <section class="report-preview-block">
+          <h3>Gercek Sonuc</h3>
+          <div class="report-form-grid">
+            <label class="report-field">
+              <span>Sonuc satiri</span>
+              <input id="actualOutcomeInput" type="text" placeholder=">> Gercek sonucu yaz">
+            </label>
+
+            <label class="report-field">
+              <span>Toplam birlik kapasitesi</span>
+              <input id="actualCapacityInput" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="0">
+            </label>
+
+            <div class="report-field report-field-full">
+              <span>Gercek kayip birlikler</span>
+              <div id="wrongLossInputs" class="unit-grid"></div>
+            </div>
+
+            <label class="report-field report-field-full">
+              <span>Not</span>
+              <textarea id="actualNoteInput" rows="3" placeholder="Istersen kisa aciklama ekle"></textarea>
+            </label>
+          </div>
+
+          <div id="actualWrongSummaryPreview" class="terminal-block"></div>
+        </section>
+      </div>
+
+      <div class="actions">
+        <button id="submitWrongReportBtn" class="button button-danger" type="button">Gercek Sonucu Kaydet</button>
+        <button id="cancelWrongReportBtn" class="button button-secondary" type="button">Vazgec</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="topResultsModal" class="report-modal" hidden>
+    <div class="report-modal-card top-results-modal-card">
+      <div class="panel-head">
+        <h2>En Iyi 5 Sonuc Ozeti</h2>
+        <button id="closeTopResultsBtn" class="button button-ghost" type="button">Kapat</button>
+      </div>
+
+      <div id="topResultsMeta" class="top-results-meta"></div>
+      <div id="topResultsList" class="top-results-list">
+        <p class="summary-empty">Henuz gosterilecek sonuc yok.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
+  <script src="site-gate.js?v=20260502-02" defer></script>
+  <script src="firebase-client.js?v=20260502-02" defer></script>
+  <script src="battle-core-v2.js?v=20260504-01" defer></script>
+  <script src="optimizer-v2.js?v=20260504-01" defer></script>
+</body>
+</html>

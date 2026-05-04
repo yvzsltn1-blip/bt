@@ -1,0 +1,17 @@
+battle-core.js
+fav.html
+index.html
+optimizer-minimum.html
+optimizer.html
+optimizer.js
+saved.html
+styles.css
+wrong.html
+AGENTS.md
+_web-disi/docs/SESSION_CHANGES_2026-05-04_23-48-42.md
+battle-core-v2.js
+docs/
+optimizer-v2.html
+optimizer-v2.js
+reliability.html
+reliability.js

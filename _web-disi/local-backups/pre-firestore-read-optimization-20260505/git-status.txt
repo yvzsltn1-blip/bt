@@ -1,0 +1,18 @@
+ M battle-core.js
+ M fav.html
+ M index.html
+ M optimizer-minimum.html
+ M optimizer.html
+ M optimizer.js
+ M saved.html
+ M styles.css
+ M wrong.html
+?? AGENTS.md
+?? _web-disi/docs/SESSION_CHANGES_2026-05-04_23-48-42.md
+?? _web-disi/local-backups/pre-firestore-read-optimization-20260505/
+?? battle-core-v2.js
+?? docs/
+?? optimizer-v2.html
+?? optimizer-v2.js
+?? reliability.html
+?? reliability.js
