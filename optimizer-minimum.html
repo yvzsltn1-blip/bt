@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260502-06">
+  <link rel="stylesheet" href="styles.css?v=20260503-09">
 </head>
 <body class="site-gate-pending" data-optimizer-variant="minimum">
   <div class="page-shell">
@@ -20,8 +20,7 @@
           <a class="nav-link" href="saved.html">Onaylananlar</a>
           <a class="nav-link" href="fav.html">Favlar</a>
         </div>
-        <p class="eyebrow">BT ANALYSS / MINIMUM KULLANIM OPTIMIZER</p>
-        <h1>Zorunlu Birlikli Optimumu Bul</h1>
+        <h1 class="minimum-hero-title">BT- Analiz</h1>
       </div>
       <div class="hero-stat">
         <span>Durum</span>
@@ -34,19 +33,34 @@
         <div class="panel-head">
           <h2>Ordu Girisleri</h2>
           <div class="panel-head-tools">
-            <label class="select-wrap" for="stageInput">
+            <label class="select-wrap stage-dual-wrap" for="stageInput">
               <span>Kademe</span>
-              <input id="stageInput" class="stage-select" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Kademe gir">
+              <div class="stage-split-input" role="group" aria-label="Kademe alanlari">
+                <input id="stageInput" class="stage-select stage-select-editable" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Kademe gir">
+                <span class="stage-split-divider" aria-hidden="true"></span>
+                <input id="simulatedStageDisplay" class="stage-select stage-select-readonly" type="text" value="-" readonly tabindex="-1" aria-label="Simule edilen kademe">
+                <span class="stage-split-divider" aria-hidden="true"></span>
+                <button id="stageAutoAdvanceToggleBtn" class="stage-select stage-select-toggle" type="button" aria-pressed="false" aria-label="Kademe +1 kapali" title="Kademe +1 kapali">
+                  <span class="stage-toggle-icon" aria-hidden="true"></span>
+                </button>
+              </div>
             </label>
-            <div class="mode-switch" aria-label="Arama modu">
+            <div class="mode-switch optimizer-run-mode-switch" aria-label="Arama modu">
               <button class="mode-button" data-mode="fast" type="button">Hizli</button>
               <button class="mode-button active" data-mode="balanced" type="button">Dengeli</button>
               <button class="mode-button" data-mode="deep" type="button">Derin</button>
+              <div class="optimizer-band-mobile">
+                <select id="optimizerSearchBandPresetMobile" class="stage-select optimizer-band-mobile-select" aria-label="Arama bandi">
+                  <option value="full">Tum uzay</option>
+                  <option value="tight75" selected>%75-%100</option>
+                  <option value="custom">Ozel bant</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="panel-head-tools panel-head-tools-secondary">
+        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
           <div class="mode-switch" aria-label="Hedef modu">
             <button class="objective-button active" data-objective="min_loss" type="button">En Az Kayipla Kazan</button>
             <button class="objective-button" data-objective="min_army" type="button">En Az Orduyla Kazan</button>
@@ -54,8 +68,8 @@
           </div>
         </div>
 
-        <div class="panel-head-tools panel-head-tools-secondary optimizer-band-controls">
-          <label class="select-wrap" for="optimizerSearchBandPreset">
+        <div class="panel-head-tools panel-head-tools-secondary optimizer-band-controls optimizer-secondary-inline">
+          <label class="select-wrap optimizer-band-preset-wrap" for="optimizerSearchBandPreset">
             <span>Arama BandI</span>
             <select id="optimizerSearchBandPreset" class="stage-select">
               <option value="full">Tum uzay</option>
@@ -271,6 +285,6 @@
   <script src="firebase-client.js?v=20260502-02" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
   <script src="battle-core.js?v=20260503-02" defer></script>
-  <script src="optimizer.js?v=20260503-02" defer></script>
+  <script src="optimizer.js?v=20260503-07" defer></script>
 </body>
 </html>

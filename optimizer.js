@@ -21,6 +21,7 @@ const optimizerEnemyInputs = document.querySelector("#optimizerEnemyInputs");
 const optimizerAllyInputs = document.querySelector("#optimizerAllyInputs");
 const optimizerConstraintInfo = document.querySelector("#optimizerConstraintInfo");
 const optimizerSearchBandPresetInput = document.querySelector("#optimizerSearchBandPreset");
+const optimizerSearchBandPresetMobileInput = document.querySelector("#optimizerSearchBandPresetMobile");
 const optimizerCustomBandInputs = document.querySelector("#optimizerCustomBandInputs");
 const optimizerCustomBandMinInput = document.querySelector("#optimizerCustomBandMin");
 const optimizerCustomBandMaxInput = document.querySelector("#optimizerCustomBandMax");
@@ -44,6 +45,8 @@ const favoriteStrategyBtn = document.querySelector("#favoriteStrategyBtn");
 const reportWrongOptimizerBtn = document.querySelector("#reportWrongOptimizerBtn");
 const langToggleOptimizerBtn = document.querySelector("#langToggleOptimizerBtn");
 const stageInput = document.querySelector("#stageInput");
+const simulatedStageDisplay = document.querySelector("#simulatedStageDisplay");
+const stageAutoAdvanceToggleBtn = document.querySelector("#stageAutoAdvanceToggleBtn");
 const optimizerPointsValue = document.querySelector("#optimizerPointsValue");
 const optimizerPointsLimit = document.querySelector("#optimizerPointsLimit");
 const modeButtons = [...document.querySelectorAll(".mode-button")];
@@ -82,6 +85,7 @@ const ROSTER_CLIPBOARD_STORAGE_KEY = "bt-analiz.optimizer.rosterClipboard.v1";
 const ROSTER_CLIPBOARD_TTL_MS = 60 * 1000;
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 const FAVORITE_STRATEGIES_STORAGE_KEY = "bt-analiz.optimizer.favorite-strategies.v1";
+const AUTO_STAGE_ADVANCE_STORAGE_KEY = "bt-analiz.optimizer.autoStageAdvance.v1";
 const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
 
 let optimizerSearchSession = createEmptySearchSession();
@@ -109,6 +113,7 @@ let rosterClipboardIndicatorTimer = null;
 let optimizerIncumbentContext = null;
 let currentFavoriteModalSignature = null;
 let currentFavoriteModalPendingEntry = null;
+let autoStageAdvanceEnabled = false;
 
 function isMinimumOptimizerVariant() {
   return optimizerVariant === "minimum";
@@ -463,6 +468,8 @@ wireSequentialInputOrder([
   })
 ]);
 resetValues();
+loadAutoStageAdvanceSetting();
+syncAutoStageAdvanceToggle();
 renderPointSummary();
 applyStageFromQuery();
 void initializeFavoriteStrategies();
@@ -495,6 +502,20 @@ objectiveButtons.forEach((button) => {
 
 if (optimizerSearchBandPresetInput) {
   optimizerSearchBandPresetInput.addEventListener("change", () => {
+    if (optimizerSearchBandPresetMobileInput && optimizerSearchBandPresetMobileInput.value !== optimizerSearchBandPresetInput.value) {
+      optimizerSearchBandPresetMobileInput.value = optimizerSearchBandPresetInput.value;
+    }
+    syncSearchBandControls();
+    invalidateSearchSession();
+    renderPointSummary();
+  });
+}
+
+if (optimizerSearchBandPresetMobileInput) {
+  optimizerSearchBandPresetMobileInput.addEventListener("change", () => {
+    if (optimizerSearchBandPresetInput && optimizerSearchBandPresetInput.value !== optimizerSearchBandPresetMobileInput.value) {
+      optimizerSearchBandPresetInput.value = optimizerSearchBandPresetMobileInput.value;
+    }
     syncSearchBandControls();
     invalidateSearchSession();
     renderPointSummary();
@@ -548,6 +569,15 @@ stageInput.addEventListener("keydown", (event) => {
 stageInput.addEventListener("blur", () => {
   commitStageInput();
 });
+
+if (stageAutoAdvanceToggleBtn) {
+  stageAutoAdvanceToggleBtn.addEventListener("click", () => {
+    autoStageAdvanceEnabled = !autoStageAdvanceEnabled;
+    persistAutoStageAdvanceSetting();
+    syncAutoStageAdvanceToggle();
+    optimizerStatus.textContent = autoStageAdvanceEnabled ? "Kademe +1 acildi" : "Kademe +1 kapatildi";
+  });
+}
 
 optimizeBtn.addEventListener("click", () => {
   void runOptimizerSearch(1);
@@ -993,6 +1023,7 @@ async function runOptimizerSearch(batchRuns) {
       batchRuns: completedRuns,
       batchSimulationRuns
     });
+    syncStageAfterSimulation(stage);
 
     setOptimizeButtonLabel("Tekrar Simule Et");
     syncOptimizeButtonCompletionState(true);
@@ -1067,8 +1098,14 @@ function setOptimizerBusy(isBusy) {
   optimizerClearBtn.disabled = isBusy;
   diversityModeBtn.disabled = isBusy;
   stageInput.disabled = isBusy;
+  if (stageAutoAdvanceToggleBtn) {
+    stageAutoAdvanceToggleBtn.disabled = isBusy;
+  }
   if (optimizerSearchBandPresetInput) {
     optimizerSearchBandPresetInput.disabled = isBusy;
+  }
+  if (optimizerSearchBandPresetMobileInput) {
+    optimizerSearchBandPresetMobileInput.disabled = isBusy;
   }
   if (optimizerCustomBandMinInput) {
     optimizerCustomBandMinInput.disabled = isBusy || optimizerCustomBandInputs?.hidden;
@@ -1107,6 +1144,33 @@ function syncDiversityModeButton() {
   diversityModeBtn.classList.toggle("is-active", optimizerDiversityMode);
   diversityModeBtn.setAttribute("aria-pressed", optimizerDiversityMode ? "true" : "false");
   diversityModeBtn.textContent = optimizerDiversityMode ? "Cesitlilik Acik" : "Cesitlilik Modu";
+}
+
+function syncAutoStageAdvanceToggle() {
+  if (!stageAutoAdvanceToggleBtn) {
+    return;
+  }
+  stageAutoAdvanceToggleBtn.classList.toggle("is-active", autoStageAdvanceEnabled);
+  stageAutoAdvanceToggleBtn.setAttribute("aria-pressed", autoStageAdvanceEnabled ? "true" : "false");
+  stageAutoAdvanceToggleBtn.setAttribute("aria-label", autoStageAdvanceEnabled ? "Kademe +1 acik" : "Kademe +1 kapali");
+  stageAutoAdvanceToggleBtn.title = autoStageAdvanceEnabled ? "Kademe +1 acik" : "Kademe +1 kapali";
+}
+
+function loadAutoStageAdvanceSetting() {
+  try {
+    const raw = window.localStorage.getItem(AUTO_STAGE_ADVANCE_STORAGE_KEY);
+    autoStageAdvanceEnabled = raw === "1";
+  } catch (_error) {
+    autoStageAdvanceEnabled = false;
+  }
+}
+
+function persistAutoStageAdvanceSetting() {
+  try {
+    window.localStorage.setItem(AUTO_STAGE_ADVANCE_STORAGE_KEY, autoStageAdvanceEnabled ? "1" : "0");
+  } catch (_error) {
+    // localStorage erisimi yoksa ayar sadece bu sayfa oturumunda kalir.
+  }
 }
 
 function syncObjectiveButtons() {
@@ -2362,6 +2426,9 @@ function applySearchBandSettings(settings = {}) {
   if (optimizerSearchBandPresetInput) {
     optimizerSearchBandPresetInput.value = normalized.mode;
   }
+  if (optimizerSearchBandPresetMobileInput) {
+    optimizerSearchBandPresetMobileInput.value = normalized.mode;
+  }
   if (optimizerCustomBandMinInput) {
     optimizerCustomBandMinInput.value = String(normalized.minPercent);
   }
@@ -2377,6 +2444,12 @@ function syncSearchBandControls() {
     minPercent: optimizerCustomBandMinInput?.value,
     maxPercent: optimizerCustomBandMaxInput?.value
   });
+  if (optimizerSearchBandPresetInput && optimizerSearchBandPresetInput.value !== normalized.mode) {
+    optimizerSearchBandPresetInput.value = normalized.mode;
+  }
+  if (optimizerSearchBandPresetMobileInput && optimizerSearchBandPresetMobileInput.value !== normalized.mode) {
+    optimizerSearchBandPresetMobileInput.value = normalized.mode;
+  }
   const isCustom = normalized.mode === "custom";
   if (optimizerCustomBandInputs) {
     optimizerCustomBandInputs.hidden = !isCustom;
@@ -2475,6 +2548,7 @@ function formatLargeInteger(value) {
 }
 
 function resetValues() {
+  renderSimulatedStageDisplay(null);
   [...ENEMY_UNITS, ...ALLY_UNITS].forEach((unit) => {
     optimizerInputs[unit.key].value = "0";
   });
@@ -2523,6 +2597,25 @@ function commitStageInput() {
   if (!favoriteStrategiesModal?.hidden) {
     renderFavoriteStrategiesModal();
   }
+}
+
+function renderSimulatedStageDisplay(stage) {
+  if (!simulatedStageDisplay) {
+    return;
+  }
+  simulatedStageDisplay.value = Number.isFinite(stage) && stage > 0 ? String(stage) : "-";
+}
+
+function syncStageAfterSimulation(stage) {
+  if (!Number.isFinite(stage) || stage <= 0) {
+    return;
+  }
+  renderSimulatedStageDisplay(stage);
+  if (!autoStageAdvanceEnabled) {
+    return;
+  }
+  stageInput.value = String(stage + 1);
+  commitStageInput();
 }
 
 function collectMinimumRequiredCounts() {

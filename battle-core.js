@@ -356,12 +356,12 @@
     return "═".repeat(left) + padded + "═".repeat(right);
   }
 
-  function formatUnitLine(count, name, hp, attack) {
+  function formatUnitLine(count, name, hp, attack, speed) {
     const totalAttack = count * attack;
-    return `   ${String(count).padStart(3)}  ${name.padEnd(26)}  ${String(hp).padStart(4)} can   ${String(attack).padStart(3)} atk   ${String(totalAttack).padStart(5)} toplam atk`;
+    return `   ${String(count).padStart(3)}  ${name.padEnd(26)}  ${String(hp).padStart(4)} can   ${String(attack).padStart(3)} atk   ${String(speed).padStart(2)} hiz   ${String(totalAttack).padStart(5)} toplam atk`;
   }
 
-  function printBattlefield(log, unitNumbers, unitHealth, order, side) {
+  function printBattlefield(log, unitNumbers, unitHealth, unitSpeed, order, side) {
     const sectionLabel = side === "enemy" ? "DUSMAN SAFLARI" : "MUTTEFIK SAFLARI";
     const totalLabel = side === "enemy" ? "Dusman toplam atak" : "Muttefik toplam atak";
     log(sectionLabel);
@@ -370,7 +370,7 @@
       for (let i = order.length - 1; i >= 0; i -= 1) {
         const index = order[i];
         if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
-          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX]));
+          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX], unitSpeed[index]));
           sideTotalAttack += unitNumbers[index] * UNIT_DESC[index][ATTACK_INDEX];
         }
       }
@@ -378,7 +378,7 @@
       for (let i = 0; i < order.length; i += 1) {
         const index = order[i];
         if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
-          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX]));
+          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX], unitSpeed[index]));
           sideTotalAttack += unitNumbers[index] * UNIT_DESC[index][ATTACK_INDEX];
         }
       }
@@ -442,9 +442,9 @@
     log(bannerLine("RAUND 0"));
     log("                  Baslangic muharebe duzeni");
     log("");
-    printBattlefield(log, unitNumbers, unitHealth, defenderOrderFrontFirst, "enemy");
+    printBattlefield(log, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, "enemy");
     log("");
-    printBattlefield(log, unitNumbers, unitHealth, defenderOrderFrontFirst, "ally");
+    printBattlefield(log, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, "ally");
     log("");
 
     while (enemyCapable && allyCapable) {
@@ -850,9 +850,9 @@
 
       log(`── Raund ${roundCount} sonu ──`);
       log("");
-      printBattlefield(log, unitNumbers, unitHealth, defenderOrderFrontFirst, "enemy");
+      printBattlefield(log, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, "enemy");
       log("");
-      printBattlefield(log, unitNumbers, unitHealth, defenderOrderFrontFirst, "ally");
+      printBattlefield(log, unitNumbers, unitHealth, unitSpeed, defenderOrderFrontFirst, "ally");
       log("");
     }
 
