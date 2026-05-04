@@ -19,6 +19,7 @@
   const COLLECTION = "approvedStrategies";
   const WRONG_COLLECTION = "wrongReports";
   const FAVORITE_COLLECTION = "favoriteStrategies";
+  const DEFAULT_PAGE_SIZE = 10;
   const ENEMY_COUNT_KEYS = [
     "skeletons", "zombies", "cultists", "bonewings", "corpses",
     "wraiths", "revenants", "giants", "broodmothers", "liches"
@@ -162,6 +163,72 @@
 
   function writeFavoriteStrategies(items) {
     writeStorage(FAVORITE_CACHE_KEY, mergeFavorites(items));
+  }
+
+  function normalizePageSize(value) {
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      return DEFAULT_PAGE_SIZE;
+    }
+    return Math.min(parsed, 100);
+  }
+
+  function sortByStringFieldDesc(items, field) {
+    return [...items].sort((left, right) => String(right?.[field] || "").localeCompare(String(left?.[field] || "")));
+  }
+
+  function buildLocalPageResult(items, orderField, pageSize, cursor) {
+    const normalizedPageSize = normalizePageSize(pageSize);
+    const sortedItems = sortByStringFieldDesc(items, orderField);
+    let startIndex = 0;
+    if (cursor?.id) {
+      const cursorIndex = sortedItems.findIndex((item) => item.id === cursor.id);
+      startIndex = cursorIndex >= 0 ? cursorIndex + 1 : 0;
+    }
+    const pageItems = sortedItems.slice(startIndex, startIndex + normalizedPageSize);
+    return {
+      items: pageItems,
+      cursor: pageItems.length ? { id: pageItems[pageItems.length - 1].id } : cursor || null,
+      hasMore: startIndex + normalizedPageSize < sortedItems.length
+    };
+  }
+
+  async function loadCollectionPage({
+    collectionName,
+    orderField,
+    mergeItems,
+    readLocal,
+    writeLocal,
+    pageSize = DEFAULT_PAGE_SIZE,
+    cursor = null
+  }) {
+    const normalizedPageSize = normalizePageSize(pageSize);
+    if (!db) {
+      return buildLocalPageResult(readLocal(), orderField, normalizedPageSize, cursor);
+    }
+
+    try {
+      let query = db.collection(collectionName).orderBy(orderField, "desc");
+      if (cursor?.id) {
+        query = query.startAfter(cursor);
+      }
+      const snapshot = await query.limit(normalizedPageSize + 1).get();
+      const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+      const hasMore = docs.length > normalizedPageSize;
+      const pageDocs = hasMore ? docs.slice(0, normalizedPageSize) : docs;
+      const items = mergeItems(pageDocs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      if (typeof writeLocal === "function" && items.length > 0) {
+        writeLocal(mergeItems([...readLocal(), ...items]));
+      }
+      return {
+        items,
+        cursor: pageDocs.length ? pageDocs[pageDocs.length - 1] : cursor || null,
+        hasMore
+      };
+    } catch (error) {
+      console.warn(`${collectionName} sayfali okunamadi, cache kullaniliyor.`, error);
+      return buildLocalPageResult(readLocal(), orderField, normalizedPageSize, cursor);
+    }
   }
 
   function sanitizeApprovedEntry(item) {
@@ -986,6 +1053,19 @@
     }
   }
 
+  async function loadApprovedStrategiesPage(options = {}) {
+    await migrateLocalStrategies();
+    return loadCollectionPage({
+      collectionName: COLLECTION,
+      orderField: "savedAt",
+      mergeItems: mergeStrategies,
+      readLocal: readLocalStrategies,
+      writeLocal: writeCache,
+      pageSize: options.pageSize,
+      cursor: options.cursor || null
+    });
+  }
+
   async function saveApprovedStrategy(item) {
     const docId = buildApprovedEntryId(item);
     const payload = sanitizeApprovedEntry(item);
@@ -1089,6 +1169,18 @@
     }
   }
 
+  async function loadWrongReportsPage(options = {}) {
+    return loadCollectionPage({
+      collectionName: WRONG_COLLECTION,
+      orderField: "reportedAt",
+      mergeItems: (items) => items,
+      readLocal: readWrongReports,
+      writeLocal: writeWrongReports,
+      pageSize: options.pageSize,
+      cursor: options.cursor || null
+    });
+  }
+
   async function loadFavoriteStrategies() {
     if (!db) {
       return readFavoriteStrategies();
@@ -1103,6 +1195,115 @@
     } catch (error) {
       console.warn("Fav dizilimler okunamadi, cache kullaniliyor.", error);
       return readFavoriteStrategies();
+    }
+  }
+
+  async function loadFavoriteStrategiesPage(options = {}) {
+    return loadCollectionPage({
+      collectionName: FAVORITE_COLLECTION,
+      orderField: "savedAt",
+      mergeItems: mergeFavorites,
+      readLocal: readFavoriteStrategies,
+      writeLocal: writeFavoriteStrategies,
+      pageSize: options.pageSize,
+      cursor: options.cursor || null
+    });
+  }
+
+  async function findWrongReportsByMatchSignature(source, matchSignature) {
+    const normalizedSource = source === "optimizer" ? "optimizer" : "simulation";
+    const normalizedSignature = trimText(matchSignature || "", 200);
+    if (!normalizedSignature) {
+      return [];
+    }
+    if (!db) {
+      return sortByStringFieldDesc(
+        readWrongReports().filter((item) => item?.source === normalizedSource && item?.matchSignature === normalizedSignature),
+        "reportedAt"
+      );
+    }
+    try {
+      const snapshot = await db.collection(WRONG_COLLECTION)
+        .where("matchSignature", "==", normalizedSignature)
+        .limit(DEFAULT_PAGE_SIZE)
+        .get();
+      const items = snapshot.docs
+        .map((doc) => ({ ...doc.data(), id: doc.id }))
+        .filter((item) => item?.source === normalizedSource);
+      if (items.length > 0) {
+        writeWrongReports([
+          ...items,
+          ...readWrongReports().filter((item) => !items.some((nextItem) => nextItem.id === item.id))
+        ]);
+      }
+      return sortByStringFieldDesc(items, "reportedAt");
+    } catch (error) {
+      console.warn("Wrong report hedefli okunamadi, cache kullaniliyor.", error);
+      return sortByStringFieldDesc(
+        readWrongReports().filter((item) => item?.source === normalizedSource && item?.matchSignature === normalizedSignature),
+        "reportedAt"
+      );
+    }
+  }
+
+  async function findApprovedStrategyByDocId(docId) {
+    const normalizedId = typeof docId === "string" ? docId.trim() : "";
+    if (!normalizedId) {
+      return null;
+    }
+    if (!db) {
+      return readLocalStrategies().find((item) => item.id === normalizedId) || null;
+    }
+    try {
+      const snapshot = await db.collection(COLLECTION).doc(normalizedId).get();
+      if (!snapshot?.exists) {
+        return null;
+      }
+      const item = { ...snapshot.data(), id: snapshot.id };
+      writeCache(mergeStrategies([...readLocalStrategies(), item]));
+      return item;
+    } catch (error) {
+      console.warn("Onayli kayit hedefli okunamadi, cache kullaniliyor.", error);
+      return readLocalStrategies().find((item) => item.id === normalizedId) || null;
+    }
+  }
+
+  async function findFavoriteStrategiesByEnemySignature(enemySignature, options = {}) {
+    const normalizedSignature = trimText(enemySignature || "", 120);
+    const normalizedPageSize = normalizePageSize(options.pageSize || DEFAULT_PAGE_SIZE);
+    if (!normalizedSignature) {
+      return [];
+    }
+    const localFilter = () => sortByStringFieldDesc(
+      readFavoriteStrategies().filter((item) => (
+        item?.enemyRosterSignature === normalizedSignature || item?.enemySignature === normalizedSignature
+      )),
+      "savedAt"
+    ).slice(0, normalizedPageSize);
+    if (!db) {
+      return localFilter();
+    }
+    try {
+      const rosterSnapshot = await db.collection(FAVORITE_COLLECTION)
+        .where("enemyRosterSignature", "==", normalizedSignature)
+        .limit(normalizedPageSize)
+        .get();
+      const signatureSnapshot = await db.collection(FAVORITE_COLLECTION)
+        .where("enemySignature", "==", normalizedSignature)
+        .limit(normalizedPageSize)
+        .get();
+      const items = mergeFavorites([
+        ...rosterSnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })),
+        ...signatureSnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+      ]);
+      const sortedItems = sortByStringFieldDesc(items, "savedAt").slice(0, normalizedPageSize);
+      if (sortedItems.length > 0) {
+        writeFavoriteStrategies(mergeFavorites([...readFavoriteStrategies(), ...sortedItems]));
+      }
+      return sortedItems;
+    } catch (error) {
+      console.warn("Fav hedefli okunamadi, cache kullaniliyor.", error);
+      return localFilter();
     }
   }
 
@@ -1319,15 +1520,23 @@
     signInAdmin,
     signOutAdmin,
     verifyAdminPassword,
+    buildApprovedOptimizerDocId: buildOptimizerDocId,
+    buildApprovedSimulationDocId: buildSimulationDocId,
     loadApprovedStrategies,
+    loadApprovedStrategiesPage,
+    findApprovedStrategyByDocId,
     saveApprovedStrategy,
     deleteApprovedStrategy,
     clearApprovedStrategies,
     loadWrongReports,
+    loadWrongReportsPage,
+    findWrongReportsByMatchSignature,
     saveWrongReport,
     deleteWrongReport,
     clearWrongReports,
     loadFavoriteStrategies,
+    loadFavoriteStrategiesPage,
+    findFavoriteStrategiesByEnemySignature,
     saveFavoriteStrategy,
     deleteFavoriteStrategy,
     clearFavoriteStrategies

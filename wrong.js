@@ -43,6 +43,9 @@ let isAdminSession = false;
 let allWrongItems = [];
 let filteredWrongItems = [];
 let wrongCurrentPage = 0;
+let wrongRemoteCursor = null;
+let wrongRemoteHasMore = false;
+let wrongRemoteLoading = false;
 
 syncAdminActions();
 bindFilterControls();
@@ -123,9 +126,48 @@ async function loadWrongReports() {
 }
 
 async function renderWrongReports() {
-  allWrongItems = (await loadWrongReports()).sort((a, b) => (b.reportedAt || "").localeCompare(a.reportedAt || ""));
+  await loadWrongReportsPage({ reset: true });
   syncAdminActions();
   applyWrongFilters();
+}
+
+function mergeLoadedWrongItems(items) {
+  const merged = new Map(allWrongItems.map((item) => [item.id, item]));
+  items.forEach((item) => {
+    if (item?.id) {
+      merged.set(item.id, item);
+    }
+  });
+  allWrongItems = [...merged.values()].sort((a, b) => (b.reportedAt || "").localeCompare(a.reportedAt || ""));
+}
+
+async function loadWrongReportsPage({ reset = false } = {}) {
+  if (reset) {
+    wrongRemoteCursor = null;
+    wrongRemoteHasMore = false;
+    wrongCurrentPage = 0;
+    allWrongItems = [];
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.loadWrongReportsPage !== "function") {
+    mergeLoadedWrongItems(await loadWrongReports());
+    wrongRemoteHasMore = false;
+    wrongRemoteCursor = null;
+    return;
+  }
+  wrongRemoteLoading = true;
+  try {
+    const page = await window.BTFirebase.loadWrongReportsPage({
+      pageSize: PAGE_SIZE,
+      cursor: reset ? null : wrongRemoteCursor
+    });
+    wrongRemoteCursor = page.cursor || wrongRemoteCursor;
+    wrongRemoteHasMore = Boolean(page.hasMore);
+    mergeLoadedWrongItems(page.items || []);
+  } catch (error) {
+    console.warn("Yanlis rapor sayfasi yuklenemedi.", error);
+  } finally {
+    wrongRemoteLoading = false;
+  }
 }
 
 function normalizeLossCount(value) {
@@ -538,9 +580,21 @@ function bindFilterControls() {
     renderWrongPage(getCurrentWrongPageItems());
   });
 
-  wrongNextPageBtn?.addEventListener("click", () => {
+  wrongNextPageBtn?.addEventListener("click", async () => {
     const totalPages = Math.max(1, Math.ceil(filteredWrongItems.length / PAGE_SIZE));
     if (wrongCurrentPage >= totalPages - 1) {
+      if (!wrongRemoteHasMore || wrongRemoteLoading) {
+        return;
+      }
+      const previousTotalPages = totalPages;
+      await loadWrongReportsPage();
+      applyWrongFilters();
+      const nextTotalPages = Math.max(1, Math.ceil(filteredWrongItems.length / PAGE_SIZE));
+      if (nextTotalPages > previousTotalPages) {
+        wrongCurrentPage = previousTotalPages;
+        updateWrongPagination();
+        renderWrongPage(getCurrentWrongPageItems());
+      }
       return;
     }
     wrongCurrentPage += 1;
@@ -587,7 +641,7 @@ function updateWrongFilterMeta() {
   const end = Math.min(filteredWrongItems.length, (wrongCurrentPage + 1) * PAGE_SIZE);
   wrongFilterMeta.innerHTML = `
     <span>Filtre sonucu: <strong>${filteredWrongItems.length}</strong></span>
-    <span>Toplam rapor: <strong>${allWrongItems.length}</strong></span>
+    <span>Yuklenen rapor: <strong>${allWrongItems.length}</strong></span>
     <span>Sayfa araligi: <strong>${start}-${end}</strong></span>
     <span>Tarih: <strong>${buildDateRangeLabel(wrongStartDateInput?.value || "", wrongEndDateInput?.value || "")}</strong></span>
   `;
@@ -598,10 +652,11 @@ function updateWrongPagination() {
     return;
   }
   const totalPages = Math.max(1, Math.ceil(filteredWrongItems.length / PAGE_SIZE));
-  wrongPagination.hidden = filteredWrongItems.length <= PAGE_SIZE;
+  const hasLocalNextPage = wrongCurrentPage < totalPages - 1;
+  wrongPagination.hidden = filteredWrongItems.length <= PAGE_SIZE && !wrongRemoteHasMore;
   wrongPrevPageBtn.disabled = wrongCurrentPage <= 0;
-  wrongNextPageBtn.disabled = wrongCurrentPage >= totalPages - 1;
-  wrongPageInfo.textContent = `Sayfa ${Math.min(wrongCurrentPage + 1, totalPages)} / ${totalPages}`;
+  wrongNextPageBtn.disabled = (!hasLocalNextPage && !wrongRemoteHasMore) || wrongRemoteLoading;
+  wrongPageInfo.textContent = `Sayfa ${Math.min(wrongCurrentPage + 1, totalPages)} / ${totalPages}${wrongRemoteHasMore ? "+" : ""}`;
 }
 
 function matchesWrongSearch(item, searchText) {

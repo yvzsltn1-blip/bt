@@ -105,6 +105,12 @@ let pendingWrongReport = null;
 let approvedStrategies = [];
 let wrongReports = [];
 let favoriteStrategies = [];
+let activeApprovedStrategyId = "";
+let activeWrongReportSignature = "";
+let activeFavoriteStrategySignature = "";
+let approvedStrategyRequestId = 0;
+let wrongReportRequestId = 0;
+let favoriteStrategyRequestId = 0;
 let optimizerStopRequested = false;
 let isAdminSession = false;
 let optimizerLogFullscreenFallback = false;
@@ -690,8 +696,9 @@ saveApprovedBtn.addEventListener("click", async () => {
   const item = createSavedEntry(currentApprovedCandidate);
   try {
     saveApprovedBtn.disabled = true;
-    await window.BTFirebase.saveApprovedStrategy(item);
-    approvedStrategies = await loadApprovedStrategies();
+    const savedItem = await window.BTFirebase.saveApprovedStrategy(item);
+    approvedStrategies = savedItem ? [savedItem] : [item];
+    activeApprovedStrategyId = savedItem?.id || getCurrentApprovedStrategyDocId() || "";
     renderMatchedSavedStrategy();
     window.alert("Cozum onaylanip ortak kayitlara eklendi.");
   } catch (error) {
@@ -874,8 +881,11 @@ submitWrongReportBtn.addEventListener("click", async () => {
 
   try {
     submitWrongReportBtn.disabled = true;
-    await window.BTFirebase.saveWrongReport(report);
-    wrongReports = await loadWrongReports();
+    const savedReport = await window.BTFirebase.saveWrongReport(report);
+    wrongReports = savedReport
+      ? [savedReport, ...wrongReports.filter((item) => item.id !== savedReport.id)]
+      : wrongReports;
+    activeWrongReportSignature = getCurrentWrongReportSignature();
     renderMatchedActualReport();
     clearWrongReportError();
     closeWrongReportModal();
@@ -915,7 +925,6 @@ if (favoriteStrategiesModal) {
 }
 
 async function initializeApprovedStrategies() {
-  approvedStrategies = await loadApprovedStrategies();
   restoreFromQuery();
   renderPointSummary();
   renderMatchedSavedStrategy();
@@ -923,7 +932,6 @@ async function initializeApprovedStrategies() {
 }
 
 async function initializeWrongReports() {
-  wrongReports = await loadWrongReports();
   renderMatchedActualReport();
 }
 
@@ -1331,7 +1339,7 @@ async function loadWrongReports() {
 }
 
 async function initializeFavoriteStrategies() {
-  favoriteStrategies = await loadFavoriteStrategies();
+  await ensureFavoriteStrategiesLoaded();
   renderFavoriteButtonState();
 }
 
@@ -1362,6 +1370,21 @@ function writeFavoriteStrategiesCache(items) {
   }
 }
 
+function writeMergedFavoriteStrategiesCache(items) {
+  const existing = readFavoriteStrategiesCache();
+  const merged = new Map(existing.map((entry) => [entry.id, entry]));
+  items.forEach((entry) => {
+    if (entry?.id) {
+      merged.set(entry.id, entry);
+    }
+  });
+  writeFavoriteStrategiesCache([...merged.values()]);
+}
+
+function removeFavoriteStrategyFromCache(favoriteId) {
+  writeFavoriteStrategiesCache(readFavoriteStrategiesCache().filter((entry) => entry.id !== favoriteId));
+}
+
 async function loadFavoriteStrategies() {
   if (!window.BTFirebase || typeof window.BTFirebase.loadFavoriteStrategies !== "function") {
     return readFavoriteStrategiesCache();
@@ -1376,6 +1399,141 @@ async function loadFavoriteStrategies() {
   } catch (error) {
     console.warn("Fav dizilimler Firestore'dan yuklenemedi.", error);
     return readFavoriteStrategiesCache();
+  }
+}
+
+function getCurrentApprovedStrategyDocId() {
+  const stage = getCommittedStage();
+  if (!stage || !window.BTFirebase || typeof window.BTFirebase.buildApprovedOptimizerDocId !== "function") {
+    return "";
+  }
+  const enemyCounts = collectCounts(ENEMY_UNITS);
+  return window.BTFirebase.buildApprovedOptimizerDocId(stage, getEnemySignature(stage, enemyCounts));
+}
+
+function getCurrentWrongReportSignature() {
+  if (!currentWrongCandidate) {
+    return "";
+  }
+  return currentWrongCandidate.matchSignature || buildOptimizerMatchSignature(
+    currentWrongCandidate.stage,
+    currentWrongCandidate.enemyCounts,
+    currentWrongCandidate.allyCounts
+  );
+}
+
+function getActiveFavoriteSignature(preferredSignature = null) {
+  if (preferredSignature) {
+    return preferredSignature;
+  }
+  const currentEntry = createFavoriteEntryFromCurrentRecommendation();
+  const context = getFavoriteEnemyContext();
+  return currentFavoriteModalSignature ||
+    currentEntry?.enemyRosterSignature ||
+    currentEntry?.enemySignature ||
+    context?.enemyRosterSignature ||
+    context?.enemySignature ||
+    "";
+}
+
+function getCachedFavoriteStrategiesForSignature(signature) {
+  if (!signature) {
+    return [];
+  }
+  return readFavoriteStrategiesCache()
+    .filter((entry) => entry.enemyRosterSignature === signature || entry.enemySignature === signature)
+    .sort((left, right) => String(right.savedAt || "").localeCompare(String(left.savedAt || "")));
+}
+
+async function ensureApprovedStrategyLoaded(force = false) {
+  const docId = getCurrentApprovedStrategyDocId();
+  if (!docId) {
+    activeApprovedStrategyId = "";
+    approvedStrategies = [];
+    return;
+  }
+  if (!force && docId === activeApprovedStrategyId) {
+    return;
+  }
+  activeApprovedStrategyId = docId;
+  const requestId = ++approvedStrategyRequestId;
+  try {
+    let item = null;
+    if (window.BTFirebase && typeof window.BTFirebase.findApprovedStrategyByDocId === "function") {
+      item = await window.BTFirebase.findApprovedStrategyByDocId(docId);
+    } else {
+      item = (await loadApprovedStrategies()).find((candidate) => candidate.id === docId) || null;
+    }
+    if (requestId !== approvedStrategyRequestId || activeApprovedStrategyId !== docId) {
+      return;
+    }
+    approvedStrategies = item ? [item] : [];
+    renderMatchedSavedStrategy();
+  } catch (error) {
+    console.warn("Onayli cozum hedefli yuklenemedi.", error);
+  }
+}
+
+async function ensureWrongReportsLoaded(force = false) {
+  const signature = getCurrentWrongReportSignature();
+  if (!signature) {
+    activeWrongReportSignature = "";
+    wrongReports = [];
+    return;
+  }
+  if (!force && signature === activeWrongReportSignature) {
+    return;
+  }
+  activeWrongReportSignature = signature;
+  const requestId = ++wrongReportRequestId;
+  try {
+    let items = [];
+    if (window.BTFirebase && typeof window.BTFirebase.findWrongReportsByMatchSignature === "function") {
+      items = await window.BTFirebase.findWrongReportsByMatchSignature("optimizer", signature);
+    } else {
+      items = (await loadWrongReports()).filter((item) => item.source === "optimizer" && item.matchSignature === signature);
+    }
+    if (requestId !== wrongReportRequestId || activeWrongReportSignature !== signature) {
+      return;
+    }
+    wrongReports = items;
+    renderMatchedActualReport();
+  } catch (error) {
+    console.warn("Wrong report hedefli yuklenemedi.", error);
+  }
+}
+
+async function ensureFavoriteStrategiesLoaded(preferredSignature = null, force = false) {
+  const signature = getActiveFavoriteSignature(preferredSignature);
+  if (!signature) {
+    activeFavoriteStrategySignature = "";
+    favoriteStrategies = [];
+    return;
+  }
+  favoriteStrategies = getCachedFavoriteStrategiesForSignature(signature);
+  if (!force && signature === activeFavoriteStrategySignature) {
+    return;
+  }
+  activeFavoriteStrategySignature = signature;
+  const requestId = ++favoriteStrategyRequestId;
+  try {
+    let items = [];
+    if (window.BTFirebase && typeof window.BTFirebase.findFavoriteStrategiesByEnemySignature === "function") {
+      items = await window.BTFirebase.findFavoriteStrategiesByEnemySignature(signature, { pageSize: 10 });
+    } else {
+      items = await loadFavoriteStrategies();
+    }
+    if (requestId !== favoriteStrategyRequestId || activeFavoriteStrategySignature !== signature) {
+      return;
+    }
+    favoriteStrategies = items
+      .map((entry, index) => normalizeFavoriteStrategyEntry(entry, index))
+      .filter(Boolean)
+      .filter((entry) => entry.enemyRosterSignature === signature || entry.enemySignature === signature);
+    writeMergedFavoriteStrategiesCache(favoriteStrategies);
+    renderFavoriteButtonState();
+  } catch (error) {
+    console.warn("Fav hedefli yuklenemedi.", error);
   }
 }
 
@@ -1610,7 +1768,7 @@ async function saveFavoriteStrategy(entry) {
   const fallbackEntry = normalizeFavoriteStrategyEntry(entry, favoriteStrategies.length) || entry;
   if (!window.BTFirebase || typeof window.BTFirebase.saveFavoriteStrategy !== "function") {
     favoriteStrategies = [fallbackEntry, ...favoriteStrategies];
-    writeFavoriteStrategiesCache(favoriteStrategies);
+    writeMergedFavoriteStrategiesCache([fallbackEntry]);
     return fallbackEntry;
   }
 
@@ -1618,7 +1776,7 @@ async function saveFavoriteStrategy(entry) {
     const saved = await window.BTFirebase.saveFavoriteStrategy(entry);
     const normalized = normalizeFavoriteStrategyEntry(saved, favoriteStrategies.length) || fallbackEntry;
     favoriteStrategies = [normalized, ...favoriteStrategies];
-    writeFavoriteStrategiesCache(favoriteStrategies);
+    writeMergedFavoriteStrategiesCache([normalized]);
     return normalized;
   } catch (error) {
     console.warn("Fav dizilim Firestore'a kaydedilemedi.", error);
@@ -1629,7 +1787,7 @@ async function saveFavoriteStrategy(entry) {
 async function removeFavoriteStrategy(favoriteId) {
   if (!window.BTFirebase || typeof window.BTFirebase.deleteFavoriteStrategy !== "function") {
     favoriteStrategies = favoriteStrategies.filter((entry) => entry.id !== favoriteId);
-    writeFavoriteStrategiesCache(favoriteStrategies);
+    removeFavoriteStrategyFromCache(favoriteId);
     renderFavoriteButtonState();
     if (!favoriteStrategiesModal?.hidden) {
       renderFavoriteStrategiesModal();
@@ -1640,7 +1798,7 @@ async function removeFavoriteStrategy(favoriteId) {
   try {
     await window.BTFirebase.deleteFavoriteStrategy(favoriteId);
     favoriteStrategies = favoriteStrategies.filter((entry) => entry.id !== favoriteId);
-    writeFavoriteStrategiesCache(favoriteStrategies);
+    removeFavoriteStrategyFromCache(favoriteId);
   } catch (error) {
     console.warn("Fav dizilim silinemedi.", error);
     throw error;
@@ -1652,6 +1810,7 @@ async function removeFavoriteStrategy(favoriteId) {
 }
 
 function renderFavoriteButtonState() {
+  void ensureFavoriteStrategiesLoaded();
   syncFavoriteStrategyButtonUi();
   if (!favoriteStrategiesModal?.hidden) {
     renderFavoriteStrategiesModal();
@@ -1667,6 +1826,7 @@ function openFavoriteStrategiesModal(enemySignature = null, pendingEntry = null)
   currentFavoriteModalPendingEntry = pendingEntry ? { ...pendingEntry } : null;
   renderFavoriteStrategiesModal();
   favoriteStrategiesModal.hidden = false;
+  void ensureFavoriteStrategiesLoaded(currentFavoriteModalSignature, true);
 }
 
 function closeFavoriteStrategiesModal() {
@@ -4791,8 +4951,11 @@ function buildOptimizerMatchSignature(stage, enemyCounts, allyCounts) {
 function renderMatchedActualReport() {
   matchedActualPanel.innerHTML = "";
   if (!currentWrongCandidate) {
+    activeWrongReportSignature = "";
+    wrongReports = [];
     return;
   }
+  void ensureWrongReportsLoaded();
 
   const signature = currentWrongCandidate.matchSignature || buildOptimizerMatchSignature(
     currentWrongCandidate.stage,
@@ -4874,11 +5037,15 @@ function renderMatchedSavedStrategy() {
   matchedSavedPanel.innerHTML = "";
 
   if (!stage) {
+    activeApprovedStrategyId = "";
+    approvedStrategies = [];
     return;
   }
+  void ensureApprovedStrategyLoaded();
 
   const enemySignature = getEnemySignature(stage, enemyCounts);
-  const matched = approvedStrategies.find((candidate) => {
+  const activeDocId = getCurrentApprovedStrategyDocId();
+  const matched = approvedStrategies.find((candidate) => candidate.id === activeDocId) || approvedStrategies.find((candidate) => {
     if (candidate.source === "simulation") {
       return Number.isInteger(candidate.stage) && getEnemySignature(candidate.stage, candidate.enemyCounts) === enemySignature;
     }

@@ -7,15 +7,22 @@ const {
 
 const favoriteList = document.querySelector("#favoriteList");
 const favoriteCountLabel = document.querySelector("#favoriteCountLabel");
+const favoritePagination = document.querySelector("#favoritePagination");
+const favoritePageInfo = document.querySelector("#favoritePageInfo");
+const favoriteLoadMoreBtn = document.querySelector("#favoriteLoadMoreBtn");
 const adminAuthStatus = document.querySelector("#adminAuthStatus");
 const adminEmailInput = document.querySelector("#adminEmailInput");
 const adminPasswordInput = document.querySelector("#adminPasswordInput");
 const adminLoginBtn = document.querySelector("#adminLoginBtn");
 const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const PAGE_SIZE = 10;
 
 let isAdminSession = false;
 let favoriteItems = [];
+let favoriteRemoteCursor = null;
+let favoriteRemoteHasMore = false;
+let favoriteRemoteLoading = false;
 
 void renderFavoriteStrategies();
 void bindAdminAuth();
@@ -127,12 +134,13 @@ async function loadFavoriteStrategies() {
 }
 
 async function renderFavoriteStrategies() {
-  favoriteItems = (await loadFavoriteStrategies()).sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
+  await loadFavoriteStrategiesPage({ reset: true });
   favoriteCountLabel.textContent = String(favoriteItems.length);
   favoriteList.innerHTML = "";
 
   if (!favoriteItems.length) {
     favoriteList.innerHTML = '<p class="summary-empty">Henuz favori dizilim yok.</p>';
+    updateFavoritePagination();
     return;
   }
 
@@ -199,7 +207,133 @@ async function renderFavoriteStrategies() {
     card.append(head, meta, grid);
     favoriteList.appendChild(card);
   });
+  updateFavoritePagination();
 }
+
+function mergeLoadedFavoriteItems(items) {
+  const merged = new Map(favoriteItems.map((item) => [item.id, item]));
+  items.forEach((item) => {
+    if (item?.id) {
+      merged.set(item.id, item);
+    }
+  });
+  favoriteItems = [...merged.values()].sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
+}
+
+async function loadFavoriteStrategiesPage({ reset = false } = {}) {
+  if (reset) {
+    favoriteRemoteCursor = null;
+    favoriteRemoteHasMore = false;
+    favoriteItems = [];
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.loadFavoriteStrategiesPage !== "function") {
+    mergeLoadedFavoriteItems(await loadFavoriteStrategies());
+    favoriteRemoteHasMore = false;
+    favoriteRemoteCursor = null;
+    return;
+  }
+  favoriteRemoteLoading = true;
+  try {
+    const page = await window.BTFirebase.loadFavoriteStrategiesPage({
+      pageSize: PAGE_SIZE,
+      cursor: reset ? null : favoriteRemoteCursor
+    });
+    favoriteRemoteCursor = page.cursor || favoriteRemoteCursor;
+    favoriteRemoteHasMore = Boolean(page.hasMore);
+    mergeLoadedFavoriteItems(page.items || []);
+  } catch (error) {
+    console.warn("Fav sayfasi yuklenemedi.", error);
+  } finally {
+    favoriteRemoteLoading = false;
+  }
+}
+
+function updateFavoritePagination() {
+  if (!favoritePagination || !favoritePageInfo || !favoriteLoadMoreBtn) {
+    return;
+  }
+  favoritePagination.hidden = !favoriteRemoteHasMore && favoriteItems.length <= PAGE_SIZE;
+  favoritePageInfo.textContent = `Yuklenen fav: ${favoriteItems.length}${favoriteRemoteHasMore ? "+" : ""}`;
+  favoriteLoadMoreBtn.disabled = !favoriteRemoteHasMore || favoriteRemoteLoading;
+}
+
+favoriteLoadMoreBtn?.addEventListener("click", async () => {
+  if (!favoriteRemoteHasMore || favoriteRemoteLoading) {
+    return;
+  }
+  await loadFavoriteStrategiesPage();
+  favoriteCountLabel.textContent = String(favoriteItems.length);
+  favoriteList.innerHTML = "";
+  if (!favoriteItems.length) {
+    favoriteList.innerHTML = '<p class="summary-empty">Henuz favori dizilim yok.</p>';
+    updateFavoritePagination();
+    return;
+  }
+  favoriteItems.forEach((item, index) => {
+    const card = document.createElement("article");
+    card.className = "saved-card";
+
+    const head = document.createElement("div");
+    head.className = "saved-card-head";
+
+    const title = document.createElement("div");
+    const stageText = Number.isInteger(item.stage) ? `${item.stage}. Kademe / ` : "";
+    title.innerHTML = `<strong>${index + 1}. ${item.enemyTitle || "Versus"}</strong><span>${stageText}${item.sourceLabel || "Fav"} / ${formatDate(item.savedAt)}</span>`;
+
+    const actions = document.createElement("div");
+    actions.className = "actions actions-inline";
+
+    const openBtn = document.createElement("button");
+    openBtn.className = "button button-secondary";
+    openBtn.type = "button";
+    openBtn.textContent = "Simulasyonda Ac";
+    openBtn.addEventListener("click", () => {
+      openSimulationForCounts(item.enemyCounts || {}, item.recommendationCounts || {});
+    });
+    actions.appendChild(openBtn);
+
+    if (isAdminSession) {
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "button button-ghost";
+      deleteBtn.type = "button";
+      deleteBtn.textContent = "Sil";
+      deleteBtn.addEventListener("click", async () => {
+        deleteBtn.disabled = true;
+        try {
+          await window.BTFirebase.deleteFavoriteStrategy(item.id);
+          await renderFavoriteStrategies();
+        } catch (error) {
+          showCopyableError("Fav Silinemedi", error?.message || "Fav silinemedi.");
+        } finally {
+          deleteBtn.disabled = false;
+        }
+      });
+      actions.appendChild(deleteBtn);
+    }
+
+    head.append(title, actions);
+
+    const meta = document.createElement("div");
+    meta.className = "saved-meta";
+    meta.innerHTML = `
+      <span>Kaynak: <strong>${item.sourceLabel || "-"}</strong></span>
+      <span>Kan kaybi: <strong>${item.lostBlood ?? 0}</strong></span>
+      <span>Kullanilan puan: <strong>${item.usedPoints ?? 0}</strong></span>
+      <span>Kazanma orani: <strong>%${item.winRate ?? 0}</strong></span>
+    `;
+
+    const grid = document.createElement("div");
+    grid.className = "saved-columns";
+    grid.append(
+      renderCountBlock("Rakip Ordu", item.enemyCounts, ENEMY_UNITS),
+      renderCountBlock("Fav Dizilim", item.recommendationCounts, ALLY_UNITS)
+    );
+
+    card.append(head, meta, grid);
+    favoriteList.appendChild(card);
+  });
+  updateFavoritePagination();
+});
 
 function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
   try {

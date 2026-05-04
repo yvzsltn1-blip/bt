@@ -83,7 +83,7 @@ wireSequentialInputOrder([
 ]);
 resetValues();
 hydrateSimulationFromOptimizer();
-void initializeWrongReports();
+void refreshMatchedActualReport();
 bindAdminSession();
 
 simulateBtn.addEventListener("click", () => {
@@ -565,8 +565,7 @@ submitWrongReportBtn.addEventListener("click", async () => {
   try {
     submitWrongReportBtn.disabled = true;
     await window.BTFirebase.saveWrongReport(report);
-    wrongReports = await loadWrongReports();
-    renderMatchedActualReport();
+    await refreshMatchedActualReport();
     clearWrongReportError();
     closeWrongReportModal();
     window.alert("Gercek sonuc kaydedildi.");
@@ -605,8 +604,7 @@ function bindAdminSession() {
 }
 
 async function initializeWrongReports() {
-  wrongReports = await loadWrongReports();
-  renderMatchedActualReport();
+  await refreshMatchedActualReport();
 }
 
 async function loadWrongReports() {
@@ -1005,7 +1003,7 @@ function renderSimulation(result, options = {}) {
   reportWrongSimulationBtn.disabled = false;
   renderSimulationMeta(currentSimulationReport, currentSimulationResult);
   closeVariantLogModal();
-  renderMatchedActualReport();
+  void refreshMatchedActualReport();
   syncSimulationAdminActions();
   startVariantAnalysis(enemyCounts, allyCounts, result);
 }
@@ -1182,17 +1180,48 @@ function buildMatchSignature(source, enemyCounts, allyCounts) {
   return `${source}|${enemySignature}|${allySignature}`;
 }
 
+function getCurrentSimulationMatchSignature() {
+  if (!currentSimulationReport) {
+    return "";
+  }
+  return currentSimulationReport.matchSignature || buildMatchSignature(
+    "simulation",
+    currentSimulationReport.enemyCounts,
+    currentSimulationReport.allyCounts
+  );
+}
+
+async function refreshMatchedActualReport() {
+  matchedActualPanel.innerHTML = "";
+  if (!currentSimulationReport) {
+    wrongReports = [];
+    return;
+  }
+  const signature = getCurrentSimulationMatchSignature();
+  if (!signature) {
+    wrongReports = [];
+    return;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.findWrongReportsByMatchSignature !== "function") {
+    wrongReports = await loadWrongReports();
+  } else {
+    try {
+      wrongReports = await window.BTFirebase.findWrongReportsByMatchSignature("simulation", signature);
+    } catch (error) {
+      console.warn("Hedefli wrong report okunamadi.", error);
+      wrongReports = await loadWrongReports();
+    }
+  }
+  renderMatchedActualReport();
+}
+
 function renderMatchedActualReport() {
   matchedActualPanel.innerHTML = "";
   if (!currentSimulationReport) {
     return;
   }
 
-  const signature = currentSimulationReport.matchSignature || buildMatchSignature(
-    "simulation",
-    currentSimulationReport.enemyCounts,
-    currentSimulationReport.allyCounts
-  );
+  const signature = getCurrentSimulationMatchSignature();
   const matched = wrongReports.find((item) =>
     item.source === "simulation" &&
     (item.matchSignature === signature || buildMatchSignature("simulation", item.enemyCounts || {}, item.allyCounts || {}) === signature)
@@ -1296,7 +1325,7 @@ function paintLogPanels() {
       isLossReductionActive = !isLossReductionActive;
       renderSimulationMeta(currentSimulationReport, currentSimulationResult);
       paintLogPanels();
-      renderMatchedActualReport();
+      void refreshMatchedActualReport();
     }));
     const summaryBlock = document.createElement("div");
     summaryBlock.className = "terminal-block";

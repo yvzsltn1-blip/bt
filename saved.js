@@ -45,6 +45,9 @@ let isAdminSession = false;
 let allSavedItems = [];
 let filteredSavedItems = [];
 let savedCurrentPage = 0;
+let savedRemoteCursor = null;
+let savedRemoteHasMore = false;
+let savedRemoteLoading = false;
 
 syncAdminActions();
 bindFilterControls();
@@ -125,9 +128,48 @@ async function loadSavedStrategies() {
 }
 
 async function renderSavedStrategies() {
-  allSavedItems = (await loadSavedStrategies()).sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
+  await loadSavedStrategiesPage({ reset: true });
   syncAdminActions();
   applySavedFilters();
+}
+
+function mergeLoadedSavedItems(items) {
+  const merged = new Map(allSavedItems.map((item) => [item.id, item]));
+  items.forEach((item) => {
+    if (item?.id) {
+      merged.set(item.id, item);
+    }
+  });
+  allSavedItems = [...merged.values()].sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
+}
+
+async function loadSavedStrategiesPage({ reset = false } = {}) {
+  if (reset) {
+    savedRemoteCursor = null;
+    savedRemoteHasMore = false;
+    savedCurrentPage = 0;
+    allSavedItems = [];
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.loadApprovedStrategiesPage !== "function") {
+    mergeLoadedSavedItems(await loadSavedStrategies());
+    savedRemoteHasMore = false;
+    savedRemoteCursor = null;
+    return;
+  }
+  savedRemoteLoading = true;
+  try {
+    const page = await window.BTFirebase.loadApprovedStrategiesPage({
+      pageSize: PAGE_SIZE,
+      cursor: reset ? null : savedRemoteCursor
+    });
+    savedRemoteCursor = page.cursor || savedRemoteCursor;
+    savedRemoteHasMore = Boolean(page.hasMore);
+    mergeLoadedSavedItems(page.items || []);
+  } catch (error) {
+    console.warn("Kayitli cozum sayfasi yuklenemedi.", error);
+  } finally {
+    savedRemoteLoading = false;
+  }
 }
 
 function normalizeLossCount(value) {
@@ -494,9 +536,21 @@ function bindFilterControls() {
     renderSavedPage(getCurrentSavedPageItems());
   });
 
-  savedNextPageBtn?.addEventListener("click", () => {
+  savedNextPageBtn?.addEventListener("click", async () => {
     const totalPages = Math.max(1, Math.ceil(filteredSavedItems.length / PAGE_SIZE));
     if (savedCurrentPage >= totalPages - 1) {
+      if (!savedRemoteHasMore || savedRemoteLoading) {
+        return;
+      }
+      const previousTotalPages = totalPages;
+      await loadSavedStrategiesPage();
+      applySavedFilters();
+      const nextTotalPages = Math.max(1, Math.ceil(filteredSavedItems.length / PAGE_SIZE));
+      if (nextTotalPages > previousTotalPages) {
+        savedCurrentPage = previousTotalPages;
+        updateSavedPagination();
+        renderSavedPage(getCurrentSavedPageItems());
+      }
       return;
     }
     savedCurrentPage += 1;
@@ -543,7 +597,7 @@ function updateSavedFilterMeta() {
   const end = Math.min(filteredSavedItems.length, (savedCurrentPage + 1) * PAGE_SIZE);
   savedFilterMeta.innerHTML = `
     <span>Filtre sonucu: <strong>${filteredSavedItems.length}</strong></span>
-    <span>Toplam kayit: <strong>${allSavedItems.length}</strong></span>
+    <span>Yuklenen kayit: <strong>${allSavedItems.length}</strong></span>
     <span>Sayfa araligi: <strong>${start}-${end}</strong></span>
     <span>Tarih: <strong>${buildDateRangeLabel(savedStartDateInput?.value || "", savedEndDateInput?.value || "")}</strong></span>
   `;
@@ -554,10 +608,11 @@ function updateSavedPagination() {
     return;
   }
   const totalPages = Math.max(1, Math.ceil(filteredSavedItems.length / PAGE_SIZE));
-  savedPagination.hidden = filteredSavedItems.length <= PAGE_SIZE;
+  const hasLocalNextPage = savedCurrentPage < totalPages - 1;
+  savedPagination.hidden = filteredSavedItems.length <= PAGE_SIZE && !savedRemoteHasMore;
   savedPrevPageBtn.disabled = savedCurrentPage <= 0;
-  savedNextPageBtn.disabled = savedCurrentPage >= totalPages - 1;
-  savedPageInfo.textContent = `Sayfa ${Math.min(savedCurrentPage + 1, totalPages)} / ${totalPages}`;
+  savedNextPageBtn.disabled = (!hasLocalNextPage && !savedRemoteHasMore) || savedRemoteLoading;
+  savedPageInfo.textContent = `Sayfa ${Math.min(savedCurrentPage + 1, totalPages)} / ${totalPages}${savedRemoteHasMore ? "+" : ""}`;
 }
 
 function matchesSavedSearch(item, searchText) {
