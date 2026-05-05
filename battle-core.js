@@ -2,50 +2,50 @@
 
 (function attachBattleCore(globalScope) {
   const ENEMY_UNITS = [
-    { key: "skeletons", label: "Iskelet (T1)", sample: 0 },
-    { key: "zombies", label: "Zombi (T2)", sample: 14 },
-    { key: "cultists", label: "Tarikatci (T3)", sample: 3 },
-    { key: "bonewings", label: "Kemik Kanat (T4)", sample: 29 },
-    { key: "corpses", label: "Sismis Ceset (T5)", sample: 21 },
-    { key: "wraiths", label: "Hayalet (T6)", sample: 15 },
-    { key: "revenants", label: "Hortlak (T7)", sample: 11 },
-    { key: "giants", label: "Kemik Dev (T8)", sample: 9 },
-    { key: "broodmothers", label: "Yavrulayan Ana (T9)", sample: 4 },
-    { key: "liches", label: "Lich (T10)", sample: 5 }
+    { key: "skeletons", label: "Iskelet (R1)", sample: 0 },
+    { key: "zombies", label: "Zombi (R2)", sample: 14 },
+    { key: "cultists", label: "Namevt Kultist (R3)", sample: 3 },
+    { key: "bonewings", label: "Kemik Kanat (R4)", sample: 29 },
+    { key: "corpses", label: "Sismis Kadavra (R5)", sample: 21 },
+    { key: "wraiths", label: "Mezar Dehseti (R6)", sample: 15 },
+    { key: "revenants", label: "Hortlaksi (R7)", sample: 11 },
+    { key: "giants", label: "Kemik Izbandut (R8)", sample: 9 },
+    { key: "broodmothers", label: "Kulucka Anasi (R9)", sample: 4 },
+    { key: "liches", label: "Ceset (R10)", sample: 5 }
   ];
 
   const ALLY_UNITS = [
-    { key: "bats", label: "Yarasa (T1)", sample: 69 },
+    { key: "bats", label: "Yarasa Surusu (T1)", sample: 69 },
     { key: "ghouls", label: "Gulyabani (T2)", sample: 91 },
     { key: "thralls", label: "Vampir Kole (T3)", sample: 60 },
-    { key: "banshees", label: "Bansi (T4)", sample: 5 },
-    { key: "necromancers", label: "Nekromant (T5)", sample: 1 },
-    { key: "gargoyles", label: "Gargoyl (T6)", sample: 14 },
+    { key: "banshees", label: "Banshee (T4)", sample: 5 },
+    { key: "necromancers", label: "Olu Cagirici (T5)", sample: 1 },
+    { key: "gargoyles", label: "Gargoyle (T6)", sample: 14 },
     { key: "witches", label: "Kan Cadisi (T7)", sample: 3 },
-    { key: "rotmaws", label: "Curuk Cene (T8)", sample: 2 }
+    { key: "rotmaws", label: "Curuk Girtlak (T8)", sample: 2 }
   ];
 
   const ALLY_POINT_COSTS = [2, 3, 4, 7, 10, 15, 18, 30];
 
   const UNIT_DESC = [
-    ["Iskeletler (T1)", "enemy", "brute", "front", 3, 4, 3, 0, 0],
-    ["Zombiler (T2)", "enemy", "brute", "front", 2, 7, 2, 0, 0],
-    ["Olumsuz Tarikatcilar (T3)", "enemy", "occult", "rear", 5, 1, 1, 0, 0],
-    ["Kemik Kanatlar (T4)", "enemy", "occult", "rear", 6, 3, 4, 0, 0],
-    ["Sismis Cesetler (T5)", "enemy", "monster", "front", 1, 10, 1, 0, 0],
-    ["Hayaletler (T6)", "enemy", "occult", "rear", 7, 2, 4, 0, 0],
-    ["Hortlaklar (T7)", "enemy", "brute", "front", 8, 12, 4, 0, 0],
-    ["Kemik Devler (T8)", "enemy", "monster", "front", 10, 25, 1, 0, 0],
-    ["Yavrulayan Analar (T9)", "enemy", "monster", "rear", 9, 18, 2, 0, 0],
-    ["Lichler (T10)", "enemy", "occult", "rear", 40, 25, 3, 0, 0],
-    ["Yarasalar (T1)", "ally", "brute", "rear", 8, 2, 5, 2, 10],
-    ["Gulyabaniler (T2)", "ally", "brute", "front", 3, 5, 2, 3, 15],
-    ["Vampir Koleler (T3)", "ally", "occult", "front", 6, 6, 4, 4, 20],
-    ["Bansiler (T4)", "ally", "monster", "rear", 7, 4, 4, 7, 35],
-    ["Nekromantlar (T5)", "ally", "occult", "rear", 9, 5, 2, 10, 50],
-    ["Gargoyller (T6)", "ally", "monster", "front", 12, 12, 3, 15, 75],
-    ["Kan Cadilari (T7)", "ally", "occult", "rear", 14, 8, 3, 18, 90],
-    ["Curuk Ceneler (T8)", "ally", "monster", "front", 30, 90, 1, 30, 150],
+    ["Iskelet (R1)", "enemy", "brute", "front", 3, 4, 3, 0, 0],
+    ["Zombi (R2)", "enemy", "brute", "front", 2, 7, 2, 0, 0],
+    ["Namevt Kultist (R3)", "enemy", "occult", "rear", 5, 1, 1, 0, 0],
+    ["Kemik Kanat (R4)", "enemy", "occult", "rear", 6, 3, 4, 0, 0],
+    ["Sismis Kadavra (R5)", "enemy", "monster", "front", 1, 10, 1, 0, 0],
+    ["Mezar Dehseti (R6)", "enemy", "occult", "rear", 7, 2, 4, 0, 0],
+    ["Hortlaksi (R7)", "enemy", "brute", "front", 8, 12, 4, 0, 0],
+    ["Kemik Izbandut (R8)", "enemy", "monster", "front", 10, 25, 1, 0, 0],
+    ["Kulucka Anasi (R9)", "enemy", "monster", "rear", 9, 18, 2, 0, 0],
+    ["Ceset (R10)", "enemy", "occult", "rear", 40, 25, 3, 0, 0],
+    ["Yarasa Surusu (T1)", "ally", "brute", "rear", 8, 2, 5, 2, 10],
+    ["Gulyabani (T2)", "ally", "brute", "front", 3, 5, 2, 3, 15],
+    ["Vampir Kole (T3)", "ally", "occult", "front", 6, 6, 4, 4, 20],
+    ["Banshee (T4)", "ally", "monster", "rear", 7, 4, 4, 7, 35],
+    ["Olu Cagirici (T5)", "ally", "occult", "rear", 9, 5, 2, 10, 50],
+    ["Gargoyle (T6)", "ally", "monster", "front", 12, 12, 3, 15, 75],
+    ["Kan Cadisi (T7)", "ally", "occult", "rear", 14, 8, 3, 18, 90],
+    ["Curuk Girtlak (T8)", "ally", "monster", "front", 30, 90, 1, 30, 150],
     ["Diriltilmis Zombiler", "enemy", "brute", "front", 2, 1, 2, 0, 0],
     ["Orumcekler", "enemy", "monster", "rear", 1, 1, 6, 0, 0]
   ];
@@ -817,7 +817,7 @@
 
         if (attackerIndex === GIANTS_INDEX) {
           unitBuffs[GIANTS_INDEX] = 1;
-          log("- Kemik Devlerin biriktirdigi hasar sifirlandi");
+          log("- Kemik Izbandutun biriktirdigi hasar sifirlandi");
         }
 
         if (unitNumbers[NECROMANCERS_INDEX] > 0) {
@@ -2645,26 +2645,26 @@
     ["azalmis", "reduced"],
     ["sifirlandi", "reset"],
     ["hasarini", "damage"],
-    ["Olumsuz Tarikatcilar", "Undead Cultists"],
-    ["Sismis Cesetler", "Bloated Corpses"],
-    ["Yavrulayan Analar", "Brood Mothers"],
+    ["Namevt Kultist", "Undead Cultist"],
+    ["Sismis Kadavra", "Bloated Corpse"],
+    ["Kulucka Anasi", "Brood Mother"],
     ["Diriltilmis Zombiler", "Revived Zombies"],
-    ["Vampir Koleler", "Thralls"],
-    ["Kemik Kanatlar", "Bone Wings"],
-    ["Kemik Devlerin", "Bone Giants'"],
-    ["Kemik Devler", "Bone Giants"],
-    ["Kan Cadilari", "Blood Witches"],
-    ["Curuk Ceneler", "Rotmaws"],
-    ["Gulyabaniler", "Ghouls"],
-    ["Nekromantlar", "Necromancers"],
-    ["Iskeletler", "Skeletons"],
-    ["Hayaletler", "Wraiths"],
-    ["Hortlaklar", "Revenants"],
-    ["Gargoyller", "Gargoyles"],
-    ["Yarasalar", "Bats"],
-    ["Bansiler", "Banshees"],
-    ["Zombiler", "Zombies"],
-    ["Lichler", "Liches"],
+    ["Vampir Kole", "Thrall"],
+    ["Kemik Kanat", "Bone Wing"],
+    ["Kemik Izbandutun", "Bone Brute's"],
+    ["Kemik Izbandut", "Bone Brute"],
+    ["Kan Cadisi", "Blood Witch"],
+    ["Curuk Girtlak", "Rotmaw"],
+    ["Gulyabani", "Ghoul"],
+    ["Olu Cagirici", "Necromancer"],
+    ["Iskelet", "Skeleton"],
+    ["Mezar Dehseti", "Wraith"],
+    ["Hortlaksi", "Revenant"],
+    ["Gargoyle", "Gargoyle"],
+    ["Yarasa Surusu", "Bat Swarm"],
+    ["Banshee", "Banshee"],
+    ["Zombi", "Zombie"],
+    ["Ceset", "Lich"],
     ["Orumcekler", "Spiderlings"],
     ["Hamle", "Turn"],
     ["Raund", "Round"],

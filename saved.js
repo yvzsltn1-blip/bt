@@ -172,6 +172,26 @@ async function loadSavedStrategiesPage({ reset = false } = {}) {
   }
 }
 
+async function ensureAllSavedStrategiesLoaded() {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadApprovedStrategiesPage !== "function") {
+    mergeLoadedSavedItems(await loadSavedStrategies());
+    savedRemoteHasMore = false;
+    savedRemoteCursor = null;
+    return;
+  }
+
+  let safety = 0;
+  while (savedRemoteHasMore && safety < 500) {
+    const previousCount = allSavedItems.length;
+    const previousCursorId = savedRemoteCursor?.id || "";
+    await loadSavedStrategiesPage();
+    safety += 1;
+    if (allSavedItems.length === previousCount && (savedRemoteCursor?.id || "") === previousCursorId) {
+      break;
+    }
+  }
+}
+
 function normalizeLossCount(value) {
   return Math.max(0, Math.floor(Number(value) || 0));
 }
@@ -504,11 +524,19 @@ function bindFilterControls() {
     );
   });
 
-  bulkSavedRegressionBtn?.addEventListener("click", () => {
+  bulkSavedRegressionBtn?.addEventListener("click", async () => {
     if (!window.BulkBattleRegression || typeof window.BulkBattleRegression.openReportPage !== "function") {
       window.alert("Toplu test araci henuz hazir degil.");
       return;
     }
+    bulkSavedRegressionBtn.disabled = true;
+    try {
+      await ensureAllSavedStrategiesLoaded();
+      applySavedFilters();
+    } finally {
+      bulkSavedRegressionBtn.disabled = false;
+    }
+
     const simulationItems = filteredSavedItems.filter((item) => getApprovedSource(item) === "simulation");
     if (!simulationItems.length) {
       window.alert("Toplu test icin secili simulation kaydi yok.");
@@ -800,14 +828,14 @@ function extractLossesFromSummary(summaryText) {
 
 function getSummaryUnitName(key) {
   const names = {
-    bats: "Yarasalar (T1)",
-    ghouls: "Gulyabaniler (T2)",
-    thralls: "Vampir Koleler (T3)",
-    banshees: "Bansiler (T4)",
-    necromancers: "Nekromantlar (T5)",
-    gargoyles: "Gargoyller (T6)",
-    witches: "Kan Cadilari (T7)",
-    rotmaws: "Curuk Ceneler (T8)"
+    bats: "Yarasa Surusu (T1)",
+    ghouls: "Gulyabani (T2)",
+    thralls: "Vampir Kole (T3)",
+    banshees: "Banshee (T4)",
+    necromancers: "Olu Cagirici (T5)",
+    gargoyles: "Gargoyle (T6)",
+    witches: "Kan Cadisi (T7)",
+    rotmaws: "Curuk Girtlak (T8)"
   };
   return names[key] || key;
 }
@@ -942,7 +970,7 @@ function renderSimulationSavedDetails(item) {
     summaryHead.append(summaryLabel, summaryToggle);
     summaryBlock = document.createElement("div");
     summaryBlock.className = "terminal-block saved-text-block";
-    summaryBlock.textContent = item.summaryText;
+    renderStyledLines(item.summaryText.split("\n"), summaryBlock);
     summaryShell.append(summaryHead, summaryBlock);
     wrap.appendChild(summaryShell);
   }
@@ -974,9 +1002,9 @@ function renderSimulationSavedDetails(item) {
         summaryToggle = nextToggle;
       }
       const displayedLosses = getDisplayedSavedLosses(item, isLossReductionActive);
-      summaryBlock.textContent = isLossReductionActive
+      renderStyledTextBlock(summaryBlock, isLossReductionActive
         ? buildLossSummaryText(item.summaryText || "", displayedLosses)
-        : (item.summaryText || "");
+        : (item.summaryText || ""));
     },
     bindToggle(handler) {
       toggleHandler = handler;
@@ -988,6 +1016,215 @@ function renderSimulationSavedDetails(item) {
       summaryToggle = nextToggle;
     }
   };
+}
+
+function renderStyledTextBlock(target, text) {
+  target.innerHTML = "";
+  renderStyledLines(String(text || "").split("\n"), target);
+}
+
+function renderStyledLines(lines, target) {
+  lines.forEach((line) => {
+    const cssClass = classifyLine(line);
+    const row = document.createElement("span");
+    row.className = `log-line${cssClass ? ` ${cssClass}` : ""}`;
+    appendLineWithHighlights(row, line, cssClass);
+    target.appendChild(row);
+  });
+}
+
+const HIGHLIGHTABLE_CLASSES = new Set(["damage", "splash", "buff", "disadv", "status", "event", "ally", "enemy", "formula", "section-total", "matchup"]);
+
+const HIGHLIGHT_PATTERNS = [
+  { regex: /\b\d+\s+(?:\S+\s+){0,2}(?:hasar(?:i)?|damage)\b/g, kind: "hl-damage" },
+  { regex: /\b\d+\s+(?:toplam\s+|total\s+)?(?:can|hp|birim|units|atk)\b/g, kind: "hl-stat" },
+  { regex: /^\s*\d+(?=\s+\S)/g, kind: "hl-stat" },
+  { regex: /\+%\d+(?:\.\d+)?/g, kind: "hl-mult" },
+  { regex: /-%\d+(?:\.\d+)?/g, kind: "hl-mult-neg" },
+  { regex: /(?<!\w)x\d+(?:\.\d+)?(?=\s|$|\])/g, kind: "hl-mult" }
+];
+
+function appendLineWithHighlights(row, line, cssClass) {
+  if (!HIGHLIGHTABLE_CLASSES.has(cssClass)) {
+    row.textContent = line;
+    return;
+  }
+  const matches = [];
+  HIGHLIGHT_PATTERNS.forEach((pattern) => {
+    pattern.regex.lastIndex = 0;
+    let match;
+    while ((match = pattern.regex.exec(line)) !== null) {
+      matches.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[0],
+        kind: pattern.kind
+      });
+    }
+  });
+  matches.sort((a, b) => a.start - b.start || b.end - a.end);
+  const filtered = [];
+  let lastEnd = 0;
+  matches.forEach((match) => {
+    if (match.start >= lastEnd) {
+      filtered.push(match);
+      lastEnd = match.end;
+    }
+  });
+  if (filtered.length === 0) {
+    row.textContent = line;
+    return;
+  }
+  let cursor = 0;
+  filtered.forEach((match) => {
+    if (match.start > cursor) {
+      row.appendChild(document.createTextNode(line.slice(cursor, match.start)));
+    }
+    const span = document.createElement("span");
+    span.className = match.kind;
+    span.textContent = match.text;
+    row.appendChild(span);
+    cursor = match.end;
+  });
+  if (cursor < line.length) {
+    row.appendChild(document.createTextNode(line.slice(cursor)));
+  }
+}
+
+function classifyLine(line) {
+  const stripped = line.trim();
+  if (stripped.startsWith("---")) {
+    return "sep";
+  }
+  if (stripped.includes("â•")) {
+    return "banner";
+  }
+  if (stripped.startsWith("â”€â”€ Raund") && stripped.endsWith("sonu â”€â”€")) {
+    return "round-end";
+  }
+  if (stripped === "DUSMAN SAFLARI" || stripped === "MUTTEFIK SAFLARI" || stripped === "ENEMY RANKS" || stripped === "ALLY RANKS") {
+    return "section-head";
+  }
+  if (
+    stripped.startsWith("â”€ Dusman toplam atak") ||
+    stripped.startsWith("â”€ Muttefik toplam atak") ||
+    stripped.startsWith("â”€ Enemy total attack") ||
+    stripped.startsWith("â”€ Ally total attack")
+  ) {
+    return "section-total";
+  }
+  if (stripped.startsWith(">>")) {
+    return "win";
+  }
+  if (/^(?:Hamle|Turn)\s+\d+$/.test(stripped)) {
+    return "turn";
+  }
+  if (stripped.startsWith("Raund") || stripped.startsWith("Round")) {
+    return "round";
+  }
+  if (stripped.startsWith("Hesap:") || stripped.startsWith("Calc:")) {
+    return "formula";
+  }
+  if (stripped.includes(" â†’ ") && !stripped.startsWith("-") && !stripped.startsWith("â†³")) {
+    return "matchup";
+  }
+  if (
+    stripped.startsWith("Kayip Birlikler") ||
+    stripped.startsWith("Lost Units") ||
+    stripped.startsWith("Toplam birlik kapasitesi") ||
+    stripped.startsWith("Total army capacity") ||
+    stripped.includes("SAVAS  SONUCU") ||
+    stripped.includes("TUR  TUR  ANALIZ")
+  ) {
+    return "header";
+  }
+  if (stripped.includes("yok edildi") || stripped.includes("completely destroyed")) {
+    return "destroy";
+  }
+  if (
+    stripped.startsWith("her raundun") ||
+    stripped.startsWith("each round's") ||
+    stripped.startsWith("Baslangic muharebe duzeni") ||
+    stripped.startsWith("Initial battle formation")
+  ) {
+    return "subhead";
+  }
+  if (stripped.includes("hasar vurdu") || stripped.includes("damage dealt")) {
+    return "damage";
+  }
+  if (
+    stripped.includes("yayilma hasari") ||
+    stripped.includes("intikam hasari") ||
+    stripped.includes("splash damage") ||
+    stripped.includes("revenge damage") ||
+    stripped.includes("overkill damage") ||
+    stripped.includes("(overkill)")
+  ) {
+    return "splash";
+  }
+  if (
+    stripped.includes("birim kaybetti") ||
+    stripped.includes("units lost") ||
+    stripped.includes("birim / ") ||
+    stripped.includes("units / ") ||
+    stripped.includes("birim kaldi") ||
+    stripped.includes("units remaining") ||
+    stripped.startsWith("â†³")
+  ) {
+    return "status";
+  }
+  if (
+    stripped.includes("ustunlugune sahip") ||
+    stripped.includes("type advantage") ||
+    stripped.includes("carpani kazandi") ||
+    stripped.includes("damage multiplier") ||
+    stripped.includes("guclendirdi") ||
+    stripped.includes("empowered") ||
+    stripped.includes("biriktirdi") ||
+    stripped.includes("stored damage") ||
+    stripped.includes("dogurdu") ||
+    stripped.includes("spawned") ||
+    stripped.includes("geri dirildi") ||
+    stripped.includes("revived with") ||
+    /\+%\d/.test(stripped)
+  ) {
+    return "buff";
+  }
+  if (
+    stripped.includes("dezavantajli") ||
+    stripped.includes("type-disadvantaged") ||
+    stripped.includes("azalmis hasar") ||
+    stripped.includes("reduced damage") ||
+    stripped.includes("azaltti") ||
+    stripped.includes("azaltiyor") ||
+    stripped.includes("is reducing") ||
+    stripped.includes("hizini") ||
+    stripped.includes("speed by") ||
+    stripped.includes("hizi artik") ||
+    stripped.includes("speed is now") ||
+    stripped.includes("sifirlandi") ||
+    stripped.includes("was reset") ||
+    /-%\d/.test(stripped)
+  ) {
+    return "disadv";
+  }
+  if (stripped.startsWith("-") || stripped.startsWith("=")) {
+    return "event";
+  }
+  if (stripped.includes(" can") || stripped.includes(" hp")) {
+    return isAllyLine(stripped) ? "ally" : "enemy";
+  }
+  return "";
+}
+
+function isAllyLine(line) {
+  const allyNames = [
+    "Yarasa Surusu", "Gulyabani", "Vampir Kole", "Banshee",
+    "Olu Cagirici", "Gargoyle", "Kan Cadisi", "Curuk Girtlak",
+    "Bats", "Ghouls", "Thralls", "Banshees",
+    "Necromancers", "Gargoyles", "Blood Witches", "Rotmaws"
+  ];
+  return allyNames.some((name) => line.includes(name));
 }
 
 function renderSimulationStageEditor(item) {

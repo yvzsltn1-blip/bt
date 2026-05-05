@@ -1290,14 +1290,14 @@ function renderActualWrongSummaryPreview() {
 
 function getSummaryUnitName(key) {
   const names = {
-    bats: "Yarasalar (T1)",
-    ghouls: "Gulyabaniler (T2)",
-    thralls: "Vampir Koleler (T3)",
-    banshees: "Bansiler (T4)",
-    necromancers: "Nekromantlar (T5)",
-    gargoyles: "Gargoyller (T6)",
-    witches: "Kan Cadilari (T7)",
-    rotmaws: "Curuk Ceneler (T8)"
+    bats: "Yarasa Surusu (T1)",
+    ghouls: "Gulyabani (T2)",
+    thralls: "Vampir Kole (T3)",
+    banshees: "Banshee (T4)",
+    necromancers: "Olu Cagirici (T5)",
+    gargoyles: "Gargoyle (T6)",
+    witches: "Kan Cadisi (T7)",
+    rotmaws: "Curuk Girtlak (T8)"
   };
   return names[key] || key;
 }
@@ -2070,12 +2070,13 @@ function openVariantLogModal(analysis, variant) {
   variantLogSummary.innerHTML = "";
   renderStyledLines(logView.summaryText.split("\n"), variantLogSummary);
 
-  renderPlainTextBlock([
-    `Rakip: ${buildRosterLabel(enemyCounts, ENEMY_UNITS)}`,
-    `Muttefik: ${buildRosterLabel(allyCounts, ALLY_UNITS)}`,
-    `Ornek seedler: ${variant.seeds.slice(0, 5).join(", ") || logView.seed}`,
-    `Toplam birlik kapasitesi: ${logView.usedCapacity}`
-  ].join("\n"), variantLogInfo);
+  renderVariantScenarioInfo(variantLogInfo, {
+    enemyCounts,
+    allyCounts,
+    seeds: variant.seeds,
+    fallbackSeed: logView.seed,
+    usedCapacity: logView.usedCapacity
+  });
 
   variantLogOutput.innerHTML = "";
   renderStyledLines(logView.detailText.split("\n"), variantLogOutput);
@@ -2160,6 +2161,92 @@ function buildRosterLabel(counts, units, limit = null) {
     .filter((unit) => (counts?.[unit.key] || 0) > 0)
     .map((unit) => `${counts[unit.key]} ${unit.label}`);
   return (limit ? parts.slice(0, limit) : parts).join(" / ");
+}
+
+function buildRosterEntries(counts, units) {
+  return units
+    .filter((unit) => (counts?.[unit.key] || 0) > 0)
+    .map((unit) => `${counts[unit.key]} ${unit.label}`);
+}
+
+function renderVariantScenarioInfo(target, { enemyCounts, allyCounts, seeds, fallbackSeed, usedCapacity }) {
+  target.innerHTML = "";
+
+  const sections = [
+    {
+      label: "Rakip",
+      tone: "enemy",
+      entries: buildRosterEntries(enemyCounts, ENEMY_UNITS)
+    },
+    {
+      label: "Muttefikler",
+      tone: "ally",
+      entries: buildRosterEntries(allyCounts, ALLY_UNITS)
+    }
+  ];
+
+  sections.forEach((section, index) => {
+    const block = document.createElement("section");
+    block.className = "variant-info-section";
+
+    const heading = document.createElement("div");
+    heading.className = `variant-info-label is-${section.tone}`;
+    heading.textContent = section.label;
+
+    const roster = document.createElement("div");
+    roster.className = "variant-info-roster";
+
+    if (section.entries.length === 0) {
+      const emptyChip = document.createElement("span");
+      emptyChip.className = `variant-info-chip is-${section.tone}`;
+      emptyChip.textContent = "Birim yok";
+      roster.appendChild(emptyChip);
+    } else {
+      section.entries.forEach((entry) => {
+        const chip = document.createElement("span");
+        chip.className = `variant-info-chip is-${section.tone}`;
+        chip.textContent = entry;
+        roster.appendChild(chip);
+      });
+    }
+
+    block.append(heading, roster);
+    target.appendChild(block);
+
+    if (index < sections.length - 1) {
+      const divider = document.createElement("div");
+      divider.className = "variant-info-divider";
+      target.appendChild(divider);
+    }
+  });
+
+  const sampleSeeds = Array.isArray(seeds) && seeds.length ? seeds.slice(0, 5).join(", ") : String(fallbackSeed);
+  [
+    {
+      label: "Ornek seedler",
+      value: sampleSeeds,
+      tone: "seed"
+    },
+    {
+      label: "Toplam birlik kapasitesi",
+      value: String(usedCapacity),
+      tone: "capacity"
+    }
+  ].forEach((item) => {
+    const row = document.createElement("div");
+    row.className = `variant-info-meta-row is-${item.tone}`;
+
+    const label = document.createElement("span");
+    label.className = "variant-info-meta-label";
+    label.textContent = item.label;
+
+    const value = document.createElement("strong");
+    value.className = "variant-info-meta-value";
+    value.textContent = item.value;
+
+    row.append(label, value);
+    target.appendChild(row);
+  });
 }
 
 function renderPlainTextBlock(text, target) {
@@ -2376,8 +2463,8 @@ function classifyLine(line) {
 
 function isAllyLine(line) {
   const allyNames = [
-    "Yarasalar", "Gulyabaniler", "Vampir Koleler", "Bansiler",
-    "Nekromantlar", "Gargoyller", "Kan Cadilari", "Curuk Ceneler",
+    "Yarasa Surusu", "Gulyabani", "Vampir Kole", "Banshee",
+    "Olu Cagirici", "Gargoyle", "Kan Cadisi", "Curuk Girtlak",
     "Bats", "Ghouls", "Thralls", "Banshees",
     "Necromancers", "Gargoyles", "Blood Witches", "Rotmaws"
   ];

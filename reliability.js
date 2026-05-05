@@ -542,8 +542,8 @@ function classifyLine(line) {
 
 function isAllyLine(line) {
   const allyNames = [
-    "Yarasalar", "Gulyabaniler", "Vampir Koleler", "Bansiler",
-    "Nekromantlar", "Gargoyller", "Kan Cadilari", "Curuk Ceneler",
+    "Yarasa Surusu", "Gulyabani", "Vampir Kole", "Banshee",
+    "Olu Cagirici", "Gargoyle", "Kan Cadisi", "Curuk Girtlak",
     "Bats", "Ghouls", "Thralls", "Banshees",
     "Necromancers", "Gargoyles", "Blood Witches", "Rotmaws"
   ];

@@ -170,6 +170,26 @@ async function loadWrongReportsPage({ reset = false } = {}) {
   }
 }
 
+async function ensureAllWrongReportsLoaded() {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadWrongReportsPage !== "function") {
+    mergeLoadedWrongItems(await loadWrongReports());
+    wrongRemoteHasMore = false;
+    wrongRemoteCursor = null;
+    return;
+  }
+
+  let safety = 0;
+  while (wrongRemoteHasMore && safety < 500) {
+    const previousCount = allWrongItems.length;
+    const previousCursorId = wrongRemoteCursor?.id || "";
+    await loadWrongReportsPage();
+    safety += 1;
+    if (allWrongItems.length === previousCount && (wrongRemoteCursor?.id || "") === previousCursorId) {
+      break;
+    }
+  }
+}
+
 function normalizeLossCount(value) {
   return Math.max(0, Math.floor(Number(value) || 0));
 }
@@ -549,11 +569,19 @@ function bindFilterControls() {
     );
   });
 
-  bulkWrongRegressionBtn?.addEventListener("click", () => {
+  bulkWrongRegressionBtn?.addEventListener("click", async () => {
     if (!window.BulkBattleRegression || typeof window.BulkBattleRegression.openReportPage !== "function") {
       window.alert("Toplu test araci henuz hazir degil.");
       return;
     }
+    bulkWrongRegressionBtn.disabled = true;
+    try {
+      await ensureAllWrongReportsLoaded();
+      applyWrongFilters();
+    } finally {
+      bulkWrongRegressionBtn.disabled = false;
+    }
+
     if (!filteredWrongItems.length) {
       window.alert("Toplu test icin secili rapor yok.");
       return;
@@ -867,14 +895,14 @@ function extractLossesFromSummary(summaryText) {
 
 function getSummaryUnitName(key) {
   const names = {
-    bats: "Yarasalar (T1)",
-    ghouls: "Gulyabaniler (T2)",
-    thralls: "Vampir Koleler (T3)",
-    banshees: "Bansiler (T4)",
-    necromancers: "Nekromantlar (T5)",
-    gargoyles: "Gargoyller (T6)",
-    witches: "Kan Cadilari (T7)",
-    rotmaws: "Curuk Ceneler (T8)"
+    bats: "Yarasa Surusu (T1)",
+    ghouls: "Gulyabani (T2)",
+    thralls: "Vampir Kole (T3)",
+    banshees: "Banshee (T4)",
+    necromancers: "Olu Cagirici (T5)",
+    gargoyles: "Gargoyle (T6)",
+    witches: "Kan Cadisi (T7)",
+    rotmaws: "Curuk Girtlak (T8)"
   };
   return names[key] || key;
 }
@@ -1227,8 +1255,8 @@ function classifyLine(line) {
 
 function isAllyLine(line) {
   const allyNames = [
-    "Yarasalar", "Gulyabaniler", "Vampir Koleler", "Bansiler",
-    "Nekromantlar", "Gargoyller", "Kan Cadilari", "Curuk Ceneler",
+    "Yarasa Surusu", "Gulyabani", "Vampir Kole", "Banshee",
+    "Olu Cagirici", "Gargoyle", "Kan Cadisi", "Curuk Girtlak",
     "Bats", "Ghouls", "Thralls", "Banshees",
     "Necromancers", "Gargoyles", "Blood Witches", "Rotmaws"
   ];

@@ -31,14 +31,14 @@
 
   function getSummaryUnitName(key) {
     const names = {
-      bats: "Yarasalar (T1)",
-      ghouls: "Gulyabaniler (T2)",
-      thralls: "Vampir Koleler (T3)",
-      banshees: "Bansiler (T4)",
-      necromancers: "Nekromantlar (T5)",
-      gargoyles: "Gargoyller (T6)",
-      witches: "Kan Cadilari (T7)",
-      rotmaws: "Curuk Ceneler (T8)"
+      bats: "Yarasa Surusu (T1)",
+      ghouls: "Gulyabani (T2)",
+      thralls: "Vampir Kole (T3)",
+      banshees: "Banshee (T4)",
+      necromancers: "Olu Cagirici (T5)",
+      gargoyles: "Gargoyle (T6)",
+      witches: "Kan Cadisi (T7)",
+      rotmaws: "Curuk Girtlak (T8)"
     };
     return names[key] || key;
   }
