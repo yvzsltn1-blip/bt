@@ -304,15 +304,16 @@ function drawLogTextNode(ctx, text, x, y, style) {
   return measureAndDrawText(ctx, text, x, y, letterSpacing, true);
 }
 
-function drawLogLineToCanvas(ctx, row, contentOriginX, contentOriginY, contentWidth) {
-  const rowStyle = window.getComputedStyle(row);
-  const rowTop = contentOriginY + row.offsetTop;
-  const rowHeight = Math.max(row.offsetHeight, parsePixelValue(rowStyle.lineHeight, parsePixelValue(rowStyle.fontSize, 13) * 1.4));
+function drawLogLineToCanvas(ctx, row, contentOriginX, rowTop, contentWidth, rowStyle = window.getComputedStyle(row), rowHeight = null) {
+  const effectiveRowHeight = rowHeight ?? Math.max(
+    parsePixelValue(rowStyle.lineHeight, parsePixelValue(rowStyle.fontSize, 13) * 1.4) + parsePixelValue(rowStyle.paddingTop, 0) + parsePixelValue(rowStyle.paddingBottom, 0),
+    parsePixelValue(rowStyle.fontSize, 13)
+  );
   const rowPaddingTop = parsePixelValue(rowStyle.paddingTop, 0);
 
   if (hasVisibleFill(rowStyle.backgroundColor)) {
     ctx.fillStyle = rowStyle.backgroundColor;
-    ctx.fillRect(contentOriginX, rowTop, contentWidth, rowHeight);
+    ctx.fillRect(contentOriginX, rowTop, contentWidth, effectiveRowHeight);
   }
 
   let cursorX = contentOriginX;
@@ -368,6 +369,14 @@ async function exportSimulationLogAsPng() {
     throw new Error("Gunluk paneli bulunamadi.");
   }
 
+  const createExportSnapshot = window.SimulationLogExport?.createExportSnapshot;
+  const buildSequentialLogLayout = window.SimulationLogExport?.buildSequentialLogLayout;
+  const exportSnapshot = typeof createExportSnapshot === "function"
+    ? createExportSnapshot(simulationLogPanel)
+    : null;
+  const exportPanel = exportSnapshot?.panel || simulationLogPanel;
+  const exportLogOutput = exportSnapshot?.logOutput || logOutput;
+
   if (document.fonts?.ready) {
     try {
       await document.fonts.ready;
@@ -376,125 +385,152 @@ async function exportSimulationLogAsPng() {
     }
   }
 
-  const panelRect = simulationLogPanel.getBoundingClientRect();
-  const panelWidth = Math.max(1, Math.ceil(panelRect.width));
-  const logHead = simulationLogPanel.querySelector(".log-head");
-  const logHeadTitle = simulationLogPanel.querySelector(".log-head-title");
-  const headHeight = logHead ? Math.ceil(logHead.getBoundingClientRect().height) : 0;
-  const panelStyles = window.getComputedStyle(simulationLogPanel);
-  const headStyles = logHead ? window.getComputedStyle(logHead) : null;
-  const titleStyles = logHeadTitle ? window.getComputedStyle(logHeadTitle) : null;
-  const outputStyles = window.getComputedStyle(logOutput);
-  const renderedLines = Array.from(logOutput.querySelectorAll(".log-line"));
-  const borderTop = parseFloat(panelStyles.borderTopWidth) || 0;
-  const borderBottom = parseFloat(panelStyles.borderBottomWidth) || 0;
-  const renderedLogBottom = renderedLines.reduce((maxBottom, row) => {
-    const rowBottom = row.offsetTop + row.offsetHeight;
-    return Math.max(maxBottom, rowBottom);
-  }, 0);
-  const exportLogHeight = Math.max(
-    logOutput.scrollHeight,
-    Math.ceil(logOutput.getBoundingClientRect().height),
-    Math.ceil(renderedLogBottom + parsePixelValue(outputStyles.paddingBottom, 18))
-  );
-  const exportHeight = Math.max(1, Math.ceil(headHeight + exportLogHeight + borderTop + borderBottom));
-  const baseScale = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 3);
-  const MAX_CANVAS_WIDTH = 8192;
-  const MAX_CANVAS_HEIGHT = 8192;
-  const MAX_CANVAS_AREA = 32 * 1024 * 1024;
-  const widthLimitedScale = MAX_CANVAS_WIDTH / panelWidth;
-  const heightLimitedScale = MAX_CANVAS_HEIGHT / exportHeight;
-  const areaLimitedScale = Math.sqrt(MAX_CANVAS_AREA / (panelWidth * exportHeight));
-  const scale = Math.max(0.1, Math.min(baseScale, widthLimitedScale, heightLimitedScale, areaLimitedScale));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(panelWidth * scale));
-  canvas.height = Math.max(1, Math.round(exportHeight * scale));
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Canvas baglami olusturulamadi.");
-  }
-
-  ctx.scale(scale, scale);
-  ctx.imageSmoothingEnabled = true;
-
-  const borderRadius = parsePixelValue(panelStyles.borderRadius, 20);
-  const borderWidth = parsePixelValue(panelStyles.borderTopWidth, 1);
-  drawRoundedPanel(
-    ctx,
-    borderWidth / 2,
-    borderWidth / 2,
-    panelWidth - borderWidth,
-    exportHeight - borderWidth,
-    borderRadius,
-    panelStyles.backgroundColor || "#0a0f15",
-    panelStyles.borderColor || "rgba(160, 185, 214, 0.18)",
-    borderWidth
-  );
-
-  if (headStyles) {
-    const headPaddingLeft = parsePixelValue(headStyles.paddingLeft, 16);
-    const headPaddingTop = parsePixelValue(headStyles.paddingTop, 12);
-    const titleText = logHeadTitle?.textContent || "Tam Gunluk";
-    const dividerY = headHeight - parsePixelValue(headStyles.borderBottomWidth, 1) / 2;
-
-    if (parsePixelValue(headStyles.borderBottomWidth, 0) > 0 && hasVisibleFill(headStyles.borderBottomColor)) {
-      ctx.beginPath();
-      ctx.moveTo(0, dividerY);
-      ctx.lineTo(panelWidth, dividerY);
-      ctx.lineWidth = parsePixelValue(headStyles.borderBottomWidth, 1);
-      ctx.strokeStyle = headStyles.borderBottomColor;
-      ctx.stroke();
+  try {
+    const panelRect = exportPanel.getBoundingClientRect();
+    const panelWidth = Math.max(1, Math.ceil(panelRect.width));
+    const logHead = exportSnapshot?.logHead || exportPanel.querySelector(".log-head");
+    const logHeadTitle = exportSnapshot?.logHeadTitle || exportPanel.querySelector(".log-head-title");
+    const headHeight = logHead ? Math.ceil(logHead.getBoundingClientRect().height) : 0;
+    const panelStyles = window.getComputedStyle(exportPanel);
+    const headStyles = logHead ? window.getComputedStyle(logHead) : null;
+    const titleStyles = logHeadTitle ? window.getComputedStyle(logHeadTitle) : null;
+    const outputStyles = window.getComputedStyle(exportLogOutput);
+    const renderedLines = Array.from(exportLogOutput.querySelectorAll(".log-line"));
+    const renderedLineLayouts = typeof buildSequentialLogLayout === "function"
+      ? buildSequentialLogLayout(
+        renderedLines.map((row) => ({
+          element: row,
+          style: window.getComputedStyle(row)
+        })),
+        headHeight + parsePixelValue(outputStyles.paddingTop, 18)
+      )
+      : null;
+    const borderTop = parseFloat(panelStyles.borderTopWidth) || 0;
+    const borderBottom = parseFloat(panelStyles.borderBottomWidth) || 0;
+    const exportLogHeight = Math.max(
+      exportLogOutput.scrollHeight,
+      Math.ceil(exportLogOutput.getBoundingClientRect().height),
+      Math.ceil(
+        renderedLineLayouts
+          ? (renderedLineLayouts.totalHeight - headHeight + parsePixelValue(outputStyles.paddingBottom, 18))
+          : parsePixelValue(outputStyles.paddingTop, 18) + parsePixelValue(outputStyles.paddingBottom, 18)
+      )
+    );
+    const exportHeight = Math.max(1, Math.ceil(headHeight + exportLogHeight + borderTop + borderBottom));
+    const baseScale = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 3);
+    const MAX_CANVAS_WIDTH = 8192;
+    const MAX_CANVAS_HEIGHT = 8192;
+    const MAX_CANVAS_AREA = 32 * 1024 * 1024;
+    const widthLimitedScale = MAX_CANVAS_WIDTH / panelWidth;
+    const heightLimitedScale = MAX_CANVAS_HEIGHT / exportHeight;
+    const areaLimitedScale = Math.sqrt(MAX_CANVAS_AREA / (panelWidth * exportHeight));
+    const scale = Math.max(0.1, Math.min(baseScale, widthLimitedScale, heightLimitedScale, areaLimitedScale));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(panelWidth * scale));
+    canvas.height = Math.max(1, Math.round(exportHeight * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Canvas baglami olusturulamadi.");
     }
 
-    if (titleStyles) {
-      ctx.font = buildCanvasFont(titleStyles);
-      ctx.fillStyle = titleStyles.color || "#98a7bf";
+    ctx.scale(scale, scale);
+    ctx.imageSmoothingEnabled = true;
+
+    const borderRadius = parsePixelValue(panelStyles.borderRadius, 20);
+    const borderWidth = parsePixelValue(panelStyles.borderTopWidth, 1);
+    drawRoundedPanel(
+      ctx,
+      borderWidth / 2,
+      borderWidth / 2,
+      panelWidth - borderWidth,
+      exportHeight - borderWidth,
+      borderRadius,
+      panelStyles.backgroundColor || "#0a0f15",
+      panelStyles.borderColor || "rgba(160, 185, 214, 0.18)",
+      borderWidth
+    );
+
+    if (headStyles) {
+      const headPaddingLeft = parsePixelValue(headStyles.paddingLeft, 16);
+      const headPaddingTop = parsePixelValue(headStyles.paddingTop, 12);
+      const titleText = logHeadTitle?.textContent || "Tam Gunluk";
+      const dividerY = headHeight - parsePixelValue(headStyles.borderBottomWidth, 1) / 2;
+
+      if (parsePixelValue(headStyles.borderBottomWidth, 0) > 0 && hasVisibleFill(headStyles.borderBottomColor)) {
+        ctx.beginPath();
+        ctx.moveTo(0, dividerY);
+        ctx.lineTo(panelWidth, dividerY);
+        ctx.lineWidth = parsePixelValue(headStyles.borderBottomWidth, 1);
+        ctx.strokeStyle = headStyles.borderBottomColor;
+        ctx.stroke();
+      }
+
+      if (titleStyles) {
+        ctx.font = buildCanvasFont(titleStyles);
+        ctx.fillStyle = titleStyles.color || "#98a7bf";
+        ctx.textBaseline = "top";
+        measureAndDrawText(
+          ctx,
+          titleText,
+          headPaddingLeft,
+          headPaddingTop,
+          parsePixelValue(titleStyles.letterSpacing, 0),
+          true
+        );
+      }
+    }
+
+    const contentOriginX = parsePixelValue(outputStyles.paddingLeft, 16);
+    const contentOriginY = headHeight;
+    const contentWidth = panelWidth - contentOriginX - parsePixelValue(outputStyles.paddingRight, 16);
+
+    if (hasVisibleFill(outputStyles.backgroundColor)) {
+      ctx.fillStyle = outputStyles.backgroundColor;
+      ctx.fillRect(
+        borderWidth,
+        contentOriginY,
+        Math.max(0, panelWidth - borderWidth * 2),
+        Math.max(0, exportHeight - contentOriginY - borderWidth)
+      );
+    }
+
+    if (renderedLines.length > 0) {
+      if (renderedLineLayouts) {
+        renderedLineLayouts.rows.forEach((layoutRow) => {
+          drawLogLineToCanvas(
+            ctx,
+            layoutRow.source.element,
+            contentOriginX,
+            layoutRow.top,
+            contentWidth,
+            layoutRow.source.style,
+            layoutRow.height
+          );
+        });
+      } else {
+        renderedLines.forEach((row) => {
+          drawLogLineToCanvas(ctx, row, contentOriginX, contentOriginY + row.offsetTop, contentWidth);
+        });
+      }
+    } else {
+      ctx.font = buildCanvasFont(outputStyles);
+      ctx.fillStyle = outputStyles.color || "#d6dff0";
       ctx.textBaseline = "top";
       measureAndDrawText(
         ctx,
-        titleText,
-        headPaddingLeft,
-        headPaddingTop,
-        parsePixelValue(titleStyles.letterSpacing, 0),
+        exportLogOutput.textContent || "Gunluk henuz olusturulmadi.",
+        contentOriginX,
+        contentOriginY + parsePixelValue(outputStyles.paddingTop, 18),
+        parsePixelValue(outputStyles.letterSpacing, 0),
         true
       );
     }
+
+    const pngBlob = await canvasToBlob(canvas, "image/png");
+    triggerBlobDownload(pngBlob, buildSimulationLogExportFilename("png"));
+  } finally {
+    exportSnapshot?.dispose();
   }
-
-  const contentOriginX = parsePixelValue(outputStyles.paddingLeft, 16);
-  const contentOriginY = headHeight;
-  const contentWidth = panelWidth - contentOriginX - parsePixelValue(outputStyles.paddingRight, 16);
-
-  if (hasVisibleFill(outputStyles.backgroundColor)) {
-    ctx.fillStyle = outputStyles.backgroundColor;
-    ctx.fillRect(
-      borderWidth,
-      contentOriginY,
-      Math.max(0, panelWidth - borderWidth * 2),
-      Math.max(0, exportHeight - contentOriginY - borderWidth)
-    );
-  }
-
-  if (renderedLines.length > 0) {
-    renderedLines.forEach((row) => {
-      drawLogLineToCanvas(ctx, row, contentOriginX, contentOriginY, contentWidth);
-    });
-  } else {
-    ctx.font = buildCanvasFont(outputStyles);
-    ctx.fillStyle = outputStyles.color || "#d6dff0";
-    ctx.textBaseline = "top";
-    measureAndDrawText(
-      ctx,
-      logOutput.textContent || "Gunluk henuz olusturulmadi.",
-      contentOriginX,
-      contentOriginY + parsePixelValue(outputStyles.paddingTop, 18),
-      parsePixelValue(outputStyles.letterSpacing, 0),
-      true
-    );
-  }
-
-  const pngBlob = await canvasToBlob(canvas, "image/png");
-  triggerBlobDownload(pngBlob, buildSimulationLogExportFilename("png"));
 }
 
 if (downloadLogTxtBtn) {

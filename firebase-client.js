@@ -193,6 +193,27 @@
     };
   }
 
+  async function loadLegacyFirstPageFallback({
+    collectionName,
+    orderField,
+    mergeItems,
+    readLocal,
+    writeLocal,
+    pageSize
+  }) {
+    const snapshot = await db.collection(collectionName).get();
+    const remoteItems = mergeItems(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    if (typeof writeLocal === "function" && remoteItems.length > 0) {
+      writeLocal(mergeItems([...readLocal(), ...remoteItems]));
+    }
+    return buildLocalPageResult(
+      mergeItems([...remoteItems, ...readLocal()]),
+      orderField,
+      pageSize,
+      null
+    );
+  }
+
   async function loadCollectionPage({
     collectionName,
     orderField,
@@ -217,6 +238,16 @@
       const hasMore = docs.length > normalizedPageSize;
       const pageDocs = hasMore ? docs.slice(0, normalizedPageSize) : docs;
       const items = mergeItems(pageDocs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      if (!cursor && items.length === 0) {
+        return loadLegacyFirstPageFallback({
+          collectionName,
+          orderField,
+          mergeItems,
+          readLocal,
+          writeLocal,
+          pageSize: normalizedPageSize
+        });
+      }
       if (typeof writeLocal === "function" && items.length > 0) {
         writeLocal(mergeItems([...readLocal(), ...items]));
       }
@@ -227,6 +258,20 @@
       };
     } catch (error) {
       console.warn(`${collectionName} sayfali okunamadi, cache kullaniliyor.`, error);
+      if (!cursor) {
+        try {
+          return await loadLegacyFirstPageFallback({
+            collectionName,
+            orderField,
+            mergeItems,
+            readLocal,
+            writeLocal,
+            pageSize: normalizedPageSize
+          });
+        } catch (fallbackError) {
+          console.warn(`${collectionName} legacy ilk sayfa fallback'i de okunamadi.`, fallbackError);
+        }
+      }
       return buildLocalPageResult(readLocal(), orderField, normalizedPageSize, cursor);
     }
   }
