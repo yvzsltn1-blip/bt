@@ -356,9 +356,32 @@
     return "═".repeat(left) + padded + "═".repeat(right);
   }
 
-  function formatUnitLine(count, name, hp, attack, speed) {
+  function getUnitTypeInitial(type) {
+    if (type === "occult") return "O";
+    if (type === "monster") return "G";
+    if (type === "brute") return "B";
+    return "?";
+  }
+
+  function getUnitPositionSummary(position) {
+    return position === "rear" ? "Artci" : "Cephe";
+  }
+
+  function getUnitDisplayName(index) {
+    const name = UNIT_DESC[index][NAME_INDEX];
+    const position = getUnitPositionSummary(UNIT_DESC[index][POSITION_INDEX]);
+    const typeInitial = getUnitTypeInitial(UNIT_DESC[index][TYPE_INDEX]);
+    return `${name} [${position}/${typeInitial}]`;
+  }
+
+  function getUnitLossDisplayName(index) {
+    return UNIT_DESC[index][NAME_INDEX];
+  }
+
+  function formatUnitLine(count, index, hp, attack, speed) {
     const totalAttack = count * attack;
-    return `   ${String(count).padStart(3)}  ${name.padEnd(26)}  ${String(hp).padStart(4)} can   ${String(attack).padStart(3)} atk   ${String(speed).padStart(2)} hiz   ${String(totalAttack).padStart(5)} toplam atk`;
+    const name = getUnitDisplayName(index);
+    return `   ${String(count).padStart(3)}  ${name.padEnd(38)}  ${String(hp).padStart(4)} can   ${String(attack).padStart(3)} atk   ${String(speed).padStart(2)} hiz   ${String(totalAttack).padStart(5)} toplam atk`;
   }
 
   function printBattlefield(log, unitNumbers, unitHealth, unitSpeed, order, side) {
@@ -370,7 +393,7 @@
       for (let i = order.length - 1; i >= 0; i -= 1) {
         const index = order[i];
         if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
-          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX], unitSpeed[index]));
+          log(formatUnitLine(unitNumbers[index], index, unitHealth[index], UNIT_DESC[index][ATTACK_INDEX], unitSpeed[index]));
           sideTotalAttack += unitNumbers[index] * UNIT_DESC[index][ATTACK_INDEX];
         }
       }
@@ -378,7 +401,7 @@
       for (let i = 0; i < order.length; i += 1) {
         const index = order[i];
         if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
-          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index], UNIT_DESC[index][ATTACK_INDEX], unitSpeed[index]));
+          log(formatUnitLine(unitNumbers[index], index, unitHealth[index], UNIT_DESC[index][ATTACK_INDEX], unitSpeed[index]));
           sideTotalAttack += unitNumbers[index] * UNIT_DESC[index][ATTACK_INDEX];
         }
       }
@@ -876,7 +899,7 @@
         lostUnitsTotal += lostUnits;
         const lostBlood = lostUnits * UNIT_DESC[i][BLOOD_INDEX];
         lostBloodTotal += lostBlood;
-        log(`- ${String(lostUnits).padStart(3)} ${UNIT_DESC[i][NAME_INDEX].padEnd(28)} (${lostBlood} kan)`);
+        log(`- ${String(lostUnits).padStart(3)} ${getUnitLossDisplayName(i)} (${lostBlood} kan)`);
       }
     }
     log("");
@@ -2672,6 +2695,8 @@
     ["dogurdu", "spawned"],
     ["uzerine", "on"],
     ["karsisinda", "against"],
+    ["Artci", "Rear"],
+    ["Cephe", "Front"],
     ["kaldi", "remaining"],
     ["toplam", "total"],
     ["sonu", "end"],
@@ -2682,6 +2707,71 @@
     ["kan", "blood"],
     ["can", "hp"]
   ];
+
+  function analyzeKnifeEdgeRisk(enemyCounts, allyCounts, options = {}) {
+    const seed = Number.isInteger(options.seed) ? options.seed : 1;
+    const baselineResult = options.result || simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false });
+    const baselineWinner = baselineResult.winner === "enemy" ? "enemy" : "ally";
+    const perturbations = [];
+
+    ALLY_UNITS.forEach((unit) => {
+      const currentCount = Math.max(0, Number(allyCounts?.[unit.key]) || 0);
+      if (currentCount <= 0) {
+        return;
+      }
+      const nextAllyCounts = cloneCounts(allyCounts, ALLY_UNITS);
+      nextAllyCounts[unit.key] = Math.max(0, currentCount - 1);
+      const result = simulateBattle(enemyCounts, nextAllyCounts, { seed, collectLog: false });
+      perturbations.push({
+        kind: "ally_down",
+        unitKey: unit.key,
+        unitLabel: unit.label,
+        delta: -1,
+        winner: result.winner === "enemy" ? "enemy" : "ally",
+        lostBloodTotal: result.lostBloodTotal
+      });
+    });
+
+    ENEMY_UNITS.forEach((unit) => {
+      const currentCount = Math.max(0, Number(enemyCounts?.[unit.key]) || 0);
+      if (currentCount <= 0) {
+        return;
+      }
+      const nextEnemyCounts = cloneCounts(enemyCounts, ENEMY_UNITS);
+      nextEnemyCounts[unit.key] = currentCount + 1;
+      const result = simulateBattle(nextEnemyCounts, allyCounts, { seed, collectLog: false });
+      perturbations.push({
+        kind: "enemy_up",
+        unitKey: unit.key,
+        unitLabel: unit.label,
+        delta: 1,
+        winner: result.winner === "enemy" ? "enemy" : "ally",
+        lostBloodTotal: result.lostBloodTotal
+      });
+    });
+
+    const losingNeighbors = perturbations.filter((entry) =>
+      baselineWinner === "ally" ? entry.winner === "enemy" : entry.winner === "ally"
+    );
+    const severity = baselineWinner !== "ally" || losingNeighbors.length === 0
+      ? "none"
+      : (losingNeighbors.length >= 3 ? "high" : "medium");
+    const examples = losingNeighbors.slice(0, 4).map((entry) =>
+      entry.kind === "ally_down" ? `-1 ${entry.unitLabel}` : `+1 ${entry.unitLabel}`
+    );
+
+    return {
+      seed,
+      baselineWinner,
+      checkedCount: perturbations.length,
+      flipCount: losingNeighbors.length,
+      severity,
+      isKnifeEdge: baselineWinner === "ally" && losingNeighbors.length > 0,
+      examples,
+      perturbations,
+      losingNeighbors
+    };
+  }
 
   function escapeRegex(text) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -2711,6 +2801,7 @@
     normalizeCandidateToPointLimit,
     simulateBattle,
     optimizeArmyUsage,
+    analyzeKnifeEdgeRisk,
     BLOOD_BY_ALLY_KEY,
     getStoneReviveCount,
     getStoneAdjustedLossProfile,

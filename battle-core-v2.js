@@ -240,8 +240,31 @@
     return Math.floor(rng() * max);
   }
 
-  function formatUnitLine(count, name, hp) {
-    return `${String(count).padStart(3)} ${name.padEnd(28)} ${String(hp).padStart(4)} can`;
+  function getUnitTypeInitial(type) {
+    if (type === "occult") return "O";
+    if (type === "monster") return "G";
+    if (type === "brute") return "B";
+    return "?";
+  }
+
+  function getUnitPositionSummary(position) {
+    return position === "rear" ? "Artci" : "Cephe";
+  }
+
+  function getUnitDisplayName(index) {
+    const name = UNIT_DESC[index][NAME_INDEX];
+    const position = getUnitPositionSummary(UNIT_DESC[index][POSITION_INDEX]);
+    const typeInitial = getUnitTypeInitial(UNIT_DESC[index][TYPE_INDEX]);
+    return `${name} [${position}/${typeInitial}]`;
+  }
+
+  function getUnitLossDisplayName(index) {
+    return UNIT_DESC[index][NAME_INDEX];
+  }
+
+  function formatUnitLine(count, index, hp) {
+    const name = getUnitDisplayName(index);
+    return `${String(count).padStart(3)} ${name.padEnd(40)} ${String(hp).padStart(4)} can`;
   }
 
   function printBattlefield(log, unitNumbers, unitHealth, order, side) {
@@ -249,7 +272,7 @@
       for (let i = order.length - 1; i >= 0; i -= 1) {
         const index = order[i];
         if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
-          log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index]));
+          log(formatUnitLine(unitNumbers[index], index, unitHealth[index]));
         }
       }
       return;
@@ -258,7 +281,7 @@
     for (let i = 0; i < order.length; i += 1) {
       const index = order[i];
       if (unitNumbers[index] > 0 && UNIT_DESC[index][SIDE_INDEX] === side) {
-        log(formatUnitLine(unitNumbers[index], UNIT_DESC[index][NAME_INDEX], unitHealth[index]));
+        log(formatUnitLine(unitNumbers[index], index, unitHealth[index]));
       }
     }
   }
@@ -690,7 +713,7 @@
         lostUnitsTotal += lostUnits;
         const lostBlood = lostUnits * UNIT_DESC[i][BLOOD_INDEX];
         lostBloodTotal += lostBlood;
-        log(`- ${String(lostUnits).padStart(3)} ${UNIT_DESC[i][NAME_INDEX].padEnd(28)} (${String(lostBlood).padStart(4)} kan)`);
+        log(`- ${String(lostUnits).padStart(3)} ${getUnitLossDisplayName(i)} (${lostBlood} kan)`);
       }
     }
     log("");

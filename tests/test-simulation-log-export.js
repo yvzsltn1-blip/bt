@@ -82,9 +82,9 @@ const snapshot = createExportSnapshot(livePanel);
 
 assert.strictEqual(snapshot.panel, clonedPanel);
 assert.strictEqual(snapshot.logOutput, clonedOutput);
-assert.strictEqual(snapshot.panelWidth, 358);
+assert.strictEqual(snapshot.panelWidth, 720);
 assert.strictEqual(fakeBody.children.length, 1);
-assert.strictEqual(clonedPanel.style.width, "358px");
+assert.strictEqual(clonedPanel.style.width, "720px");
 assert.strictEqual(clonedPanel.style.height, "auto");
 assert.strictEqual(clonedPanel.style.maxHeight, "none");
 assert.strictEqual(clonedPanel.style.overflow, "visible");

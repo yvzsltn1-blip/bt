@@ -6,7 +6,8 @@ const {
   parseCount,
   calculateArmyPoints,
   BLOOD_BY_ALLY_KEY,
-  simulateBattle
+  simulateBattle,
+  analyzeKnifeEdgeRisk
 } = window.BattleCore;
 
 const inputRefs = {};
@@ -63,6 +64,7 @@ let currentVariantAnalysis = null;
 let variantAnalysisRunId = 0;
 let isAdminSession = false;
 let currentSimulationResult = null;
+let currentKnifeEdgeRisk = null;
 let isLossReductionActive = false;
 let pendingHydratedSimulationSeed = null;
 const VARIANT_SAMPLE_COUNT = 480;
@@ -113,6 +115,7 @@ clearBtn.addEventListener("click", () => {
   statusLabel.textContent = "Sifirlandi";
   currentSimulationReport = null;
   currentSimulationResult = null;
+  currentKnifeEdgeRisk = null;
   currentVariantAnalysis = null;
   isLossReductionActive = false;
   pendingHydratedSimulationSeed = null;
@@ -896,7 +899,7 @@ function buildLossSummaryText(summaryText, losses = {}) {
     const blood = count * (BLOOD_BY_ALLY_KEY[unit.key] || 0);
     totalUnits += count;
     totalBlood += blood;
-    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
+    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key)} (${blood} kan)`);
   });
 
   const before = lines.slice(0, lossHeaderIndex + 1);
@@ -1036,6 +1039,10 @@ function renderSimulation(result, options = {}) {
     variantSignature: buildVariantSignature(result),
     seed
   };
+  currentKnifeEdgeRisk = analyzeKnifeEdgeRisk(enemyCounts, allyCounts, {
+    seed: Number.isInteger(seed) ? seed : 1,
+    result
+  });
   reportWrongSimulationBtn.disabled = false;
   renderSimulationMeta(currentSimulationReport, currentSimulationResult);
   closeVariantLogModal();
@@ -1195,7 +1202,7 @@ function buildActualSummaryText() {
     const blood = count * BLOOD_BY_ALLY_KEY[unit.key];
     totalUnits += count;
     totalBlood += blood;
-    lines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
+    lines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key)} (${blood} kan)`);
   });
 
   lines.push("");
@@ -1349,6 +1356,9 @@ function paintLogPanels() {
 
   summaryPanel.innerHTML = "";
   if (lastSummaryTextTr) {
+    if (currentKnifeEdgeRisk?.isKnifeEdge) {
+      summaryPanel.appendChild(buildKnifeEdgeNotice(currentKnifeEdgeRisk));
+    }
     const summaryShell = document.createElement("div");
     summaryShell.className = "loss-summary-shell";
     const summaryHead = document.createElement("div");
@@ -1374,6 +1384,21 @@ function paintLogPanels() {
   if (lastLogTextTr) {
     renderStyledLines(detailText.split("\n"), logOutput);
   }
+}
+
+function buildKnifeEdgeNotice(risk) {
+  const card = document.createElement("article");
+  card.className = `knife-edge-warning severity-${risk.severity || "medium"}`;
+
+  const title = document.createElement("strong");
+  title.textContent = "Bicak sirti dizilis";
+
+  const body = document.createElement("span");
+  const exampleText = risk.examples?.length ? ` Ornek: ${risk.examples.join(", ")}.` : "";
+  body.textContent = `${risk.flipCount}/${risk.checkedCount} yakin varyasyonda sonuc kayba donuyor.${exampleText}`;
+
+  card.append(title, body);
+  return card;
 }
 
 function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
@@ -2313,6 +2338,12 @@ function renderStyledLines(lines, target) {
     const cssClass = classifyLine(line);
     const row = document.createElement("span");
     row.className = `log-line${cssClass ? ` ${cssClass}` : ""}`;
+    const lossSummaryParts = parseLossSummaryLine(line);
+    if (lossSummaryParts) {
+      appendLossSummaryLine(row, lossSummaryParts);
+      target.appendChild(row);
+      return;
+    }
     appendLineWithHighlights(row, line, cssClass);
     target.appendChild(row);
   });
@@ -2328,6 +2359,46 @@ const HIGHLIGHT_PATTERNS = [
   { regex: /-%\d+(?:\.\d+)?/g, kind: "hl-mult-neg" },
   { regex: /(?<!\w)x\d+(?:\.\d+)?(?=\s|$|\])/g, kind: "hl-mult" }
 ];
+
+function parseLossSummaryLine(line) {
+  const match = String(line || "").match(/^([-=])\s*(\d+)\s+(.+?)\s+\(\s*(\d+)\s+(kan|blood)\)$/i);
+  if (!match) {
+    return null;
+  }
+  const [, marker, count, label, bloodValue, bloodUnit] = match;
+  const normalizedLabel = label.trim();
+  if (marker === "=" && !/^(toplam|total)$/i.test(normalizedLabel)) {
+    return null;
+  }
+  if (marker !== "-" && marker !== "=") {
+    return null;
+  }
+  return {
+    marker,
+    count,
+    label: normalizedLabel,
+    bloodText: `(${bloodValue} ${bloodUnit})`,
+    isTotal: marker === "="
+  };
+}
+
+function appendLossSummaryLine(row, parts) {
+  row.classList.add(parts.isTotal ? "loss-total" : "loss-entry");
+
+  const count = document.createElement("span");
+  count.className = "loss-count";
+  count.textContent = `${parts.marker} ${parts.count}`;
+
+  const label = document.createElement("span");
+  label.className = "loss-name";
+  label.textContent = parts.label;
+
+  const blood = document.createElement("span");
+  blood.className = "loss-blood";
+  blood.textContent = parts.bloodText;
+
+  row.append(count, label, blood);
+}
 
 function appendLineWithHighlights(row, line, cssClass) {
   if (!HIGHLIGHTABLE_CLASSES.has(cssClass)) {

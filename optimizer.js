@@ -10,7 +10,8 @@ const {
   getStagePointLimit,
   optimizeArmyUsage,
   getStoneAdjustedLossProfile,
-  simulateBattle
+  simulateBattle,
+  analyzeKnifeEdgeRisk
 } = window.BattleCore;
 
 const optimizerVariant = document.body.dataset.optimizerVariant === "minimum" ? "minimum" : "standard";
@@ -359,11 +360,12 @@ function setOptimizeButtonLabel(text) {
   optimizeBtn.textContent = text;
 }
 
-function openSimulationForCounts(enemyCounts, allyCounts) {
+function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
   try {
     window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
       enemyCounts,
-      allyCounts
+      allyCounts,
+      seed: Number.isInteger(seed) ? seed : null
     }));
     const opened = window.open("index.html", "_blank");
     if (!opened) {
@@ -376,13 +378,29 @@ function openSimulationForCounts(enemyCounts, allyCounts) {
   }
 }
 
-function createOpenSimulationButton(enemyCounts, allyCounts, label = "Simule Et") {
+function getRepresentativeSeed(source = null, fallbackResult = null) {
+  if (Number.isInteger(source?.representativeSeed)) {
+    return source.representativeSeed;
+  }
+  if (Number.isInteger(source?.seed)) {
+    return source.seed;
+  }
+  if (Number.isInteger(fallbackResult?.sampleBattle?.seed)) {
+    return fallbackResult.sampleBattle.seed;
+  }
+  if (Number.isInteger(source?.winningSeeds?.[0])) {
+    return source.winningSeeds[0];
+  }
+  return null;
+}
+
+function createOpenSimulationButton(enemyCounts, allyCounts, label = "Simule Et", seed = null) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "button button-secondary";
   button.textContent = label;
   button.addEventListener("click", () => {
-    openSimulationForCounts(enemyCounts, allyCounts);
+    openSimulationForCounts(enemyCounts, allyCounts, seed);
   });
   return button;
 }
@@ -449,7 +467,11 @@ if (openSimulationFromOptimizerBtn) {
     if (!source?.counts) {
       return;
     }
-    openSimulationForCounts(currentApprovedCandidate.enemyCounts, source.counts);
+    openSimulationForCounts(
+      currentApprovedCandidate.enemyCounts,
+      source.counts,
+      getRepresentativeSeed(source, currentApprovedCandidate.result)
+    );
   });
 }
 
@@ -1658,6 +1680,9 @@ function createFavoriteEntryFromRecommendationCounts(recommendationCounts, optio
     enemyRosterSignature: context.enemyRosterSignature,
     enemyTitle: buildEnemyTitle(context.enemyCounts),
     enemyCounts: context.enemyCounts,
+    representativeSeed: Number.isInteger(options.representativeSeed)
+      ? options.representativeSeed
+      : getRepresentativeSeed(null, currentApprovedCandidate?.result),
     allyPool: normalizedPool,
     minimumRequiredCounts: normalizeFavoriteCounts(
       options.minimumRequiredCounts || currentApprovedCandidate?.minimumRequiredCounts || {},
@@ -1691,7 +1716,8 @@ function createFavoriteEntryFromCurrentRecommendation() {
     stoneMode: Boolean(currentApprovedCandidate.stoneMode),
     usedPoints: Math.round(recommendation.avgUsedPoints || 0),
     lostBlood: Number.isFinite(getDisplayedLossValue(recommendation)) ? Math.round(getDisplayedLossValue(recommendation)) : 0,
-    winRate: Math.round((recommendation.winRate || 0) * 100)
+    winRate: Math.round((recommendation.winRate || 0) * 100),
+    representativeSeed: getRepresentativeSeed(recommendation, currentApprovedCandidate.result)
   });
 }
 
@@ -1946,7 +1972,12 @@ function renderFavoriteStrategiesModal() {
 
     const actions = document.createElement("div");
     actions.className = "favorite-match-actions";
-    actions.appendChild(createOpenSimulationButton(entry.enemyCounts, entry.recommendationCounts, "Simulasyonda Ac"));
+    actions.appendChild(createOpenSimulationButton(
+      entry.enemyCounts,
+      entry.recommendationCounts,
+      "Simulasyonda Ac",
+      getRepresentativeSeed(entry)
+    ));
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.className = "button button-ghost";
@@ -1980,7 +2011,8 @@ function createTopResultFavoriteButton(entry) {
     stoneMode: Boolean(entry.stoneMode ?? currentTopResultsContext?.stoneMode ?? currentApprovedCandidate?.stoneMode),
     usedPoints: Math.round(entry.avgUsedPoints || 0),
     lostBlood: Number.isFinite(getDisplayedLossValue(entry)) ? Math.round(getDisplayedLossValue(entry)) : 0,
-    winRate: Math.round((entry.winRate || 0) * 100)
+    winRate: Math.round((entry.winRate || 0) * 100),
+    representativeSeed: getRepresentativeSeed(entry)
   });
 
   const button = document.createElement("button");
@@ -4240,7 +4272,8 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
     actions.appendChild(createOpenSimulationButton(
       currentTopResultsContext.enemyCounts,
       entry.counts,
-      "Simulasyonda Ac"
+      "Simulasyonda Ac",
+      getRepresentativeSeed(entry)
     ));
   }
   const detailBtn = document.createElement("button");
@@ -4378,12 +4411,228 @@ function formatSingularityFocusSummary(entry) {
   return `${profile.permanentLostBlood} kan / ${profile.permanentLostUnits} birlik | ${profile.stoneCount} tas`;
 }
 
+function buildKnifeEdgeNotice(risk) {
+  const card = document.createElement("article");
+  card.className = `knife-edge-warning severity-${risk.severity || "medium"}`;
+  card.style.gridColumn = "1 / -1";
+
+  const title = document.createElement("strong");
+  title.textContent = "Bicak sirti dizilis";
+
+  const body = document.createElement("span");
+  const exampleText = risk.examples?.length ? ` Ornek: ${risk.examples.join(", ")}.` : "";
+  body.textContent = `${risk.flipCount}/${risk.checkedCount} yakin varyasyonda sonuc kayba donuyor.${exampleText}`;
+
+  card.append(title, body);
+  return card;
+}
+
+function compareKnifeEdgeSuggestionEntries(left, right) {
+  if (left.risk.isKnifeEdge !== right.risk.isKnifeEdge) {
+    return left.risk.isKnifeEdge ? 1 : -1;
+  }
+  if (left.risk.flipCount !== right.risk.flipCount) {
+    return left.risk.flipCount - right.risk.flipCount;
+  }
+  if (left.entry.winRate !== right.entry.winRate) {
+    return right.entry.winRate - left.entry.winRate;
+  }
+  if (getDisplayedLossValue(left.entry) !== getDisplayedLossValue(right.entry)) {
+    return getDisplayedLossValue(left.entry) - getDisplayedLossValue(right.entry);
+  }
+  return compareOptimizerCandidates(left.entry, right.entry);
+}
+
+function findStableAlternativeSuggestion(result, enemyCounts, currentRisk) {
+  const source = getPrimaryOptimizerSource(result);
+  if (!source?.counts) {
+    return null;
+  }
+
+  const sourceSignature = getOptimizerCandidateSignature(source);
+  const pool = mergeOptimizerCandidates(
+    result.topCandidates || [],
+    currentTopResultsContext?.candidates || [],
+    { limit: 24 }
+  ).filter((entry) =>
+    Boolean(entry?.feasible) &&
+    getOptimizerCandidateSignature(entry) !== sourceSignature
+  );
+
+  if (!pool.length) {
+    return null;
+  }
+
+  const evaluated = pool.map((entry) => ({
+    entry,
+    risk: analyzeKnifeEdgeRisk(enemyCounts, entry.counts, {
+      seed: getRepresentativeSeed(entry) ?? 1
+    })
+  }));
+
+  const safeAlternative = [...evaluated]
+    .filter((candidate) => !candidate.risk.isKnifeEdge)
+    .sort(compareKnifeEdgeSuggestionEntries)[0];
+  if (safeAlternative) {
+    return {
+      ...safeAlternative,
+      kind: "safe"
+    };
+  }
+
+  const reducedRiskAlternative = [...evaluated]
+    .filter((candidate) => candidate.risk.flipCount < currentRisk.flipCount)
+    .sort(compareKnifeEdgeSuggestionEntries)[0];
+
+  if (!reducedRiskAlternative) {
+    return null;
+  }
+
+  return {
+    ...reducedRiskAlternative,
+    kind: "reduced"
+  };
+}
+
+function buildStableAlternativeCard(suggestion, enemyCounts, onApply) {
+  const card = document.createElement("article");
+  card.className = "stat-card";
+  card.style.gridColumn = "1 / -1";
+
+  const title = document.createElement("span");
+  title.textContent = suggestion.kind === "safe"
+    ? "Daha stabil alternatif"
+    : "Daha az riskli alternatif";
+
+  const summary = document.createElement("strong");
+  summary.textContent = `%${Math.round(suggestion.entry.winRate * 100)} win / ${Math.round(getDisplayedLossValue(suggestion.entry))} kayip / ${Math.round(suggestion.entry.avgUsedPoints || 0)} puan`;
+
+  const note = document.createElement("span");
+  const riskText = suggestion.risk.isKnifeEdge
+    ? `${suggestion.risk.flipCount}/${suggestion.risk.checkedCount} yakin varyasyon hala kayba donuyor`
+    : "yakın varyasyonlarda kayba donmuyor";
+  note.textContent = `Risk ozeti: ${riskText}.`;
+
+  const actions = document.createElement("div");
+  actions.className = "recommendation-actions";
+
+  const applyBtn = document.createElement("button");
+  applyBtn.type = "button";
+  applyBtn.className = "button button-secondary";
+  applyBtn.textContent = "Bu alternatifi kullan";
+  applyBtn.addEventListener("click", onApply);
+
+  actions.append(
+    applyBtn,
+    createOpenSimulationButton(
+      enemyCounts,
+      suggestion.entry.counts,
+      "Simulasyon Ekraninda Ac",
+      getRepresentativeSeed(suggestion.entry) ?? 1
+    )
+  );
+
+  card.append(
+    title,
+    summary,
+    note,
+    actions,
+    buildTopResultUnitList(suggestion.entry.counts, {
+      expectedLosses: getDisplayedLossBreakdownSource(suggestion.entry)
+    })
+  );
+  return card;
+}
+
 function renderRecommendationCards(result, maxPoints, meta) {
   recommendationPanel.innerHTML = "";
 
   const source = result.possible ? result.recommendation : result.fallback || result.fullArmyEvaluation;
   if (!source) {
     return;
+  }
+  const enemyCounts = collectCounts(ENEMY_UNITS);
+  const knifeEdgeRisk = result.possible
+    ? analyzeKnifeEdgeRisk(enemyCounts, source.counts, {
+      seed: getRepresentativeSeed(source, result) ?? 1,
+      result: result.sampleBattle?.winner ? result.sampleBattle : null
+    })
+    : null;
+
+  if (knifeEdgeRisk?.isKnifeEdge) {
+    const notice = buildKnifeEdgeNotice(knifeEdgeRisk);
+    const actions = document.createElement("div");
+    actions.className = "actions actions-inline";
+
+    const suggestBtn = document.createElement("button");
+    suggestBtn.type = "button";
+    suggestBtn.className = "button button-secondary";
+    suggestBtn.textContent = "Daha stabil alternatif oner";
+
+    const suggestionHost = document.createElement("div");
+    suggestionHost.className = "knife-edge-suggestion-host";
+
+    suggestBtn.addEventListener("click", () => {
+      suggestionHost.innerHTML = "";
+      const suggestion = findStableAlternativeSuggestion(result, enemyCounts, knifeEdgeRisk);
+      if (!suggestion) {
+        const empty = document.createElement("span");
+        empty.className = "knife-edge-suggestion-empty";
+        empty.textContent = "Bu aday havuzunda daha stabil bir alternatif bulunamadi.";
+        suggestionHost.appendChild(empty);
+        return;
+      }
+
+      suggestionHost.appendChild(buildStableAlternativeCard(
+        suggestion,
+        enemyCounts,
+        () => {
+          const seed = getRepresentativeSeed(suggestion.entry) ?? 1;
+          const sampleBattle = simulateBattle(enemyCounts, suggestion.entry.counts, {
+            seed,
+            collectLog: true
+          });
+          const nextResult = {
+            ...result,
+            possible: true,
+            recommendation: {
+              ...suggestion.entry,
+              objective: meta.objective,
+              stoneMode: meta.stoneMode
+            },
+            sampleBattle
+          };
+          const battleView = renderBattleLog(sampleBattle.logText || "");
+          currentApprovedCandidate = {
+            ...(currentApprovedCandidate || {}),
+            stage: currentApprovedCandidate?.stage ?? getCommittedStage(),
+            mode: meta.mode,
+            objective: meta.objective,
+            diversityMode: meta.diversityMode,
+            stoneMode: meta.stoneMode,
+            enemyCounts,
+            result: nextResult,
+            battleView
+          };
+          currentWrongCandidate = createWrongReportEntry(
+            nextResult,
+            currentApprovedCandidate.stage,
+            maxPoints,
+            meta,
+            battleView.summaryText,
+            battleView.logText
+          );
+          renderRecommendationCards(nextResult, maxPoints, meta);
+          renderMatchedActualReport();
+          renderFavoriteButtonState();
+          syncAdminRestrictedActions();
+        }
+      ));
+    });
+
+    actions.appendChild(suggestBtn);
+    notice.append(actions, suggestionHost);
+    recommendationPanel.appendChild(notice);
   }
 
   const stats = [
@@ -4415,9 +4664,10 @@ function renderRecommendationCards(result, maxPoints, meta) {
   const listActions = document.createElement("div");
   listActions.className = "recommendation-actions";
   listActions.appendChild(createOpenSimulationButton(
-    collectCounts(ENEMY_UNITS),
+    enemyCounts,
     source.counts,
-    "Simulasyon Ekraninda Ac"
+    "Simulasyon Ekraninda Ac",
+    getRepresentativeSeed(source, result)
   ));
 
   const list = buildTopResultUnitList(source.counts, {

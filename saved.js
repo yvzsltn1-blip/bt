@@ -242,7 +242,7 @@ function buildLossSummaryText(summaryText, losses = {}) {
     const blood = count * (BLOOD_BY_ALLY_KEY[unit.key] || 0);
     totalUnits += count;
     totalBlood += blood;
-    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
+    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key)} (${blood} kan)`);
   });
 
   return [
@@ -488,19 +488,37 @@ function bindFilterControls() {
     applySavedFilters();
   });
 
-  exportSavedTxtBtn?.addEventListener("click", () => {
-    downloadSavedTxt(
-      filteredSavedItems,
-      "filtered",
-      buildDateRangeLabel(savedStartDateInput?.value || "", savedEndDateInput?.value || "")
-    );
+  exportSavedTxtBtn?.addEventListener("click", async () => {
+    exportSavedTxtBtn.disabled = true;
+    try {
+      await ensureAllSavedStrategiesLoaded();
+      applySavedFilters();
+      downloadSavedTxt(
+        filteredSavedItems,
+        "filtered",
+        buildDateRangeLabel(savedStartDateInput?.value || "", savedEndDateInput?.value || "")
+      );
+    } finally {
+      exportSavedTxtBtn.disabled = false;
+    }
   });
 
-  exportSavedAllTxtBtn?.addEventListener("click", () => {
-    downloadSavedTxt(allSavedItems, "all", "Tum tarihler");
+  exportSavedAllTxtBtn?.addEventListener("click", async () => {
+    exportSavedAllTxtBtn.disabled = true;
+    try {
+      await ensureAllSavedStrategiesLoaded();
+      applySavedFilters();
+      downloadSavedTxt(allSavedItems, "all", "Tum tarihler");
+    } finally {
+      exportSavedAllTxtBtn.disabled = false;
+    }
   });
 
-  exportSavedCsvBtn?.addEventListener("click", () => {
+  exportSavedCsvBtn?.addEventListener("click", async () => {
+    exportSavedCsvBtn.disabled = true;
+    try {
+      await ensureAllSavedStrategiesLoaded();
+      applySavedFilters();
     downloadCsv(
       filteredSavedItems.map((item) => ({
         id: item.id || "",
@@ -522,6 +540,9 @@ function bindFilterControls() {
       })),
       `saved-filtered-${new Date().toISOString().slice(0, 10)}.csv`
     );
+    } finally {
+      exportSavedCsvBtn.disabled = false;
+    }
   });
 
   bulkSavedRegressionBtn?.addEventListener("click", async () => {
@@ -1028,6 +1049,12 @@ function renderStyledLines(lines, target) {
     const cssClass = classifyLine(line);
     const row = document.createElement("span");
     row.className = `log-line${cssClass ? ` ${cssClass}` : ""}`;
+    const lossSummaryParts = parseLossSummaryLine(line);
+    if (lossSummaryParts) {
+      appendLossSummaryLine(row, lossSummaryParts);
+      target.appendChild(row);
+      return;
+    }
     appendLineWithHighlights(row, line, cssClass);
     target.appendChild(row);
   });
@@ -1043,6 +1070,46 @@ const HIGHLIGHT_PATTERNS = [
   { regex: /-%\d+(?:\.\d+)?/g, kind: "hl-mult-neg" },
   { regex: /(?<!\w)x\d+(?:\.\d+)?(?=\s|$|\])/g, kind: "hl-mult" }
 ];
+
+function parseLossSummaryLine(line) {
+  const match = String(line || "").match(/^([-=])\s*(\d+)\s+(.+?)\s+\(\s*(\d+)\s+(kan|blood)\)$/i);
+  if (!match) {
+    return null;
+  }
+  const [, marker, count, label, bloodValue, bloodUnit] = match;
+  const normalizedLabel = label.trim();
+  if (marker === "=" && !/^(toplam|total)$/i.test(normalizedLabel)) {
+    return null;
+  }
+  if (marker !== "-" && marker !== "=") {
+    return null;
+  }
+  return {
+    marker,
+    count,
+    label: normalizedLabel,
+    bloodText: `(${bloodValue} ${bloodUnit})`,
+    isTotal: marker === "="
+  };
+}
+
+function appendLossSummaryLine(row, parts) {
+  row.classList.add(parts.isTotal ? "loss-total" : "loss-entry");
+
+  const count = document.createElement("span");
+  count.className = "loss-count";
+  count.textContent = `${parts.marker} ${parts.count}`;
+
+  const label = document.createElement("span");
+  label.className = "loss-name";
+  label.textContent = parts.label;
+
+  const blood = document.createElement("span");
+  blood.className = "loss-blood";
+  blood.textContent = parts.bloodText;
+
+  row.append(count, label, blood);
+}
 
 function appendLineWithHighlights(row, line, cssClass) {
   if (!HIGHLIGHTABLE_CLASSES.has(cssClass)) {

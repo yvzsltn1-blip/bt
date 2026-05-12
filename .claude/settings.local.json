@@ -16,7 +16,10 @@
       "Bash(command -v firebase)",
       "Bash(firebase projects:list)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)"
     ]
   }
 }
