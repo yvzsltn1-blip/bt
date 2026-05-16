@@ -17,6 +17,13 @@
     return getBattleCore().ALLY_UNITS || [];
   }
 
+  function normalizeRoundingMode(mode) {
+    if (mode === "legacy" || mode === "safe" || mode === "exact") {
+      return mode;
+    }
+    return null;
+  }
+
   function cloneCountMap(source, units) {
     const result = {};
     (units || []).forEach((unit) => {
@@ -112,12 +119,13 @@
     }
   }
 
-  function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
+  function openSimulationForCounts(enemyCounts, allyCounts, seed = null, roundingMode = null) {
     try {
       globalScope.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
         enemyCounts: cloneCountMap(enemyCounts || {}, getEnemyUnits()),
         allyCounts: cloneCountMap(allyCounts || {}, getAllyUnits()),
-        seed: Number.isInteger(seed) ? seed : null
+        seed: Number.isInteger(seed) ? seed : null,
+        roundingMode: normalizeRoundingMode(roundingMode)
       }));
       const opened = globalScope.open("index.html", "_blank");
       if (!opened) {
@@ -150,6 +158,7 @@
         enemyCounts: cloneCountMap(item?.enemyCounts || {}, getEnemyUnits()),
         allyCounts,
         representativeSeed: Number.isInteger(item?.representativeSeed) ? item.representativeSeed : null,
+        roundingMode: normalizeRoundingMode(item?.roundingMode),
         winner: item?.winner === "enemy" ? "enemy" : "ally",
         lostBlood: Number.isFinite(Number(item?.lostBlood)) ? Number(item.lostBlood) : null,
         usedCapacity: Number.isFinite(Number(item?.usedCapacity)) ? Number(item.usedCapacity) : null,
@@ -185,6 +194,7 @@
       allyCounts: getWrongSimulationCounts(item),
       recommendationCounts: cloneCountMap(item?.recommendationCounts || {}, getAllyUnits()),
       seed: Number.isInteger(item?.seed) ? item.seed : null,
+      roundingMode: normalizeRoundingMode(item?.roundingMode),
       summaryText: String(item?.summaryText || ""),
       actualSummaryText: String(item?.actualSummaryText || ""),
       actualNote: String(item?.actualNote || ""),

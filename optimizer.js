@@ -4,6 +4,7 @@ const {
   ENEMY_UNITS,
   ALLY_UNITS,
   parseCount,
+  normalizeRoundingMode,
   calculateArmyPoints,
   POINTS_BY_ALLY_KEY,
   BLOOD_BY_ALLY_KEY,
@@ -52,7 +53,8 @@ const stageAutoAdvanceToggleBtn = document.querySelector("#stageAutoAdvanceToggl
 const optimizerPointsValue = document.querySelector("#optimizerPointsValue");
 const optimizerPointsLimit = document.querySelector("#optimizerPointsLimit");
 const modeButtons = [...document.querySelectorAll(".mode-button")];
-const objectiveButtons = [...document.querySelectorAll(".objective-button")];
+const roundingModeButtons = [...document.querySelectorAll(".optimizer-rounding-mode-button")];
+const optimizerObjectiveSelect = document.querySelector("#optimizerObjectiveSelect");
 const matchedSavedPanel = document.querySelector("#matchedSavedPanel");
 const modeComparePanel = document.querySelector("#modeComparePanel");
 const compareToggleBtn = document.querySelector("#compareToggleBtn");
@@ -62,6 +64,7 @@ const closeWrongReportBtn = document.querySelector("#closeWrongReportBtn");
 const cancelWrongReportBtn = document.querySelector("#cancelWrongReportBtn");
 const submitWrongReportBtn = document.querySelector("#submitWrongReportBtn");
 const actualOutcomeInput = document.querySelector("#actualOutcomeInput");
+const actualOutcomeModeButtons = [...document.querySelectorAll(".actual-outcome-mode-button")];
 const actualCapacityInput = document.querySelector("#actualCapacityInput");
 const actualNoteInput = document.querySelector("#actualNoteInput");
 const expectedWrongSummaryPreview = document.querySelector("#expectedWrongSummaryPreview");
@@ -89,11 +92,14 @@ const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 const OPTIMIZER_RELIABILITY_STORAGE_KEY = "bt-analiz.optimizer-reliability.v1";
 const FAVORITE_STRATEGIES_STORAGE_KEY = "bt-analiz.optimizer.favorite-strategies.v1";
 const AUTO_STAGE_ADVANCE_STORAGE_KEY = "bt-analiz.optimizer.autoStageAdvance.v1";
+const ROUNDING_MODE_STORAGE_KEY = "bt-analiz.rounding-mode.v1";
 const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
 
 let optimizerSearchSession = createEmptySearchSession();
 let optimizerMode = "balanced";
 let optimizerObjective = "min_loss";
+let optimizerRoundingMode = loadStoredRoundingMode();
+var roundingMode = optimizerRoundingMode;
 let optimizerDiversityMode = false;
 let optimizerStoneMode = false;
 let optimizerComparisonCache = new Map();
@@ -103,6 +109,10 @@ let currentWrongCandidate = null;
 let currentTopResultsContext = null;
 let currentTopResultsSort = "default";
 let pendingWrongReport = null;
+let currentActualOutcomeMode = "victory";
+let cachedVictoryActualLosses = {};
+let cachedVictoryActualCapacity = "";
+let expectedWrongLosses = {};
 let approvedStrategies = [];
 let wrongReports = [];
 let favoriteStrategies = [];
@@ -182,6 +192,39 @@ function areSearchBandSettingsEqual(left, right) {
   return normalizedLeft.mode === normalizedRight.mode &&
     normalizedLeft.minPercent === normalizedRight.minPercent &&
     normalizedLeft.maxPercent === normalizedRight.maxPercent;
+}
+
+function getRoundingModeLabel(mode) {
+  const normalizedMode = normalizeRoundingMode(mode);
+  if (normalizedMode === "legacy") {
+    return "Degismemis";
+  }
+  if (normalizedMode === "exact") {
+    return "Gercek";
+  }
+  return "Guvenli";
+}
+
+function loadStoredRoundingMode() {
+  try {
+    return normalizeRoundingMode(window.localStorage.getItem(ROUNDING_MODE_STORAGE_KEY));
+  } catch (_error) {
+    return "safe";
+  }
+}
+
+function persistRoundingMode(mode) {
+  try {
+    window.localStorage.setItem(ROUNDING_MODE_STORAGE_KEY, normalizeRoundingMode(mode));
+  } catch (_error) {
+    // localStorage yoksa secim sadece bu oturumda kalir.
+  }
+}
+
+function setOptimizerRoundingMode(mode) {
+  optimizerRoundingMode = normalizeRoundingMode(mode);
+  roundingMode = optimizerRoundingMode;
+  return optimizerRoundingMode;
 }
 
 function normalizeOptimizerObjective(objective) {
@@ -360,12 +403,13 @@ function setOptimizeButtonLabel(text) {
   optimizeBtn.textContent = text;
 }
 
-function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
+function openSimulationForCounts(enemyCounts, allyCounts, seed = null, roundingMode = optimizerRoundingMode) {
   try {
     window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
       enemyCounts,
       allyCounts,
-      seed: Number.isInteger(seed) ? seed : null
+      seed: Number.isInteger(seed) ? seed : null,
+      roundingMode: normalizeRoundingMode(roundingMode)
     }));
     const opened = window.open("index.html", "_blank");
     if (!opened) {
@@ -394,13 +438,13 @@ function getRepresentativeSeed(source = null, fallbackResult = null) {
   return null;
 }
 
-function createOpenSimulationButton(enemyCounts, allyCounts, label = "Simule Et", seed = null) {
+function createOpenSimulationButton(enemyCounts, allyCounts, label = "Simule Et", seed = null, roundingMode = optimizerRoundingMode) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "button button-secondary";
   button.textContent = label;
   button.addEventListener("click", () => {
-    openSimulationForCounts(enemyCounts, allyCounts, seed);
+    openSimulationForCounts(enemyCounts, allyCounts, seed, roundingMode);
   });
   return button;
 }
@@ -413,6 +457,7 @@ function openReliabilityForCounts(enemyCounts, allyCounts, context = {}) {
       stage: context.stage || null,
       mode: context.mode || "balanced",
       objective: context.objective || "min_loss",
+      roundingMode: normalizeRoundingMode(context.roundingMode),
       diversityMode: Boolean(context.diversityMode),
       stoneMode: Boolean(context.stoneMode),
       optimizerWinRate: Number.isFinite(context.optimizerWinRate) ? context.optimizerWinRate : null,
@@ -443,6 +488,7 @@ function openReliabilityForCurrentCandidate() {
     stage: currentApprovedCandidate.stage,
     mode: currentApprovedCandidate.mode,
     objective: currentApprovedCandidate.objective,
+    roundingMode: currentApprovedCandidate.roundingMode,
     diversityMode: currentApprovedCandidate.diversityMode,
     stoneMode: currentApprovedCandidate.stoneMode,
     optimizerWinRate: source.winRate,
@@ -566,7 +612,8 @@ void initializeApprovedStrategies();
 void initializeWrongReports();
 void bindAdminAuth();
 syncDiversityModeButton();
-syncObjectiveButtons();
+syncRoundingModeButtons();
+syncObjectiveSelect();
 syncSearchBandControls();
 syncComparePanelToggle();
 renderComparisonPanel();
@@ -580,14 +627,24 @@ modeButtons.forEach((button) => {
   });
 });
 
-objectiveButtons.forEach((button) => {
+roundingModeButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    optimizerObjective = normalizeOptimizerObjective(button.dataset.objective);
-    syncObjectiveButtons();
+    setOptimizerRoundingMode(button.dataset.roundingMode);
+    persistRoundingMode(optimizerRoundingMode);
+    syncRoundingModeButtons();
+    invalidateSearchSession();
+    optimizerStatus.textContent = `Hesap modu: ${getRoundingModeLabel(optimizerRoundingMode)}`;
+  });
+});
+
+if (optimizerObjectiveSelect) {
+  optimizerObjectiveSelect.addEventListener("change", () => {
+    optimizerObjective = normalizeOptimizerObjective(optimizerObjectiveSelect.value);
+    syncObjectiveSelect();
     invalidateSearchSession();
     optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
   });
-});
+}
 
 if (optimizerSearchBandPresetInput) {
   optimizerSearchBandPresetInput.addEventListener("change", () => {
@@ -993,6 +1050,7 @@ async function runOptimizerSearch(batchRuns) {
       searchBandSettings,
       mode: optimizerMode,
       objective: optimizerObjective,
+      roundingMode: optimizerRoundingMode,
       diversityMode: optimizerDiversityMode,
       stoneMode: optimizerStoneMode
     });
@@ -1005,7 +1063,8 @@ async function runOptimizerSearch(batchRuns) {
       optimizerMode,
       optimizerObjective,
       optimizerDiversityMode,
-      optimizerStoneMode
+      optimizerStoneMode,
+      optimizerRoundingMode
     );
     const continuing = optimizerSearchSession.key === searchKey;
     let runIndex = continuing ? optimizerSearchSession.runCount : 0;
@@ -1049,6 +1108,7 @@ async function runOptimizerSearch(batchRuns) {
         stabilityTrials: lastRunConfig.stabilityTrials,
         baseSeed: lastRunConfig.baseSeed,
         objective: normalizeOptimizerObjective(optimizerObjective),
+        roundingMode: optimizerRoundingMode,
         stoneMode: optimizerStoneMode,
         diversityMode: optimizerDiversityMode,
         exploratoryCandidateCount: lastRunConfig.exploratoryCandidateCount,
@@ -1107,6 +1167,7 @@ async function runOptimizerSearch(batchRuns) {
       searchBandSettings,
       mode: optimizerMode,
       objective: optimizerObjective,
+      roundingMode: optimizerRoundingMode,
       diversityMode: optimizerDiversityMode,
       stoneMode: optimizerStoneMode,
       totalCombinationCount,
@@ -1166,6 +1227,7 @@ function getIncumbentSeedCandidates(context) {
     optimizerIncumbentContext.stage === context.stage &&
     optimizerIncumbentContext.mode === context.mode &&
     optimizerIncumbentContext.objective === context.objective &&
+    optimizerIncumbentContext.roundingMode === context.roundingMode &&
     optimizerIncumbentContext.diversityMode === context.diversityMode &&
     optimizerIncumbentContext.stoneMode === context.stoneMode &&
     areSearchBandSettingsEqual(optimizerIncumbentContext.searchBandSettings, context.searchBandSettings) &&
@@ -1211,9 +1273,12 @@ function setOptimizerBusy(isBusy) {
   modeButtons.forEach((button) => {
     button.disabled = isBusy;
   });
-  objectiveButtons.forEach((button) => {
+  roundingModeButtons.forEach((button) => {
     button.disabled = isBusy;
   });
+  if (optimizerObjectiveSelect) {
+    optimizerObjectiveSelect.disabled = isBusy;
+  }
   Object.values(optimizerInputs).forEach((input) => {
     input.disabled = isBusy;
   });
@@ -1264,10 +1329,18 @@ function persistAutoStageAdvanceSetting() {
   }
 }
 
-function syncObjectiveButtons() {
-  objectiveButtons.forEach((button) => {
-    button.classList.toggle("active", button.dataset.objective === optimizerObjective);
+function syncRoundingModeButtons() {
+  roundingModeButtons.forEach((button) => {
+    const isActive = normalizeRoundingMode(button.dataset.roundingMode) === optimizerRoundingMode;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
   });
+}
+
+function syncObjectiveSelect() {
+  if (optimizerObjectiveSelect) {
+    optimizerObjectiveSelect.value = normalizeOptimizerObjective(optimizerObjective);
+  }
 }
 
 function syncComparePanelToggle() {
@@ -1293,7 +1366,7 @@ function invalidateSearchSession() {
   renderFavoriteButtonState();
 }
 
-function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, searchBandSettings, mode, objective, diversityMode, stoneMode) {
+function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, searchBandSettings, mode, objective, diversityMode, stoneMode, roundingMode) {
   return JSON.stringify({
     stage,
     enemy,
@@ -1302,12 +1375,13 @@ function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, searchBa
     searchBandSettings: normalizeSearchBandSettings(searchBandSettings),
     mode,
     objective,
+    roundingMode: normalizeRoundingMode(roundingMode),
     diversityMode: Boolean(diversityMode),
     stoneMode: Boolean(stoneMode)
   });
 }
 
-function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, searchBandSettings, mode, objective, stoneMode) {
+function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, searchBandSettings, mode, objective, stoneMode, roundingMode) {
   return JSON.stringify({
     stage,
     enemy,
@@ -1316,6 +1390,7 @@ function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, sear
     searchBandSettings: normalizeSearchBandSettings(searchBandSettings),
     mode,
     objective,
+    roundingMode: normalizeRoundingMode(roundingMode),
     stoneMode: Boolean(stoneMode)
   });
 }
@@ -1585,9 +1660,10 @@ function normalizeFavoriteStrategyEntry(entry, index) {
     stage: Number.isFinite(stage) && stage > 0 ? stage : null,
     mode: entry.mode || "balanced",
     objective: normalizeOptimizerObjective(entry.objective),
+    roundingMode: normalizeRoundingMode(entry.roundingMode),
     diversityMode: Boolean(entry.diversityMode),
     stoneMode: Boolean(entry.stoneMode),
-    modeLabel: entry.modeLabel || getModeLabel(entry.mode || "balanced", normalizeOptimizerObjective(entry.objective), Boolean(entry.diversityMode), Boolean(entry.stoneMode)),
+    modeLabel: entry.modeLabel || getModeLabel(entry.mode || "balanced", normalizeOptimizerObjective(entry.objective), Boolean(entry.diversityMode), Boolean(entry.stoneMode), normalizeRoundingMode(entry.roundingMode)),
     enemySignature,
     enemyRosterSignature,
     enemyTitle: entry.enemyTitle || buildEnemyTitle(enemyCounts),
@@ -1668,13 +1744,15 @@ function createFavoriteEntryFromRecommendationCounts(recommendationCounts, optio
     ...(context.stage ? { stage: context.stage } : {}),
     mode: options.mode || currentApprovedCandidate?.mode || "balanced",
     objective: normalizeOptimizerObjective(options.objective || currentApprovedCandidate?.objective),
+    roundingMode: normalizeRoundingMode(options.roundingMode || currentApprovedCandidate?.roundingMode),
     diversityMode: Boolean(options.diversityMode ?? currentApprovedCandidate?.diversityMode),
     stoneMode: Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode),
     modeLabel: options.modeLabel || getModeLabel(
       options.mode || currentApprovedCandidate?.mode || "balanced",
       normalizeOptimizerObjective(options.objective || currentApprovedCandidate?.objective),
       Boolean(options.diversityMode ?? currentApprovedCandidate?.diversityMode),
-      Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode)
+      Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode),
+      normalizeRoundingMode(options.roundingMode || currentApprovedCandidate?.roundingMode)
     ),
     enemySignature: context.enemySignature,
     enemyRosterSignature: context.enemyRosterSignature,
@@ -1712,6 +1790,7 @@ function createFavoriteEntryFromCurrentRecommendation() {
     minimumRequiredCounts: currentApprovedCandidate.minimumRequiredCounts,
     mode: currentApprovedCandidate.mode,
     objective: normalizeOptimizerObjective(currentApprovedCandidate.objective),
+    roundingMode: normalizeRoundingMode(currentApprovedCandidate.roundingMode),
     diversityMode: Boolean(currentApprovedCandidate.diversityMode),
     stoneMode: Boolean(currentApprovedCandidate.stoneMode),
     usedPoints: Math.round(recommendation.avgUsedPoints || 0),
@@ -2270,7 +2349,12 @@ function buildWrongLossInputs() {
 
   wireSequentialInputOrder(inputs);
 
-  actualOutcomeInput.addEventListener("input", renderActualWrongSummaryPreview);
+  actualOutcomeModeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setActualOutcomeMode(button.dataset.actualOutcomeMode || "victory");
+      renderActualWrongSummaryPreview();
+    });
+  });
   actualCapacityInput.addEventListener("input", () => {
     actualCapacityInput.value = actualCapacityInput.value.replace(/\D+/g, "");
     renderActualWrongSummaryPreview();
@@ -2950,24 +3034,23 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   const source = getPrimaryOptimizerSource(result);
   const activeMinimumEntries = getActiveMinimumRequirementEntries();
   const searchBandSettings = normalizeSearchBandSettings(meta.searchBandSettings);
+  const lossRangeSummary = source ? formatOptimizerLossRangeSummary(source) : null;
   const progressLines = [
-    `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode)}`,
+    `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode, meta.roundingMode)}`,
     `- arama bandi: ${formatSearchBandSummary(maxPoints, searchBandSettings)}`,
     ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),
     `- arama bandindaki kombinasyon: ${formatLargeInteger(meta.bandCombinationCount)}`,
     `- toplam olasi kombinasyon: ${formatLargeInteger(meta.totalCombinationCount)}`,
     `- deneme: ${meta.runIndex}`,
-    `- bu basista tur: ${meta.batchRuns || 1}`,
     `- bu tur taranan: ${meta.lastCandidates}`,
     `- toplam taranan: ${meta.totalCandidates}`,
     `- benzersiz kombinasyon: ${meta.lastUniqueCandidates} (bu tur) / ${meta.totalUniqueCandidates} (toplam)`,
-    `- trial / aday: ${meta.runConfig.trialCount}`,
-    `- beam genisligi: ${meta.runConfig.beamWidth}`,
-    `- genis arama adaylari: ${meta.runConfig.exploratoryCandidateCount || "-"}`,
-    `- exact tarama limiti: ${meta.runConfig.exhaustiveCandidateLimit || 0}`,
-    `- elit aday: ${meta.runConfig.eliteCount}`,
-    `- stabilite testi: ${meta.runConfig.stabilityTrials}`,
-    `- bu basista savas kosusu: ${meta.batchSimulationRuns || result.simulationRuns}`
+    ...(source ? [
+      `- puan boslugu: ${formatOptimizerPointSlackSummary(maxPoints, source.avgUsedPoints)}`,
+      ...(result.possible ? [`- stabilite sinyali: ${getOptimizerStabilitySignal(source)}`] : []),
+      ...(lossRangeSummary ? [`- beklenen kayip araligi: ${lossRangeSummary}`] : []),
+      `- en cok yiprananlar: ${formatOptimizerTopLossSummary(source)}`
+    ] : [])
   ];
 
   let summaryLines;
@@ -2989,6 +3072,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       stage,
       mode: meta.mode,
       objective: meta.objective,
+      roundingMode: meta.roundingMode,
       diversityMode: meta.diversityMode,
       stoneMode: meta.stoneMode,
       searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
@@ -3002,6 +3086,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       maxPoints,
       mode: meta.mode,
       objective: meta.objective,
+      roundingMode: meta.roundingMode,
       diversityMode: meta.diversityMode,
       stoneMode: meta.stoneMode,
       searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
@@ -3068,6 +3153,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     stage,
     mode: meta.mode,
     objective: meta.objective,
+    roundingMode: meta.roundingMode,
     diversityMode: meta.diversityMode,
     stoneMode: meta.stoneMode,
     searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
@@ -3083,6 +3169,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     maxPoints,
     mode: meta.mode,
     objective: meta.objective,
+    roundingMode: meta.roundingMode,
     diversityMode: meta.diversityMode,
     stoneMode: meta.stoneMode,
     searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
@@ -3130,12 +3217,13 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
 
   const minimumRequiredCounts = collectMinimumRequiredCounts();
   const searchBandSettings = collectSearchBandSettings();
-  const key = createComparisonKey(stage, enemyCounts, allyPool, minimumRequiredCounts, searchBandSettings, meta.mode, meta.objective, meta.stoneMode);
+  const key = createComparisonKey(stage, enemyCounts, allyPool, minimumRequiredCounts, searchBandSettings, meta.mode, meta.objective, meta.stoneMode, meta.roundingMode);
   const entry = optimizerComparisonCache.get(key) || {
     key,
     stage,
     mode: meta.mode,
     objective: meta.objective,
+    roundingMode: meta.roundingMode,
     stoneMode: meta.stoneMode,
     maxPoints,
     enemyCounts: { ...enemyCounts },
@@ -3152,6 +3240,7 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
   entry.stage = stage;
   entry.mode = meta.mode;
   entry.objective = meta.objective;
+  entry.roundingMode = meta.roundingMode;
   entry.stoneMode = meta.stoneMode;
   entry.maxPoints = maxPoints;
   entry.enemyCounts = { ...enemyCounts };
@@ -3168,7 +3257,7 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
 function createComparisonSnapshot(source, meta) {
   return {
     label: meta.diversityMode ? "Cesitlilik" : "Standart",
-    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode),
+    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode, meta.roundingMode),
     feasible: Boolean(source.feasible),
     winRate: source.winRate || 0,
     expectedLostBlood: Number.isFinite(source.expectedLostBlood) ? source.expectedLostBlood : null,
@@ -3189,6 +3278,7 @@ function createComparisonSnapshot(source, meta) {
     avgAllyLosses: { ...(source.avgAllyLosses || {}) },
     avgStoneAdjustedAllyLosses: { ...(source.avgStoneAdjustedAllyLosses || {}) },
     objective: meta.objective,
+    roundingMode: meta.roundingMode,
     stoneMode: Boolean(meta.stoneMode),
     counts: { ...(source.counts || {}) }
   };
@@ -3215,7 +3305,7 @@ function getCurrentComparisonEntry() {
     minPercent: optimizerCustomBandMinInput?.value,
     maxPercent: optimizerCustomBandMaxInput?.value
   });
-  const key = createComparisonKey(stage, enemyCounts, allyPool, minimumRequiredCounts, searchBandSettings, optimizerMode, optimizerObjective, optimizerStoneMode);
+  const key = createComparisonKey(stage, enemyCounts, allyPool, minimumRequiredCounts, searchBandSettings, optimizerMode, optimizerObjective, optimizerStoneMode, optimizerRoundingMode);
   return optimizerComparisonCache.get(key) || null;
 }
 
@@ -3405,7 +3495,11 @@ function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
   const stoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
 
   seeds.forEach((seed) => {
-    const result = simulateBattle(enemyCounts, snapshot.counts, { seed, collectLog: false });
+    const result = simulateBattle(enemyCounts, snapshot.counts, {
+      seed,
+      collectLog: false,
+      roundingMode: snapshot.roundingMode
+    });
     usedCapacitySum += result.usedCapacity;
     usedPointsSum += result.usedPoints;
     enemyRemainingHealthSum += result.enemyRemainingHealth;
@@ -3575,6 +3669,52 @@ function formatMetricValue(value) {
   }
   const rounded = Math.round(value * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function formatOptimizerPointSlackSummary(maxPoints, usedPoints) {
+  const slack = Math.max(0, Math.round((maxPoints || 0) - (usedPoints || 0)));
+  return slack <= 0 ? "limit tam kullaniliyor" : `${slack} puan bosluk kaliyor`;
+}
+
+function formatOptimizerLossRangeSummary(entry) {
+  const range = getDisplayedLossRange(entry);
+  if (!Number.isFinite(range.min) || !Number.isFinite(range.max)) {
+    return null;
+  }
+  return `${Math.round(range.min)} - ${Math.round(range.max)}`;
+}
+
+function getOptimizerStabilitySignal(entry) {
+  const winRate = entry?.winRate || 0;
+  const stdDev = getDisplayedLossStdDev(entry);
+  if (winRate >= 0.98 && (!Number.isFinite(stdDev) || stdDev <= 12)) {
+    return "cok stabil";
+  }
+  if (winRate >= 0.9 && (!Number.isFinite(stdDev) || stdDev <= 24)) {
+    return "stabil";
+  }
+  if (winRate >= 0.75) {
+    return "sinirda";
+  }
+  return "riskli";
+}
+
+function formatOptimizerTopLossSummary(entry, limit = 3) {
+  const losses = getDisplayedLossBreakdownSource(entry);
+  const parts = ALLY_UNITS
+    .map((unit) => ({
+      label: getSummaryUnitName(unit.key),
+      loss: Math.round(losses[unit.key] || 0)
+    }))
+    .filter((item) => item.loss > 0)
+    .sort((left, right) => right.loss - left.loss)
+    .slice(0, limit)
+    .map((item) => `~${item.loss} ${item.label}`);
+
+  if (!parts.length) {
+    return entry?.feasible ? "belirgin kayip beklenmiyor" : "net kayip dagilimi yok";
+  }
+  return parts.join(", ");
 }
 
 function getOptimizerCandidateSignature(entry) {
@@ -4466,7 +4606,8 @@ function findStableAlternativeSuggestion(result, enemyCounts, currentRisk) {
   const evaluated = pool.map((entry) => ({
     entry,
     risk: analyzeKnifeEdgeRisk(enemyCounts, entry.counts, {
-      seed: getRepresentativeSeed(entry) ?? 1
+      seed: getRepresentativeSeed(entry) ?? 1,
+      roundingMode: entry.roundingMode
     })
   }));
 
@@ -4555,7 +4696,8 @@ function renderRecommendationCards(result, maxPoints, meta) {
   const knifeEdgeRisk = result.possible
     ? analyzeKnifeEdgeRisk(enemyCounts, source.counts, {
       seed: getRepresentativeSeed(source, result) ?? 1,
-      result: result.sampleBattle?.winner ? result.sampleBattle : null
+      result: result.sampleBattle?.winner ? result.sampleBattle : null,
+      roundingMode: meta.roundingMode
     })
     : null;
 
@@ -4590,7 +4732,8 @@ function renderRecommendationCards(result, maxPoints, meta) {
           const seed = getRepresentativeSeed(suggestion.entry) ?? 1;
           const sampleBattle = simulateBattle(enemyCounts, suggestion.entry.counts, {
             seed,
-            collectLog: true
+            collectLog: true,
+            roundingMode: meta.roundingMode
           });
           const nextResult = {
             ...result,
@@ -4598,6 +4741,7 @@ function renderRecommendationCards(result, maxPoints, meta) {
             recommendation: {
               ...suggestion.entry,
               objective: meta.objective,
+              roundingMode: meta.roundingMode,
               stoneMode: meta.stoneMode
             },
             sampleBattle
@@ -4608,6 +4752,7 @@ function renderRecommendationCards(result, maxPoints, meta) {
             stage: currentApprovedCandidate?.stage ?? getCommittedStage(),
             mode: meta.mode,
             objective: meta.objective,
+            roundingMode: meta.roundingMode,
             diversityMode: meta.diversityMode,
             stoneMode: meta.stoneMode,
             enemyCounts,
@@ -4960,8 +5105,8 @@ function getObjectiveLabel(objective) {
   return "En Az Kayipla Kazan";
 }
 
-function getModeLabel(mode, objective = "min_loss", diversityMode = false, stoneMode = false) {
-  const parts = [getSearchModeLabel(mode), getObjectiveLabel(objective)];
+function getModeLabel(mode, objective = "min_loss", diversityMode = false, stoneMode = false, roundingMode = "safe") {
+  const parts = [getSearchModeLabel(mode), getObjectiveLabel(objective), getRoundingModeLabel(roundingMode)];
   if (stoneMode) {
     parts.push("Tasli");
   }
@@ -5019,9 +5164,10 @@ function createWrongReportEntry(result, stage, maxPoints, meta, summaryText, log
     stage,
     mode: meta.mode,
     objective: meta.objective,
+    roundingMode: meta.roundingMode,
     diversityMode: Boolean(meta.diversityMode),
     stoneMode: Boolean(meta.stoneMode),
-    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode),
+    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode, meta.roundingMode),
     enemyCounts,
     allyCounts,
     seed: Number.isInteger(sampleBattle?.seed) ? sampleBattle.seed : undefined,
@@ -5055,14 +5201,13 @@ function openWrongReportModal(report) {
   clearWrongReportError();
   expectedWrongSummaryPreview.innerHTML = "";
   renderStyledLines(report.summaryText.split("\n"), expectedWrongSummaryPreview);
-  const expectedLosses = extractLossesFromSummary(report.summaryText);
-
-  actualOutcomeInput.value = extractOutcomeLine(report.summaryText);
+  expectedWrongLosses = extractLossesFromSummary(report.summaryText);
+  cachedVictoryActualLosses = { ...expectedWrongLosses };
+  cachedVictoryActualCapacity = String(report.usedCapacity || 0);
   actualCapacityInput.value = String(report.usedCapacity || 0);
   actualNoteInput.value = "";
-  ALLY_UNITS.forEach((unit) => {
-    actualLossInputs[unit.key].value = String(expectedLosses[unit.key] || 0);
-  });
+  setActualLossInputs(expectedWrongLosses);
+  setActualOutcomeMode(inferActualOutcomeModeFromLine(extractOutcomeLine(report.summaryText)));
   renderActualWrongSummaryPreview();
   wrongReportModal.hidden = false;
 }
@@ -5089,6 +5234,75 @@ function clearWrongReportError() {
   wrongReportErrorBox.textContent = "";
 }
 
+function normalizeActualOutcomeMode(mode) {
+  return mode === "defeat" ? "defeat" : "victory";
+}
+
+function getActualOutcomeLineForMode(mode) {
+  return normalizeActualOutcomeMode(mode) === "defeat"
+    ? ">> Muttefikler yenildi! Savas meydani dusmanin."
+    : ">> Dusman yenildi! Zafer muttefiklerin.";
+}
+
+function inferActualOutcomeModeFromLine(outcomeLine) {
+  return inferWinnerFromOutcomeLine(outcomeLine) === "enemy" ? "defeat" : "victory";
+}
+
+function getPendingWrongReportAllyCounts() {
+  return pendingWrongReport?.allyCounts || pendingWrongReport?.recommendationCounts || {};
+}
+
+function collectActualLossInputsRaw() {
+  const losses = {};
+  ALLY_UNITS.forEach((unit) => {
+    losses[unit.key] = parseCount(actualLossInputs[unit.key].value || "0", unit.label);
+  });
+  return losses;
+}
+
+function setActualLossInputs(losses = {}) {
+  ALLY_UNITS.forEach((unit) => {
+    actualLossInputs[unit.key].value = String(losses[unit.key] || 0);
+  });
+}
+
+function setActualOutcomeMode(mode) {
+  currentActualOutcomeMode = normalizeActualOutcomeMode(mode);
+  actualOutcomeInput.value = getActualOutcomeLineForMode(currentActualOutcomeMode);
+
+  if (currentActualOutcomeMode === "defeat") {
+    cachedVictoryActualLosses = collectActualLossInputsRaw();
+    cachedVictoryActualCapacity = actualCapacityInput.value;
+    const fullLosses = {};
+    const allyCounts = getPendingWrongReportAllyCounts();
+    ALLY_UNITS.forEach((unit) => {
+      fullLosses[unit.key] = Number(allyCounts[unit.key] || 0);
+    });
+    setActualLossInputs(fullLosses);
+    if (pendingWrongReport) {
+      actualCapacityInput.value = String(pendingWrongReport.usedCapacity || 0);
+    }
+  } else {
+    const nextLosses = hasPositiveLosses(cachedVictoryActualLosses)
+      ? cachedVictoryActualLosses
+      : expectedWrongLosses;
+    setActualLossInputs(nextLosses);
+    if (cachedVictoryActualCapacity !== "") {
+      actualCapacityInput.value = cachedVictoryActualCapacity;
+    }
+  }
+
+  const isDefeat = currentActualOutcomeMode === "defeat";
+  actualOutcomeModeButtons.forEach((button) => {
+    const active = normalizeActualOutcomeMode(button.dataset.actualOutcomeMode) === currentActualOutcomeMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+  ALLY_UNITS.forEach((unit) => {
+    actualLossInputs[unit.key].disabled = isDefeat;
+  });
+}
+
 function extractOutcomeLine(summaryText) {
   return summaryText.split("\n").find((line) => line.trim().startsWith(">>")) || "";
 }
@@ -5113,11 +5327,7 @@ function extractLossesFromSummary(summaryText) {
 }
 
 function collectActualLosses() {
-  const losses = {};
-  ALLY_UNITS.forEach((unit) => {
-    losses[unit.key] = parseCount(actualLossInputs[unit.key].value || "0", unit.label);
-  });
-  return losses;
+  return collectActualLossInputsRaw();
 }
 
 function inferWinnerFromOutcomeLine(outcomeLine) {
@@ -5132,7 +5342,7 @@ function inferWinnerFromOutcomeLine(outcomeLine) {
 }
 
 function buildActualOutcomePayload() {
-  const actualOutcomeLine = actualOutcomeInput.value.trim() || ">> Gercek sonuc girilmedi.";
+  const actualOutcomeLine = getActualOutcomeLineForMode(currentActualOutcomeMode);
   const actualLosses = collectActualLosses();
   const actualCapacity = actualCapacityInput.value.trim() === "" ? 0 : Number.parseInt(actualCapacityInput.value, 10);
   let actualLostUnitsTotal = 0;
@@ -5148,7 +5358,7 @@ function buildActualOutcomePayload() {
     actualOutcomeLine,
     actualCapacity,
     actualLosses,
-    actualWinner: inferWinnerFromOutcomeLine(actualOutcomeLine),
+    actualWinner: currentActualOutcomeMode === "defeat" ? "enemy" : "ally",
     actualLostUnitsTotal,
     actualLostBlood
   };
@@ -5373,11 +5583,13 @@ function restoreFromQuery() {
   });
   optimizerMode = item.mode || "balanced";
   optimizerObjective = normalizeOptimizerObjective(item.objective);
+  setOptimizerRoundingMode(item.roundingMode || optimizerRoundingMode);
   optimizerDiversityMode = Boolean(item.diversityMode);
   optimizerStoneMode = false;
   applySearchBandSettings(item.searchBandSettings || { mode: "tight75" });
   modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
-  syncObjectiveButtons();
+  syncRoundingModeButtons();
+  syncObjectiveSelect();
   syncDiversityModeButton();
   optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
 }

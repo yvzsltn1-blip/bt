@@ -310,6 +310,10 @@
         usedPoints: clampInt(item?.usedPoints, 99999),
         lostBlood: clampInt(item?.lostBlood, 999999)
       };
+      const roundingMode = sanitizeRoundingMode(item?.roundingMode);
+      if (roundingMode) {
+        payload.roundingMode = roundingMode;
+      }
       const representativeSeed = sanitizeOptionalInt(item?.representativeSeed, 4294967295);
       if (representativeSeed !== null) {
         payload.representativeSeed = representativeSeed;
@@ -351,6 +355,13 @@
       return 0;
     }
     return Math.min(parsed, maxValue);
+  }
+
+  function sanitizeRoundingMode(value) {
+    if (value === "legacy" || value === "safe" || value === "exact") {
+      return value;
+    }
+    return "";
   }
 
   function getUtf8Size(text) {
@@ -626,7 +637,7 @@
         "source", "sourceLabel", "savedAt", "updatedAt", "stage", "enemyTitle", "enemyCounts",
         "promotedFromWrong", "promotedFromWrongAt", "promotedFromWrongId",
         "allyCounts", "matchSignature", "variantSignature", "representativeSeed", "variantTitle", "winner",
-        "probabilityBasisPoints", "summaryText", "logText", "usedCapacity",
+        "probabilityBasisPoints", "summaryText", "logText", "usedCapacity", "roundingMode",
         "usedPoints", "lostBlood"
       ];
       const requiredKeys = [
@@ -690,6 +701,9 @@
       }
       if (!validateTextString(payload.logText, 400000)) {
         errors.push("logText en fazla 400000 karakter olmali.");
+      }
+      if ("roundingMode" in payload && !["legacy", "safe", "exact"].includes(payload.roundingMode)) {
+        errors.push(`roundingMode gecersiz: ${String(payload.roundingMode)}`);
       }
       if (!isIntegerInRange(payload.usedCapacity, 0, 999999)) {
         errors.push("usedCapacity 0..999999 araliginda tam sayi olmali.");

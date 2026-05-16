@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260505-07">
+  <link rel="stylesheet" href="styles.css?v=20260515-06">
 </head>
 <body class="site-gate-pending">
   <div class="page-shell">
@@ -34,6 +34,15 @@
         <div class="panel-head">
           <h2>Ozet</h2>
           <div class="panel-head-tools">
+            <label class="select-wrap report-rounding-select-wrap">
+              <span>Test modu</span>
+              <select id="reportRoundingModeSelect" class="stage-select">
+                <option value="stored">Kayda gore</option>
+                <option value="legacy">Degismemis</option>
+                <option value="safe">Guvenli</option>
+                <option value="exact">Gercek</option>
+              </select>
+            </label>
             <span id="reportProgress" class="report-progress">Hazirlaniyor...</span>
             <button id="rerunReportBtn" class="button button-secondary" type="button">Tekrar Tara</button>
           </div>
@@ -44,6 +53,22 @@
             <span class="report-summary-label">Durum</span>
             <strong>Hazirlaniyor...</strong>
           </article>
+        </section>
+
+        <section class="report-insights-shell">
+          <div class="report-insights-head">
+            <div>
+              <h3>Detayli Istatistik</h3>
+              <p id="reportActiveFilterNote" class="report-note">Ozet kartlari ve satirlara tiklayarak listeyi filtreleyebilirsin.</p>
+            </div>
+            <button id="clearReportFilterBtn" class="button button-ghost" type="button" hidden>Tumunu Goster</button>
+          </div>
+          <div id="reportInsightsGrid" class="report-insights-grid">
+            <article class="report-insight-card">
+              <span class="report-summary-label">Hazirlaniyor</span>
+              <strong>Detaylar yukleniyor...</strong>
+            </article>
+          </div>
         </section>
 
         <section id="reportPromotionPanel" class="admin-auth-panel admin-auth-panel-tight report-promotion-panel" hidden>
@@ -57,7 +82,7 @@
           </div>
         </section>
 
-        <section class="report-section">
+        <section id="reportChangedSection" class="report-section">
           <div class="report-section-head">
             <h3>Degisenler</h3>
             <span id="changedSectionMeta" class="report-section-meta">-</span>
@@ -67,7 +92,7 @@
           </div>
         </section>
 
-        <section class="report-section">
+        <section id="reportSkippedSection" class="report-section">
           <div class="report-section-head">
             <h3>Atlananlar</h3>
             <span id="skippedSectionMeta" class="report-section-meta">-</span>
@@ -100,8 +125,8 @@
   <script src="site-gate.js?v=20260502-02" defer></script>
   <script src="firebase-client.js?v=20260503-01" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="battle-core.js?v=20260505-06" defer></script>
-  <script src="bulk-regression.js?v=20260505-06" defer></script>
-  <script src="regression-report.js?v=20260503-01" defer></script>
+  <script src="battle-core.js?v=20260515-03" defer></script>
+  <script src="bulk-regression.js?v=20260515-04" defer></script>
+  <script src="regression-report.js?v=20260515-06" defer></script>
 </body>
 </html>

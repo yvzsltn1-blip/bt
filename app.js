@@ -4,6 +4,7 @@ const {
   ENEMY_UNITS,
   ALLY_UNITS,
   parseCount,
+  normalizeRoundingMode,
   calculateArmyPoints,
   BLOOD_BY_ALLY_KEY,
   simulateBattle,
@@ -25,6 +26,7 @@ const statusLabel = document.querySelector("#statusLabel");
 const simulateBtn = document.querySelector("#simulateBtn");
 const sampleBtn = document.querySelector("#sampleBtn");
 const clearBtn = document.querySelector("#clearBtn");
+const simulationRoundingModeButtons = [...document.querySelectorAll(".simulation-rounding-button")];
 const allyPointValue = document.querySelector("#allyPointValue");
 const reportWrongSimulationBtn = document.querySelector("#reportWrongSimulationBtn");
 const langToggleSimulationBtn = document.querySelector("#langToggleSimulationBtn");
@@ -33,6 +35,7 @@ const closeWrongReportBtn = document.querySelector("#closeWrongReportBtn");
 const cancelWrongReportBtn = document.querySelector("#cancelWrongReportBtn");
 const submitWrongReportBtn = document.querySelector("#submitWrongReportBtn");
 const actualOutcomeInput = document.querySelector("#actualOutcomeInput");
+const actualOutcomeModeButtons = [...document.querySelectorAll(".actual-outcome-mode-button")];
 const actualCapacityInput = document.querySelector("#actualCapacityInput");
 const actualNoteInput = document.querySelector("#actualNoteInput");
 const expectedWrongSummaryPreview = document.querySelector("#expectedWrongSummaryPreview");
@@ -44,6 +47,9 @@ const simulationAdminActionsPanel = document.querySelector("#simulationAdminActi
 const variantInsightsPanel = document.querySelector("#variantInsightsPanel");
 const variantToggleBtn = document.querySelector("#variantToggleBtn");
 const variantDetailsPanel = document.querySelector("#variantDetailsPanel");
+const nearbyAdvicePanel = document.querySelector("#nearbyAdvicePanel");
+const nearbyAdviceToggleBtn = document.querySelector("#nearbyAdviceToggleBtn");
+const nearbyAdviceDetailsPanel = document.querySelector("#nearbyAdviceDetailsPanel");
 const variantLogModal = document.querySelector("#variantLogModal");
 const closeVariantLogBtn = document.querySelector("#closeVariantLogBtn");
 const variantLogTitle = document.querySelector("#variantLogTitle");
@@ -52,6 +58,7 @@ const variantLogSummary = document.querySelector("#variantLogSummary");
 const variantLogInfo = document.querySelector("#variantLogInfo");
 const variantLogOutput = document.querySelector("#variantLogOutput");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
+const ROUNDING_MODE_STORAGE_KEY = "bt-analiz.rounding-mode.v1";
 const LOSS_REDUCTION_ICON_URL = "https://s66-tr.bitefight.gameforge.com/img/voodoo/res3_rotation.gif";
 let currentSimulationReport = null;
 let pendingWrongSimulationReport = null;
@@ -62,17 +69,70 @@ let lastLogTextTr = "";
 let simulationLogFullscreenFallback = false;
 let currentVariantAnalysis = null;
 let variantAnalysisRunId = 0;
+let currentNearbyAdvice = null;
+let nearbyAdviceRunId = 0;
 let isAdminSession = false;
 let currentSimulationResult = null;
 let currentKnifeEdgeRisk = null;
 let isLossReductionActive = false;
 let pendingHydratedSimulationSeed = null;
+let currentSimulationRoundingMode = loadStoredRoundingMode();
+let currentActualOutcomeMode = "victory";
+let cachedVictoryActualLosses = {};
+let cachedVictoryActualCapacity = "";
+let expectedWrongLosses = {};
 const VARIANT_SAMPLE_COUNT = 480;
 const VARIANT_INITIAL_VISIBLE_COUNT = 20;
 const VARIANT_VISIBLE_STEP = 20;
 const RANDOM_BENCHMARK_SAMPLE_COUNT = 480;
 const RANDOM_BENCHMARK_SEED_MIN = 10000;
 const RANDOM_BENCHMARK_SEED_MAX = 99999;
+const NEARBY_VICTORY_MAX_EXTRA_UNITS = 5;
+const NEARBY_IMPROVEMENT_MAX_EXTRA_UNITS = 3;
+const NEARBY_ADVICE_MAX_RESULTS = 5;
+
+function getRoundingModeLabel(mode) {
+  const normalizedMode = normalizeRoundingMode(mode);
+  if (normalizedMode === "legacy") {
+    return "Degismemis";
+  }
+  if (normalizedMode === "exact") {
+    return "Gercek";
+  }
+  return "Guvenli";
+}
+
+function loadStoredRoundingMode() {
+  try {
+    return normalizeRoundingMode(window.localStorage.getItem(ROUNDING_MODE_STORAGE_KEY));
+  } catch (_error) {
+    return "safe";
+  }
+}
+
+function persistRoundingMode(mode) {
+  try {
+    window.localStorage.setItem(ROUNDING_MODE_STORAGE_KEY, normalizeRoundingMode(mode));
+  } catch (_error) {
+    // localStorage yoksa secim sadece bu oturumda kalir.
+  }
+}
+
+function syncSimulationRoundingModeButtons() {
+  simulationRoundingModeButtons.forEach((button) => {
+    const isActive = normalizeRoundingMode(button.dataset.roundingMode) === currentSimulationRoundingMode;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
+function setSimulationRoundingMode(mode, options = {}) {
+  currentSimulationRoundingMode = normalizeRoundingMode(mode);
+  syncSimulationRoundingModeButtons();
+  if (options.persist !== false) {
+    persistRoundingMode(currentSimulationRoundingMode);
+  }
+}
 
 reportWrongSimulationBtn.disabled = true;
 buildWrongLossInputs();
@@ -87,6 +147,13 @@ resetValues();
 hydrateSimulationFromOptimizer();
 void refreshMatchedActualReport();
 bindAdminSession();
+setSimulationRoundingMode(currentSimulationRoundingMode, { persist: false });
+
+simulationRoundingModeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setSimulationRoundingMode(button.dataset.roundingMode || "safe");
+  });
+});
 
 simulateBtn.addEventListener("click", () => {
   try {
@@ -94,7 +161,11 @@ simulateBtn.addEventListener("click", () => {
     const ally = collectCounts(ALLY_UNITS);
     const seed = consumeSimulationSeed();
     statusLabel.textContent = "Simulasyon calisiyor";
-    const result = simulateBattle(enemy, ally, { seed, collectLog: true });
+    const result = simulateBattle(enemy, ally, {
+      seed,
+      collectLog: true,
+      roundingMode: currentSimulationRoundingMode
+    });
     renderSimulation(result, { seed });
   } catch (error) {
     statusLabel.textContent = "Hata";
@@ -117,6 +188,8 @@ clearBtn.addEventListener("click", () => {
   currentSimulationResult = null;
   currentKnifeEdgeRisk = null;
   currentVariantAnalysis = null;
+  currentNearbyAdvice = null;
+  nearbyAdviceRunId += 1;
   isLossReductionActive = false;
   pendingHydratedSimulationSeed = null;
   reportWrongSimulationBtn.disabled = true;
@@ -124,6 +197,7 @@ clearBtn.addEventListener("click", () => {
   closeVariantLogModal();
   syncSimulationAdminActions();
   syncVariantInsightsUi();
+  syncNearbyAdviceUi();
 });
 
 if (variantToggleBtn) {
@@ -704,7 +778,12 @@ function buildWrongLossInputs() {
 
   wireSequentialInputOrder(inputs);
 
-  actualOutcomeInput.addEventListener("input", renderActualWrongSummaryPreview);
+  actualOutcomeModeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setActualOutcomeMode(button.dataset.actualOutcomeMode || "victory");
+      renderActualWrongSummaryPreview();
+    });
+  });
   actualCapacityInput.addEventListener("input", () => {
     actualCapacityInput.value = actualCapacityInput.value.replace(/\D+/g, "");
     renderActualWrongSummaryPreview();
@@ -793,6 +872,7 @@ function hydrateSimulationFromOptimizer() {
     }
 
     pendingHydratedSimulationSeed = Number.isInteger(payload.seed) ? payload.seed : null;
+    setSimulationRoundingMode(payload.roundingMode || currentSimulationRoundingMode);
 
     ENEMY_UNITS.forEach((unit) => {
       inputRefs[unit.key].value = String(payload.enemyCounts[unit.key] || 0);
@@ -971,6 +1051,7 @@ function renderSimulationMeta(report = null, result = null) {
     simulationMetaPanel.appendChild(createMetaField("Seed", report.seed));
   }
   simulationMetaPanel.appendChild(createMetaField("Sonuc", result.winner === "enemy" ? "Maglubiyet" : "Zafer"));
+  simulationMetaPanel.appendChild(createMetaField("Hesap modu", getRoundingModeLabel(result.roundingMode)));
   simulationMetaPanel.appendChild(createMetaField("Kan kaybi", getDisplayedSimulationLostBlood(report, result)));
   simulationMetaPanel.appendChild(createMetaField("Kullanilan puan", report.usedPoints ?? 0));
   simulationMetaPanel.appendChild(createMetaField("Kapasite", report.usedCapacity ?? 0));
@@ -1025,6 +1106,7 @@ function renderSimulation(result, options = {}) {
     logText: detailText,
     usedCapacity: result.usedCapacity,
     usedPoints: calculateArmyPoints(allyCounts),
+    roundingMode: result.roundingMode,
     lostBlood: result.lostBloodTotal,
     expectedWinner: result.winner,
     expectedLostBlood: result.lostBloodTotal,
@@ -1037,11 +1119,13 @@ function renderSimulation(result, options = {}) {
     winner: result.winner,
     lostBloodTotal: result.lostBloodTotal,
     variantSignature: buildVariantSignature(result),
+    roundingMode: result.roundingMode,
     seed
   };
   currentKnifeEdgeRisk = analyzeKnifeEdgeRisk(enemyCounts, allyCounts, {
     seed: Number.isInteger(seed) ? seed : 1,
-    result
+    result,
+    roundingMode: result.roundingMode
   });
   reportWrongSimulationBtn.disabled = false;
   renderSimulationMeta(currentSimulationReport, currentSimulationResult);
@@ -1049,6 +1133,7 @@ function renderSimulation(result, options = {}) {
   void refreshMatchedActualReport();
   syncSimulationAdminActions();
   startVariantAnalysis(enemyCounts, allyCounts, result);
+  startNearbyAdviceAnalysis(enemyCounts, allyCounts, result);
 }
 
 function startVariantAnalysis(enemyCounts, allyCounts, currentResult) {
@@ -1075,19 +1160,41 @@ function startVariantAnalysis(enemyCounts, allyCounts, currentResult) {
   }, 0);
 }
 
+function startNearbyAdviceAnalysis(enemyCounts, allyCounts, currentResult) {
+  const runId = nearbyAdviceRunId + 1;
+  nearbyAdviceRunId = runId;
+  currentNearbyAdvice = {
+    loading: true,
+    expanded: false,
+    hasContent: true,
+    suggestions: [],
+    closestSuggestion: null,
+    mode: currentResult?.winner === "enemy" ? "defeat" : "victory"
+  };
+  syncNearbyAdviceUi();
+
+  window.setTimeout(() => {
+    const analysis = analyzeNearbyAdvice(enemyCounts, allyCounts, currentResult);
+    if (runId !== nearbyAdviceRunId) {
+      return;
+    }
+    currentNearbyAdvice = analysis;
+    syncNearbyAdviceUi();
+  }, 0);
+}
+
 function openWrongReportModal(report) {
   pendingWrongSimulationReport = report;
   clearWrongReportError();
   expectedWrongSummaryPreview.innerHTML = "";
   renderStyledLines(report.summaryText.split("\n"), expectedWrongSummaryPreview);
-  const expectedLosses = extractLossesFromSummary(report.summaryText);
-
-  actualOutcomeInput.value = extractOutcomeLine(report.summaryText);
+  expectedWrongLosses = extractLossesFromSummary(report.summaryText);
+  cachedVictoryActualLosses = { ...expectedWrongLosses };
+  cachedVictoryActualCapacity = String(report.usedCapacity || 0);
   actualCapacityInput.value = String(report.usedCapacity || 0);
   actualNoteInput.value = "";
-  ALLY_UNITS.forEach((unit) => {
-    actualLossInputs[unit.key].value = String(expectedLosses[unit.key] || 0);
-  });
+  setActualLossInputs(expectedWrongLosses);
+  setActualOutcomeMode(inferActualOutcomeModeFromLine(extractOutcomeLine(report.summaryText)));
   renderActualWrongSummaryPreview();
   wrongReportModal.hidden = false;
 }
@@ -1114,6 +1221,85 @@ function clearWrongReportError() {
   wrongReportErrorBox.textContent = "";
 }
 
+function normalizeActualOutcomeMode(mode) {
+  return mode === "defeat" ? "defeat" : "victory";
+}
+
+function getActualOutcomeLineForMode(mode) {
+  return normalizeActualOutcomeMode(mode) === "defeat"
+    ? ">> Muttefikler yenildi! Savas meydani dusmanin."
+    : ">> Dusman yenildi! Zafer muttefiklerin.";
+}
+
+function inferActualOutcomeModeFromLine(outcomeLine) {
+  return inferWinnerFromOutcomeLine(outcomeLine) === "enemy" ? "defeat" : "victory";
+}
+
+function getPendingWrongReportAllyCounts() {
+  return pendingWrongSimulationReport?.allyCounts || pendingWrongSimulationReport?.recommendationCounts || {};
+}
+
+function collectActualLossInputsRaw() {
+  const losses = {};
+  ALLY_UNITS.forEach((unit) => {
+    losses[unit.key] = parseCount(actualLossInputs[unit.key].value || "0", unit.label);
+  });
+  return losses;
+}
+
+function setActualLossInputs(losses = {}) {
+  ALLY_UNITS.forEach((unit) => {
+    actualLossInputs[unit.key].value = String(losses[unit.key] || 0);
+  });
+}
+
+if (nearbyAdviceToggleBtn) {
+  nearbyAdviceToggleBtn.addEventListener("click", () => {
+    if (!currentNearbyAdvice || !currentNearbyAdvice.hasContent) {
+      return;
+    }
+    currentNearbyAdvice.expanded = !currentNearbyAdvice.expanded;
+    syncNearbyAdviceUi();
+  });
+}
+
+function setActualOutcomeMode(mode) {
+  currentActualOutcomeMode = normalizeActualOutcomeMode(mode);
+  actualOutcomeInput.value = getActualOutcomeLineForMode(currentActualOutcomeMode);
+
+  if (currentActualOutcomeMode === "defeat") {
+    cachedVictoryActualLosses = collectActualLossInputsRaw();
+    cachedVictoryActualCapacity = actualCapacityInput.value;
+    const fullLosses = {};
+    const allyCounts = getPendingWrongReportAllyCounts();
+    ALLY_UNITS.forEach((unit) => {
+      fullLosses[unit.key] = Number(allyCounts[unit.key] || 0);
+    });
+    setActualLossInputs(fullLosses);
+    if (pendingWrongSimulationReport) {
+      actualCapacityInput.value = String(pendingWrongSimulationReport.usedCapacity || 0);
+    }
+  } else {
+    const nextLosses = hasPositiveLosses(cachedVictoryActualLosses)
+      ? cachedVictoryActualLosses
+      : expectedWrongLosses;
+    setActualLossInputs(nextLosses);
+    if (cachedVictoryActualCapacity !== "") {
+      actualCapacityInput.value = cachedVictoryActualCapacity;
+    }
+  }
+
+  const isDefeat = currentActualOutcomeMode === "defeat";
+  actualOutcomeModeButtons.forEach((button) => {
+    const active = normalizeActualOutcomeMode(button.dataset.actualOutcomeMode) === currentActualOutcomeMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+  ALLY_UNITS.forEach((unit) => {
+    actualLossInputs[unit.key].disabled = isDefeat;
+  });
+}
+
 function extractOutcomeLine(summaryText) {
   return summaryText.split("\n").find((line) => line.trim().startsWith(">>")) || "";
 }
@@ -1138,11 +1324,7 @@ function extractLossesFromSummary(summaryText) {
 }
 
 function collectActualLosses() {
-  const losses = {};
-  ALLY_UNITS.forEach((unit) => {
-    losses[unit.key] = parseCount(actualLossInputs[unit.key].value || "0", unit.label);
-  });
-  return losses;
+  return collectActualLossInputsRaw();
 }
 
 function inferWinnerFromOutcomeLine(outcomeLine) {
@@ -1157,7 +1339,7 @@ function inferWinnerFromOutcomeLine(outcomeLine) {
 }
 
 function buildActualOutcomePayload() {
-  const actualOutcomeLine = actualOutcomeInput.value.trim() || ">> Gercek sonuc girilmedi.";
+  const actualOutcomeLine = getActualOutcomeLineForMode(currentActualOutcomeMode);
   const actualLosses = collectActualLosses();
   const actualCapacity = actualCapacityInput.value.trim() === "" ? 0 : Number.parseInt(actualCapacityInput.value, 10);
   let actualLostUnitsTotal = 0;
@@ -1173,7 +1355,7 @@ function buildActualOutcomePayload() {
     actualOutcomeLine,
     actualCapacity,
     actualLosses,
-    actualWinner: inferWinnerFromOutcomeLine(actualOutcomeLine),
+    actualWinner: currentActualOutcomeMode === "defeat" ? "enemy" : "ally",
     actualLostUnitsTotal,
     actualLostBlood
   };
@@ -1404,9 +1586,10 @@ function buildKnifeEdgeNotice(risk) {
 function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
   const currentSignature = buildVariantSignature(currentResult);
   const fixedSeeds = Array.from({ length: VARIANT_SAMPLE_COUNT }, (_, index) => index + 1);
-  const fixedAnalysis = analyzeSimulationSeedSet(enemyCounts, allyCounts, fixedSeeds, currentSignature);
+  const roundingMode = normalizeRoundingMode(currentResult?.roundingMode);
+  const fixedAnalysis = analyzeSimulationSeedSet(enemyCounts, allyCounts, fixedSeeds, currentSignature, roundingMode);
   const randomSeeds = buildRandomBenchmarkSeeds(RANDOM_BENCHMARK_SAMPLE_COUNT);
-  const randomBenchmark = analyzeSimulationSeedSet(enemyCounts, allyCounts, randomSeeds);
+  const randomBenchmark = analyzeSimulationSeedSet(enemyCounts, allyCounts, randomSeeds, "", roundingMode);
 
   return {
     ...fixedAnalysis,
@@ -1422,11 +1605,11 @@ function analyzeSimulationVariants(enemyCounts, allyCounts, currentResult) {
   };
 }
 
-function analyzeSimulationSeedSet(enemyCounts, allyCounts, seeds, currentSignature = "") {
+function analyzeSimulationSeedSet(enemyCounts, allyCounts, seeds, currentSignature = "", roundingMode = "safe") {
   const variantsBySignature = new Map();
 
   for (const seed of seeds) {
-    const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false });
+    const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false, roundingMode });
     const signature = buildVariantSignature(result);
     const existing = variantsBySignature.get(signature);
     if (existing) {
@@ -1554,6 +1737,147 @@ function syncVariantInsightsUi() {
   }
 
   renderVariantDetails(currentVariantAnalysis);
+}
+
+function syncNearbyAdviceUi() {
+  if (!nearbyAdvicePanel || !nearbyAdviceToggleBtn || !nearbyAdviceDetailsPanel) {
+    return;
+  }
+
+  const isLoading = Boolean(currentNearbyAdvice?.loading);
+  const hasContent = Boolean(currentNearbyAdvice?.hasContent);
+  nearbyAdvicePanel.hidden = !isLoading && !hasContent;
+  nearbyAdviceToggleBtn.hidden = isLoading || !hasContent;
+  nearbyAdviceDetailsPanel.hidden = !isLoading && (!hasContent || !currentNearbyAdvice?.expanded);
+
+  if (isLoading) {
+    nearbyAdviceToggleBtn.setAttribute("aria-expanded", "false");
+    nearbyAdviceDetailsPanel.hidden = false;
+    nearbyAdviceDetailsPanel.innerHTML = '<div class="variant-loading-state">Yakin ordu onerileri araniyor...</div>';
+    return;
+  }
+
+  if (!hasContent || !currentNearbyAdvice) {
+    nearbyAdviceToggleBtn.setAttribute("aria-expanded", "false");
+    nearbyAdviceDetailsPanel.innerHTML = "";
+    return;
+  }
+
+  nearbyAdviceToggleBtn.textContent = currentNearbyAdvice.expanded
+    ? "Yakin Ordu Onerilerini Gizle"
+    : currentNearbyAdvice.toggleLabel;
+  nearbyAdviceToggleBtn.setAttribute("aria-expanded", String(currentNearbyAdvice.expanded));
+
+  if (!currentNearbyAdvice.expanded) {
+    nearbyAdviceDetailsPanel.innerHTML = "";
+    return;
+  }
+
+  renderNearbyAdviceDetails(currentNearbyAdvice);
+}
+
+function renderNearbyAdviceDetails(analysis) {
+  nearbyAdviceDetailsPanel.innerHTML = "";
+
+  const head = document.createElement("div");
+  head.className = "variant-details-head";
+  head.innerHTML = `
+    <strong>${analysis.title}</strong>
+    <span>Seed ${analysis.seed ?? "-"} / ${getRoundingModeLabel(analysis.roundingMode)} modu / ${analysis.checkedCount} yakin kombinasyon tarandi.</span>
+  `;
+
+  const summary = document.createElement("div");
+  summary.className = "nearby-advice-summary";
+  if (analysis.mode === "defeat" && Number.isInteger(analysis.winningFoundAtUnits)) {
+    summary.appendChild(buildNearbySummaryCard("Ilk kazanan seviye", `+${analysis.winningFoundAtUnits} birim`, "Daha fazla ekleme taranmadi."));
+  } else {
+    summary.appendChild(buildNearbySummaryCard("Tarama siniri", `+${analysis.maxExtraUnits} birim`, "Yakin cevre eklemeleri tarandi."));
+  }
+  if (analysis.suggestions.length > 0) {
+    summary.appendChild(buildNearbySummaryCard("Bulunan oneriler", String(analysis.suggestions.length), analysis.mode === "defeat" ? "En yakin kazananlar" : "Kaybi azaltanlar"));
+  } else if (analysis.closestSuggestion) {
+    summary.appendChild(buildNearbySummaryCard("En yakin aday", analysis.closestSuggestion.deltaLabel, "Ama sonuc hala yeterli degil."));
+  }
+
+  const list = document.createElement("div");
+  list.className = "nearby-advice-list";
+
+  if (analysis.suggestions.length > 0) {
+    analysis.suggestions.forEach((suggestion, index) => {
+      list.appendChild(buildNearbyAdviceCard(suggestion, analysis.mode, index === 0));
+    });
+  } else {
+    const empty = document.createElement("div");
+    empty.className = "knife-edge-warning severity-medium";
+    const title = document.createElement("strong");
+    title.textContent = "Yakin oneride sonuc bulunamadi";
+    const body = document.createElement("span");
+    body.textContent = analysis.emptyText;
+    empty.append(title, body);
+    list.appendChild(empty);
+
+    if (analysis.closestSuggestion) {
+      list.appendChild(buildNearbyAdviceCard(analysis.closestSuggestion, "fallback", true));
+    }
+  }
+
+  nearbyAdviceDetailsPanel.append(head, summary, list);
+}
+
+function buildNearbySummaryCard(label, value, meta) {
+  const card = document.createElement("article");
+  card.className = "variant-summary-card";
+  card.innerHTML = `
+    <span class="variant-summary-label">${label}</span>
+    <strong class="variant-summary-value">${value}</strong>
+    <span class="variant-summary-meta">${meta}</span>
+  `;
+  return card;
+}
+
+function buildNearbyAdviceCard(suggestion, mode, isPrimary = false) {
+  const card = document.createElement("article");
+  card.className = `nearby-advice-card${isPrimary ? " is-primary" : ""}`;
+  const titleText = mode === "defeat"
+    ? `${suggestion.deltaLabel} eklersen kazanirsin`
+    : mode === "victory"
+      ? `${suggestion.deltaLabel} eklersen kaybin azalir`
+      : `${suggestion.deltaLabel} en yakin aday`;
+  const metaText = mode === "defeat"
+    ? "Sonucu zafere cevirir"
+    : mode === "victory"
+      ? "Galibiyeti koruyup kaybi iyilestirir"
+      : "Yakin cevrede bulunan en iyi aday";
+
+  card.innerHTML = `
+    <div class="nearby-advice-head">
+      <div>
+        <strong>${titleText}</strong>
+        <span>${metaText}</span>
+      </div>
+      <div class="variant-badges">
+        <span class="variant-badge">Ek puan <strong>+${suggestion.addedPoints}</strong></span>
+        <span class="variant-badge">Ek birlik <strong>+${suggestion.addedUnits}</strong></span>
+      </div>
+    </div>
+  `;
+
+  const stats = document.createElement("div");
+  stats.className = "nearby-advice-stats";
+  stats.append(
+    buildNearbyAdviceStat("Sonuc", suggestion.winner === "ally" ? "Zafer" : "Maglubiyet"),
+    buildNearbyAdviceStat("Kan kaybi", `${suggestion.lostBlood} (${formatSignedDeltaValue(suggestion.lostBloodDelta)})`),
+    buildNearbyAdviceStat("Toplam kayip", `${suggestion.lossUnits} (${formatSignedDeltaValue(suggestion.lossUnitDelta)})`),
+    buildNearbyAdviceStat("Yeni kapasite", String(suggestion.result?.usedCapacity ?? 0))
+  );
+  card.appendChild(stats);
+  return card;
+}
+
+function buildNearbyAdviceStat(label, value) {
+  const wrap = document.createElement("span");
+  wrap.innerHTML = `<small>${label}</small><strong>${value}</strong>`;
+  return wrap;
 }
 
 function renderVariantDetails(analysis) {
@@ -1885,6 +2209,14 @@ function formatAverageValue(value) {
   return value.toFixed(value >= 100 ? 0 : 1).replace(/\.0+$/, "");
 }
 
+function formatSignedDeltaValue(value) {
+  const normalized = Number(value || 0);
+  if (!Number.isFinite(normalized) || normalized === 0) {
+    return "0";
+  }
+  return normalized > 0 ? `+${normalized}` : String(normalized);
+}
+
 async function saveVariantAsApproved(analysis, variant, triggerButton) {
   if (!isAdminSession) {
     window.alert("Bu islem icin yavuz@gmail.com admin oturumu gerekli.");
@@ -2056,6 +2388,7 @@ function createApprovedSimulationEntry(analysis, variant) {
     logText: logView.detailText,
     usedCapacity: logView.usedCapacity,
     usedPoints: calculateArmyPoints(allyCounts),
+    roundingMode: normalizeRoundingMode(currentSimulationResult?.roundingMode || currentSimulationReport?.roundingMode),
     lostBlood: variant.lostBloodTotal
   };
 }
@@ -2080,6 +2413,7 @@ function createApprovedSimulationEntryFromCurrentResult() {
     logText: currentSimulationReport?.logText || "",
     usedCapacity: currentSimulationReport?.usedCapacity || 0,
     usedPoints: calculateArmyPoints(allyCounts),
+    roundingMode: normalizeRoundingMode(currentSimulationResult?.roundingMode || currentSimulationReport?.roundingMode),
     lostBlood: currentSimulationResult?.lostBloodTotal || 0
   };
 }
@@ -2096,6 +2430,7 @@ function createFavoriteEntryFromCurrentSimulationResult() {
     diversityMode: false,
     stoneMode: false,
     modeLabel: "Simulasyon Fav",
+    roundingMode: normalizeRoundingMode(currentSimulationResult?.roundingMode || currentSimulationReport?.roundingMode),
     enemySignature: ENEMY_UNITS.map((unit) => enemyCounts[unit.key] || 0).join("|"),
     enemyTitle: buildEnemyTitle(enemyCounts),
     enemyCounts,
@@ -2159,9 +2494,10 @@ function ensureVariantLogView(enemyCounts, allyCounts, variant) {
   const seeds = Array.isArray(variant?.seeds) && variant.seeds.length ? variant.seeds : [1];
   let selectedSeed = seeds[0];
   let selectedResult = null;
+  const roundingMode = normalizeRoundingMode(currentSimulationResult?.roundingMode || currentSimulationReport?.roundingMode);
 
   for (const seed of seeds.slice(0, 8)) {
-    const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: true });
+    const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: true, roundingMode });
     if (buildVariantSignature(result) === variant.signature) {
       selectedSeed = seed;
       selectedResult = result;
@@ -2170,7 +2506,7 @@ function ensureVariantLogView(enemyCounts, allyCounts, variant) {
   }
 
   if (!selectedResult) {
-    selectedResult = simulateBattle(enemyCounts, allyCounts, { seed: selectedSeed, collectLog: true });
+    selectedResult = simulateBattle(enemyCounts, allyCounts, { seed: selectedSeed, collectLog: true, roundingMode });
   }
 
   variant.logView = buildVariantLogView(selectedResult, enemyCounts, allyCounts, selectedSeed);
@@ -2380,6 +2716,204 @@ function parseLossSummaryLine(line) {
     bloodText: `(${bloodValue} ${bloodUnit})`,
     isTotal: marker === "="
   };
+}
+
+function analyzeNearbyAdvice(enemyCounts, allyCounts, currentResult) {
+  const baselineWinner = currentResult?.winner === "enemy" ? "enemy" : "ally";
+  const baselineLostBlood = Number(currentResult?.lostBloodTotal || 0);
+  const baselineLossUnits = getTotalLossUnits(currentResult?.allyLosses || {});
+  const seed = Number.isInteger(currentResult?.seed)
+    ? currentResult.seed
+    : (Number.isInteger(currentSimulationReport?.seed) ? currentSimulationReport.seed : 1);
+  const roundingMode = normalizeRoundingMode(currentResult?.roundingMode);
+  const maxExtraUnits = baselineWinner === "enemy" ? NEARBY_VICTORY_MAX_EXTRA_UNITS : NEARBY_IMPROVEMENT_MAX_EXTRA_UNITS;
+  const allowedUnits = getNearbyAllowedUnits(allyCounts);
+  const allowedUnitKeys = new Set(allowedUnits.map((unit) => unit.key));
+  let checkedCount = 0;
+  let suggestions = [];
+  let closestSuggestion = null;
+  let winningFoundAtUnits = null;
+
+  for (let totalAddedUnits = 1; totalAddedUnits <= maxExtraUnits; totalAddedUnits += 1) {
+    const deltas = buildNearbyAdditionDeltas(totalAddedUnits, allowedUnits);
+    const unitLevelSuggestions = [];
+
+    deltas.forEach((deltaCounts) => {
+      const nextCounts = addNearbyDeltaToCounts(allyCounts, deltaCounts);
+      const result = simulateBattle(enemyCounts, nextCounts, {
+        seed,
+        collectLog: false,
+        roundingMode
+      });
+      checkedCount += 1;
+      const suggestion = buildNearbySuggestion(deltaCounts, result, baselineLostBlood, baselineLossUnits);
+
+      if (baselineWinner === "enemy") {
+        if (suggestion.winner === "ally") {
+          unitLevelSuggestions.push(suggestion);
+        } else if (!closestSuggestion || compareNearbyDefeatFallback(suggestion, closestSuggestion) < 0) {
+          closestSuggestion = suggestion;
+        }
+        return;
+      }
+
+      if (isNearbyImprovementSuggestion(suggestion, baselineLostBlood, baselineLossUnits)) {
+        suggestions.push(suggestion);
+      }
+    });
+
+    if (baselineWinner === "enemy" && unitLevelSuggestions.length > 0) {
+      suggestions = unitLevelSuggestions
+        .sort(compareNearbySuggestionPriority)
+        .slice(0, NEARBY_ADVICE_MAX_RESULTS);
+      winningFoundAtUnits = totalAddedUnits;
+      break;
+    }
+  }
+
+  if (baselineWinner === "ally") {
+    suggestions.sort(compareNearbySuggestionPriority);
+    suggestions = suggestions.slice(0, NEARBY_ADVICE_MAX_RESULTS);
+  }
+
+  suggestions = suggestions.filter((suggestion) => isNearbySuggestionAllowed(suggestion, allowedUnitKeys));
+  if (closestSuggestion && !isNearbySuggestionAllowed(closestSuggestion, allowedUnitKeys)) {
+    closestSuggestion = null;
+  }
+
+  const hasSuggestions = suggestions.length > 0;
+  const mode = baselineWinner === "enemy" ? "defeat" : "victory";
+  return {
+    loading: false,
+    expanded: hasSuggestions || !closestSuggestion,
+    hasContent: true,
+    mode,
+    checkedCount,
+    maxExtraUnits,
+    winningFoundAtUnits,
+    suggestions,
+    closestSuggestion,
+    seed,
+    roundingMode,
+    title: mode === "defeat" ? "Yakin kazanma onerileri" : "Yakin iyilestirme onerileri",
+    toggleLabel: mode === "defeat"
+      ? `Yakin Kazanma Onerilerini Goster${hasSuggestions ? ` (${suggestions.length})` : ""}`
+      : `Yakin Iyilestirme Onerilerini Goster${hasSuggestions ? ` (${suggestions.length})` : ""}`,
+    emptyText: mode === "defeat"
+      ? `${maxExtraUnits} birime kadar ekleme tarandi ama yakin cevrede zafer bulunamadi.`
+      : `${maxExtraUnits} birime kadar ekleme tarandi ama daha az kayipli yakin sonuc bulunamadi.`
+  };
+}
+
+function buildNearbyAdditionDeltas(totalUnits, allowedUnits = ALLY_UNITS) {
+  const results = [];
+  const draft = createEmptyNearbyCounts();
+
+  function walk(remaining, startIndex) {
+    if (remaining <= 0) {
+      results.push({ ...draft });
+      return;
+    }
+    for (let index = startIndex; index < allowedUnits.length; index += 1) {
+      draft[allowedUnits[index].key] += 1;
+      walk(remaining - 1, index);
+      draft[allowedUnits[index].key] -= 1;
+    }
+  }
+
+  walk(totalUnits, 0);
+  return results;
+}
+
+function getNearbyAllowedUnits(baseCounts) {
+  const usedUnits = ALLY_UNITS.filter((unit) => Number(baseCounts?.[unit.key] || 0) > 0);
+  return usedUnits;
+}
+
+function isNearbySuggestionAllowed(suggestion, allowedUnitKeys) {
+  if (!suggestion || !(allowedUnitKeys instanceof Set) || allowedUnitKeys.size <= 0) {
+    return false;
+  }
+  return Object.entries(suggestion.deltaCounts || {}).every(([unitKey, count]) => {
+    return Number(count || 0) <= 0 || allowedUnitKeys.has(unitKey);
+  });
+}
+
+function createEmptyNearbyCounts() {
+  const counts = {};
+  ALLY_UNITS.forEach((unit) => {
+    counts[unit.key] = 0;
+  });
+  return counts;
+}
+
+function addNearbyDeltaToCounts(baseCounts, deltaCounts) {
+  const next = {};
+  ALLY_UNITS.forEach((unit) => {
+    next[unit.key] = Number(baseCounts?.[unit.key] || 0) + Number(deltaCounts?.[unit.key] || 0);
+  });
+  return next;
+}
+
+function getTotalLossUnits(losses = {}) {
+  return ALLY_UNITS.reduce((sum, unit) => sum + Number(losses?.[unit.key] || 0), 0);
+}
+
+function buildNearbySuggestion(deltaCounts, result, baselineLostBlood, baselineLossUnits) {
+  const addedUnits = getTotalLossUnits(deltaCounts);
+  const addedPoints = calculateArmyPoints(deltaCounts);
+  const lostBlood = Number(result?.lostBloodTotal || 0);
+  const lossUnits = getTotalLossUnits(result?.allyLosses || {});
+  return {
+    deltaCounts: { ...deltaCounts },
+    deltaLabel: formatNearbyDeltaLabel(deltaCounts),
+    addedUnits,
+    addedPoints,
+    winner: result?.winner === "enemy" ? "enemy" : "ally",
+    lostBlood,
+    lossUnits,
+    lostBloodDelta: lostBlood - baselineLostBlood,
+    lossUnitDelta: lossUnits - baselineLossUnits,
+    result
+  };
+}
+
+function formatNearbyDeltaLabel(deltaCounts) {
+  return ALLY_UNITS
+    .filter((unit) => Number(deltaCounts?.[unit.key] || 0) > 0)
+    .map((unit) => `+${deltaCounts[unit.key]} ${unit.label}`)
+    .join(" / ");
+}
+
+function compareNearbySuggestionPriority(left, right) {
+  return (
+    left.addedUnits - right.addedUnits ||
+    left.addedPoints - right.addedPoints ||
+    left.lostBlood - right.lostBlood ||
+    left.lossUnits - right.lossUnits
+  );
+}
+
+function compareNearbyDefeatFallback(left, right) {
+  return (
+    left.lostBlood - right.lostBlood ||
+    left.lossUnits - right.lossUnits ||
+    left.addedUnits - right.addedUnits ||
+    left.addedPoints - right.addedPoints
+  );
+}
+
+function isNearbyImprovementSuggestion(suggestion, baselineLostBlood, baselineLossUnits) {
+  if (suggestion.winner !== "ally") {
+    return false;
+  }
+  if (suggestion.lostBlood < baselineLostBlood) {
+    return true;
+  }
+  if (suggestion.lostBlood === baselineLostBlood && suggestion.lossUnits < baselineLossUnits) {
+    return true;
+  }
+  return false;
 }
 
 function appendLossSummaryLine(row, parts) {

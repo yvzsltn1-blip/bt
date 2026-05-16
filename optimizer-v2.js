@@ -765,19 +765,19 @@ function getCommittedStage() {
 
 function renderOptimizerResult(result, stage, maxPoints, meta) {
   const summaryBlock = document.createElement("div");
+  const source = result.possible ? result.recommendation : result.fallback || result.fullArmyEvaluation;
   summaryBlock.className = "terminal-block";
   const progressLines = [
     `- mod: ${getModeLabel(meta.mode, meta.diversityMode)}`,
     `- deneme: ${meta.runIndex}`,
-    `- bu basista tur: ${meta.batchRuns || 1}`,
     `- bu tur taranan: ${meta.lastCandidates}`,
     `- toplam taranan: ${meta.totalCandidates}`,
     `- benzersiz kombinasyon: ${meta.lastUniqueCandidates} (bu tur) / ${meta.totalUniqueCandidates} (toplam)`,
-    `- trial / aday: ${meta.runConfig.trialCount}`,
-    `- beam genisligi: ${meta.runConfig.beamWidth}`,
-    `- elit aday: ${meta.runConfig.eliteCount}`,
-    `- stabilite testi: ${meta.runConfig.stabilityTrials}`,
-    `- bu basista savas kosusu: ${meta.batchSimulationRuns || result.simulationRuns}`
+    ...(source ? [
+      `- puan boslugu: ${formatOptimizerPointSlackSummary(maxPoints, source.avgUsedPoints)}`,
+      ...(result.possible ? [`- stabilite sinyali: ${getOptimizerStabilitySignal(source)}`] : []),
+      `- en cok yiprananlar: ${formatOptimizerTopLossSummary(source)}`
+    ] : [])
   ];
 
   let summaryLines;
@@ -1481,6 +1481,43 @@ function formatCandidateLossBreakdown(entry) {
     return entry?.feasible ? "Belirgin kayip beklenmiyor." : "Net kayip dagilimi yok.";
   }
 
+  return parts.join(", ");
+}
+
+function formatOptimizerPointSlackSummary(maxPoints, usedPoints) {
+  const slack = Math.max(0, Math.round((maxPoints || 0) - (usedPoints || 0)));
+  return slack <= 0 ? "limit tam kullaniliyor" : `${slack} puan bosluk kaliyor`;
+}
+
+function getOptimizerStabilitySignal(entry) {
+  const winRate = entry?.winRate || 0;
+  if (winRate >= 0.98) {
+    return "cok stabil";
+  }
+  if (winRate >= 0.9) {
+    return "stabil";
+  }
+  if (winRate >= 0.75) {
+    return "sinirda";
+  }
+  return "riskli";
+}
+
+function formatOptimizerTopLossSummary(entry, limit = 3) {
+  const avgLosses = entry?.avgAllyLosses || {};
+  const parts = ALLY_UNITS
+    .map((unit) => ({
+      label: getSummaryUnitName(unit.key),
+      loss: Math.round(avgLosses[unit.key] || 0)
+    }))
+    .filter((item) => item.loss > 0)
+    .sort((left, right) => right.loss - left.loss)
+    .slice(0, limit)
+    .map((item) => `~${item.loss} ${item.label}`);
+
+  if (!parts.length) {
+    return entry?.feasible ? "belirgin kayip beklenmiyor" : "net kayip dagilimi yok";
+  }
   return parts.join(", ");
 }
 

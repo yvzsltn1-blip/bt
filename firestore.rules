@@ -103,7 +103,7 @@ service cloud.firestore {
           'source', 'sourceLabel', 'savedAt', 'updatedAt', 'stage', 'enemyTitle', 'enemyCounts',
           'promotedFromWrong', 'promotedFromWrongAt', 'promotedFromWrongId',
           'allyCounts', 'matchSignature', 'variantSignature', 'representativeSeed', 'variantTitle', 'winner',
-          'probabilityBasisPoints', 'summaryText', 'logText', 'usedCapacity',
+          'probabilityBasisPoints', 'summaryText', 'logText', 'usedCapacity', 'roundingMode',
           'usedPoints', 'lostBlood'
         ])
         && data.keys().hasAll([
@@ -131,6 +131,7 @@ service cloud.firestore {
         && data.probabilityBasisPoints is int && data.probabilityBasisPoints >= 0 && data.probabilityBasisPoints <= 10000
         && isTextString(data.summaryText, 40000)
         && isTextString(data.logText, 400000)
+        && (!('roundingMode' in data) || data.roundingMode in ['legacy', 'safe', 'exact'])
         && data.usedCapacity is int && data.usedCapacity >= 0 && data.usedCapacity <= 999999
         && data.usedPoints is int && data.usedPoints >= 0 && data.usedPoints <= 99999
         && data.lostBlood is int && data.lostBlood >= 0 && data.lostBlood <= 999999;

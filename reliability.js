@@ -5,6 +5,7 @@ const {
   ALLY_UNITS,
   parseCount,
   calculateArmyPoints,
+  normalizeRoundingMode,
   simulateBattle,
   BLOOD_BY_ALLY_KEY
 } = window.BattleCore;
@@ -269,7 +270,11 @@ async function runReliabilityAnalysis() {
 
     for (let index = 0; index < seeds.length; index += 1) {
       const seed = seeds[index];
-      const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false });
+      const result = simulateBattle(enemyCounts, allyCounts, {
+        seed,
+        collectLog: false,
+        roundingMode: normalizeRoundingMode(lastOptimizerPayload?.roundingMode)
+      });
       const scenario = {
         seed,
         winner: result.winner === "enemy" ? "enemy" : "ally",
@@ -304,6 +309,7 @@ async function runReliabilityAnalysis() {
     currentAnalysis = {
       enemyCounts,
       allyCounts,
+      roundingMode: normalizeRoundingMode(lastOptimizerPayload?.roundingMode),
       sampleMode: sampleSelection.mode,
       sampleCount,
       scenarios,
@@ -753,7 +759,11 @@ function openScenarioLog(seed) {
   if (!currentAnalysis || !Number.isInteger(seed)) {
     return;
   }
-  const result = simulateBattle(currentAnalysis.enemyCounts, currentAnalysis.allyCounts, { seed, collectLog: true });
+  const result = simulateBattle(currentAnalysis.enemyCounts, currentAnalysis.allyCounts, {
+    seed,
+    collectLog: true,
+    roundingMode: normalizeRoundingMode(currentAnalysis.roundingMode)
+  });
   renderStyledLines(String(result.logText || "Gunluk uretilemedi.").split("\n"), scenarioLogOutput);
   reliabilityStatus.textContent = `Seed ${seed} gunlugu acildi`;
 }
@@ -766,7 +776,8 @@ function openSimulationForSeed(seed) {
     window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
       enemyCounts: currentAnalysis.enemyCounts,
       allyCounts: currentAnalysis.allyCounts,
-      seed
+      seed,
+      roundingMode: currentAnalysis.roundingMode || null
     }));
     const opened = window.open("index.html", "_blank");
     if (!opened) {

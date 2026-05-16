@@ -26,7 +26,13 @@ const reportScope = document.querySelector("#reportScope");
 const reportCountLabel = document.querySelector("#reportCountLabel");
 const reportProgress = document.querySelector("#reportProgress");
 const rerunReportBtn = document.querySelector("#rerunReportBtn");
+const reportRoundingModeSelect = document.querySelector("#reportRoundingModeSelect");
 const reportSummaryGrid = document.querySelector("#reportSummaryGrid");
+const reportInsightsGrid = document.querySelector("#reportInsightsGrid");
+const reportActiveFilterNote = document.querySelector("#reportActiveFilterNote");
+const clearReportFilterBtn = document.querySelector("#clearReportFilterBtn");
+const reportChangedSection = document.querySelector("#reportChangedSection");
+const reportSkippedSection = document.querySelector("#reportSkippedSection");
 const reportChangedList = document.querySelector("#reportChangedList");
 const reportSkippedList = document.querySelector("#reportSkippedList");
 const changedSectionMeta = document.querySelector("#changedSectionMeta");
@@ -48,9 +54,23 @@ let lastAuditResults = [];
 let promotableResults = [];
 let isAdminSession = false;
 let isPromotionRunning = false;
+let currentReportFilter = "all";
 
 hydrateReportShell();
 rerunReportBtn?.addEventListener("click", () => {
+  void runRegressionAudit();
+});
+clearReportFilterBtn?.addEventListener("click", () => {
+  currentReportFilter = "all";
+  renderAuditResults(lastAuditResults);
+});
+reportRoundingModeSelect?.addEventListener("change", () => {
+  const nextMode = normalizeAuditRoundingMode(reportRoundingModeSelect.value);
+  if (currentPayload) {
+    currentPayload.roundingMode = nextMode;
+    writeReportPayload(currentPayload);
+  }
+  hydrateReportShell();
   void runRegressionAudit();
 });
 moveConfirmedWrongBtn?.addEventListener("click", () => {
@@ -60,11 +80,28 @@ moveConfirmedWrongBtn?.addEventListener("click", () => {
 void bindAdminAuth();
 void runRegressionAudit();
 
+function scrollToReportSection(filterKey) {
+  const target = filterKey === "skipped" ? reportSkippedSection : reportChangedSection;
+  target?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function setReportFilter(filterKey = "all") {
+  currentReportFilter = filterKey || "all";
+  renderAuditResults(lastAuditResults);
+  if (currentReportFilter !== "all") {
+    scrollToReportSection(currentReportFilter);
+  }
+}
+
 function hydrateReportShell() {
+  const selectedMode = getSelectedAuditRoundingMode();
   if (!currentPayload) {
     reportTitle.textContent = "Toplu Test Raporu";
     reportScope.textContent = "Aktif rapor verisi bulunamadi.";
     reportCountLabel.textContent = "0";
+    if (reportRoundingModeSelect) {
+      reportRoundingModeSelect.value = selectedMode;
+    }
     if (reportBackLink) {
       reportBackLink.href = "saved.html";
       reportBackLink.textContent = "Onaylananlar";
@@ -74,8 +111,11 @@ function hydrateReportShell() {
   }
 
   reportTitle.textContent = currentPayload.title || "Toplu Test Raporu";
-  reportScope.textContent = currentPayload.scopeLabel || "Secilen kayitlar kontrol edilecek.";
+  reportScope.textContent = buildReportScopeText(currentPayload.scopeLabel || "Secilen kayitlar kontrol edilecek.");
   reportCountLabel.textContent = `${currentPayload.selectedCount || 0}/${currentPayload.totalCount || 0}`;
+  if (reportRoundingModeSelect) {
+    reportRoundingModeSelect.value = selectedMode;
+  }
   if (reportBackLink) {
     reportBackLink.href = currentPayload.backHref || "saved.html";
     reportBackLink.textContent = currentPayload.backLabel || "Kaynak Sayfa";
@@ -220,11 +260,13 @@ function evaluateApprovedRecord(item) {
   }
 
   const expected = getApprovedExpectedFingerprint(item);
+  const auditRoundingMode = resolveAuditRoundingMode(item);
 
   if (Number.isInteger(item.representativeSeed)) {
     const result = simulateBattle(item.enemyCounts, item.allyCounts, {
       seed: item.representativeSeed,
-      collectLog: false
+      collectLog: false,
+      roundingMode: auditRoundingMode
     });
 
     const actual = getResultFingerprint(result);
@@ -237,16 +279,18 @@ function evaluateApprovedRecord(item) {
       expected,
       actual,
       differences,
+      auditRoundingMode,
       simulationTarget: {
         enemyCounts: item.enemyCounts,
         allyCounts: item.allyCounts,
-        seed: item.representativeSeed
+        seed: item.representativeSeed,
+        roundingMode: auditRoundingMode
       }
     });
   }
 
   const sampleSeeds = buildDeterministicSampleSeeds(item, RANDOM_FALLBACK_SEED_COUNT);
-  const sampled = evaluateSeedSample(item.enemyCounts, item.allyCounts, sampleSeeds, expected, null);
+  const sampled = evaluateSeedSample(item.enemyCounts, item.allyCounts, sampleSeeds, expected, null, auditRoundingMode);
   const differences = collectFingerprintDifferences(expected, sampled.actual);
 
   return buildComparedRecord(item, {
@@ -256,11 +300,13 @@ function evaluateApprovedRecord(item) {
     expected,
     actual: sampled.actual,
     differences: sampled.hasExpectedMatch ? [] : differences,
+    auditRoundingMode,
     samplingNote: sampled.note,
     simulationTarget: {
       enemyCounts: item.enemyCounts,
       allyCounts: item.allyCounts,
-      seed: sampled.representativeSeed
+      seed: sampled.representativeSeed,
+      roundingMode: auditRoundingMode
     }
   });
 }
@@ -272,11 +318,13 @@ function evaluateWrongRecord(item) {
 
   const expected = getWrongExpectedFingerprint(item);
   const actualTruth = getActualTruthFingerprint(item.actualSummaryText);
+  const auditRoundingMode = resolveAuditRoundingMode(item);
 
   if (Number.isInteger(item.seed)) {
     const result = simulateBattle(item.enemyCounts, item.allyCounts, {
       seed: item.seed,
-      collectLog: false
+      collectLog: false,
+      roundingMode: auditRoundingMode
     });
 
     const actual = getResultFingerprint(result);
@@ -289,19 +337,22 @@ function evaluateWrongRecord(item) {
       seed: item.seed,
       expected,
       actual,
+      actualTruth,
       differences,
       matchesStoredActual,
       actualNote: item.actualNote || "",
+      auditRoundingMode,
       simulationTarget: {
         enemyCounts: item.enemyCounts,
         allyCounts: item.allyCounts,
-        seed: item.seed
+        seed: item.seed,
+        roundingMode: auditRoundingMode
       }
     });
   }
 
   const sampleSeeds = buildDeterministicSampleSeeds(item, RANDOM_FALLBACK_SEED_COUNT);
-  const sampled = evaluateSeedSample(item.enemyCounts, item.allyCounts, sampleSeeds, expected, actualTruth);
+  const sampled = evaluateSeedSample(item.enemyCounts, item.allyCounts, sampleSeeds, expected, actualTruth, auditRoundingMode);
   const differences = collectFingerprintDifferences(expected, sampled.actual);
 
   return buildComparedRecord(item, {
@@ -310,14 +361,17 @@ function evaluateWrongRecord(item) {
     seed: sampled.representativeSeed,
     expected,
     actual: sampled.actual,
+    actualTruth,
     differences: sampled.hasExpectedMatch ? [] : differences,
     matchesStoredActual: sampled.matchesStoredActual,
     actualNote: item.actualNote || "",
+    auditRoundingMode,
     samplingNote: sampled.note,
     simulationTarget: {
       enemyCounts: item.enemyCounts,
       allyCounts: item.allyCounts,
-      seed: sampled.representativeSeed
+      seed: sampled.representativeSeed,
+      roundingMode: auditRoundingMode
     }
   });
 }
@@ -442,10 +496,14 @@ function buildComparedRecord(item, details) {
     seed: Number.isInteger(details.seed) ? details.seed : null,
     expected: details.expected,
     actual: details.actual,
+    actualTruth: details.actualTruth || null,
     differences: details.differences || [],
+    detailChips: buildDifferenceDetailChips(details.expected, details.actual),
     matchesStoredActual: Boolean(details.matchesStoredActual),
     actualNote: details.actualNote || "",
     samplingNote: details.samplingNote || "",
+    auditRoundingMode: normalizeStoredRoundingMode(details.auditRoundingMode) || "safe",
+    storedRoundingMode: normalizeStoredRoundingMode(item?.roundingMode),
     simulationTarget: details.simulationTarget || null,
     sourceItem: item,
     versusLabel: buildRosterLabel(item.enemyCounts, ENEMY_UNITS, 2) || item.enemyTitle || "Versus",
@@ -491,14 +549,24 @@ function renderAuditResults(results) {
   const skippedItems = results.filter((item) => item.status === "skipped");
   const changedCount = changedItems.length;
   const skippedCount = skippedItems.length;
+  const becameDefeatCount = changedItems.filter((item) => item.expected?.winner === "ally" && item.actual?.winner === "enemy").length;
+  const lostBloodIncreasedCount = changedItems.filter((item) => Number(item.actual?.lostBloodTotal || 0) > Number(item.expected?.lostBloodTotal || 0)).length;
+  const lostBloodDecreasedCount = changedItems.filter((item) => Number(item.actual?.lostBloodTotal || 0) < Number(item.expected?.lostBloodTotal || 0)).length;
   const actualMatchCount = results.filter((item) => item.matchesStoredActual).length;
   promotableResults = getPromotableResults(results);
+  const filteredChangedItems = filterChangedItems(changedItems, currentReportFilter);
+  const filteredSkippedItems = currentReportFilter === "skipped" ? skippedItems : skippedItems;
+  const showChangedSection = currentReportFilter !== "skipped";
+  const showSkippedSection = currentReportFilter === "all" || currentReportFilter === "skipped";
 
   reportSummaryGrid.innerHTML = "";
   reportSummaryGrid.append(
-    createSummaryCard("Ayni", String(sameCount), "same"),
-    createSummaryCard("Degisen", String(changedCount), "changed"),
-    createSummaryCard("Atlanan", String(skippedCount), "skipped")
+    createSummaryCard("Ayni", String(sameCount), "same", { hint: "Liste gosterimi yok" }),
+    createSummaryCard("Degisen", String(changedCount), "changed", { filterKey: "changed", hint: "Degisen kayitlari goster" }),
+    createSummaryCard("Atlanan", String(skippedCount), "skipped", { filterKey: "skipped", hint: "Atlananlari goster" }),
+    createSummaryCard("Maglubiyete donen", String(becameDefeatCount), "changed", { filterKey: "became_defeat" }),
+    createSummaryCard("Kan kaybi artan", String(lostBloodIncreasedCount), "changed", { filterKey: "lost_blood_up" }),
+    createSummaryCard("Kan kaybi azalan", String(lostBloodDecreasedCount), "same", { filterKey: "lost_blood_down" })
   );
 
   if (currentPayload?.kind === "wrong") {
@@ -506,21 +574,223 @@ function renderAuditResults(results) {
     reportSummaryGrid.appendChild(createSummaryCard("Tasinabilir", String(promotableResults.length), "promoted"));
   }
 
-  changedSectionMeta.textContent = `${changedCount} kayit`;
-  skippedSectionMeta.textContent = `${skippedCount} kayit`;
+  renderInsights(changedItems);
+  syncActiveFilterUi(filteredChangedItems, skippedItems);
+  if (reportChangedSection) {
+    reportChangedSection.hidden = !showChangedSection;
+  }
+  if (reportSkippedSection) {
+    reportSkippedSection.hidden = !showSkippedSection;
+  }
 
-  renderChangedItems(changedItems);
-  renderSkippedItems(skippedItems);
+  changedSectionMeta.textContent = currentReportFilter === "all"
+    ? `${changedCount} kayit`
+    : `${filteredChangedItems.length}/${changedCount} kayit`;
+  skippedSectionMeta.textContent = currentReportFilter === "skipped"
+    ? `${skippedCount} kayit`
+    : `${skippedCount} kayit`;
+
+  renderChangedItems(filteredChangedItems);
+  renderSkippedItems(currentReportFilter === "skipped" ? filteredSkippedItems : skippedItems);
   syncPromotionUi();
 }
 
-function createSummaryCard(label, value, tone) {
-  const card = document.createElement("article");
-  card.className = `report-summary-card${tone ? ` is-${tone}` : ""}`;
+function createSummaryCard(label, value, tone, options = {}) {
+  const card = document.createElement(options.filterKey ? "button" : "article");
+  card.className = `report-summary-card${tone ? ` is-${tone}` : ""}${options.filterKey ? " is-clickable" : ""}${options.filterKey && currentReportFilter === options.filterKey ? " is-active" : ""}`;
+  if (options.filterKey) {
+    card.type = "button";
+    card.addEventListener("click", () => {
+      setReportFilter(options.filterKey);
+    });
+  }
   card.innerHTML = `
     <span class="report-summary-label">${label}</span>
     <strong>${value}</strong>
+    ${options.hint ? `<small>${options.hint}</small>` : ""}
   `;
+  return card;
+}
+
+function syncActiveFilterUi(filteredChangedItems, skippedItems) {
+  if (clearReportFilterBtn) {
+    clearReportFilterBtn.hidden = currentReportFilter === "all";
+  }
+  if (!reportActiveFilterNote) {
+    return;
+  }
+  if (currentReportFilter === "all") {
+    reportActiveFilterNote.textContent = "Ozet kartlari ve satirlara tiklayarak listeyi filtreleyebilirsin.";
+    return;
+  }
+  const baseLabel = getReportFilterLabel(currentReportFilter);
+  const count = currentReportFilter === "skipped" ? skippedItems.length : filteredChangedItems.length;
+  reportActiveFilterNote.textContent = `Aktif filtre: ${baseLabel} (${count} kayit).`;
+}
+
+function getReportFilterLabel(filterKey) {
+  const labels = {
+    all: "Tum degisenler",
+    changed: "Degisenler",
+    skipped: "Atlananlar",
+    became_defeat: "Maglubiyete donenler",
+    lost_blood_up: "Kan kaybi artanlar",
+    lost_blood_down: "Kan kaybi azalanlar",
+    unit_loss_plus_1: "+1 birlik kayip",
+    unit_loss_plus_2: "+2 birlik kayip",
+    unit_loss_plus_3: "+3 birlik kayip",
+    unit_loss_plus_4: "+4 birlik kayip",
+    unit_loss_plus_5p: "+5 ve ustu birlik kayip",
+    unit_loss_minus_1: "-1 birlik kayip",
+    unit_loss_minus_2: "-2 birlik kayip",
+    unit_loss_minus_3p: "-3 ve ustu birlik kazanci"
+  };
+  return labels[filterKey] || "Filtre";
+}
+
+function filterChangedItems(items, filterKey) {
+  if (!filterKey || filterKey === "all" || filterKey === "changed") {
+    return items.slice();
+  }
+  return items.filter((item) => matchesChangedFilter(item, filterKey));
+}
+
+function matchesChangedFilter(item, filterKey) {
+  const bloodDelta = Number(item.actual?.lostBloodTotal || 0) - Number(item.expected?.lostBloodTotal || 0);
+  const unitDelta = getLossUnitDelta(item);
+  switch (filterKey) {
+    case "became_defeat":
+      return item.expected?.winner === "ally" && item.actual?.winner === "enemy";
+    case "lost_blood_up":
+      return bloodDelta > 0;
+    case "lost_blood_down":
+      return bloodDelta < 0;
+    case "unit_loss_plus_1":
+      return unitDelta === 1;
+    case "unit_loss_plus_2":
+      return unitDelta === 2;
+    case "unit_loss_plus_3":
+      return unitDelta === 3;
+    case "unit_loss_plus_4":
+      return unitDelta === 4;
+    case "unit_loss_plus_5p":
+      return unitDelta >= 5;
+    case "unit_loss_minus_1":
+      return unitDelta === -1;
+    case "unit_loss_minus_2":
+      return unitDelta === -2;
+    case "unit_loss_minus_3p":
+      return unitDelta <= -3;
+    default:
+      return true;
+  }
+}
+
+function renderInsights(changedItems) {
+  if (!reportInsightsGrid) {
+    return;
+  }
+  const insightCards = [
+    createOutcomeInsightCard(changedItems),
+    createUnitDeltaInsightCard(changedItems, "positive"),
+    createUnitDeltaInsightCard(changedItems, "negative"),
+    createBloodDeltaInsightCard(changedItems)
+  ];
+  reportInsightsGrid.innerHTML = "";
+  insightCards.forEach((card) => reportInsightsGrid.appendChild(card));
+}
+
+function createInsightCard(title, subtitle = "") {
+  const card = document.createElement("article");
+  card.className = "report-insight-card";
+  card.innerHTML = `
+    <div class="report-insight-head">
+      <strong>${escapeHtml(title)}</strong>
+      ${subtitle ? `<span>${escapeHtml(subtitle)}</span>` : ""}
+    </div>
+  `;
+  return card;
+}
+
+function createInsightAction(label, value, filterKey = "", options = {}) {
+  const row = document.createElement(filterKey ? "button" : "div");
+  row.className = `report-insight-row${filterKey ? " is-clickable" : ""}${filterKey && currentReportFilter === filterKey ? " is-active" : ""}`;
+  if (filterKey) {
+    row.type = "button";
+    row.addEventListener("click", () => {
+      setReportFilter(filterKey);
+    });
+  }
+  row.innerHTML = `
+    <span>${escapeHtml(label)}</span>
+    <strong>${escapeHtml(String(value))}</strong>
+    ${options.note ? `<small>${escapeHtml(options.note)}</small>` : ""}
+  `;
+  return row;
+}
+
+function createOutcomeInsightCard(changedItems) {
+  const card = createInsightCard("Sonuc dagilimi", "Durum degisimi ve etkisi");
+  const body = document.createElement("div");
+  body.className = "report-insight-list";
+  const defeatCount = changedItems.filter((item) => item.expected?.winner === "ally" && item.actual?.winner === "enemy").length;
+  const victoryCount = changedItems.filter((item) => item.expected?.winner === "enemy" && item.actual?.winner === "ally").length;
+  const unchangedOutcomeCount = changedItems.filter((item) => item.expected?.winner === item.actual?.winner).length;
+  body.append(
+    createInsightAction("Zafer -> Maglubiyet", defeatCount, "became_defeat"),
+    createInsightAction("Maglubiyet -> Zafer", victoryCount),
+    createInsightAction("Sonuc ayni kaldi", unchangedOutcomeCount, "changed", { note: "Degisim kayip veya kapasitede" })
+  );
+  card.appendChild(body);
+  return card;
+}
+
+function createUnitDeltaInsightCard(changedItems, direction) {
+  const isPositive = direction === "positive";
+  const title = isPositive ? "Birim kayip artisi" : "Birim kayip azalisi";
+  const subtitle = isPositive ? "Toplam kayip birim farki" : "Daha dusuk kayip cikanlar";
+  const card = createInsightCard(title, subtitle);
+  const body = document.createElement("div");
+  body.className = "report-insight-list";
+  const definitions = isPositive
+    ? [
+        ["+1 birlik", "unit_loss_plus_1"],
+        ["+2 birlik", "unit_loss_plus_2"],
+        ["+3 birlik", "unit_loss_plus_3"],
+        ["+4 birlik", "unit_loss_plus_4"],
+        ["+5 ve ustu", "unit_loss_plus_5p"]
+      ]
+    : [
+        ["-1 birlik", "unit_loss_minus_1"],
+        ["-2 birlik", "unit_loss_minus_2"],
+        ["-3 ve ustu", "unit_loss_minus_3p"]
+      ];
+  definitions.forEach(([label, filterKey]) => {
+    const count = changedItems.filter((item) => matchesChangedFilter(item, filterKey)).length;
+    body.appendChild(createInsightAction(label, `${count} kayit`, count > 0 ? filterKey : ""));
+  });
+  card.appendChild(body);
+  return card;
+}
+
+function createBloodDeltaInsightCard(changedItems) {
+  const card = createInsightCard("Kan kaybi farki", "Toplam kan farkinin ozeti");
+  const body = document.createElement("div");
+  body.className = "report-insight-list";
+  const deltas = changedItems.map((item) => Number(item.actual?.lostBloodTotal || 0) - Number(item.expected?.lostBloodTotal || 0));
+  const positiveDeltas = deltas.filter((value) => value > 0);
+  const negativeDeltas = deltas.filter((value) => value < 0);
+  const maxIncrease = positiveDeltas.length ? Math.max(...positiveDeltas) : 0;
+  const maxDecrease = negativeDeltas.length ? Math.min(...negativeDeltas) : 0;
+  const averageIncrease = positiveDeltas.length
+    ? Math.round(positiveDeltas.reduce((sum, value) => sum + value, 0) / positiveDeltas.length)
+    : 0;
+  body.append(
+    createInsightAction("En yuksek artis", maxIncrease > 0 ? `+${maxIncrease}` : "0", positiveDeltas.length ? "lost_blood_up" : ""),
+    createInsightAction("Ortalama artis", averageIncrease > 0 ? `+${averageIncrease}` : "0", positiveDeltas.length ? "lost_blood_up" : ""),
+    createInsightAction("En yuksek azalis", maxDecrease < 0 ? String(maxDecrease) : "0", negativeDeltas.length ? "lost_blood_down" : "")
+  );
+  card.appendChild(body);
   return card;
 }
 
@@ -537,7 +807,10 @@ function getPromotableResults(results) {
 function renderChangedItems(items) {
   reportChangedList.innerHTML = "";
   if (!items.length) {
-    reportChangedList.innerHTML = '<p class="summary-empty">Secilen kayitlarda beklenen sonuc degismedi.</p>';
+    const emptyText = currentReportFilter === "all"
+      ? "Secilen kayitlarda beklenen sonuc degismedi."
+      : `Aktif filtre icin kayit yok: ${escapeHtml(getReportFilterLabel(currentReportFilter))}.`;
+    reportChangedList.innerHTML = `<p class="summary-empty">${emptyText}</p>`;
     return;
   }
 
@@ -563,7 +836,8 @@ function renderChangedItems(items) {
         openSimulationForCounts(
           item.simulationTarget.enemyCounts,
           item.simulationTarget.allyCounts,
-          item.simulationTarget.seed
+          item.simulationTarget.seed,
+          item.simulationTarget.roundingMode
         );
       });
       actions.appendChild(simulationBtn);
@@ -576,6 +850,7 @@ function renderChangedItems(items) {
     const metaParts = [
       '<span class="report-status is-changed">Degisti</span>',
       `<span>Kontrol: <strong>${escapeHtml(item.auditLabel)}</strong></span>`,
+      `<span>Test modu: <strong>${escapeHtml(buildAuditModeBadgeText(item))}</strong></span>`,
       item.seed !== null ? `<span>Seed: <strong>${item.seed}</strong></span>` : "",
       item.matchesStoredActual ? '<span class="report-status is-promoted">Tasinabilir</span>' : "",
       item.matchesStoredActual ? '<span>Durum: <strong>Kayitli gercekle artik ayni</strong></span>' : ""
@@ -584,10 +859,16 @@ function renderChangedItems(items) {
 
     const compare = document.createElement("div");
     compare.className = "report-compare-grid";
+    if (item.actualTruth) {
+      compare.classList.add("is-triple");
+    }
     compare.append(
       buildCompareCard("Beklenen", item.expected),
       buildCompareCard("Simdiki", item.actual)
     );
+    if (item.actualTruth) {
+      compare.append(buildCompareCard("Kayitli Gercek", item.actualTruth));
+    }
 
     const note = document.createElement("p");
     note.className = "report-note";
@@ -595,7 +876,7 @@ function renderChangedItems(items) {
 
     const diffList = document.createElement("div");
     diffList.className = "report-difference-list";
-    (item.differences || []).forEach((difference) => {
+    (item.detailChips || item.differences || []).forEach((difference) => {
       const badge = document.createElement("span");
       badge.className = "report-difference-chip";
       badge.textContent = difference;
@@ -783,6 +1064,7 @@ function createApprovedEntryFromWrongResult(item) {
     logText: rerun.detailText,
     usedCapacity: rerun.result.usedCapacity,
     usedPoints: calculateArmyPoints(allyCounts),
+    roundingMode: rerun.roundingMode,
     lostBlood: rerun.result.lostBloodTotal,
     promotedFromWrong: true,
     promotedFromWrongAt: promotedAt,
@@ -794,9 +1076,11 @@ function rerunPromotedSimulation(item) {
   const enemyCounts = cloneCountMap(item.simulationTarget?.enemyCounts || {}, ENEMY_UNITS);
   const allyCounts = cloneCountMap(item.simulationTarget?.allyCounts || {}, ALLY_UNITS);
   const seed = Number.isInteger(item.seed) ? item.seed : null;
+  const roundingMode = resolveAuditRoundingMode(item.sourceItem || item);
   const result = simulateBattle(enemyCounts, allyCounts, {
     seed,
-    collectLog: true
+    collectLog: true,
+    roundingMode
   });
   const actualFingerprint = getResultFingerprint(result);
 
@@ -806,6 +1090,7 @@ function rerunPromotedSimulation(item) {
 
   return {
     seed,
+    roundingMode,
     result,
     ...buildSimulationTextsFromLog(result.logText || "", seed)
   };
@@ -873,7 +1158,7 @@ function waitForNextFrame() {
   });
 }
 
-function evaluateSeedSample(enemyCounts, allyCounts, seeds, expected, actualTruth) {
+function evaluateSeedSample(enemyCounts, allyCounts, seeds, expected, actualTruth, roundingMode) {
   let representative = null;
   let representativeSeed = null;
   let actualRepresentative = null;
@@ -884,7 +1169,7 @@ function evaluateSeedSample(enemyCounts, allyCounts, seeds, expected, actualTrut
   const frequencies = new Map();
 
   seeds.forEach((seed) => {
-    const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false });
+    const result = simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false, roundingMode });
     const fingerprint = getResultFingerprint(result);
     const signature = fingerprint.signature;
     const existing = frequencies.get(signature);
@@ -1009,6 +1294,68 @@ function buildEnemyTitle(enemyCounts) {
   return buildRosterLabel(enemyCounts, ENEMY_UNITS, 2) || "Versus";
 }
 
+function normalizeStoredRoundingMode(mode) {
+  if (mode === "legacy" || mode === "safe" || mode === "exact") {
+    return mode;
+  }
+  return null;
+}
+
+function normalizeAuditRoundingMode(mode) {
+  if (mode === "legacy" || mode === "safe" || mode === "exact") {
+    return mode;
+  }
+  return "stored";
+}
+
+function getSelectedAuditRoundingMode() {
+  const nextMode = normalizeAuditRoundingMode(currentPayload?.roundingMode);
+  if (currentPayload) {
+    currentPayload.roundingMode = nextMode;
+  }
+  return nextMode;
+}
+
+function resolveAuditRoundingMode(item) {
+  const selectedMode = getSelectedAuditRoundingMode();
+  if (selectedMode !== "stored") {
+    return selectedMode;
+  }
+  return normalizeStoredRoundingMode(item?.roundingMode) || "safe";
+}
+
+function getRoundingModeLabel(mode) {
+  if (mode === "legacy") {
+    return "Degismemis";
+  }
+  if (mode === "exact") {
+    return "Gercek";
+  }
+  if (mode === "safe") {
+    return "Guvenli";
+  }
+  return "Kayda gore";
+}
+
+function buildReportScopeText(baseText) {
+  const selectedMode = getSelectedAuditRoundingMode();
+  const modeText = selectedMode === "stored"
+    ? "Test modu: Kayda gore (kayitta yoksa Guvenli)"
+    : `Test modu: ${getRoundingModeLabel(selectedMode)}`;
+  return `${baseText} / ${modeText}`;
+}
+
+function buildAuditModeBadgeText(item) {
+  const selectedMode = getSelectedAuditRoundingMode();
+  if (selectedMode !== "stored") {
+    return `${getRoundingModeLabel(item.auditRoundingMode)} (manuel secim)`;
+  }
+  if (item.storedRoundingMode) {
+    return `${getRoundingModeLabel(item.auditRoundingMode)} (kayit modu)`;
+  }
+  return `${getRoundingModeLabel(item.auditRoundingMode)} (kayit modu yok)`;
+}
+
 function buildRosterLabel(counts, units, limit = null) {
   const parts = (units || [])
     .filter((unit) => Number(counts?.[unit.key] || 0) > 0)
@@ -1054,6 +1401,69 @@ function formatDate(value) {
     return value;
   }
   return date.toLocaleString("tr-TR");
+}
+
+function formatSignedNumber(value) {
+  const normalized = Number(value || 0);
+  if (!Number.isFinite(normalized) || normalized === 0) {
+    return "0";
+  }
+  return normalized > 0 ? `+${normalized}` : String(normalized);
+}
+
+function getTotalLossUnits(losses) {
+  return ALLY_UNITS.reduce((sum, unit) => sum + Number(losses?.[unit.key] || 0), 0);
+}
+
+function getLossUnitDelta(item) {
+  return getTotalLossUnits(item?.actual?.allyLosses) - getTotalLossUnits(item?.expected?.allyLosses);
+}
+
+function getUnitTierLabel(unit) {
+  const match = String(unit?.label || "").match(/\((T\d+)\)/i);
+  return match ? match[1].toUpperCase() : unit?.key || "?";
+}
+
+function buildLossDeltaBreakdown(expectedLosses, actualLosses) {
+  const parts = ALLY_UNITS
+    .map((unit) => {
+      const delta = Number(actualLosses?.[unit.key] || 0) - Number(expectedLosses?.[unit.key] || 0);
+      if (delta === 0) {
+        return null;
+      }
+      return `${getUnitTierLabel(unit)} ${formatSignedNumber(delta)}`;
+    })
+    .filter(Boolean);
+  if (!parts.length) {
+    return "";
+  }
+  return parts.slice(0, 4).join(", ");
+}
+
+function buildDifferenceDetailChips(expected, actual) {
+  if (!expected || !actual) {
+    return [];
+  }
+  const chips = [];
+  if (expected.winner !== actual.winner) {
+    chips.push(`Sonuc: ${formatWinner(expected.winner)} -> ${formatWinner(actual.winner)}`);
+  }
+  const lostBloodDelta = Number(actual.lostBloodTotal || 0) - Number(expected.lostBloodTotal || 0);
+  if (lostBloodDelta !== 0) {
+    chips.push(`Kan kaybi: ${formatSignedNumber(lostBloodDelta)}`);
+  }
+  const totalLossDelta = getTotalLossUnits(actual.allyLosses) - getTotalLossUnits(expected.allyLosses);
+  if (totalLossDelta !== 0) {
+    chips.push(`Toplam kayip: ${formatSignedNumber(totalLossDelta)} birlik`);
+  }
+  const lossBreakdown = buildLossDeltaBreakdown(expected.allyLosses, actual.allyLosses);
+  if (lossBreakdown) {
+    chips.push(`Kayip farki: ${lossBreakdown}`);
+  }
+  if (Number.isFinite(expected.usedCapacity) && Number.isFinite(actual.usedCapacity) && expected.usedCapacity !== actual.usedCapacity) {
+    chips.push(`Kapasite: ${formatSignedNumber(Number(actual.usedCapacity) - Number(expected.usedCapacity))}`);
+  }
+  return chips;
 }
 
 function escapeHtml(value) {

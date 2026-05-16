@@ -316,7 +316,7 @@ function renderWrongPage(items) {
       openBtn.type = "button";
       openBtn.textContent = "Rastgele Ac";
       openBtn.addEventListener("click", () => {
-        openSimulationForCounts(item.enemyCounts || {}, getWrongSimulationCounts(item));
+        openSimulationForCounts(item.enemyCounts || {}, getWrongSimulationCounts(item), null, item.roundingMode);
       });
       actions.append(openBtn);
 
@@ -326,7 +326,7 @@ function renderWrongPage(items) {
         seededOpenBtn.type = "button";
         seededOpenBtn.textContent = "Ayni Seed ile Ac";
         seededOpenBtn.addEventListener("click", () => {
-          openSimulationForCounts(item.enemyCounts || {}, getWrongSimulationCounts(item), item.seed);
+          openSimulationForCounts(item.enemyCounts || {}, getWrongSimulationCounts(item), item.seed, item.roundingMode);
         });
         actions.append(seededOpenBtn);
       }
@@ -1000,12 +1000,13 @@ function downloadTextFile(content, filename) {
   URL.revokeObjectURL(url);
 }
 
-function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
+function openSimulationForCounts(enemyCounts, allyCounts, seed = null, roundingMode = null) {
   try {
     window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
       enemyCounts,
       allyCounts,
-      seed: Number.isInteger(seed) ? seed : null
+      seed: Number.isInteger(seed) ? seed : null,
+      roundingMode
     }));
     const opened = window.open("index.html", "_blank");
     if (!opened) {

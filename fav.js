@@ -163,7 +163,7 @@ async function renderFavoriteStrategies() {
     openBtn.type = "button";
     openBtn.textContent = "Simulasyonda Ac";
     openBtn.addEventListener("click", () => {
-      openSimulationForCounts(item.enemyCounts || {}, item.recommendationCounts || {});
+      openSimulationForCounts(item.enemyCounts || {}, item.recommendationCounts || {}, null, item.roundingMode);
     });
     actions.appendChild(openBtn);
 
@@ -288,7 +288,7 @@ favoriteLoadMoreBtn?.addEventListener("click", async () => {
     openBtn.type = "button";
     openBtn.textContent = "Simulasyonda Ac";
     openBtn.addEventListener("click", () => {
-      openSimulationForCounts(item.enemyCounts || {}, item.recommendationCounts || {});
+      openSimulationForCounts(item.enemyCounts || {}, item.recommendationCounts || {}, null, item.roundingMode);
     });
     actions.appendChild(openBtn);
 
@@ -335,12 +335,13 @@ favoriteLoadMoreBtn?.addEventListener("click", async () => {
   updateFavoritePagination();
 });
 
-function openSimulationForCounts(enemyCounts, allyCounts, seed = null) {
+function openSimulationForCounts(enemyCounts, allyCounts, seed = null, roundingMode = null) {
   try {
     window.sessionStorage.setItem(OPTIMIZER_SIMULATION_STORAGE_KEY, JSON.stringify({
       enemyCounts,
       allyCounts,
-      seed: Number.isInteger(seed) ? seed : null
+      seed: Number.isInteger(seed) ? seed : null,
+      roundingMode
     }));
     const opened = window.open("index.html", "_blank");
     if (!opened) {

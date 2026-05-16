@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260505-07">
+  <link rel="stylesheet" href="styles.css?v=20260515-07">
 </head>
 <body class="site-gate-pending">
   <div class="page-shell">
@@ -60,6 +60,17 @@
           </section>
         </div>
 
+        <div class="panel-head-tools panel-head-tools-secondary simulation-rounding-toolbar">
+          <label class="select-wrap simulation-rounding-label">
+            <span>Hesap Modu</span>
+          </label>
+          <div class="mode-switch" aria-label="Hesap modu">
+            <button class="objective-button rounding-mode-button simulation-rounding-button" data-rounding-mode="legacy" type="button">Degismemis</button>
+            <button class="objective-button rounding-mode-button simulation-rounding-button active" data-rounding-mode="safe" type="button">Guvenli</button>
+            <button class="objective-button rounding-mode-button simulation-rounding-button" data-rounding-mode="exact" type="button">Gercek</button>
+          </div>
+        </div>
+
         <div class="actions">
           <button id="simulateBtn" class="button button-primary" type="button">Savasi Baslat</button>
           <button id="sampleBtn" class="button button-secondary" type="button">Ornek Ordu</button>
@@ -86,6 +97,13 @@
             Olasi Kayip Dagilimini Goster
           </button>
           <div id="variantDetailsPanel" class="variant-details" hidden></div>
+        </section>
+
+        <section id="nearbyAdvicePanel" class="variant-insights" hidden>
+          <button id="nearbyAdviceToggleBtn" class="button button-secondary variant-toggle" type="button" hidden aria-expanded="false">
+            Yakin Ordu Onerilerini Goster
+          </button>
+          <div id="nearbyAdviceDetailsPanel" class="variant-details nearby-advice-details" hidden></div>
         </section>
 
         <section id="matchedActualPanel" class="saved-match-panel"></section>
@@ -148,7 +166,11 @@
           <div class="report-form-grid">
             <label class="report-field">
               <span>Sonuc satiri</span>
-              <input id="actualOutcomeInput" type="text" placeholder=">> Gercek sonucu yaz">
+              <div class="mode-switch actual-outcome-mode-switch" aria-label="Gercek sonuc tipi">
+                <button class="objective-button actual-outcome-mode-button active" data-actual-outcome-mode="victory" type="button">Zafer</button>
+                <button class="objective-button actual-outcome-mode-button" data-actual-outcome-mode="defeat" type="button">Maglubiyet</button>
+              </div>
+              <input id="actualOutcomeInput" type="text" placeholder=">> Gercek sonucu yaz" readonly>
             </label>
 
             <label class="report-field">
@@ -214,8 +236,8 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="site-gate.js?v=20260502-02" defer></script>
   <script src="firebase-client.js?v=20260505-01" defer></script>
-  <script src="battle-core.js?v=20260505-06" defer></script>
+  <script src="battle-core.js?v=20260515-03" defer></script>
   <script src="simulation-log-export.js?v=20260505-01" defer></script>
-  <script src="app.js?v=20260505-07" defer></script>
+  <script src="app.js?v=20260515-08" defer></script>
 </body>
 </html>

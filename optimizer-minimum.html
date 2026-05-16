@@ -67,14 +67,22 @@
         </div>
 
         <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
-          <div class="mode-switch" aria-label="Hedef modu">
-            <button class="objective-button active" data-objective="min_loss" type="button">En Az Kayipla Kazan</button>
-            <button class="objective-button" data-objective="min_army" type="button">En Az Orduyla Kazan</button>
-            <button class="objective-button" data-objective="safe_win" type="button">Daha Guvenli Kazan</button>
+          <div class="mode-switch" aria-label="Hesap modu">
+            <button class="objective-button rounding-mode-button optimizer-rounding-mode-button" data-rounding-mode="legacy" type="button">Degismemis</button>
+            <button class="objective-button rounding-mode-button optimizer-rounding-mode-button active" data-rounding-mode="safe" type="button">Guvenli</button>
+            <button class="objective-button rounding-mode-button optimizer-rounding-mode-button" data-rounding-mode="exact" type="button">Gercek</button>
           </div>
         </div>
 
         <div class="panel-head-tools panel-head-tools-secondary optimizer-band-controls optimizer-secondary-inline">
+          <label class="select-wrap optimizer-band-preset-wrap" for="optimizerObjectiveSelect">
+            <span>Hedef</span>
+            <select id="optimizerObjectiveSelect" class="stage-select">
+              <option value="min_loss">En Az Kayipla Kazan</option>
+              <option value="min_army">En Az Orduyla Kazan</option>
+              <option value="safe_win">Daha Guvenli Kazan</option>
+            </select>
+          </label>
           <label class="select-wrap optimizer-band-preset-wrap" for="optimizerSearchBandPreset">
             <span>Arama BandI</span>
             <select id="optimizerSearchBandPreset" class="stage-select">
@@ -225,7 +233,11 @@
           <div class="report-form-grid">
             <label class="report-field">
               <span>Sonuc satiri</span>
-              <input id="actualOutcomeInput" type="text" placeholder=">> Gercek sonucu yaz">
+              <div class="mode-switch actual-outcome-mode-switch" aria-label="Gercek sonuc tipi">
+                <button class="objective-button actual-outcome-mode-button active" data-actual-outcome-mode="victory" type="button">Zafer</button>
+                <button class="objective-button actual-outcome-mode-button" data-actual-outcome-mode="defeat" type="button">Maglubiyet</button>
+              </div>
+              <input id="actualOutcomeInput" type="text" placeholder=">> Gercek sonucu yaz" readonly>
             </label>
 
             <label class="report-field">
@@ -291,7 +303,7 @@
   <script src="site-gate.js?v=20260502-02" defer></script>
   <script src="firebase-client.js?v=20260502-02" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="battle-core.js?v=20260505-06" defer></script>
-  <script src="optimizer.js?v=20260505-06" defer></script>
+  <script src="battle-core.js?v=20260515-03" defer></script>
+  <script src="optimizer.js?v=20260515-04" defer></script>
 </body>
 </html>

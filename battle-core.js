@@ -347,6 +347,42 @@
     return Math.round(Math.max(0, value) + 1e-3);
   }
 
+  function floorCombatValue(value) {
+    return Math.floor(Math.max(0, value) + 1e-9);
+  }
+
+  function normalizeRoundingMode(mode) {
+    if (mode === "legacy" || mode === "exact") {
+      return mode;
+    }
+    return "safe";
+  }
+
+  function roundDamageByMode(mode, side, value, context = {}) {
+    const normalizedMode = normalizeRoundingMode(mode);
+    const normalizedValue = Math.max(0, Number(value) || 0);
+    if (normalizedMode === "exact") {
+      return normalizedValue;
+    }
+    if (normalizedMode === "legacy") {
+      const { attackerIndex, defenderIndex, roundCount, unitNumbers } = context;
+      const attackerCount = attackerIndex >= 0 ? (unitNumbers?.[attackerIndex] || 0) : 0;
+      const shouldRound =
+        (attackerIndex === WRAITHS_INDEX && attackerCount % 2 === 1) ||
+        (attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1);
+      return shouldRound ? roundCombatValue(normalizedValue) : ceilCombatValue(normalizedValue);
+    }
+    return side === "ally" ? floorCombatValue(normalizedValue) : ceilCombatValue(normalizedValue);
+  }
+
+  function formatCombatNumber(value) {
+    const normalized = Number(value) || 0;
+    if (Math.abs(normalized - Math.round(normalized)) < 1e-9) {
+      return String(Math.round(normalized));
+    }
+    return normalized.toFixed(3).replace(/\.?0+$/, "");
+  }
+
   function bannerLine(text) {
     const padded = "  " + text + "  ";
     const total = 60;
@@ -381,7 +417,7 @@
   function formatUnitLine(count, index, hp, attack, speed) {
     const totalAttack = count * attack;
     const name = getUnitDisplayName(index);
-    return `   ${String(count).padStart(3)}  ${name.padEnd(38)}  ${String(hp).padStart(4)} can   ${String(attack).padStart(3)} atk   ${String(speed).padStart(2)} hiz   ${String(totalAttack).padStart(5)} toplam atk`;
+    return `   ${String(count).padStart(3)}  ${name.padEnd(38)}  ${formatCombatNumber(hp).padStart(4)} can   ${String(attack).padStart(3)} atk   ${String(speed).padStart(2)} hiz   ${String(totalAttack).padStart(5)} toplam atk`;
   }
 
   function printBattlefield(log, unitNumbers, unitHealth, unitSpeed, order, side) {
@@ -411,6 +447,7 @@
 
   function simulateBattle(enemyCounts, allyCounts, options = {}) {
     const collectLog = options.collectLog !== false;
+    const roundingMode = normalizeRoundingMode(options.roundingMode);
     const rng = createRng(options.seed);
     const logs = [];
     const log = (line = "") => {
@@ -671,22 +708,18 @@
         let witchesSplashDamage = 0;
         let rotmawsOverkillDamage = 0;
 
+        const attackerSide = UNIT_DESC[attackerIndex][SIDE_INDEX];
         const rawAttackerDamage =
           unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex];
-        // Odd-sized wraith stacks align with observed results when rounded, not always ceiled.
-        // First-round bat hits against bone giants match observed battles when rounded,
-        // not ceiled; the extra 1 damage flips some fights entirely.
-        // Tooltip-aligned T7 behavior works best when witches spend even rounds on
-        // their rearline special instead of adding a direct hit on that turn.
         const attackerDamage =
           attackerIndex === WITCHES_INDEX && roundCount % 2 === 0
             ? 0
-            : (
-              (attackerIndex === WRAITHS_INDEX && unitNumbers[attackerIndex] % 2 === 1) ||
-              (attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1)
-            )
-              ? roundCombatValue(rawAttackerDamage)
-              : ceilCombatValue(rawAttackerDamage);
+            : roundDamageByMode(roundingMode, attackerSide, rawAttackerDamage, {
+              attackerIndex,
+              defenderIndex,
+              roundCount,
+              unitNumbers
+            });
         unitHealth[defenderIndex] -= attackerDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];
         const multiplierText = Math.abs(totalDamageMultiplier - 1) < 1e-9 ? "" : ` × ${totalDamageMultiplier.toFixed(2)} carpan`;
@@ -712,12 +745,16 @@
 
         const witchesSplashEligible = attackerIndex === WITCHES_INDEX && unitNumbers[WITCHES_INDEX] > 0 && roundCount % 2 === 0;
         if (witchesSplashEligible) {
-          witchesSplashDamage = ceilCombatValue(unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * 0.25);
+          witchesSplashDamage = roundDamageByMode(
+            roundingMode,
+            attackerSide,
+            unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * 0.25
+          );
         }
 
         if (unitHealth[defenderIndex] <= 0) {
           if (attackerIndex === LICHES_INDEX) {
-            lichesSplashDamage = ceilCombatValue(attackerDamage * 0.5);
+            lichesSplashDamage = roundDamageByMode(roundingMode, attackerSide, attackerDamage * 0.5);
           }
           if (attackerIndex === ROTMAWS_INDEX) {
             rotmawsOverkillDamage = unitHealth[defenderIndex] * -1;
@@ -823,7 +860,11 @@
 
         const corpsesNumbersDiff = unitNumbersBefore[CORPSES_INDEX] - unitNumbers[CORPSES_INDEX];
         if (corpsesNumbersDiff > 0 && unitNumbers[CORPSES_INDEX] === 0) {
-          const corpsesDamage = Math.ceil(corpses * UNIT_DESC[CORPSES_INDEX][HEALTH_INDEX] * 0.2);
+          const corpsesDamage = roundDamageByMode(
+            roundingMode,
+            UNIT_DESC[CORPSES_INDEX][SIDE_INDEX],
+            corpses * UNIT_DESC[CORPSES_INDEX][HEALTH_INDEX] * 0.2
+          );
           unitHealth[attackerIndex] -= corpsesDamage;
           log(`     ↳ ${UNIT_DESC[CORPSES_INDEX][NAME_INDEX]}, ${UNIT_DESC[attackerIndex][NAME_INDEX]} karsisinda ${corpsesDamage} intikam hasari verdi`);
           if (unitHealth[attackerIndex] <= 0) {
@@ -932,6 +973,7 @@
 
     return {
       seed: typeof options.seed === "number" ? options.seed : null,
+      roundingMode,
       winner,
       victory: winner,
       roundCount,
@@ -1343,6 +1385,7 @@
     const objective = options.objective === "min_army" || options.objective === "safe_win"
       ? options.objective
       : "min_loss";
+    const roundingMode = normalizeRoundingMode(options.roundingMode);
     const stoneMode = Boolean(options.stoneMode);
     const lossMetricKey = stoneMode ? "expectedStoneAdjustedLostBlood" : "expectedLostBlood";
     const lossUnitsMetricKey = stoneMode ? "expectedStoneAdjustedLostUnits" : "expectedLostUnits";
@@ -2138,7 +2181,7 @@
       for (let trial = 0; trial < localTrialCount; trial += 1) {
         simulationRuns += 1;
         const seed = baseSeed + trial * 977;
-        const result = simulateBattle(enemyCounts, effectiveCounts, { seed, collectLog: false });
+        const result = simulateBattle(enemyCounts, effectiveCounts, { seed, collectLog: false, roundingMode });
         usedCapacitySum += result.usedCapacity;
         usedPointsSum += result.usedPoints;
         enemyRemainingHealthSum += result.enemyRemainingHealth;
@@ -2582,12 +2625,14 @@
     if (finalEvaluation.winningSeeds.length > 0) {
       sampleBattle = simulateBattle(enemyCounts, finalEvaluation.counts, {
         seed: finalEvaluation.winningSeeds[0],
-        collectLog: true
+        collectLog: true,
+        roundingMode
       });
     } else {
       sampleBattle = simulateBattle(enemyCounts, finalEvaluation.counts, {
         seed: baseSeed + 999,
-        collectLog: true
+        collectLog: true,
+        roundingMode
       });
     }
 
@@ -2613,6 +2658,7 @@
       uniqueCandidateSignatures: [...uniqueSignatures],
       simulationRuns,
       sampleBattle,
+      roundingMode,
       minimumRequiredCounts,
       minimumRequiredPoints,
       minimumUsedPoints: minimumTotalPoints,
@@ -2710,7 +2756,12 @@
 
   function analyzeKnifeEdgeRisk(enemyCounts, allyCounts, options = {}) {
     const seed = Number.isInteger(options.seed) ? options.seed : 1;
-    const baselineResult = options.result || simulateBattle(enemyCounts, allyCounts, { seed, collectLog: false });
+    const roundingMode = normalizeRoundingMode(options.roundingMode);
+    const baselineResult = options.result || simulateBattle(enemyCounts, allyCounts, {
+      seed,
+      collectLog: false,
+      roundingMode
+    });
     const baselineWinner = baselineResult.winner === "enemy" ? "enemy" : "ally";
     const perturbations = [];
 
@@ -2721,7 +2772,7 @@
       }
       const nextAllyCounts = cloneCounts(allyCounts, ALLY_UNITS);
       nextAllyCounts[unit.key] = Math.max(0, currentCount - 1);
-      const result = simulateBattle(enemyCounts, nextAllyCounts, { seed, collectLog: false });
+      const result = simulateBattle(enemyCounts, nextAllyCounts, { seed, collectLog: false, roundingMode });
       perturbations.push({
         kind: "ally_down",
         unitKey: unit.key,
@@ -2739,7 +2790,7 @@
       }
       const nextEnemyCounts = cloneCounts(enemyCounts, ENEMY_UNITS);
       nextEnemyCounts[unit.key] = currentCount + 1;
-      const result = simulateBattle(nextEnemyCounts, allyCounts, { seed, collectLog: false });
+      const result = simulateBattle(nextEnemyCounts, allyCounts, { seed, collectLog: false, roundingMode });
       perturbations.push({
         kind: "enemy_up",
         unitKey: unit.key,
@@ -2796,6 +2847,7 @@
     POINTS_BY_ALLY_KEY,
     parseCount,
     cloneCounts,
+    normalizeRoundingMode,
     calculateArmyPoints,
     getStagePointLimit,
     normalizeCandidateToPointLimit,
