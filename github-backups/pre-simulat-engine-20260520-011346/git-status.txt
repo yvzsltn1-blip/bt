@@ -1,0 +1,4 @@
+## main...origin/main
+ M .claude/settings.local.json
+ M app.js
+?? simulat.js
