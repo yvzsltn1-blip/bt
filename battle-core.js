@@ -352,7 +352,7 @@
   }
 
   function normalizeRoundingMode(mode) {
-    if (mode === "legacy" || mode === "exact") {
+    if (mode === "legacy" || mode === "exact" || mode === "simulat") {
       return mode;
     }
     return "safe";
@@ -448,6 +448,13 @@
   function simulateBattle(enemyCounts, allyCounts, options = {}) {
     const collectLog = options.collectLog !== false;
     const roundingMode = normalizeRoundingMode(options.roundingMode);
+    if (roundingMode === "simulat") {
+      const simulatEngine = globalScope.SimulatEngine;
+      if (!simulatEngine || typeof simulatEngine.simulateBattle !== "function") {
+        throw new Error("Simulat motoru yuklenemedi.");
+      }
+      return simulatEngine.simulateBattle(enemyCounts, allyCounts, options);
+    }
     const rng = createRng(options.seed);
     const logs = [];
     const log = (line = "") => {
@@ -2011,6 +2018,7 @@
     const objective = options.objective === "min_army" || options.objective === "safe_win"
       ? options.objective
       : "min_loss";
+    const roundingMode = normalizeRoundingMode(options.roundingMode);
     const stoneMode = Boolean(options.stoneMode);
     const trialCount = options.trialCount || 10;
     const fullArmyTrials = options.fullArmyTrials || 12;

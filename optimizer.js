@@ -202,6 +202,9 @@ function getRoundingModeLabel(mode) {
   if (normalizedMode === "exact") {
     return "Gercek";
   }
+  if (normalizedMode === "simulat") {
+    return "Simulator";
+  }
   return "Guvenli";
 }
 

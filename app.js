@@ -99,6 +99,9 @@ function getRoundingModeLabel(mode) {
   if (normalizedMode === "exact") {
     return "Gercek";
   }
+  if (normalizedMode === "simulat") {
+    return "Simulator";
+  }
   return "Guvenli";
 }
 
@@ -494,7 +497,9 @@ async function exportSimulationLogAsPng() {
       )
     );
     const exportHeight = Math.max(1, Math.ceil(headHeight + exportLogHeight + borderTop + borderBottom));
-    const baseScale = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 3);
+    const MIN_EXPORT_SCALE = 2;
+    const MAX_EXPORT_SCALE = 4;
+    const baseScale = Math.min(Math.max(window.devicePixelRatio || 1, MIN_EXPORT_SCALE), MAX_EXPORT_SCALE);
     const MAX_CANVAS_WIDTH = 8192;
     const MAX_CANVAS_HEIGHT = 8192;
     const MAX_CANVAS_AREA = 32 * 1024 * 1024;
