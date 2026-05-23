@@ -18,10 +18,15 @@ const {
 const optimizerVariant = document.body.dataset.optimizerVariant === "minimum" ? "minimum" : "standard";
 const optimizerInputs = {};
 const optimizerMinimumInputs = {};
+const optimizerRequiredLossInputs = {};
+const optimizerRequiredLossExactInputs = {};
 const actualLossInputs = {};
 const optimizerEnemyInputs = document.querySelector("#optimizerEnemyInputs");
 const optimizerAllyInputs = document.querySelector("#optimizerAllyInputs");
 const optimizerConstraintInfo = document.querySelector("#optimizerConstraintInfo");
+const lossConstraintToggleBtn = document.querySelector("#lossConstraintToggleBtn");
+const optimizerLossConstraintPanel = document.querySelector("#optimizerLossConstraintPanel");
+const optimizerLossConstraintInputs = document.querySelector("#optimizerLossConstraintInputs");
 const optimizerSearchBandPresetInput = document.querySelector("#optimizerSearchBandPreset");
 const optimizerSearchBandPresetMobileInput = document.querySelector("#optimizerSearchBandPresetMobile");
 const optimizerCustomBandInputs = document.querySelector("#optimizerCustomBandInputs");
@@ -36,7 +41,8 @@ const optimizerLogFullscreenBtn = document.querySelector("#optimizerLogFullscree
 const optimizerStatus = document.querySelector("#optimizerStatus");
 const optimizeBtn = document.querySelector("#optimizeBtn");
 const diversityModeBtn = document.querySelector("#diversityModeBtn");
-const batchRunButtons = [...document.querySelectorAll("[data-batch-runs]")];
+const optimizerBatchRunsInput = document.querySelector("#optimizerBatchRunsInput");
+const optimizerBatchRunBtn = document.querySelector("#optimizerBatchRunBtn");
 const stopOptimizerBtn = document.querySelector("#stopOptimizerBtn");
 const optimizerSampleBtn = document.querySelector("#optimizerSampleBtn");
 const optimizerClearBtn = document.querySelector("#optimizerClearBtn");
@@ -133,9 +139,28 @@ let optimizerIncumbentContext = null;
 let currentFavoriteModalSignature = null;
 let currentFavoriteModalPendingEntry = null;
 let autoStageAdvanceEnabled = false;
+let lossConstraintModeEnabled = false;
 
 function isMinimumOptimizerVariant() {
   return optimizerVariant === "minimum";
+}
+
+function createEmptyConstraintCounts() {
+  return Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+}
+
+function createEmptyConstraintFlags() {
+  return Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, false]));
+}
+
+function hasRequiredLossConstraints() {
+  if (!lossConstraintModeEnabled || Object.values(optimizerRequiredLossInputs).length === 0) {
+    return false;
+  }
+  return ALLY_UNITS.some((unit) =>
+    (Number.parseInt(optimizerRequiredLossInputs[unit.key]?.value || "0", 10) || 0) > 0 ||
+    optimizerRequiredLossExactInputs[unit.key]?.getAttribute("aria-pressed") === "true"
+  );
 }
 
 function normalizeSearchBandMode(mode) {
@@ -151,6 +176,14 @@ function clampBandPercent(value, fallback = 0) {
     return fallback;
   }
   return Math.max(0, Math.min(100, parsed));
+}
+
+function clampBatchRunCount(value, fallback = 10) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.max(1, Math.min(15, parsed));
 }
 
 function getSearchBandLabel(mode) {
@@ -592,15 +625,20 @@ buildWrongLossInputs();
 
 buildInputs(optimizerEnemyInputs, ENEMY_UNITS, "enemy");
 buildInputs(optimizerAllyInputs, ALLY_UNITS, "ally");
+buildLossConstraintInputs();
 wireSequentialInputOrder([
   optimizerSearchBandPresetInput,
   optimizerCustomBandMinInput,
   optimizerCustomBandMaxInput,
+  optimizerBatchRunsInput,
   ...ENEMY_UNITS.map((unit) => optimizerInputs[unit.key]),
   ...ALLY_UNITS.flatMap((unit) => {
     const inputs = [optimizerInputs[unit.key]];
     if (optimizerMinimumInputs[unit.key]) {
       inputs.push(optimizerMinimumInputs[unit.key]);
+    }
+    if (optimizerRequiredLossInputs[unit.key]) {
+      inputs.push(optimizerRequiredLossInputs[unit.key]);
     }
     return inputs;
   })
@@ -608,6 +646,7 @@ wireSequentialInputOrder([
 resetValues();
 loadAutoStageAdvanceSetting();
 syncAutoStageAdvanceToggle();
+syncLossConstraintToggle();
 renderPointSummary();
 applyStageFromQuery();
 void initializeFavoriteStrategies();
@@ -697,6 +736,16 @@ diversityModeBtn.addEventListener("click", () => {
   optimizerStatus.textContent = optimizerDiversityMode ? "Cesitlilik modu acildi" : "Cesitlilik modu kapatildi";
 });
 
+if (lossConstraintToggleBtn) {
+  lossConstraintToggleBtn.addEventListener("click", () => {
+    lossConstraintModeEnabled = !lossConstraintModeEnabled;
+    syncLossConstraintToggle();
+    invalidateSearchSession();
+    renderPointSummary();
+    optimizerStatus.textContent = lossConstraintModeEnabled ? "Kayipli kazan modu acildi" : "Kayipli kazan modu kapatildi";
+  });
+}
+
 compareToggleBtn.addEventListener("click", () => {
   comparePanelOpen = !comparePanelOpen;
   syncComparePanelToggle();
@@ -732,12 +781,31 @@ optimizeBtn.addEventListener("click", () => {
   void runOptimizerSearch(1);
 });
 
-batchRunButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    const batchRuns = Number.parseInt(button.dataset.batchRuns || "1", 10);
-    void runOptimizerSearch(Number.isFinite(batchRuns) && batchRuns > 1 ? batchRuns : 1);
+if (optimizerBatchRunsInput) {
+  optimizerBatchRunsInput.addEventListener("input", () => {
+    optimizerBatchRunsInput.value = optimizerBatchRunsInput.value.replace(/\D+/g, "");
   });
-});
+  optimizerBatchRunsInput.addEventListener("blur", () => {
+    optimizerBatchRunsInput.value = String(clampBatchRunCount(optimizerBatchRunsInput.value, 10));
+  });
+  optimizerBatchRunsInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+    event.preventDefault();
+    optimizerBatchRunBtn?.click();
+  });
+}
+
+if (optimizerBatchRunBtn) {
+  optimizerBatchRunBtn.addEventListener("click", () => {
+    const batchRuns = clampBatchRunCount(optimizerBatchRunsInput?.value, 10);
+    if (optimizerBatchRunsInput) {
+      optimizerBatchRunsInput.value = String(batchRuns);
+    }
+    void runOptimizerSearch(batchRuns);
+  });
+}
 
 stopOptimizerBtn.addEventListener("click", () => {
   optimizerStopRequested = true;
@@ -1022,6 +1090,8 @@ async function runOptimizerSearch(batchRuns) {
     const enemy = collectCounts(ENEMY_UNITS);
     const allyPool = collectCounts(ALLY_UNITS);
     const minimumRequiredCounts = collectMinimumRequiredCounts();
+    const requiredLossCounts = collectRequiredLossCounts();
+    const requiredLossExactFlags = collectRequiredLossExactFlags();
     const searchBandSettings = collectSearchBandSettings();
     const stage = getCommittedStage();
     if (!stage) {
@@ -1031,6 +1101,7 @@ async function runOptimizerSearch(batchRuns) {
     const maxPoints = getStagePointLimit(stage);
     const searchBandRange = getSearchBandPointRange(maxPoints, searchBandSettings);
     validateMinimumRequiredCounts(allyPool, minimumRequiredCounts, maxPoints);
+    validateRequiredLossCounts(allyPool, requiredLossCounts);
     const totalCombinationCount = calculateTotalCombinationCount(
       allyPool,
       maxPoints,
@@ -1050,6 +1121,8 @@ async function runOptimizerSearch(batchRuns) {
       enemyCounts: enemy,
       allyPool,
       minimumRequiredCounts,
+      requiredLossCounts,
+      requiredLossExactFlags,
       searchBandSettings,
       mode: optimizerMode,
       objective: optimizerObjective,
@@ -1062,6 +1135,8 @@ async function runOptimizerSearch(batchRuns) {
       enemy,
       allyPool,
       minimumRequiredCounts,
+      requiredLossCounts,
+      requiredLossExactFlags,
       searchBandSettings,
       optimizerMode,
       optimizerObjective,
@@ -1102,6 +1177,8 @@ async function runOptimizerSearch(batchRuns) {
         minimumUsedPoints: searchBandRange.minUsedPoints,
         maximumUsedPoints: searchBandRange.maxUsedPoints,
         minimumRequiredCounts,
+        requiredLossCounts,
+        requiredLossExactFlags,
         minWinRate: getOptimizerMinWinRate(optimizerObjective),
         trialCount: lastRunConfig.trialCount,
         fullArmyTrials: lastRunConfig.fullArmyTrials,
@@ -1148,6 +1225,8 @@ async function runOptimizerSearch(batchRuns) {
       enemyCounts: { ...enemy },
       allyPool: { ...allyPool },
       minimumRequiredCounts: { ...minimumRequiredCounts },
+      requiredLossCounts: { ...requiredLossCounts },
+      requiredLossExactFlags: { ...requiredLossExactFlags },
       searchBandSettings: { ...searchBandSettings },
       mode: optimizerMode,
       objective: optimizerObjective,
@@ -1173,6 +1252,8 @@ async function runOptimizerSearch(batchRuns) {
       roundingMode: optimizerRoundingMode,
       diversityMode: optimizerDiversityMode,
       stoneMode: optimizerStoneMode,
+      requiredLossCounts,
+      requiredLossExactFlags,
       totalCombinationCount,
       bandCombinationCount,
       batchRuns: completedRuns,
@@ -1213,6 +1294,10 @@ function areMinimumRequiredCountsEqual(left, right) {
   return ALLY_UNITS.every((unit) => (left?.[unit.key] || 0) === (right?.[unit.key] || 0));
 }
 
+function areConstraintFlagsEqual(left, right) {
+  return ALLY_UNITS.every((unit) => Boolean(left?.[unit.key]) === Boolean(right?.[unit.key]));
+}
+
 function isCandidateWithinPool(candidateCounts, allyPool) {
   return ALLY_UNITS.every((unit) => (candidateCounts?.[unit.key] || 0) <= (allyPool?.[unit.key] || 0));
 }
@@ -1235,6 +1320,8 @@ function getIncumbentSeedCandidates(context) {
     optimizerIncumbentContext.stoneMode === context.stoneMode &&
     areSearchBandSettingsEqual(optimizerIncumbentContext.searchBandSettings, context.searchBandSettings) &&
     areMinimumRequiredCountsEqual(optimizerIncumbentContext.minimumRequiredCounts, context.minimumRequiredCounts) &&
+    areMinimumRequiredCountsEqual(optimizerIncumbentContext.requiredLossCounts, context.requiredLossCounts) &&
+    areConstraintFlagsEqual(optimizerIncumbentContext.requiredLossExactFlags, context.requiredLossExactFlags) &&
     areEnemyCountsEqual(optimizerIncumbentContext.enemyCounts, context.enemyCounts) &&
     isSupersetAllyPool(context.allyPool, optimizerIncumbentContext.allyPool);
 
@@ -1253,6 +1340,12 @@ function setOptimizerBusy(isBusy) {
   optimizerSampleBtn.disabled = isBusy;
   optimizerClearBtn.disabled = isBusy;
   diversityModeBtn.disabled = isBusy;
+  if (optimizerBatchRunsInput) {
+    optimizerBatchRunsInput.disabled = isBusy;
+  }
+  if (optimizerBatchRunBtn) {
+    optimizerBatchRunBtn.disabled = isBusy;
+  }
   stageInput.disabled = isBusy;
   if (stageAutoAdvanceToggleBtn) {
     stageAutoAdvanceToggleBtn.disabled = isBusy;
@@ -1288,9 +1381,15 @@ function setOptimizerBusy(isBusy) {
   Object.values(optimizerMinimumInputs).forEach((input) => {
     input.disabled = isBusy;
   });
-  batchRunButtons.forEach((button) => {
-    button.disabled = isBusy;
+  Object.values(optimizerRequiredLossInputs).forEach((input) => {
+    input.disabled = isBusy;
   });
+  Object.values(optimizerRequiredLossExactInputs).forEach((input) => {
+    input.disabled = isBusy;
+  });
+  if (lossConstraintToggleBtn) {
+    lossConstraintToggleBtn.disabled = isBusy;
+  }
 }
 
 function waitForNextFrame() {
@@ -1369,12 +1468,14 @@ function invalidateSearchSession() {
   renderFavoriteButtonState();
 }
 
-function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, searchBandSettings, mode, objective, diversityMode, stoneMode, roundingMode) {
+function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, mode, objective, diversityMode, stoneMode, roundingMode) {
   return JSON.stringify({
     stage,
     enemy,
     allyPool,
     minimumRequiredCounts,
+    requiredLossCounts,
+    requiredLossExactFlags,
     searchBandSettings: normalizeSearchBandSettings(searchBandSettings),
     mode,
     objective,
@@ -1384,12 +1485,14 @@ function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, searchBa
   });
 }
 
-function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, searchBandSettings, mode, objective, stoneMode, roundingMode) {
+function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, mode, objective, stoneMode, roundingMode) {
   return JSON.stringify({
     stage,
     enemy,
     allyPool,
     minimumRequiredCounts,
+    requiredLossCounts,
+    requiredLossExactFlags,
     searchBandSettings: normalizeSearchBandSettings(searchBandSettings),
     mode,
     objective,
@@ -1411,6 +1514,13 @@ function validateMinimumRequiredCounts(allyPool, minimumRequiredCounts, maxPoint
   const minimumPoints = calculateArmyPoints(minimumRequiredCounts);
   if (minimumPoints > maxPoints) {
     throw new Error(`Minimum kullanim kisitlari puan limitini asiyor. Min ordu puani: ${minimumPoints}, limit: ${maxPoints}.`);
+  }
+}
+
+function validateRequiredLossCounts(allyPool, requiredLossCounts) {
+  const exceedingUnit = ALLY_UNITS.find((unit) => (requiredLossCounts[unit.key] || 0) > (allyPool[unit.key] || 0));
+  if (exceedingUnit) {
+    throw new Error(`${exceedingUnit.label} icin minimum kayip, eldeki adedi asamaz.`);
   }
 }
 
@@ -2329,6 +2439,72 @@ function buildInputs(target, units, side) {
   });
 }
 
+function buildLossConstraintInputs() {
+  if (!optimizerLossConstraintInputs) {
+    return;
+  }
+
+  optimizerLossConstraintInputs.innerHTML = "";
+  const inputs = [];
+  ALLY_UNITS.forEach((unit) => {
+    const row = document.createElement("div");
+    row.className = "unit-row";
+
+    const head = document.createElement("div");
+    head.className = "unit-row-head";
+
+    const label = document.createElement("label");
+    label.htmlFor = `optimizer-required-loss-${unit.key}`;
+    label.textContent = unit.label;
+    label.classList.add("unit-row-title");
+
+    const input = createNumberInput(`optimizer-required-loss-${unit.key}`, "0");
+    input.addEventListener("input", () => {
+      invalidateSearchSession();
+      renderPointSummary();
+    });
+    input.addEventListener("blur", renderPointSummary);
+
+    const exactInput = document.createElement("button");
+    exactInput.id = `optimizer-required-loss-exact-${unit.key}`;
+    exactInput.type = "button";
+    exactInput.className = "loss-exact-toggle";
+    exactInput.setAttribute("aria-label", `${unit.label} tam kayip`);
+    exactInput.setAttribute("aria-pressed", "false");
+    exactInput.innerHTML = '<span class="loss-exact-toggle-check" aria-hidden="true">✓</span><span class="loss-exact-toggle-label">Tam</span>';
+    exactInput.addEventListener("click", () => {
+      const nextPressed = exactInput.getAttribute("aria-pressed") !== "true";
+      exactInput.setAttribute("aria-pressed", nextPressed ? "true" : "false");
+      invalidateSearchSession();
+      renderPointSummary();
+    });
+
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "unit-row-inputs";
+    inputGroup.appendChild(createUnitInputStack("Min Kayip", input, "is-minimum"));
+
+    head.append(label, exactInput);
+    row.append(head, inputGroup);
+    optimizerLossConstraintInputs.appendChild(row);
+    optimizerRequiredLossInputs[unit.key] = input;
+    optimizerRequiredLossExactInputs[unit.key] = exactInput;
+    inputs.push(input);
+  });
+
+  wireSequentialInputOrder(inputs);
+}
+
+function syncLossConstraintToggle() {
+  if (lossConstraintToggleBtn) {
+    lossConstraintToggleBtn.textContent = lossConstraintModeEnabled ? "Kayipli Kazan Acik" : "Kayipli Kazan Modu";
+    lossConstraintToggleBtn.setAttribute("aria-expanded", lossConstraintModeEnabled ? "true" : "false");
+    lossConstraintToggleBtn.setAttribute("aria-pressed", lossConstraintModeEnabled ? "true" : "false");
+  }
+  if (optimizerLossConstraintPanel) {
+    optimizerLossConstraintPanel.hidden = !lossConstraintModeEnabled;
+  }
+}
+
 function buildWrongLossInputs() {
   wrongLossInputs.innerHTML = "";
   const inputs = [];
@@ -2896,7 +3072,15 @@ function resetValues() {
     if (optimizerMinimumInputs[unit.key]) {
       optimizerMinimumInputs[unit.key].value = "0";
     }
+    if (optimizerRequiredLossInputs[unit.key]) {
+      optimizerRequiredLossInputs[unit.key].value = "0";
+    }
+    if (optimizerRequiredLossExactInputs[unit.key]) {
+      optimizerRequiredLossExactInputs[unit.key].setAttribute("aria-pressed", "false");
+    }
   });
+  lossConstraintModeEnabled = false;
+  syncLossConstraintToggle();
   renderPointSummary();
   renderMatchedSavedStrategy();
 }
@@ -2909,6 +3093,12 @@ function loadSampleValues() {
     optimizerInputs[unit.key].value = String(unit.sample);
     if (optimizerMinimumInputs[unit.key]) {
       optimizerMinimumInputs[unit.key].value = "0";
+    }
+    if (optimizerRequiredLossInputs[unit.key]) {
+      optimizerRequiredLossInputs[unit.key].value = "0";
+    }
+    if (optimizerRequiredLossExactInputs[unit.key]) {
+      optimizerRequiredLossExactInputs[unit.key].setAttribute("aria-pressed", "false");
     }
   });
   renderPointSummary();
@@ -2967,6 +3157,31 @@ function collectMinimumRequiredCounts() {
   return counts;
 }
 
+function collectRequiredLossCounts() {
+  if (!hasRequiredLossConstraints()) {
+    return createEmptyConstraintCounts();
+  }
+
+  const counts = {};
+  ALLY_UNITS.forEach((unit) => {
+    const input = optimizerRequiredLossInputs[unit.key];
+    counts[unit.key] = input ? parseCount(input.value, `${unit.label} minimum kayip`) : 0;
+  });
+  return counts;
+}
+
+function collectRequiredLossExactFlags() {
+  if (!hasRequiredLossConstraints()) {
+    return createEmptyConstraintFlags();
+  }
+
+  const flags = {};
+  ALLY_UNITS.forEach((unit) => {
+    flags[unit.key] = optimizerRequiredLossExactInputs[unit.key]?.getAttribute("aria-pressed") === "true";
+  });
+  return flags;
+}
+
 function getActiveMinimumRequirementEntries() {
   if (!isMinimumOptimizerVariant()) {
     return [];
@@ -2975,6 +3190,22 @@ function getActiveMinimumRequirementEntries() {
   return ALLY_UNITS
     .map((unit) => ({ unit, count: minimumRequiredCounts[unit.key] || 0 }))
     .filter((entry) => entry.count > 0);
+}
+
+function getActiveRequiredLossEntries() {
+  if (!hasRequiredLossConstraints()) {
+    return [];
+  }
+
+  const requiredLossCounts = collectRequiredLossCounts();
+  const requiredLossExactFlags = collectRequiredLossExactFlags();
+  return ALLY_UNITS
+    .map((unit) => ({
+      unit,
+      count: requiredLossCounts[unit.key] || 0,
+      exact: Boolean(requiredLossExactFlags[unit.key])
+    }))
+    .filter((entry) => entry.count > 0 || entry.exact);
 }
 
 function formatMinimumRequirements(entries, maxItems = 4) {
@@ -3001,21 +3232,31 @@ function renderConstraintInfo() {
     maxPercent: optimizerCustomBandMaxInput?.value
   });
   const activeEntries = getActiveMinimumRequirementEntries();
+  const activeRequiredLossEntries = getActiveRequiredLossEntries();
   const pointText = pointLimit === null
     ? "Kademe secildiginde secilen arama bandi puana cevrilir."
     : `Aktif arama bandi: ${formatSearchBandSummary(pointLimit, searchBandSettings)}. Optimizer sadece bu araliktaki dizilimleri tarar.`;
 
   if (!isMinimumOptimizerVariant()) {
-    optimizerConstraintInfo.textContent = pointText;
+    optimizerConstraintInfo.textContent = activeRequiredLossEntries.length
+      ? `${pointText} Aktif kayip hedefi: ${formatRequiredLossRequirements(activeRequiredLossEntries)}. Tam tiki aciksa sadece o kadar, kapaliysa en az o kadar kayip aranir.`
+      : pointText;
     return;
   }
 
-  if (!activeEntries.length) {
-    optimizerConstraintInfo.textContent = `${pointText} Soldaki kutu eldeki adet, sagdaki Min kutusu ise onerilen dizilimde bu birlikten en az kac adet bulunmasi gerektigini belirler.`;
+  if (!activeEntries.length && !activeRequiredLossEntries.length) {
+    optimizerConstraintInfo.textContent = `${pointText} Soldaki kutu eldeki adet, sagdaki Min kutusu ise onerilen dizilimde bu birlikten en az kac adet bulunmasi gerektigini belirler. Kayip panelinde Tam tiki aciksa sadece o kadar, kapaliysa en az o kadar kayip aranir.`;
     return;
   }
 
-  optimizerConstraintInfo.textContent = `${pointText} Aktif min kisitlar: ${formatMinimumRequirements(activeEntries)}. Optimizer bu birlikleri tum adaylarda zorunlu tutar.`;
+  const notes = [];
+  if (activeEntries.length) {
+    notes.push(`Aktif min kisitlar: ${formatMinimumRequirements(activeEntries)}. Optimizer bu birlikleri tum adaylarda zorunlu tutar.`);
+  }
+  if (activeRequiredLossEntries.length) {
+    notes.push(`Aktif kayip hedefi: ${formatRequiredLossRequirements(activeRequiredLossEntries)}. Tam tiki aciksa sadece o kadar, kapaliysa en az o kadar kayip aranir.`);
+  }
+  optimizerConstraintInfo.textContent = `${pointText} ${notes.join(" ")}`.trim();
 }
 
 function getCommittedStage() {
@@ -3036,12 +3277,14 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   const lossLabel = meta.stoneMode ? "tas sonrasi kalici kayip" : "ortalama kan kaybi";
   const source = getPrimaryOptimizerSource(result);
   const activeMinimumEntries = getActiveMinimumRequirementEntries();
+  const activeRequiredLossEntries = getActiveRequiredLossEntries();
   const searchBandSettings = normalizeSearchBandSettings(meta.searchBandSettings);
   const lossRangeSummary = source ? formatOptimizerLossRangeSummary(source) : null;
   const progressLines = [
     `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode, meta.roundingMode)}`,
     `- arama bandi: ${formatSearchBandSummary(maxPoints, searchBandSettings)}`,
     ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),
+    ...(activeRequiredLossEntries.length ? [`- kayip hedefi: ${formatRequiredLossRequirements(activeRequiredLossEntries, 6)}`] : []),
     `- arama bandindaki kombinasyon: ${formatLargeInteger(meta.bandCombinationCount)}`,
     `- toplam olasi kombinasyon: ${formatLargeInteger(meta.totalCombinationCount)}`,
     `- deneme: ${meta.runIndex}`,
@@ -3069,7 +3312,9 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
 
     optimizerSummary.innerHTML = "";
     optimizerSummary.appendChild(summaryBlock);
-    recommendationPanel.innerHTML = '<p class="summary-empty">Bu kosullarda simulasyona acilacak bir dizilim uretilemedi.</p>';
+    recommendationPanel.innerHTML = result?.constraintIssue === "required-losses-not-found"
+      ? '<p class="summary-empty">Istenen sonuca uygun dizilis bulunamadi.</p>'
+      : '<p class="summary-empty">Bu kosullarda simulasyona acilacak bir dizilim uretilemedi.</p>';
     optimizerLogOutput.textContent = "Gecerli bir aday uretilemedigi icin savas gunlugu hazirlanmadi.";
     currentApprovedCandidate = {
       stage,
@@ -3082,6 +3327,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       enemyCounts: collectCounts(ENEMY_UNITS),
       allyPool: collectCounts(ALLY_UNITS),
       minimumRequiredCounts: collectMinimumRequiredCounts(),
+      requiredLossCounts: collectRequiredLossCounts(),
+      requiredLossExactFlags: collectRequiredLossExactFlags(),
       result
     };
     currentTopResultsContext = {
@@ -3094,6 +3341,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       stoneMode: meta.stoneMode,
       searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
       enemyCounts: collectCounts(ENEMY_UNITS),
+      requiredLossCounts: collectRequiredLossCounts(),
+      requiredLossExactFlags: collectRequiredLossExactFlags(),
       candidates: [],
       benchmarkedCandidates: null,
       benchmarkPromise: null
@@ -3163,6 +3412,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     enemyCounts,
     allyPool,
     minimumRequiredCounts: collectMinimumRequiredCounts(),
+    requiredLossCounts: collectRequiredLossCounts(),
+    requiredLossExactFlags: collectRequiredLossExactFlags(),
     result,
     battleView
   };
@@ -3177,6 +3428,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     stoneMode: meta.stoneMode,
     searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
     enemyCounts,
+    requiredLossCounts: collectRequiredLossCounts(),
+    requiredLossExactFlags: collectRequiredLossExactFlags(),
     candidates: buildDisplayedTopCandidates(result),
     benchmarkedCandidates: null,
     benchmarkPromise: null
@@ -3194,6 +3447,12 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
 }
 
 function getConstraintIssueMessage(issue) {
+  if (issue === "required-loss-exceeds-pool") {
+    return "Istenen minimum kayip eldeki ordudan buyuk.";
+  }
+  if (issue === "required-losses-not-found") {
+    return "Istenen sonuca uygun dizilis bulunamadi.";
+  }
   if (issue === "minimum-exceeds-pool") {
     return "Min kullanim kisiti eldeki ordudan buyuk.";
   }
@@ -3219,8 +3478,22 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
   }
 
   const minimumRequiredCounts = collectMinimumRequiredCounts();
+  const requiredLossCounts = collectRequiredLossCounts();
+  const requiredLossExactFlags = collectRequiredLossExactFlags();
   const searchBandSettings = collectSearchBandSettings();
-  const key = createComparisonKey(stage, enemyCounts, allyPool, minimumRequiredCounts, searchBandSettings, meta.mode, meta.objective, meta.stoneMode, meta.roundingMode);
+  const key = createComparisonKey(
+    stage,
+    enemyCounts,
+    allyPool,
+    minimumRequiredCounts,
+    requiredLossCounts,
+    requiredLossExactFlags,
+    searchBandSettings,
+    meta.mode,
+    meta.objective,
+    meta.stoneMode,
+    meta.roundingMode
+  );
   const entry = optimizerComparisonCache.get(key) || {
     key,
     stage,
@@ -3232,6 +3505,8 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
     enemyCounts: { ...enemyCounts },
     allyPool: { ...allyPool },
     minimumRequiredCounts: { ...minimumRequiredCounts },
+    requiredLossCounts: { ...requiredLossCounts },
+    requiredLossExactFlags: { ...requiredLossExactFlags },
     searchBandSettings: { ...searchBandSettings },
     benchmark: null,
     normal: null,
@@ -3303,12 +3578,26 @@ function getCurrentComparisonEntry() {
   const enemyCounts = collectCounts(ENEMY_UNITS);
   const allyPool = collectCounts(ALLY_UNITS);
   const minimumRequiredCounts = collectMinimumRequiredCounts();
+  const requiredLossCounts = collectRequiredLossCounts();
+  const requiredLossExactFlags = collectRequiredLossExactFlags();
   const searchBandSettings = normalizeSearchBandSettings({
     mode: optimizerSearchBandPresetInput?.value,
     minPercent: optimizerCustomBandMinInput?.value,
     maxPercent: optimizerCustomBandMaxInput?.value
   });
-  const key = createComparisonKey(stage, enemyCounts, allyPool, minimumRequiredCounts, searchBandSettings, optimizerMode, optimizerObjective, optimizerStoneMode, optimizerRoundingMode);
+  const key = createComparisonKey(
+    stage,
+    enemyCounts,
+    allyPool,
+    minimumRequiredCounts,
+    requiredLossCounts,
+    requiredLossExactFlags,
+    searchBandSettings,
+    optimizerMode,
+    optimizerObjective,
+    optimizerStoneMode,
+    optimizerRoundingMode
+  );
   return optimizerComparisonCache.get(key) || null;
 }
 
@@ -3716,6 +4005,17 @@ function formatOptimizerTopLossSummary(entry, limit = 3) {
 
   if (!parts.length) {
     return entry?.feasible ? "belirgin kayip beklenmiyor" : "net kayip dagilimi yok";
+  }
+  return parts.join(", ");
+}
+
+function formatRequiredLossRequirements(entries, maxItems = 4) {
+  if (!entries.length) {
+    return "yok";
+  }
+  const parts = entries.slice(0, maxItems).map((entry) => `${entry.unit.label}: ${entry.exact ? "=" : ">="}${entry.count}`);
+  if (entries.length > maxItems) {
+    parts.push(`+${entries.length - maxItems} daha`);
   }
   return parts.join(", ");
 }

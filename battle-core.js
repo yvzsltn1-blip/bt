@@ -1936,6 +1936,11 @@
     const originalAvailableAllyCounts = cloneCounts(availableAllyCounts, ALLY_UNITS);
     const requestedMinimumCounts = cloneCounts(options.minimumRequiredCounts || {}, ALLY_UNITS);
     const minimumRequiredCounts = normalizeMinimumRequiredCounts(requestedMinimumCounts, originalAvailableAllyCounts);
+    const requestedRequiredLossCounts = cloneCounts(options.requiredLossCounts || {}, ALLY_UNITS);
+    const requiredLossCounts = normalizeMinimumRequiredCounts(requestedRequiredLossCounts, originalAvailableAllyCounts);
+    const requiredLossExactFlags = Object.fromEntries(
+      ALLY_UNITS.map((unit) => [unit.key, Boolean(options.requiredLossExactFlags?.[unit.key])])
+    );
     const minimumTotalPoints = Number.isFinite(options.minimumUsedPoints)
       ? Math.max(0, Math.ceil(options.minimumUsedPoints))
       : 0;
@@ -1943,10 +1948,13 @@
       ? Math.max(0, Math.floor(options.maximumUsedPoints))
       : Number.POSITIVE_INFINITY;
     const invalidMinimumUnits = ALLY_UNITS.filter((unit) => (requestedMinimumCounts[unit.key] || 0) > (originalAvailableAllyCounts[unit.key] || 0));
+    const invalidRequiredLossUnits = ALLY_UNITS.filter((unit) => (requestedRequiredLossCounts[unit.key] || 0) > (originalAvailableAllyCounts[unit.key] || 0));
     const minimumRequiredPoints = calculateArmyPoints(minimumRequiredCounts);
     const hasMinimumConstraints = ALLY_UNITS.some((unit) => (minimumRequiredCounts[unit.key] || 0) > 0);
+    const hasRequiredLossConstraints = ALLY_UNITS.some((unit) => (requiredLossCounts[unit.key] || 0) > 0 || requiredLossExactFlags[unit.key]);
 
     if (
+      invalidRequiredLossUnits.length > 0 ||
       invalidMinimumUnits.length > 0 ||
       (Number.isFinite(maxPoints) && minimumRequiredPoints > maxPoints) ||
       (Number.isFinite(maxPoints) && minimumTotalPoints > maxPoints) ||
@@ -1966,9 +1974,13 @@
         sampleBattle: null,
         minimumRequiredCounts,
         minimumRequiredPoints,
+        requiredLossCounts,
+        requiredLossExactFlags,
         minimumUsedPoints: minimumTotalPoints,
         maximumUsedPoints: maximumTotalPoints,
-        constraintIssue: invalidMinimumUnits.length > 0
+        constraintIssue: invalidRequiredLossUnits.length > 0
+          ? "required-loss-exceeds-pool"
+          : invalidMinimumUnits.length > 0
           ? "minimum-exceeds-pool"
           : minimumRequiredPoints > maxPoints
             ? "minimum-exceeds-points"
@@ -2005,6 +2017,8 @@
         sampleBattle: null,
         minimumRequiredCounts,
         minimumRequiredPoints,
+        requiredLossCounts,
+        requiredLossExactFlags,
         minimumUsedPoints: minimumTotalPoints,
         maximumUsedPoints: maximumTotalPoints,
         constraintIssue: minimumSearchPoints > maximumSearchPoints
@@ -2041,6 +2055,21 @@
     const initialCandidates = [];
     const compareEntries = (left, right) => compareEvaluations(left, right, { objective, stoneMode });
     const strategicOrder = getStrategicUnitOrder(availableAllyCounts, enemyCounts);
+
+    function evaluationMeetsRequiredLosses(entry) {
+      if (!hasRequiredLossConstraints) {
+        return true;
+      }
+      const lossProfile = stoneMode ? entry?.avgStoneAdjustedAllyLosses : entry?.avgAllyLosses;
+      return ALLY_UNITS.every((unit) => {
+        const actualLoss = lossProfile?.[unit.key] || 0;
+        const targetLoss = requiredLossCounts[unit.key] || 0;
+        if (requiredLossExactFlags[unit.key]) {
+          return Math.round(actualLoss) === targetLoss;
+        }
+        return actualLoss + 1e-9 >= targetLoss;
+      });
+    }
 
     function toEffectiveCounts(candidateCounts) {
       return hasMinimumConstraints ? addAllyCounts(candidateCounts, minimumRequiredCounts) : cloneCounts(candidateCounts, ALLY_UNITS);
@@ -2220,6 +2249,18 @@
       }
 
       const winRate = wins / localTrialCount;
+      const expectedAllyLosses = Object.fromEntries(
+        ALLY_UNITS.map((unit) => [unit.key, totalAllyLossesSum[unit.key] / localTrialCount])
+      );
+      const expectedStoneAdjustedAllyLosses = Object.fromEntries(
+        ALLY_UNITS.map((unit) => [unit.key, totalStoneAdjustedAllyLossesSum[unit.key] / localTrialCount])
+      );
+      const avgAllyLosses = Object.fromEntries(
+        ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? allyLossesSum[unit.key] / wins : 0])
+      );
+      const avgStoneAdjustedAllyLosses = Object.fromEntries(
+        ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? stoneAdjustedAllyLossesSum[unit.key] / wins : 0])
+      );
       const evaluation = {
         searchCounts: cloneCounts(counts, ALLY_UNITS),
         counts: cloneCounts(effectiveCounts, ALLY_UNITS),
@@ -2227,7 +2268,7 @@
         trials: localTrialCount,
         wins,
         winRate,
-        feasible: winRate >= minWinRate,
+        feasible: false,
         expectedLostBlood: totalLostBloodSum / localTrialCount,
         expectedLostUnits: totalLostUnitsSum / localTrialCount,
         avgLostBlood: wins > 0 ? winLostBloodSum / wins : Number.POSITIVE_INFINITY,
@@ -2242,22 +2283,16 @@
         avgUsedPoints: usedPointsSum / localTrialCount,
         avgEnemyRemainingHealth: enemyRemainingHealthSum / localTrialCount,
         avgEnemyRemainingUnits: enemyRemainingUnitsSum / localTrialCount,
-        expectedAllyLosses: Object.fromEntries(
-          ALLY_UNITS.map((unit) => [unit.key, totalAllyLossesSum[unit.key] / localTrialCount])
-        ),
-        expectedStoneAdjustedAllyLosses: Object.fromEntries(
-          ALLY_UNITS.map((unit) => [unit.key, totalStoneAdjustedAllyLossesSum[unit.key] / localTrialCount])
-        ),
-        avgAllyLosses: Object.fromEntries(
-          ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? allyLossesSum[unit.key] / wins : 0])
-        ),
-        avgStoneAdjustedAllyLosses: Object.fromEntries(
-          ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? stoneAdjustedAllyLossesSum[unit.key] / wins : 0])
-        ),
+        expectedAllyLosses,
+        expectedStoneAdjustedAllyLosses,
+        avgAllyLosses,
+        avgStoneAdjustedAllyLosses,
         objective,
         stoneMode,
         winningSeeds
       };
+      evaluation.meetsRequiredLosses = evaluationMeetsRequiredLosses(evaluation);
+      evaluation.feasible = winRate >= minWinRate && evaluation.meetsRequiredLosses;
 
       evaluations.set(`${signature}:${localTrialCount}`, evaluation);
       return evaluation;
@@ -2392,6 +2427,7 @@
         expectedStoneAdjustedAllyLosses: { ...(entry.expectedStoneAdjustedAllyLosses || {}) },
         avgAllyLosses: { ...(entry.avgAllyLosses || {}) },
         avgStoneAdjustedAllyLosses: { ...(entry.avgStoneAdjustedAllyLosses || {}) },
+        meetsRequiredLosses: entry.meetsRequiredLosses !== false,
         objective: entry.objective,
         stoneMode: entry.stoneMode,
         winningSeeds: [...(entry.winningSeeds || [])]
@@ -2619,6 +2655,29 @@
       best = stableRanked[0];
     }
 
+    if (hasRequiredLossConstraints && !best.feasible) {
+      return {
+        possible: false,
+        recommendation: null,
+        fallback: null,
+        fullArmyEvaluation: null,
+        topCandidates: [],
+        searchedCandidates: evaluations.size,
+        uniqueCandidateCount: uniqueSignatures.size,
+        uniqueCandidateSignatures: [...uniqueSignatures],
+        simulationRuns,
+        sampleBattle: null,
+        roundingMode,
+        minimumRequiredCounts,
+        minimumRequiredPoints,
+        requiredLossCounts,
+        requiredLossExactFlags,
+        minimumUsedPoints: minimumTotalPoints,
+        maximumUsedPoints: maximumTotalPoints,
+        constraintIssue: "required-losses-not-found"
+      };
+    }
+
     const fullArmyEvaluation = evaluateCandidate(normalizeCandidateToPointLimit(availableAllyCounts, maxPoints), fullArmyTrials);
     const stableFullArmyEvaluation = evaluateCandidate(
       normalizeCandidateToPointLimit(availableAllyCounts, maxPoints),
@@ -2669,6 +2728,8 @@
       roundingMode,
       minimumRequiredCounts,
       minimumRequiredPoints,
+      requiredLossCounts,
+      requiredLossExactFlags,
       minimumUsedPoints: minimumTotalPoints,
       maximumUsedPoints: maximumTotalPoints
     };

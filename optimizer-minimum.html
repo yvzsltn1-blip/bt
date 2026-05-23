@@ -109,6 +109,19 @@
           Kademe secildiginde optimizer limitin %75-%100 puan bandini tarar. Soldaki kutu eldeki adet, sagdaki Min kutusu ise onerilen dizilimde bu birlikten en az kac adet bulunmasi gerektigini belirler.
         </p>
 
+        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
+          <button id="lossConstraintToggleBtn" class="button button-ghost" type="button" aria-expanded="false" aria-controls="optimizerLossConstraintPanel">Kayipli Kazan Modu</button>
+        </div>
+
+        <section id="optimizerLossConstraintPanel" class="roster-card roster-card-ally" hidden>
+          <div class="roster-head">
+            <span class="roster-dot" aria-hidden="true"></span>
+            <h3>Minimum Kayip Hedefi</h3>
+            <span class="roster-metric">Kazanan sonuc icin min kayip</span>
+          </div>
+          <div id="optimizerLossConstraintInputs" class="unit-grid"></div>
+        </section>
+
         <div class="roster-grid">
           <section class="roster-card roster-card-ally">
             <div class="roster-head">
@@ -132,9 +145,11 @@
         <div class="actions">
           <button id="optimizeBtn" class="button button-primary" type="button">Simule Et</button>
           <button id="diversityModeBtn" class="button button-secondary" type="button" aria-pressed="false">Cesitlilik Modu</button>
-          <button class="button button-secondary button-batch-run" data-batch-runs="10" type="button">10 Tur</button>
-          <button class="button button-secondary button-batch-run" data-batch-runs="20" type="button">20 Tur</button>
-          <button class="button button-secondary button-batch-run" data-batch-runs="30" type="button">30 Tur</button>
+          <div class="batch-run-control">
+            <input id="optimizerBatchRunsInput" class="stage-select batch-run-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" value="10" aria-label="Tur sayisi">
+            <span class="batch-run-label">Tur</span>
+            <button id="optimizerBatchRunBtn" class="button button-secondary" type="button">Turla</button>
+          </div>
           <button id="stopOptimizerBtn" class="button button-ghost" type="button" disabled>Durdur</button>
           <button id="optimizerSampleBtn" class="button button-secondary" type="button">Ornek Ordu</button>
           <button id="optimizerClearBtn" class="button button-ghost" type="button">Sifirla</button>
