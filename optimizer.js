@@ -32,6 +32,10 @@ const optimizerSearchBandPresetMobileInput = document.querySelector("#optimizerS
 const optimizerCustomBandInputs = document.querySelector("#optimizerCustomBandInputs");
 const optimizerCustomBandMinInput = document.querySelector("#optimizerCustomBandMin");
 const optimizerCustomBandMaxInput = document.querySelector("#optimizerCustomBandMax");
+const optimizerPointRangeToggleBtn = document.querySelector("#optimizerPointRangeToggleBtn");
+const optimizerPointRangePanel = document.querySelector("#optimizerPointRangePanel");
+const optimizerManualMinPointsInput = document.querySelector("#optimizerManualMinPoints");
+const optimizerManualMaxPointsInput = document.querySelector("#optimizerManualMaxPoints");
 const optimizerSummary = document.querySelector("#optimizerSummary");
 const recommendationPanel = document.querySelector("#recommendationPanel");
 const rosterClipboardIndicator = null;
@@ -144,6 +148,7 @@ let currentFavoriteModalSignature = null;
 let currentFavoriteModalPendingEntry = null;
 let autoStageAdvanceEnabled = false;
 let lossConstraintModeEnabled = false;
+let optimizerManualPointRangeEnabled = false;
 
 function isMinimumOptimizerVariant() {
   return optimizerVariant === "minimum";
@@ -190,6 +195,10 @@ function clampBatchRunCount(value, fallback = 10) {
   return Math.max(1, Math.min(15, parsed));
 }
 
+function isZeroLikeNumericText(value) {
+  return (Number.parseInt(String(value || "").replace(/\D/g, ""), 10) || 0) === 0;
+}
+
 function getSearchBandLabel(mode) {
   if (mode === "full") {
     return "Tum uzay";
@@ -223,12 +232,70 @@ function normalizeSearchBandSettings(settings = {}) {
   };
 }
 
+function normalizeManualPointRangeSettings(settings = {}) {
+  const enabled = Boolean(settings.enabled);
+  const minUsedPoints = Math.max(0, Number.parseInt(settings.minUsedPoints, 10) || 0);
+  const maxUsedPoints = Math.max(0, Number.parseInt(settings.maxUsedPoints, 10) || 0);
+  return {
+    enabled,
+    minUsedPoints,
+    maxUsedPoints
+  };
+}
+
 function areSearchBandSettingsEqual(left, right) {
   const normalizedLeft = normalizeSearchBandSettings(left);
   const normalizedRight = normalizeSearchBandSettings(right);
   return normalizedLeft.mode === normalizedRight.mode &&
     normalizedLeft.minPercent === normalizedRight.minPercent &&
     normalizedLeft.maxPercent === normalizedRight.maxPercent;
+}
+
+function areManualPointRangeSettingsEqual(left, right) {
+  const normalizedLeft = normalizeManualPointRangeSettings(left);
+  const normalizedRight = normalizeManualPointRangeSettings(right);
+  return normalizedLeft.enabled === normalizedRight.enabled &&
+    normalizedLeft.minUsedPoints === normalizedRight.minUsedPoints &&
+    normalizedLeft.maxUsedPoints === normalizedRight.maxUsedPoints;
+}
+
+function getDefaultManualPointRangeForStage(stage = getCommittedStage()) {
+  const maxUsedPoints = stage ? getStagePointLimit(stage) : 0;
+  return {
+    minUsedPoints: maxUsedPoints > 0 ? Math.ceil(maxUsedPoints * 0.8) : 0,
+    maxUsedPoints
+  };
+}
+
+function setManualPointRangeManaged(isManaged) {
+  [optimizerManualMinPointsInput, optimizerManualMaxPointsInput].forEach((input) => {
+    if (!input) {
+      return;
+    }
+    input.dataset.defaultManaged = isManaged ? "true" : "false";
+  });
+}
+
+function isManualPointRangeManaged() {
+  return [optimizerManualMinPointsInput, optimizerManualMaxPointsInput].every((input) => {
+    return !input || input.dataset.defaultManaged !== "false";
+  });
+}
+
+function syncManualPointRangeDefaults({ force = false } = {}) {
+  const defaults = getDefaultManualPointRangeForStage();
+  const shouldSync = force || !optimizerManualPointRangeEnabled || isManualPointRangeManaged();
+  if (!shouldSync) {
+    return defaults;
+  }
+  if (optimizerManualMinPointsInput) {
+    optimizerManualMinPointsInput.value = String(defaults.minUsedPoints);
+  }
+  if (optimizerManualMaxPointsInput) {
+    optimizerManualMaxPointsInput.value = String(defaults.maxUsedPoints);
+  }
+  setManualPointRangeManaged(true);
+  return defaults;
 }
 
 function getRoundingModeLabel(mode) {
@@ -667,6 +734,7 @@ syncTekilV2ModeButton();
 syncRoundingModeButtons();
 syncObjectiveSelect();
 syncSearchBandControls();
+syncPointRangeToggle();
 syncComparePanelToggle();
 renderComparisonPanel();
 optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
@@ -738,6 +806,50 @@ if (optimizerSearchBandPresetMobileInput) {
     renderPointSummary();
   });
 });
+
+[optimizerManualMinPointsInput, optimizerManualMaxPointsInput].forEach((input) => {
+  if (!input) {
+    return;
+  }
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/\D+/g, "");
+    setManualPointRangeManaged(false);
+    invalidateSearchSession();
+    renderConstraintInfo();
+  });
+  input.addEventListener("blur", () => {
+    const defaults = getDefaultManualPointRangeForStage();
+    if (input.value.trim() === "") {
+      input.value = String(input === optimizerManualMinPointsInput ? defaults.minUsedPoints : defaults.maxUsedPoints);
+    }
+    if (
+      optimizerManualMinPointsInput?.value === String(defaults.minUsedPoints) &&
+      optimizerManualMaxPointsInput?.value === String(defaults.maxUsedPoints)
+    ) {
+      setManualPointRangeManaged(true);
+    }
+    renderConstraintInfo();
+  });
+});
+
+if (optimizerPointRangeToggleBtn) {
+  optimizerPointRangeToggleBtn.addEventListener("click", () => {
+    optimizerManualPointRangeEnabled = !optimizerManualPointRangeEnabled;
+    if (optimizerManualPointRangeEnabled) {
+      if (
+        (optimizerManualMinPointsInput && isZeroLikeNumericText(optimizerManualMinPointsInput.value)) ||
+        (optimizerManualMaxPointsInput && isZeroLikeNumericText(optimizerManualMaxPointsInput.value))
+      ) {
+        setManualPointRangeManaged(true);
+      }
+      syncManualPointRangeDefaults();
+    }
+    syncPointRangeToggle();
+    invalidateSearchSession();
+    renderConstraintInfo();
+    optimizerStatus.textContent = optimizerManualPointRangeEnabled ? "Manuel puan araligi acildi" : "Manuel puan araligi kapatildi";
+  });
+}
 
 diversityModeBtn.addEventListener("click", () => {
   optimizerDiversityMode = !optimizerDiversityMode;
@@ -1135,7 +1247,8 @@ async function runOptimizerSearch(batchRuns) {
     }
 
     const maxPoints = getStagePointLimit(stage);
-    const searchBandRange = getSearchBandPointRange(maxPoints, searchBandSettings);
+    const manualPointRangeSettings = collectManualPointRangeSettings(maxPoints);
+    const searchBandRange = getActiveSearchPointRange(maxPoints, searchBandSettings, manualPointRangeSettings);
     validateMinimumRequiredCounts(allyPool, minimumRequiredCounts, maxPoints);
     validateRequiredLossCounts(allyPool, requiredLossCounts);
     const totalCombinationCount = calculateTotalCombinationCount(
@@ -1160,6 +1273,7 @@ async function runOptimizerSearch(batchRuns) {
       requiredLossCounts,
       requiredLossExactFlags,
       searchBandSettings,
+      manualPointRangeSettings,
       mode: optimizerMode,
       objective: optimizerObjective,
       roundingMode: optimizerRoundingMode,
@@ -1176,6 +1290,7 @@ async function runOptimizerSearch(batchRuns) {
       requiredLossCounts,
       requiredLossExactFlags,
       searchBandSettings,
+      manualPointRangeSettings,
       optimizerMode,
       optimizerObjective,
       optimizerDiversityMode,
@@ -1271,6 +1386,7 @@ async function runOptimizerSearch(batchRuns) {
       requiredLossCounts: { ...requiredLossCounts },
       requiredLossExactFlags: { ...requiredLossExactFlags },
       searchBandSettings: { ...searchBandSettings },
+      manualPointRangeSettings: { ...manualPointRangeSettings },
       mode: optimizerMode,
       objective: optimizerObjective,
       diversityMode: optimizerDiversityMode,
@@ -1292,6 +1408,7 @@ async function runOptimizerSearch(batchRuns) {
       totalUniqueCandidates: uniqueSignatures.size,
       runConfig: lastRunConfig,
       searchBandSettings,
+      manualPointRangeSettings,
       mode: optimizerMode,
       objective: optimizerObjective,
       roundingMode: optimizerRoundingMode,
@@ -1368,6 +1485,7 @@ function getIncumbentSeedCandidates(context) {
     optimizerIncumbentContext.tekilV2Mode === context.tekilV2Mode &&
     optimizerIncumbentContext.stoneMode === context.stoneMode &&
     areSearchBandSettingsEqual(optimizerIncumbentContext.searchBandSettings, context.searchBandSettings) &&
+    areManualPointRangeSettingsEqual(optimizerIncumbentContext.manualPointRangeSettings, context.manualPointRangeSettings) &&
     areMinimumRequiredCountsEqual(optimizerIncumbentContext.minimumRequiredCounts, context.minimumRequiredCounts) &&
     areMinimumRequiredCountsEqual(optimizerIncumbentContext.requiredLossCounts, context.requiredLossCounts) &&
     areConstraintFlagsEqual(optimizerIncumbentContext.requiredLossExactFlags, context.requiredLossExactFlags) &&
@@ -1416,6 +1534,15 @@ function setOptimizerBusy(isBusy) {
   }
   if (optimizerCustomBandMaxInput) {
     optimizerCustomBandMaxInput.disabled = isBusy || optimizerCustomBandInputs?.hidden;
+  }
+  if (optimizerPointRangeToggleBtn) {
+    optimizerPointRangeToggleBtn.disabled = isBusy;
+  }
+  if (optimizerManualMinPointsInput) {
+    optimizerManualMinPointsInput.disabled = isBusy || !optimizerManualPointRangeEnabled;
+  }
+  if (optimizerManualMaxPointsInput) {
+    optimizerManualMaxPointsInput.disabled = isBusy || !optimizerManualPointRangeEnabled;
   }
   syncAdminRestrictedActions();
   topResultsBtn.disabled = isBusy || !currentTopResultsContext || !currentTopResultsContext.candidates.length;
@@ -1541,7 +1668,7 @@ function invalidateSearchSession() {
   renderFavoriteButtonState();
 }
 
-function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, mode, objective, diversityMode, tekilMode, tekilV2Mode, stoneMode, roundingMode) {
+function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, manualPointRangeSettings, mode, objective, diversityMode, tekilMode, tekilV2Mode, stoneMode, roundingMode) {
   return JSON.stringify({
     stage,
     enemy,
@@ -1550,6 +1677,7 @@ function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, required
     requiredLossCounts,
     requiredLossExactFlags,
     searchBandSettings: normalizeSearchBandSettings(searchBandSettings),
+    manualPointRangeSettings: normalizeManualPointRangeSettings(manualPointRangeSettings),
     mode,
     objective,
     roundingMode: normalizeRoundingMode(roundingMode),
@@ -1560,7 +1688,7 @@ function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, required
   });
 }
 
-function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, mode, objective, tekilMode, tekilV2Mode, stoneMode, roundingMode) {
+function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, manualPointRangeSettings, mode, objective, tekilMode, tekilV2Mode, stoneMode, roundingMode) {
   return JSON.stringify({
     stage,
     enemy,
@@ -1569,6 +1697,7 @@ function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, requ
     requiredLossCounts,
     requiredLossExactFlags,
     searchBandSettings: normalizeSearchBandSettings(searchBandSettings),
+    manualPointRangeSettings: normalizeManualPointRangeSettings(manualPointRangeSettings),
     mode,
     objective,
     roundingMode: normalizeRoundingMode(roundingMode),
@@ -3098,6 +3227,27 @@ function collectSearchBandSettings() {
   });
 }
 
+function collectManualPointRangeSettings(maxPoints = null) {
+  const normalized = normalizeManualPointRangeSettings({
+    enabled: optimizerManualPointRangeEnabled,
+    minUsedPoints: optimizerManualMinPointsInput?.value,
+    maxUsedPoints: optimizerManualMaxPointsInput?.value
+  });
+
+  if (!normalized.enabled) {
+    return normalized;
+  }
+
+  const ceiling = Number.isFinite(maxPoints) ? Math.max(0, Math.floor(maxPoints)) : Number.POSITIVE_INFINITY;
+  if (normalized.minUsedPoints > ceiling || normalized.maxUsedPoints > ceiling) {
+    throw new Error(`Manuel puan araligi 0 ile ${ceiling} arasinda olmalidir.`);
+  }
+  if (normalized.minUsedPoints > normalized.maxUsedPoints) {
+    throw new Error("Manuel puan araliginda min puan, max puandan buyuk olamaz.");
+  }
+  return normalized;
+}
+
 function applySearchBandSettings(settings = {}) {
   const normalized = normalizeSearchBandSettings(settings);
   if (optimizerSearchBandPresetInput) {
@@ -3113,6 +3263,23 @@ function applySearchBandSettings(settings = {}) {
     optimizerCustomBandMaxInput.value = String(normalized.maxPercent);
   }
   syncSearchBandControls();
+}
+
+function applyManualPointRangeSettings(settings = {}) {
+  const normalized = normalizeManualPointRangeSettings(settings);
+  optimizerManualPointRangeEnabled = normalized.enabled;
+  if (normalized.enabled) {
+    if (optimizerManualMinPointsInput) {
+      optimizerManualMinPointsInput.value = String(normalized.minUsedPoints);
+    }
+    if (optimizerManualMaxPointsInput) {
+      optimizerManualMaxPointsInput.value = String(normalized.maxUsedPoints);
+    }
+    setManualPointRangeManaged(false);
+  } else {
+    syncManualPointRangeDefaults({ force: true });
+  }
+  syncPointRangeToggle();
 }
 
 function syncSearchBandControls() {
@@ -3139,6 +3306,24 @@ function syncSearchBandControls() {
   }
 }
 
+function syncPointRangeToggle() {
+  if (!optimizerPointRangeToggleBtn) {
+    return;
+  }
+  optimizerPointRangeToggleBtn.classList.toggle("is-active", optimizerManualPointRangeEnabled);
+  optimizerPointRangeToggleBtn.setAttribute("aria-expanded", optimizerManualPointRangeEnabled ? "true" : "false");
+  optimizerPointRangeToggleBtn.textContent = optimizerManualPointRangeEnabled ? "Puan Araligi Acik" : "Puan Araligi Sec";
+  if (optimizerPointRangePanel) {
+    optimizerPointRangePanel.hidden = !optimizerManualPointRangeEnabled;
+  }
+  if (optimizerManualMinPointsInput) {
+    optimizerManualMinPointsInput.disabled = !optimizerManualPointRangeEnabled;
+  }
+  if (optimizerManualMaxPointsInput) {
+    optimizerManualMaxPointsInput.disabled = !optimizerManualPointRangeEnabled;
+  }
+}
+
 function getSearchBandPointRange(maxPoints, settings = collectSearchBandSettings()) {
   if (!(maxPoints >= 0)) {
     return {
@@ -3153,10 +3338,29 @@ function getSearchBandPointRange(maxPoints, settings = collectSearchBandSettings
   };
 }
 
+function getActiveSearchPointRange(maxPoints, searchBandSettings = collectSearchBandSettings(), manualPointRangeSettings = collectManualPointRangeSettings(maxPoints)) {
+  const manual = normalizeManualPointRangeSettings(manualPointRangeSettings);
+  if (manual.enabled) {
+    return {
+      minUsedPoints: Math.max(0, manual.minUsedPoints),
+      maxUsedPoints: Math.max(0, manual.maxUsedPoints)
+    };
+  }
+  return getSearchBandPointRange(maxPoints, searchBandSettings);
+}
+
 function formatSearchBandSummary(maxPoints, settings) {
   const normalized = normalizeSearchBandSettings(settings);
   const range = getSearchBandPointRange(maxPoints, normalized);
   return `${getSearchBandLabel(normalized.mode)} (%${normalized.minPercent}-%${normalized.maxPercent} / ${formatPointBandText(range.minUsedPoints, range.maxUsedPoints)} puan)`;
+}
+
+function formatSearchRangeSummary(maxPoints, searchBandSettings, manualPointRangeSettings) {
+  const manual = normalizeManualPointRangeSettings(manualPointRangeSettings);
+  if (manual.enabled) {
+    return `Manuel puan araligi (${formatPointBandText(manual.minUsedPoints, manual.maxUsedPoints)} puan)`;
+  }
+  return formatSearchBandSummary(maxPoints, searchBandSettings);
 }
 
 function calculateTotalCombinationCount(allyPool, maxPoints, minimumRequiredCounts = null, minimumUsedPoints = 0, maximumUsedPoints = maxPoints) {
@@ -3241,7 +3445,10 @@ function resetValues() {
     }
   });
   lossConstraintModeEnabled = false;
+  optimizerManualPointRangeEnabled = false;
+  syncManualPointRangeDefaults({ force: true });
   syncLossConstraintToggle();
+  syncPointRangeToggle();
   renderPointSummary();
   renderMatchedSavedStrategy();
 }
@@ -3282,6 +3489,7 @@ function commitStageInput() {
   } else {
     stageInput.value = String(stage);
   }
+  syncManualPointRangeDefaults();
   renderPointSummary();
   renderMatchedSavedStrategy();
   renderFavoriteButtonState();
@@ -3392,11 +3600,16 @@ function renderConstraintInfo() {
     minPercent: optimizerCustomBandMinInput?.value,
     maxPercent: optimizerCustomBandMaxInput?.value
   });
+  const manualPointRangeSettings = normalizeManualPointRangeSettings({
+    enabled: optimizerManualPointRangeEnabled,
+    minUsedPoints: optimizerManualMinPointsInput?.value,
+    maxUsedPoints: optimizerManualMaxPointsInput?.value
+  });
   const activeEntries = getActiveMinimumRequirementEntries();
   const activeRequiredLossEntries = getActiveRequiredLossEntries();
   const pointText = pointLimit === null
-    ? "Kademe secildiginde secilen arama bandi puana cevrilir."
-    : `Aktif arama bandi: ${formatSearchBandSummary(pointLimit, searchBandSettings)}. Optimizer sadece bu araliktaki dizilimleri tarar.`;
+    ? "Kademe secildiginde secilen arama araligi puana cevrilir."
+    : `Aktif arama araligi: ${formatSearchRangeSummary(pointLimit, searchBandSettings, manualPointRangeSettings)}. Optimizer sadece bu araliktaki dizilimleri tarar.`;
 
   if (!isMinimumOptimizerVariant()) {
     optimizerConstraintInfo.textContent = activeRequiredLossEntries.length
@@ -3440,10 +3653,11 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   const activeMinimumEntries = getActiveMinimumRequirementEntries();
   const activeRequiredLossEntries = getActiveRequiredLossEntries();
   const searchBandSettings = normalizeSearchBandSettings(meta.searchBandSettings);
+  const manualPointRangeSettings = normalizeManualPointRangeSettings(meta.manualPointRangeSettings);
   const lossRangeSummary = source ? formatOptimizerLossRangeSummary(source) : null;
   const progressLines = [
     `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.tekilMode, meta.tekilV2Mode, meta.stoneMode, meta.roundingMode)}`,
-    `- arama bandi: ${formatSearchBandSummary(maxPoints, searchBandSettings)}`,
+    `- arama bandi: ${formatSearchRangeSummary(maxPoints, searchBandSettings, manualPointRangeSettings)}`,
     ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),
     ...(activeRequiredLossEntries.length ? [`- kayip hedefi: ${formatRequiredLossRequirements(activeRequiredLossEntries, 6)}`] : []),
     `- arama bandindaki kombinasyon: ${formatLargeInteger(meta.bandCombinationCount)}`,
@@ -3487,6 +3701,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       tekilV2Mode: meta.tekilV2Mode,
       stoneMode: meta.stoneMode,
       searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+      manualPointRangeSettings: normalizeManualPointRangeSettings(meta.manualPointRangeSettings),
       enemyCounts: collectCounts(ENEMY_UNITS),
       allyPool: collectCounts(ALLY_UNITS),
       minimumRequiredCounts: collectMinimumRequiredCounts(),
@@ -3505,6 +3720,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       tekilV2Mode: meta.tekilV2Mode,
       stoneMode: meta.stoneMode,
       searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+      manualPointRangeSettings: normalizeManualPointRangeSettings(meta.manualPointRangeSettings),
       enemyCounts: collectCounts(ENEMY_UNITS),
       requiredLossCounts: collectRequiredLossCounts(),
       requiredLossExactFlags: collectRequiredLossExactFlags(),
@@ -3576,6 +3792,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     tekilV2Mode: meta.tekilV2Mode,
     stoneMode: meta.stoneMode,
     searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+    manualPointRangeSettings: normalizeManualPointRangeSettings(meta.manualPointRangeSettings),
     enemyCounts,
     allyPool,
     minimumRequiredCounts: collectMinimumRequiredCounts(),
@@ -3596,6 +3813,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     tekilV2Mode: meta.tekilV2Mode,
     stoneMode: meta.stoneMode,
     searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+    manualPointRangeSettings: normalizeManualPointRangeSettings(meta.manualPointRangeSettings),
     enemyCounts,
     requiredLossCounts: collectRequiredLossCounts(),
     requiredLossExactFlags: collectRequiredLossExactFlags(),
@@ -3650,6 +3868,7 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
   const requiredLossCounts = collectRequiredLossCounts();
   const requiredLossExactFlags = collectRequiredLossExactFlags();
   const searchBandSettings = collectSearchBandSettings();
+  const manualPointRangeSettings = collectManualPointRangeSettings(stage ? getStagePointLimit(stage) : null);
   const key = createComparisonKey(
     stage,
     enemyCounts,
@@ -3658,6 +3877,7 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
     requiredLossCounts,
     requiredLossExactFlags,
     searchBandSettings,
+    manualPointRangeSettings,
     meta.mode,
     meta.objective,
     meta.tekilMode,
@@ -3681,6 +3901,7 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
     requiredLossCounts: { ...requiredLossCounts },
     requiredLossExactFlags: { ...requiredLossExactFlags },
     searchBandSettings: { ...searchBandSettings },
+    manualPointRangeSettings: { ...manualPointRangeSettings },
     benchmark: null,
     normal: null,
     diverse: null
@@ -3700,6 +3921,7 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
   entry.allyPool = { ...allyPool };
   entry.minimumRequiredCounts = { ...minimumRequiredCounts };
   entry.searchBandSettings = { ...searchBandSettings };
+  entry.manualPointRangeSettings = { ...manualPointRangeSettings };
   if (!areComparisonSnapshotsEqual(entry[lane], nextSnapshot)) {
     entry.benchmark = null;
   }
@@ -3760,6 +3982,7 @@ function getCurrentComparisonEntry() {
     minPercent: optimizerCustomBandMinInput?.value,
     maxPercent: optimizerCustomBandMaxInput?.value
   });
+  const manualPointRangeSettings = collectManualPointRangeSettings(getStagePointLimit(stage));
   const key = createComparisonKey(
     stage,
     enemyCounts,
@@ -3768,6 +3991,7 @@ function getCurrentComparisonEntry() {
     requiredLossCounts,
     requiredLossExactFlags,
     searchBandSettings,
+    manualPointRangeSettings,
     optimizerMode,
     optimizerObjective,
     optimizerTekilMode,
@@ -5237,6 +5461,8 @@ function renderRecommendationCards(result, maxPoints, meta) {
             tekilMode: meta.tekilMode,
             tekilV2Mode: meta.tekilV2Mode,
             stoneMode: meta.stoneMode,
+            searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+            manualPointRangeSettings: normalizeManualPointRangeSettings(meta.manualPointRangeSettings),
             enemyCounts,
             result: nextResult,
             battleView
@@ -5656,6 +5882,7 @@ function createSavedEntry(candidate) {
     allyCounts: recommendation.counts,
     minimumRequiredCounts: candidate.minimumRequiredCounts,
     searchBandSettings: normalizeSearchBandSettings(candidate.searchBandSettings),
+    manualPointRangeSettings: normalizeManualPointRangeSettings(candidate.manualPointRangeSettings),
     matchSignature,
     variantSignature: "optimizer",
     representativeSeed: Number.isInteger(sampleBattle?.seed) ? sampleBattle.seed : undefined,
@@ -5688,6 +5915,8 @@ function createWrongReportEntry(result, stage, maxPoints, meta, summaryText, log
     tekilV2Mode: Boolean(meta.tekilV2Mode),
     stoneMode: Boolean(meta.stoneMode),
     modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.tekilMode, meta.tekilV2Mode, meta.stoneMode, meta.roundingMode),
+    searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+    manualPointRangeSettings: normalizeManualPointRangeSettings(meta.manualPointRangeSettings),
     enemyCounts,
     allyCounts,
     seed: Number.isInteger(sampleBattle?.seed) ? sampleBattle.seed : undefined,
@@ -6112,6 +6341,7 @@ function restoreFromQuery() {
   }
   optimizerStoneMode = false;
   applySearchBandSettings(item.searchBandSettings || { mode: "tight75" });
+  applyManualPointRangeSettings(item.manualPointRangeSettings || { enabled: false, minUsedPoints: 0, maxUsedPoints: 0 });
   modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
   syncRoundingModeButtons();
   syncObjectiveSelect();

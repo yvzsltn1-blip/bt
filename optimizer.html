@@ -114,6 +114,28 @@
           </div>
         </div>
 
+        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
+          <button id="optimizerPointRangeToggleBtn" class="button button-ghost" type="button" aria-expanded="false" aria-controls="optimizerPointRangePanel">Puan Araligi Sec</button>
+        </div>
+
+        <section id="optimizerPointRangePanel" class="roster-card roster-card-ally" hidden>
+          <div class="roster-head">
+            <span class="roster-dot" aria-hidden="true"></span>
+            <h3>Manuel Puan Araligi</h3>
+            <span class="roster-metric">Kapaliyken mevcut arama bandi aynen kullanilir</span>
+          </div>
+          <div class="optimizer-custom-band">
+            <label class="select-wrap" for="optimizerManualMinPoints">
+              <span>Min Puan</span>
+              <input id="optimizerManualMinPoints" class="stage-select" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" value="">
+            </label>
+            <label class="select-wrap" for="optimizerManualMaxPoints">
+              <span>Max Puan</span>
+              <input id="optimizerManualMaxPoints" class="stage-select" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" value="">
+            </label>
+          </div>
+        </section>
+
         <p id="optimizerConstraintInfo" class="optimizer-constraint-note">
           Kademe secildiginde optimizer limitin %75-%100 puan bandini tarar.
         </p>
