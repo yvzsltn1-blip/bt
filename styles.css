@@ -1366,6 +1366,17 @@ body[data-optimizer-variant="minimum"] .layout {
   margin-top: 0;
 }
 
+.optimizer-mode-toggle-row {
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.optimizer-mode-toggle-row .button {
+  width: 100%;
+}
+
 .button {
   border: 0;
   border-radius: 999px;
@@ -1753,6 +1764,33 @@ body[data-optimizer-variant="minimum"] .layout {
 .skill-breakdown-card,
 .skill-note-card {
   padding: 14px 16px;
+}
+
+.skill-gold-planner-card {
+  display: grid;
+  gap: 14px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 198, 92, 0.13), transparent 36%),
+    rgba(7, 12, 18, 0.56);
+}
+
+.skill-plan-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 207, 124, 0.18);
+  background: rgba(255, 207, 124, 0.08);
+  color: #ffe5b0;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .skill-breakdown-list {
@@ -4252,6 +4290,11 @@ body.simulation-log-fullscreen {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .optimizer-mode-toggle-row {
+    width: 100%;
+    grid-column: span 3;
+  }
+
   .recommendation-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -4468,6 +4511,11 @@ body.simulation-log-fullscreen {
   .actions {
     grid-template-columns: 1fr;
     gap: 6px;
+  }
+
+  .optimizer-mode-toggle-row {
+    grid-column: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .panel-head-tools,

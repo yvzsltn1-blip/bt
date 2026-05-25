@@ -1388,12 +1388,173 @@
     return candidates;
   }
 
+  function getTekilLossPriority(entry, stoneMode = false) {
+    const sourceLosses = stoneMode ? entry?.avgStoneAdjustedAllyLosses : entry?.avgAllyLosses;
+    let mask = 0;
+    let totalLoss = 0;
+    let overflow = 0;
+    let maxLoss = 0;
+    let activeCount = 0;
+
+    ALLY_UNITS.forEach((unit, index) => {
+      const roundedLoss = Math.max(0, Math.round(sourceLosses?.[unit.key] || 0));
+      if (roundedLoss > 0) {
+        mask |= (1 << index);
+        activeCount += 1;
+      }
+      totalLoss += roundedLoss;
+      overflow += Math.max(0, roundedLoss - 1);
+      maxLoss = Math.max(maxLoss, roundedLoss);
+    });
+
+    return {
+      mask,
+      totalLoss,
+      overflow,
+      maxLoss,
+      activeCount,
+      isBinary: overflow === 0
+    };
+  }
+
+  function buildTekilCandidates(availableAllyCounts, enemyCounts, maxPoints, options = {}) {
+    const orderedUnits = getStrategicUnitOrder(availableAllyCounts, enemyCounts);
+    if (orderedUnits.length === 0) {
+      return [];
+    }
+
+    const candidateCount = Math.max(0, options.count || 0);
+    if (candidateCount === 0) {
+      return [];
+    }
+
+    const random = createSeededRandom(options.seed || 1);
+    const minimumPoints = Math.max(0, Math.min(maxPoints, Math.max(options.minimumPoints || 0, Math.floor(maxPoints * 0.55))));
+    const availableUnits = ALLY_UNITS.filter((unit) => (availableAllyCounts[unit.key] || 0) > 0);
+    const knownSignatures = new Set(options.knownSignatures || []);
+    const candidateMap = new Map();
+    const reverseStrategicOrder = [...orderedUnits].reverse();
+    const masks = [];
+    const maxMask = 1 << ALLY_UNITS.length;
+
+    for (let activeCount = 1; activeCount <= ALLY_UNITS.length && masks.length < candidateCount * 4; activeCount += 1) {
+      for (let mask = 1; mask < maxMask && masks.length < candidateCount * 4; mask += 1) {
+        const bitCount = mask.toString(2).replace(/0/g, "").length;
+        if (bitCount === activeCount) {
+          masks.push(mask);
+        }
+      }
+    }
+
+    function addCandidate(sourceCounts, priorityUnits) {
+      if (candidateMap.size >= candidateCount) {
+        return;
+      }
+      const normalized = normalizeCandidateToPointLimit(sourceCounts, maxPoints);
+      const finalCandidate = calculateArmyPoints(normalized) < minimumPoints
+        ? fillCandidateToPointLimitByPriority(normalized, availableAllyCounts, maxPoints, priorityUnits)
+        : normalized;
+      const signature = getCountSignature(finalCandidate, ALLY_UNITS);
+      if (knownSignatures.has(signature)) {
+        return;
+      }
+      knownSignatures.add(signature);
+      candidateMap.set(signature, finalCandidate);
+    }
+
+    masks.forEach((mask, maskIndex) => {
+      if (candidateMap.size >= candidateCount) {
+        return;
+      }
+
+      const focusUnits = ALLY_UNITS.filter((unit, index) => ((mask >> index) & 1) === 1 && (availableAllyCounts[unit.key] || 0) > 0);
+      if (!focusUnits.length) {
+        return;
+      }
+
+      const focusOrder = [
+        ...focusUnits.sort((left, right) => getUnitStrategicScore(right, enemyCounts) - getUnitStrategicScore(left, enemyCounts)),
+        ...orderedUnits.filter((unit) => !focusUnits.some((candidate) => candidate.key === unit.key))
+      ];
+      const reverseFocusOrder = [
+        ...[...focusUnits].reverse(),
+        ...reverseStrategicOrder.filter((unit) => !focusUnits.some((candidate) => candidate.key === unit.key))
+      ];
+
+      const focused = createEmptyAllyCounts();
+      focusUnits.forEach((unit, unitIndex) => {
+        const max = Math.min(
+          availableAllyCounts[unit.key] || 0,
+          Math.floor(maxPoints / POINTS_BY_ALLY_KEY[unit.key])
+        );
+        if (max <= 0) {
+          return;
+        }
+        const ratio = focusUnits.length === 1
+          ? [1, 0.82, 0.64][maskIndex % 3]
+          : unitIndex === 0
+            ? Math.min(1, 0.56 + (maskIndex % 4) * 0.1)
+            : Math.min(1, 0.18 + ((unitIndex + maskIndex) % 3) * 0.14);
+        focused[unit.key] = Math.max(1, Math.floor(max * ratio));
+      });
+      addCandidate(focused, focusOrder);
+      addCandidate(focused, reverseFocusOrder);
+
+      const sparse = createEmptyAllyCounts();
+      focusUnits.forEach((unit, unitIndex) => {
+        const max = availableAllyCounts[unit.key] || 0;
+        if (max <= 0) {
+          return;
+        }
+        const target = unitIndex === 0
+          ? Math.max(1, Math.min(max, Math.ceil(max * 0.2)))
+          : Math.max(1, Math.min(max, Math.floor(max * 0.08)));
+        sparse[unit.key] = target;
+      });
+      addCandidate(sparse, focusOrder);
+
+      const hybrid = createEmptyAllyCounts();
+      shuffleUnits(focusUnits, random).forEach((unit, unitIndex) => {
+        const max = availableAllyCounts[unit.key] || 0;
+        if (max <= 0) {
+          return;
+        }
+        const ratio = unitIndex === 0 ? 0.45 + random() * 0.4 : 0.08 + random() * 0.28;
+        hybrid[unit.key] = Math.max(1, Math.floor(max * Math.min(ratio, 1)));
+      });
+      addCandidate(hybrid, maskIndex % 2 === 0 ? focusOrder : reverseFocusOrder);
+    });
+
+    const attempts = Math.max(candidateCount * 4, 36);
+    for (let attempt = 0; attempt < attempts && candidateMap.size < candidateCount; attempt += 1) {
+      const subsetSize = Math.max(1, Math.min(availableUnits.length, 1 + Math.floor(random() * Math.min(4, availableUnits.length))));
+      const subset = shuffleUnits(availableUnits, random).slice(0, subsetSize);
+      const priorityUnits = [
+        ...subset,
+        ...orderedUnits.filter((unit) => !subset.some((candidate) => candidate.key === unit.key))
+      ];
+      const candidate = createEmptyAllyCounts();
+      subset.forEach((unit, index) => {
+        const max = availableAllyCounts[unit.key] || 0;
+        if (max <= 0) {
+          return;
+        }
+        const ratio = index === 0 ? 0.58 + random() * 0.36 : 0.1 + random() * 0.34;
+        candidate[unit.key] = Math.max(1, Math.floor(max * Math.min(ratio, 1)));
+      });
+      addCandidate(candidate, attempt % 2 === 0 ? priorityUnits : [...priorityUnits].reverse());
+    }
+
+    return [...candidateMap.values()];
+  }
+
   function compareEvaluations(a, b, options = {}) {
     const objective = options.objective === "min_army" || options.objective === "safe_win"
       ? options.objective
       : "min_loss";
     const roundingMode = normalizeRoundingMode(options.roundingMode);
     const stoneMode = Boolean(options.stoneMode);
+    const tekilPriorityMode = Boolean(options.tekilMode || options.tekilV2Mode || options.tekilPriorityMode);
     const lossMetricKey = stoneMode ? "expectedStoneAdjustedLostBlood" : "expectedLostBlood";
     const lossUnitsMetricKey = stoneMode ? "expectedStoneAdjustedLostUnits" : "expectedLostUnits";
 
@@ -1401,6 +1562,12 @@
       return a.feasible ? -1 : 1;
     }
     if (a.feasible) {
+      if (tekilPriorityMode) {
+        const tekilPriorityDelta = compareTekilLossPriority(a, b, stoneMode);
+        if (tekilPriorityDelta !== 0) {
+          return tekilPriorityDelta;
+        }
+      }
       if (a.winRate !== b.winRate) {
         return b.winRate - a.winRate;
       }
@@ -1445,6 +1612,35 @@
       return a.avgEnemyRemainingUnits - b.avgEnemyRemainingUnits;
     }
     return a.signature.localeCompare(b.signature);
+  }
+
+  function compareTekilLossPriority(leftEntry, rightEntry, stoneMode = false) {
+    const left = getTekilLossPriority(leftEntry, stoneMode);
+    const right = getTekilLossPriority(rightEntry, stoneMode);
+    const leftTier = left.isBinary ? 0 : 1;
+    const rightTier = right.isBinary ? 0 : 1;
+
+    if (leftTier !== rightTier) {
+      return leftTier - rightTier;
+    }
+    if (left.isBinary && right.isBinary) {
+      if (left.activeCount !== right.activeCount) {
+        return left.activeCount - right.activeCount;
+      }
+      if (left.mask !== right.mask) {
+        return left.mask - right.mask;
+      }
+    }
+    if (left.overflow !== right.overflow) {
+      return left.overflow - right.overflow;
+    }
+    if (left.totalLoss !== right.totalLoss) {
+      return left.totalLoss - right.totalLoss;
+    }
+    if (left.maxLoss !== right.maxLoss) {
+      return left.maxLoss - right.maxLoss;
+    }
+    return left.mask - right.mask;
   }
 
   function buildMutationSteps(current, max) {
@@ -2042,10 +2238,16 @@
     const stabilityTrials = options.stabilityTrials || Math.max(fullArmyTrials, trialCount * 3);
     const baseSeed = options.baseSeed || 42042;
     const diversityMode = Boolean(options.diversityMode);
+    const tekilMode = Boolean(options.tekilMode);
+    const tekilV2Mode = Boolean(options.tekilV2Mode);
+    const tekilPriorityMode = tekilMode || tekilV2Mode;
     const knownSignatures = new Set(options.knownSignatures || []);
     const seedCandidates = Array.isArray(options.seedCandidates) ? options.seedCandidates : [];
     const diversityCandidateCount = diversityMode
       ? Math.max(18, options.diversityCandidateCount || beamWidth * 3)
+      : 0;
+    const tekilCandidateCount = tekilMode
+      ? Math.max(36, options.tekilCandidateCount || beamWidth * 4)
       : 0;
     const exploratoryCandidateCount = Math.max(60, options.exploratoryCandidateCount || beamWidth * 8);
     const exhaustiveCandidateLimit = Math.max(0, options.exhaustiveCandidateLimit || 0);
@@ -2053,7 +2255,7 @@
     const uniqueSignatures = new Set();
     let simulationRuns = 0;
     const initialCandidates = [];
-    const compareEntries = (left, right) => compareEvaluations(left, right, { objective, stoneMode });
+    const compareEntries = (left, right) => compareEvaluations(left, right, { objective, stoneMode, tekilMode, tekilV2Mode, tekilPriorityMode });
     const strategicOrder = getStrategicUnitOrder(availableAllyCounts, enemyCounts);
 
     function evaluationMeetsRequiredLosses(entry) {
@@ -2185,6 +2387,14 @@
         knownSignatures
       }));
     }
+    if (tekilMode) {
+      initialCandidates.push(...buildTekilCandidates(availableAllyCounts, enemyCounts, maxPoints, {
+        count: tekilCandidateCount,
+        seed: baseSeed + 29041,
+        minimumPoints: minimumSearchPoints,
+        knownSignatures
+      }));
+    }
 
     function evaluateCandidate(counts, localTrialCount = trialCount) {
       const effectiveCounts = toEffectiveCounts(counts);
@@ -2288,6 +2498,8 @@
         avgAllyLosses,
         avgStoneAdjustedAllyLosses,
         objective,
+        tekilMode,
+        tekilV2Mode,
         stoneMode,
         winningSeeds
       };
@@ -2429,6 +2641,8 @@
         avgStoneAdjustedAllyLosses: { ...(entry.avgStoneAdjustedAllyLosses || {}) },
         meetsRequiredLosses: entry.meetsRequiredLosses !== false,
         objective: entry.objective,
+        tekilMode: entry.tekilMode,
+        tekilV2Mode: entry.tekilV2Mode,
         stoneMode: entry.stoneMode,
         winningSeeds: [...(entry.winningSeeds || [])]
       };
@@ -2492,6 +2706,15 @@
           mutated.push(...getBroadNeighborCandidates(entry.searchCounts, availableAllyCounts, enemyCounts, maxPoints));
         }
       });
+      if (tekilMode) {
+        collectBestLossPatternEvaluations(Math.max(beamWidth, 8)).forEach((entry) => {
+          if (!entry?.searchCounts) {
+            return;
+          }
+          mutated.push(...getNeighborCandidates(entry.searchCounts, availableAllyCounts, maxPoints));
+          mutated.push(...getBroadNeighborCandidates(entry.searchCounts, availableAllyCounts, enemyCounts, maxPoints));
+        });
+      }
 
       // Crossover: en iyi beam uyelerinin parlak ozelliklerini birlestir.
       // Tek-aday mutasyonlarinin atlayamayacagi karisimlari uretir.

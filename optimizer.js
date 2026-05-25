@@ -41,6 +41,8 @@ const optimizerLogFullscreenBtn = document.querySelector("#optimizerLogFullscree
 const optimizerStatus = document.querySelector("#optimizerStatus");
 const optimizeBtn = document.querySelector("#optimizeBtn");
 const diversityModeBtn = document.querySelector("#diversityModeBtn");
+const tekilModeBtn = document.querySelector("#tekilModeBtn");
+const tekilV2ModeBtn = document.querySelector("#tekilV2ModeBtn");
 const optimizerBatchRunsInput = document.querySelector("#optimizerBatchRunsInput");
 const optimizerBatchRunBtn = document.querySelector("#optimizerBatchRunBtn");
 const stopOptimizerBtn = document.querySelector("#stopOptimizerBtn");
@@ -107,6 +109,8 @@ let optimizerObjective = "min_loss";
 let optimizerRoundingMode = loadStoredRoundingMode();
 var roundingMode = optimizerRoundingMode;
 let optimizerDiversityMode = false;
+let optimizerTekilMode = false;
+let optimizerTekilV2Mode = false;
 let optimizerStoneMode = false;
 let optimizerComparisonCache = new Map();
 let comparePanelOpen = false;
@@ -495,6 +499,8 @@ function openReliabilityForCounts(enemyCounts, allyCounts, context = {}) {
       objective: context.objective || "min_loss",
       roundingMode: normalizeRoundingMode(context.roundingMode),
       diversityMode: Boolean(context.diversityMode),
+      tekilMode: Boolean(context.tekilMode),
+      tekilV2Mode: Boolean(context.tekilV2Mode),
       stoneMode: Boolean(context.stoneMode),
       optimizerWinRate: Number.isFinite(context.optimizerWinRate) ? context.optimizerWinRate : null,
       optimizerDisplayedLoss: Number.isFinite(context.optimizerDisplayedLoss) ? context.optimizerDisplayedLoss : null,
@@ -526,6 +532,8 @@ function openReliabilityForCurrentCandidate() {
     objective: currentApprovedCandidate.objective,
     roundingMode: currentApprovedCandidate.roundingMode,
     diversityMode: currentApprovedCandidate.diversityMode,
+    tekilMode: currentApprovedCandidate.tekilMode,
+    tekilV2Mode: currentApprovedCandidate.tekilV2Mode,
     stoneMode: currentApprovedCandidate.stoneMode,
     optimizerWinRate: source.winRate,
     optimizerDisplayedLoss: getDisplayedLossValue(source),
@@ -654,6 +662,8 @@ void initializeApprovedStrategies();
 void initializeWrongReports();
 void bindAdminAuth();
 syncDiversityModeButton();
+syncTekilModeButton();
+syncTekilV2ModeButton();
 syncRoundingModeButtons();
 syncObjectiveSelect();
 syncSearchBandControls();
@@ -735,6 +745,32 @@ diversityModeBtn.addEventListener("click", () => {
   invalidateSearchSession();
   optimizerStatus.textContent = optimizerDiversityMode ? "Cesitlilik modu acildi" : "Cesitlilik modu kapatildi";
 });
+
+if (tekilModeBtn) {
+  tekilModeBtn.addEventListener("click", () => {
+    optimizerTekilMode = !optimizerTekilMode;
+    if (optimizerTekilMode) {
+      optimizerTekilV2Mode = false;
+    }
+    syncTekilModeButton();
+    syncTekilV2ModeButton();
+    invalidateSearchSession();
+    optimizerStatus.textContent = optimizerTekilMode ? "TekilMod acildi" : "TekilMod kapatildi";
+  });
+}
+
+if (tekilV2ModeBtn) {
+  tekilV2ModeBtn.addEventListener("click", () => {
+    optimizerTekilV2Mode = !optimizerTekilV2Mode;
+    if (optimizerTekilV2Mode) {
+      optimizerTekilMode = false;
+    }
+    syncTekilModeButton();
+    syncTekilV2ModeButton();
+    invalidateSearchSession();
+    optimizerStatus.textContent = optimizerTekilV2Mode ? "Tekil v2 acildi" : "Tekil v2 kapatildi";
+  });
+}
 
 if (lossConstraintToggleBtn) {
   lossConstraintToggleBtn.addEventListener("click", () => {
@@ -1128,6 +1164,8 @@ async function runOptimizerSearch(batchRuns) {
       objective: optimizerObjective,
       roundingMode: optimizerRoundingMode,
       diversityMode: optimizerDiversityMode,
+      tekilMode: optimizerTekilMode,
+      tekilV2Mode: optimizerTekilV2Mode,
       stoneMode: optimizerStoneMode
     });
     const searchKey = createSearchKey(
@@ -1141,6 +1179,8 @@ async function runOptimizerSearch(batchRuns) {
       optimizerMode,
       optimizerObjective,
       optimizerDiversityMode,
+      optimizerTekilMode,
+      optimizerTekilV2Mode,
       optimizerStoneMode,
       optimizerRoundingMode
     );
@@ -1165,7 +1205,7 @@ async function runOptimizerSearch(batchRuns) {
       }
       runIndex += 1;
       lastRunConfig = getObjectiveAdjustedRunConfig(
-        getRunConfig(stage, runIndex, optimizerMode, optimizerDiversityMode),
+        getRunConfig(stage, runIndex, optimizerMode, optimizerDiversityMode, optimizerTekilMode, optimizerTekilV2Mode),
         optimizerObjective
       );
       optimizerStatus.textContent = batchRuns === 1 ? "Hesapliyor" : `${batchRuns} tur araniyor (${step}/${batchRuns})`;
@@ -1191,9 +1231,12 @@ async function runOptimizerSearch(batchRuns) {
         roundingMode: optimizerRoundingMode,
         stoneMode: optimizerStoneMode,
         diversityMode: optimizerDiversityMode,
+        tekilMode: optimizerTekilMode,
+        tekilV2Mode: optimizerTekilV2Mode,
         exploratoryCandidateCount: lastRunConfig.exploratoryCandidateCount,
         exhaustiveCandidateLimit: lastRunConfig.exhaustiveCandidateLimit,
         diversityCandidateCount: lastRunConfig.diversityCandidateCount,
+        tekilCandidateCount: lastRunConfig.tekilCandidateCount,
         knownSignatures: [...uniqueSignatures],
         seedCandidates: continuing ? [] : incumbentSeedCandidates
       });
@@ -1231,6 +1274,8 @@ async function runOptimizerSearch(batchRuns) {
       mode: optimizerMode,
       objective: optimizerObjective,
       diversityMode: optimizerDiversityMode,
+      tekilMode: optimizerTekilMode,
+      tekilV2Mode: optimizerTekilV2Mode,
       stoneMode: optimizerStoneMode,
       topCandidates: mergeOptimizerCandidates([getPrimaryOptimizerSource(bestResult)], topCandidates, { limit: 24 })
         .map((entry) => ({ counts: { ...(entry?.counts || {}) } }))
@@ -1251,6 +1296,8 @@ async function runOptimizerSearch(batchRuns) {
       objective: optimizerObjective,
       roundingMode: optimizerRoundingMode,
       diversityMode: optimizerDiversityMode,
+      tekilMode: optimizerTekilMode,
+      tekilV2Mode: optimizerTekilV2Mode,
       stoneMode: optimizerStoneMode,
       requiredLossCounts,
       requiredLossExactFlags,
@@ -1317,6 +1364,8 @@ function getIncumbentSeedCandidates(context) {
     optimizerIncumbentContext.objective === context.objective &&
     optimizerIncumbentContext.roundingMode === context.roundingMode &&
     optimizerIncumbentContext.diversityMode === context.diversityMode &&
+    optimizerIncumbentContext.tekilMode === context.tekilMode &&
+    optimizerIncumbentContext.tekilV2Mode === context.tekilV2Mode &&
     optimizerIncumbentContext.stoneMode === context.stoneMode &&
     areSearchBandSettingsEqual(optimizerIncumbentContext.searchBandSettings, context.searchBandSettings) &&
     areMinimumRequiredCountsEqual(optimizerIncumbentContext.minimumRequiredCounts, context.minimumRequiredCounts) &&
@@ -1340,6 +1389,12 @@ function setOptimizerBusy(isBusy) {
   optimizerSampleBtn.disabled = isBusy;
   optimizerClearBtn.disabled = isBusy;
   diversityModeBtn.disabled = isBusy;
+  if (tekilModeBtn) {
+    tekilModeBtn.disabled = isBusy;
+  }
+  if (tekilV2ModeBtn) {
+    tekilV2ModeBtn.disabled = isBusy;
+  }
   if (optimizerBatchRunsInput) {
     optimizerBatchRunsInput.disabled = isBusy;
   }
@@ -1402,6 +1457,24 @@ function syncDiversityModeButton() {
   diversityModeBtn.classList.toggle("is-active", optimizerDiversityMode);
   diversityModeBtn.setAttribute("aria-pressed", optimizerDiversityMode ? "true" : "false");
   diversityModeBtn.textContent = optimizerDiversityMode ? "Cesitlilik Acik" : "Cesitlilik Modu";
+}
+
+function syncTekilModeButton() {
+  if (!tekilModeBtn) {
+    return;
+  }
+  tekilModeBtn.classList.toggle("is-active", optimizerTekilMode);
+  tekilModeBtn.setAttribute("aria-pressed", optimizerTekilMode ? "true" : "false");
+  tekilModeBtn.textContent = optimizerTekilMode ? "TekilMod Acik" : "TekilMod";
+}
+
+function syncTekilV2ModeButton() {
+  if (!tekilV2ModeBtn) {
+    return;
+  }
+  tekilV2ModeBtn.classList.toggle("is-active", optimizerTekilV2Mode);
+  tekilV2ModeBtn.setAttribute("aria-pressed", optimizerTekilV2Mode ? "true" : "false");
+  tekilV2ModeBtn.textContent = optimizerTekilV2Mode ? "Tekil v2 Acik" : "Tekil v2";
 }
 
 function syncAutoStageAdvanceToggle() {
@@ -1468,7 +1541,7 @@ function invalidateSearchSession() {
   renderFavoriteButtonState();
 }
 
-function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, mode, objective, diversityMode, stoneMode, roundingMode) {
+function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, mode, objective, diversityMode, tekilMode, tekilV2Mode, stoneMode, roundingMode) {
   return JSON.stringify({
     stage,
     enemy,
@@ -1481,11 +1554,13 @@ function createSearchKey(stage, enemy, allyPool, minimumRequiredCounts, required
     objective,
     roundingMode: normalizeRoundingMode(roundingMode),
     diversityMode: Boolean(diversityMode),
+    tekilMode: Boolean(tekilMode),
+    tekilV2Mode: Boolean(tekilV2Mode),
     stoneMode: Boolean(stoneMode)
   });
 }
 
-function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, mode, objective, stoneMode, roundingMode) {
+function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, requiredLossCounts, requiredLossExactFlags, searchBandSettings, mode, objective, tekilMode, tekilV2Mode, stoneMode, roundingMode) {
   return JSON.stringify({
     stage,
     enemy,
@@ -1497,6 +1572,8 @@ function createComparisonKey(stage, enemy, allyPool, minimumRequiredCounts, requ
     mode,
     objective,
     roundingMode: normalizeRoundingMode(roundingMode),
+    tekilMode: Boolean(tekilMode),
+    tekilV2Mode: Boolean(tekilV2Mode),
     stoneMode: Boolean(stoneMode)
   });
 }
@@ -1775,8 +1852,10 @@ function normalizeFavoriteStrategyEntry(entry, index) {
     objective: normalizeOptimizerObjective(entry.objective),
     roundingMode: normalizeRoundingMode(entry.roundingMode),
     diversityMode: Boolean(entry.diversityMode),
+    tekilMode: Boolean(entry.tekilMode),
+    tekilV2Mode: Boolean(entry.tekilV2Mode),
     stoneMode: Boolean(entry.stoneMode),
-    modeLabel: entry.modeLabel || getModeLabel(entry.mode || "balanced", normalizeOptimizerObjective(entry.objective), Boolean(entry.diversityMode), Boolean(entry.stoneMode), normalizeRoundingMode(entry.roundingMode)),
+    modeLabel: entry.modeLabel || getModeLabel(entry.mode || "balanced", normalizeOptimizerObjective(entry.objective), Boolean(entry.diversityMode), Boolean(entry.tekilMode), Boolean(entry.tekilV2Mode), Boolean(entry.stoneMode), normalizeRoundingMode(entry.roundingMode)),
     enemySignature,
     enemyRosterSignature,
     enemyTitle: entry.enemyTitle || buildEnemyTitle(enemyCounts),
@@ -1859,11 +1938,15 @@ function createFavoriteEntryFromRecommendationCounts(recommendationCounts, optio
     objective: normalizeOptimizerObjective(options.objective || currentApprovedCandidate?.objective),
     roundingMode: normalizeRoundingMode(options.roundingMode || currentApprovedCandidate?.roundingMode),
     diversityMode: Boolean(options.diversityMode ?? currentApprovedCandidate?.diversityMode),
+    tekilMode: Boolean(options.tekilMode ?? currentApprovedCandidate?.tekilMode),
+    tekilV2Mode: Boolean(options.tekilV2Mode ?? currentApprovedCandidate?.tekilV2Mode),
     stoneMode: Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode),
     modeLabel: options.modeLabel || getModeLabel(
       options.mode || currentApprovedCandidate?.mode || "balanced",
       normalizeOptimizerObjective(options.objective || currentApprovedCandidate?.objective),
       Boolean(options.diversityMode ?? currentApprovedCandidate?.diversityMode),
+      Boolean(options.tekilMode ?? currentApprovedCandidate?.tekilMode),
+      Boolean(options.tekilV2Mode ?? currentApprovedCandidate?.tekilV2Mode),
       Boolean(options.stoneMode ?? currentApprovedCandidate?.stoneMode),
       normalizeRoundingMode(options.roundingMode || currentApprovedCandidate?.roundingMode)
     ),
@@ -1905,6 +1988,8 @@ function createFavoriteEntryFromCurrentRecommendation() {
     objective: normalizeOptimizerObjective(currentApprovedCandidate.objective),
     roundingMode: normalizeRoundingMode(currentApprovedCandidate.roundingMode),
     diversityMode: Boolean(currentApprovedCandidate.diversityMode),
+    tekilMode: Boolean(currentApprovedCandidate.tekilMode),
+    tekilV2Mode: Boolean(currentApprovedCandidate.tekilV2Mode),
     stoneMode: Boolean(currentApprovedCandidate.stoneMode),
     usedPoints: Math.round(recommendation.avgUsedPoints || 0),
     lostBlood: Number.isFinite(getDisplayedLossValue(recommendation)) ? Math.round(getDisplayedLossValue(recommendation)) : 0,
@@ -2200,6 +2285,8 @@ function createTopResultFavoriteButton(entry) {
     mode: currentTopResultsContext?.mode || currentApprovedCandidate?.mode || "balanced",
     objective: normalizeOptimizerObjective(currentTopResultsContext?.objective || currentApprovedCandidate?.objective),
     diversityMode: Boolean(currentTopResultsContext?.diversityMode ?? currentApprovedCandidate?.diversityMode),
+    tekilMode: Boolean(currentTopResultsContext?.tekilMode ?? currentApprovedCandidate?.tekilMode),
+    tekilV2Mode: Boolean(currentTopResultsContext?.tekilV2Mode ?? currentApprovedCandidate?.tekilV2Mode),
     stoneMode: Boolean(entry.stoneMode ?? currentTopResultsContext?.stoneMode ?? currentApprovedCandidate?.stoneMode),
     usedPoints: Math.round(entry.avgUsedPoints || 0),
     lostBlood: Number.isFinite(getDisplayedLossValue(entry)) ? Math.round(getDisplayedLossValue(entry)) : 0,
@@ -2251,7 +2338,7 @@ function createTopResultFavoriteButton(entry) {
   return button;
 }
 
-function getRunConfig(stage, runIndex, mode, diversityMode = false) {
+function getRunConfig(stage, runIndex, mode, diversityMode = false, tekilMode = false, tekilV2Mode = false) {
   const presets = {
     fast: {
       trialStart: 4,
@@ -2313,26 +2400,93 @@ function getRunConfig(stage, runIndex, mode, diversityMode = false) {
   };
 
   const preset = presets[mode] || presets.balanced;
-  const trialCount = Math.min(preset.trialStart + (runIndex - 1) * preset.trialStep, preset.trialMax);
-  const fullArmyTrials = Math.min(preset.fullStart + (runIndex - 1) * preset.fullStep, preset.fullMax);
-  const beamWidth = Math.min(preset.beamStart + (runIndex - 1) * preset.beamStep, preset.beamMax);
+  const tekilSearchMode = tekilMode && !tekilV2Mode;
+  const tekilBeamBoost = tekilSearchMode ? Math.max(2, Math.ceil(preset.beamStart * 0.3)) : 0;
+  const tekilTrialBoost = tekilSearchMode ? 1 : 0;
+  const trialCount = Math.min(preset.trialStart + (runIndex - 1) * preset.trialStep + tekilTrialBoost, preset.trialMax + tekilTrialBoost * 2);
+  const fullArmyTrials = Math.min(preset.fullStart + (runIndex - 1) * preset.fullStep + (tekilSearchMode ? 2 : 0), preset.fullMax + (tekilSearchMode ? 6 : 0));
+  const beamWidth = Math.min(preset.beamStart + (runIndex - 1) * preset.beamStep + tekilBeamBoost, preset.beamMax + (tekilSearchMode ? 8 : 0));
   return {
     trialCount,
     fullArmyTrials,
     beamWidth,
-    maxIterations: Math.min(preset.iterStart + (runIndex - 1) * preset.iterStep, preset.iterMax),
-    eliteCount: preset.eliteCount,
-    stabilityTrials: Math.max(fullArmyTrials, trialCount * preset.stabilityMultiplier),
-    exploratoryCandidateCount: Math.min(Math.max(60, beamWidth * preset.exploratoryMultiplier), 640),
-    exhaustiveCandidateLimit: preset.exhaustiveLimit,
+    maxIterations: Math.min(preset.iterStart + (runIndex - 1) * preset.iterStep + (tekilSearchMode ? 1 : 0), preset.iterMax + (tekilSearchMode ? 2 : 0)),
+    eliteCount: preset.eliteCount + (tekilSearchMode ? 2 : 0),
+    stabilityTrials: Math.max(fullArmyTrials, trialCount * (preset.stabilityMultiplier + (tekilSearchMode ? 1 : 0))),
+    exploratoryCandidateCount: Math.min(Math.max(60, Math.floor(beamWidth * preset.exploratoryMultiplier * (tekilSearchMode ? 1.35 : 1))), tekilSearchMode ? 880 : 640),
+    exhaustiveCandidateLimit: tekilSearchMode ? Math.round(preset.exhaustiveLimit * 1.5) : preset.exhaustiveLimit,
     diversityCandidateCount: diversityMode
       ? Math.min(
         Math.max(24, Math.floor((beamWidth || 0) * 3)),
         144
       )
       : 0,
-    baseSeed: 41017 + stage * 31 + runIndex * 7919 + preset.seedOffset + (diversityMode ? 170003 : 0)
+    tekilCandidateCount: tekilSearchMode
+      ? Math.min(
+        Math.max(48, Math.floor((beamWidth || 0) * 5)),
+        240
+      )
+      : 0,
+    baseSeed: 41017 + stage * 31 + runIndex * 7919 + preset.seedOffset + (diversityMode ? 170003 : 0) + (tekilSearchMode ? 290009 : 0)
   };
+}
+
+function getTekilOptimizerLossPriority(entry, stoneMode = false) {
+  const sourceLosses = stoneMode ? entry?.avgStoneAdjustedAllyLosses : entry?.avgAllyLosses;
+  let mask = 0;
+  let totalLoss = 0;
+  let overflow = 0;
+  let maxLoss = 0;
+  let activeCount = 0;
+
+  ALLY_UNITS.forEach((unit, index) => {
+    const roundedLoss = Math.max(0, Math.round(sourceLosses?.[unit.key] || 0));
+    if (roundedLoss > 0) {
+      mask |= (1 << index);
+      activeCount += 1;
+    }
+    totalLoss += roundedLoss;
+    overflow += Math.max(0, roundedLoss - 1);
+    maxLoss = Math.max(maxLoss, roundedLoss);
+  });
+
+  return {
+    mask,
+    totalLoss,
+    overflow,
+    maxLoss,
+    activeCount,
+    isBinary: overflow === 0
+  };
+}
+
+function compareTekilOptimizerPriority(leftEntry, rightEntry, stoneMode = false) {
+  const left = getTekilOptimizerLossPriority(leftEntry, stoneMode);
+  const right = getTekilOptimizerLossPriority(rightEntry, stoneMode);
+  const leftTier = left.isBinary ? 0 : 1;
+  const rightTier = right.isBinary ? 0 : 1;
+
+  if (leftTier !== rightTier) {
+    return leftTier - rightTier;
+  }
+  if (left.isBinary && right.isBinary) {
+    if (left.activeCount !== right.activeCount) {
+      return left.activeCount - right.activeCount;
+    }
+    if (left.mask !== right.mask) {
+      return left.mask - right.mask;
+    }
+  }
+  if (left.overflow !== right.overflow) {
+    return left.overflow - right.overflow;
+  }
+  if (left.totalLoss !== right.totalLoss) {
+    return left.totalLoss - right.totalLoss;
+  }
+  if (left.maxLoss !== right.maxLoss) {
+    return left.maxLoss - right.maxLoss;
+  }
+  return left.mask - right.mask;
 }
 
 function pickBetterOptimizerResult(left, right) {
@@ -2356,6 +2510,13 @@ function pickBetterOptimizerResult(left, right) {
   }
 
   if (left.possible) {
+    const tekilPriorityMode = Boolean(rightSource?.tekilMode || leftSource?.tekilMode || rightSource?.tekilV2Mode || leftSource?.tekilV2Mode);
+    if (tekilPriorityMode) {
+      const tekilPriorityDelta = compareTekilOptimizerPriority(leftSource, rightSource, stoneMode);
+      if (tekilPriorityDelta !== 0) {
+        return tekilPriorityDelta <= 0 ? left : right;
+      }
+    }
     if (leftSource.winRate !== rightSource.winRate) {
       return leftSource.winRate > rightSource.winRate ? left : right;
     }
@@ -3281,7 +3442,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   const searchBandSettings = normalizeSearchBandSettings(meta.searchBandSettings);
   const lossRangeSummary = source ? formatOptimizerLossRangeSummary(source) : null;
   const progressLines = [
-    `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode, meta.roundingMode)}`,
+    `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.tekilMode, meta.tekilV2Mode, meta.stoneMode, meta.roundingMode)}`,
     `- arama bandi: ${formatSearchBandSummary(maxPoints, searchBandSettings)}`,
     ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),
     ...(activeRequiredLossEntries.length ? [`- kayip hedefi: ${formatRequiredLossRequirements(activeRequiredLossEntries, 6)}`] : []),
@@ -3322,6 +3483,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       objective: meta.objective,
       roundingMode: meta.roundingMode,
       diversityMode: meta.diversityMode,
+      tekilMode: meta.tekilMode,
+      tekilV2Mode: meta.tekilV2Mode,
       stoneMode: meta.stoneMode,
       searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
       enemyCounts: collectCounts(ENEMY_UNITS),
@@ -3338,6 +3501,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       objective: meta.objective,
       roundingMode: meta.roundingMode,
       diversityMode: meta.diversityMode,
+      tekilMode: meta.tekilMode,
+      tekilV2Mode: meta.tekilV2Mode,
       stoneMode: meta.stoneMode,
       searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
       enemyCounts: collectCounts(ENEMY_UNITS),
@@ -3407,6 +3572,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     objective: meta.objective,
     roundingMode: meta.roundingMode,
     diversityMode: meta.diversityMode,
+    tekilMode: meta.tekilMode,
+    tekilV2Mode: meta.tekilV2Mode,
     stoneMode: meta.stoneMode,
     searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
     enemyCounts,
@@ -3425,6 +3592,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     objective: meta.objective,
     roundingMode: meta.roundingMode,
     diversityMode: meta.diversityMode,
+    tekilMode: meta.tekilMode,
+    tekilV2Mode: meta.tekilV2Mode,
     stoneMode: meta.stoneMode,
     searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
     enemyCounts,
@@ -3491,6 +3660,8 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
     searchBandSettings,
     meta.mode,
     meta.objective,
+    meta.tekilMode,
+    meta.tekilV2Mode,
     meta.stoneMode,
     meta.roundingMode
   );
@@ -3499,6 +3670,8 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
     stage,
     mode: meta.mode,
     objective: meta.objective,
+    tekilMode: meta.tekilMode,
+    tekilV2Mode: meta.tekilV2Mode,
     roundingMode: meta.roundingMode,
     stoneMode: meta.stoneMode,
     maxPoints,
@@ -3518,6 +3691,8 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
   entry.stage = stage;
   entry.mode = meta.mode;
   entry.objective = meta.objective;
+  entry.tekilMode = meta.tekilMode;
+  entry.tekilV2Mode = meta.tekilV2Mode;
   entry.roundingMode = meta.roundingMode;
   entry.stoneMode = meta.stoneMode;
   entry.maxPoints = maxPoints;
@@ -3534,8 +3709,8 @@ function cacheComparisonResult(stage, enemyCounts, allyPool, maxPoints, result, 
 
 function createComparisonSnapshot(source, meta) {
   return {
-    label: meta.diversityMode ? "Cesitlilik" : "Standart",
-    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode, meta.roundingMode),
+    label: getOptimizerFlavorLabel(meta.diversityMode, meta.tekilMode, meta.tekilV2Mode),
+    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.tekilMode, meta.tekilV2Mode, meta.stoneMode, meta.roundingMode),
     feasible: Boolean(source.feasible),
     winRate: source.winRate || 0,
     expectedLostBlood: Number.isFinite(source.expectedLostBlood) ? source.expectedLostBlood : null,
@@ -3595,6 +3770,8 @@ function getCurrentComparisonEntry() {
     searchBandSettings,
     optimizerMode,
     optimizerObjective,
+    optimizerTekilMode,
+    optimizerTekilV2Mode,
     optimizerStoneMode,
     optimizerRoundingMode
   );
@@ -5057,6 +5234,8 @@ function renderRecommendationCards(result, maxPoints, meta) {
             objective: meta.objective,
             roundingMode: meta.roundingMode,
             diversityMode: meta.diversityMode,
+            tekilMode: meta.tekilMode,
+            tekilV2Mode: meta.tekilV2Mode,
             stoneMode: meta.stoneMode,
             enemyCounts,
             result: nextResult,
@@ -5408,13 +5587,38 @@ function getObjectiveLabel(objective) {
   return "En Az Kayipla Kazan";
 }
 
-function getModeLabel(mode, objective = "min_loss", diversityMode = false, stoneMode = false, roundingMode = "safe") {
+function getOptimizerFlavorLabel(diversityMode = false, tekilMode = false, tekilV2Mode = false) {
+  if (diversityMode && tekilMode) {
+    return "Cesitlilik + Tekil";
+  }
+  if (diversityMode && tekilV2Mode) {
+    return "Cesitlilik + Tekil v2";
+  }
+  if (diversityMode) {
+    return "Cesitlilik";
+  }
+  if (tekilMode) {
+    return "TekilMod";
+  }
+  if (tekilV2Mode) {
+    return "Tekil v2";
+  }
+  return "Standart";
+}
+
+function getModeLabel(mode, objective = "min_loss", diversityMode = false, tekilMode = false, tekilV2Mode = false, stoneMode = false, roundingMode = "safe") {
   const parts = [getSearchModeLabel(mode), getObjectiveLabel(objective), getRoundingModeLabel(roundingMode)];
   if (stoneMode) {
     parts.push("Tasli");
   }
   if (diversityMode) {
     parts.push("Cesitlilik");
+  }
+  if (tekilMode) {
+    parts.push("TekilMod");
+  }
+  if (tekilV2Mode) {
+    parts.push("Tekil v2");
   }
   return parts.join(" / ");
 }
@@ -5438,9 +5642,20 @@ function createSavedEntry(candidate) {
     sourceLabel: "Optimizer",
     savedAt: new Date().toISOString(),
     stage: candidate.stage,
+    mode: candidate.mode || "balanced",
+    objective: normalizeOptimizerObjective(candidate.objective),
+    roundingMode: normalizeRoundingMode(candidate.roundingMode),
+    diversityMode: Boolean(candidate.diversityMode),
+    tekilMode: Boolean(candidate.tekilMode),
+    tekilV2Mode: Boolean(candidate.tekilV2Mode),
+    stoneMode: Boolean(candidate.stoneMode),
+    modeLabel: getModeLabel(candidate.mode || "balanced", normalizeOptimizerObjective(candidate.objective), Boolean(candidate.diversityMode), Boolean(candidate.tekilMode), Boolean(candidate.tekilV2Mode), Boolean(candidate.stoneMode), normalizeRoundingMode(candidate.roundingMode)),
     enemyTitle: enemyTitle || "Versus",
     enemyCounts: candidate.enemyCounts,
+    allyPool: candidate.allyPool,
     allyCounts: recommendation.counts,
+    minimumRequiredCounts: candidate.minimumRequiredCounts,
+    searchBandSettings: normalizeSearchBandSettings(candidate.searchBandSettings),
     matchSignature,
     variantSignature: "optimizer",
     representativeSeed: Number.isInteger(sampleBattle?.seed) ? sampleBattle.seed : undefined,
@@ -5469,8 +5684,10 @@ function createWrongReportEntry(result, stage, maxPoints, meta, summaryText, log
     objective: meta.objective,
     roundingMode: meta.roundingMode,
     diversityMode: Boolean(meta.diversityMode),
+    tekilMode: Boolean(meta.tekilMode),
+    tekilV2Mode: Boolean(meta.tekilV2Mode),
     stoneMode: Boolean(meta.stoneMode),
-    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.stoneMode, meta.roundingMode),
+    modeLabel: getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.tekilMode, meta.tekilV2Mode, meta.stoneMode, meta.roundingMode),
     enemyCounts,
     allyCounts,
     seed: Number.isInteger(sampleBattle?.seed) ? sampleBattle.seed : undefined,
@@ -5888,12 +6105,19 @@ function restoreFromQuery() {
   optimizerObjective = normalizeOptimizerObjective(item.objective);
   setOptimizerRoundingMode(item.roundingMode || optimizerRoundingMode);
   optimizerDiversityMode = Boolean(item.diversityMode);
+  optimizerTekilMode = Boolean(item.tekilMode);
+  optimizerTekilV2Mode = Boolean(item.tekilV2Mode);
+  if (optimizerTekilMode && optimizerTekilV2Mode) {
+    optimizerTekilV2Mode = false;
+  }
   optimizerStoneMode = false;
   applySearchBandSettings(item.searchBandSettings || { mode: "tight75" });
   modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
   syncRoundingModeButtons();
   syncObjectiveSelect();
   syncDiversityModeButton();
+  syncTekilModeButton();
+  syncTekilV2ModeButton();
   optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
 }
 

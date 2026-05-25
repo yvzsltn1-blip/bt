@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260513-01">
+  <link rel="stylesheet" href="styles.css?v=20260525-02">
 </head>
 <body class="site-gate-pending">
   <div class="page-shell">
@@ -66,6 +66,79 @@
             <button id="skillDiscount30Toggle" class="skill-toggle" type="button" aria-pressed="false" aria-label="Yuzde 30 skill indirimi ac kapa"></button>
           </section>
         </div>
+
+        <section class="skill-breakdown-card skill-gold-planner-card">
+          <div class="panel-head">
+            <h2>Altin Planlayici</h2>
+            <p>Tek skill odagi veya coklu skill dagitimi icin eldeki altinla ulasilacak seviyeleri ayni kutuda gor.</p>
+          </div>
+
+          <div class="skill-input-grid">
+            <label class="skill-field">
+              <span class="skill-field-label">Guc</span>
+              <span class="skill-input-shell">
+                <input id="plannerStrengthInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="500">
+                <span class="skill-input-unit">skill</span>
+              </span>
+            </label>
+            <label class="skill-field">
+              <span class="skill-field-label">Savunma</span>
+              <span class="skill-input-shell">
+                <input id="plannerDefenseInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="500">
+                <span class="skill-input-unit">skill</span>
+              </span>
+            </label>
+            <label class="skill-field">
+              <span class="skill-field-label">Beceri</span>
+              <span class="skill-input-shell">
+                <input id="plannerDexterityInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="500">
+                <span class="skill-input-unit">skill</span>
+              </span>
+            </label>
+            <label class="skill-field">
+              <span class="skill-field-label">Dayaniklilik</span>
+              <span class="skill-input-shell">
+                <input id="plannerEnduranceInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="500">
+                <span class="skill-input-unit">skill</span>
+              </span>
+            </label>
+            <label class="skill-field">
+              <span class="skill-field-label">Karizma</span>
+              <span class="skill-input-shell">
+                <input id="plannerCharismaInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="500">
+                <span class="skill-input-unit">skill</span>
+              </span>
+            </label>
+            <label class="skill-field">
+              <span class="skill-field-label">Toplam Altin</span>
+              <span class="skill-input-shell">
+                <input id="plannerGoldInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="500000000">
+                <span class="skill-input-unit">altin</span>
+              </span>
+            </label>
+          </div>
+
+          <div>
+            <div class="panel-head">
+              <h2>Plan Skillleri</h2>
+              <p>Tek skill secer ve tum altini oraya yuklersen odakli sonuc; birden fazla secersen dagitim plani olusur.</p>
+            </div>
+            <div id="plannerSkillGrid" class="skill-chip-grid" aria-label="Altin plani skill secimi"></div>
+          </div>
+
+          <div class="skill-strategy-switch">
+            <button id="plannerEqualBtn" class="button button-secondary" type="button">Esit Dagit</button>
+            <button id="plannerOptimalBtn" class="button button-secondary is-active" type="button">Optimum Dagit</button>
+          </div>
+
+          <div class="skill-multi-preset-row">
+            <button id="plannerPresetAllBtn" class="button button-secondary" type="button">Tumu</button>
+            <button id="plannerPresetFightBtn" class="button button-secondary" type="button">Guc + Beceri</button>
+            <button id="plannerPresetWarriorBtn" class="button button-secondary" type="button">Savasci</button>
+            <button id="plannerPresetTankBtn" class="button button-secondary" type="button">Tank</button>
+            <button id="plannerResetBtn" class="button button-ghost" type="button">Sifirla</button>
+          </div>
+        </section>
 
         <section id="singleSkillSection" class="skill-section skill-form-block">
           <div id="singleSkillGrid" class="skill-chip-grid" aria-label="Skill secimi"></div>
@@ -178,6 +251,8 @@
 
         <section id="skillSummaryPanel" class="skill-output-stack"></section>
 
+        <section id="skillGoldPlannerSummary" class="skill-output-stack"></section>
+
         <section class="skill-note-card">
           <h3 class="skill-note-title">Not</h3>
           <p class="skill-note-copy">Optimum dagitim modu her adimda en ucuz siradaki skill puanini basar. Oyun sunucusunda farkli yuvarlama varsa ufak farklar gorulebilir.</p>
@@ -187,6 +262,6 @@
   </div>
 
   <script src="site-gate.js?v=20260502-02" defer></script>
-  <script src="skill.js?v=20260513-01" defer></script>
+  <script src="skill.js?v=20260525-02" defer></script>
 </body>
 </html>

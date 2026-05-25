@@ -11,7 +11,9 @@ const skillCalcState = {
   selectedSkill: "strength",
   activeDiscount: "none",
   strategy: "equal",
-  selectedMultiSkills: new Set(SKILL_CALC_SKILLS.map((skill) => skill.key))
+  selectedMultiSkills: new Set(SKILL_CALC_SKILLS.map((skill) => skill.key)),
+  plannerStrategy: "optimal",
+  selectedPlannerSkills: new Set(SKILL_CALC_SKILLS.map((skill) => skill.key))
 };
 
 const skillCalcElements = {
@@ -48,7 +50,22 @@ const skillCalcElements = {
   multiDexterityInput: document.getElementById("multiDexterityInput"),
   multiEnduranceInput: document.getElementById("multiEnduranceInput"),
   multiCharismaInput: document.getElementById("multiCharismaInput"),
-  multiGoldInput: document.getElementById("multiGoldInput")
+  multiGoldInput: document.getElementById("multiGoldInput"),
+  plannerSkillGrid: document.getElementById("plannerSkillGrid"),
+  plannerSummaryPanel: document.getElementById("skillGoldPlannerSummary"),
+  plannerEqualBtn: document.getElementById("plannerEqualBtn"),
+  plannerOptimalBtn: document.getElementById("plannerOptimalBtn"),
+  plannerPresetAllBtn: document.getElementById("plannerPresetAllBtn"),
+  plannerPresetFightBtn: document.getElementById("plannerPresetFightBtn"),
+  plannerPresetWarriorBtn: document.getElementById("plannerPresetWarriorBtn"),
+  plannerPresetTankBtn: document.getElementById("plannerPresetTankBtn"),
+  plannerResetBtn: document.getElementById("plannerResetBtn"),
+  plannerStrengthInput: document.getElementById("plannerStrengthInput"),
+  plannerDefenseInput: document.getElementById("plannerDefenseInput"),
+  plannerDexterityInput: document.getElementById("plannerDexterityInput"),
+  plannerEnduranceInput: document.getElementById("plannerEnduranceInput"),
+  plannerCharismaInput: document.getElementById("plannerCharismaInput"),
+  plannerGoldInput: document.getElementById("plannerGoldInput")
 };
 
 function skillCalcFormat(value) {
@@ -122,18 +139,38 @@ function skillCalcBuyWithBudget(startLevel, goldBudget, multiplier = skillCalcGe
   };
 }
 
-function skillCalcGetMultiValues() {
+function skillCalcGetValuesFromInputs(inputs) {
   return {
-    strength: skillCalcCleanNumber(skillCalcElements.multiStrengthInput.value),
-    defense: skillCalcCleanNumber(skillCalcElements.multiDefenseInput.value),
-    dexterity: skillCalcCleanNumber(skillCalcElements.multiDexterityInput.value),
-    endurance: skillCalcCleanNumber(skillCalcElements.multiEnduranceInput.value),
-    charisma: skillCalcCleanNumber(skillCalcElements.multiCharismaInput.value)
+    strength: skillCalcCleanNumber(inputs.strength.value),
+    defense: skillCalcCleanNumber(inputs.defense.value),
+    dexterity: skillCalcCleanNumber(inputs.dexterity.value),
+    endurance: skillCalcCleanNumber(inputs.endurance.value),
+    charisma: skillCalcCleanNumber(inputs.charisma.value)
   };
 }
 
-function skillCalcEqualDistribution(values, goldBudget) {
-  const selectedKeys = [...skillCalcState.selectedMultiSkills];
+function skillCalcGetMultiValues() {
+  return skillCalcGetValuesFromInputs({
+    strength: skillCalcElements.multiStrengthInput,
+    defense: skillCalcElements.multiDefenseInput,
+    dexterity: skillCalcElements.multiDexterityInput,
+    endurance: skillCalcElements.multiEnduranceInput,
+    charisma: skillCalcElements.multiCharismaInput
+  });
+}
+
+function skillCalcGetPlannerValues() {
+  return skillCalcGetValuesFromInputs({
+    strength: skillCalcElements.plannerStrengthInput,
+    defense: skillCalcElements.plannerDefenseInput,
+    dexterity: skillCalcElements.plannerDexterityInput,
+    endurance: skillCalcElements.plannerEnduranceInput,
+    charisma: skillCalcElements.plannerCharismaInput
+  });
+}
+
+function skillCalcEqualDistribution(values, goldBudget, selectedKeysSource = skillCalcState.selectedMultiSkills) {
+  const selectedKeys = Array.isArray(selectedKeysSource) ? selectedKeysSource : [...selectedKeysSource];
   const share = selectedKeys.length ? Math.floor(goldBudget / selectedKeys.length) : 0;
   const splitRemainder = selectedKeys.length ? goldBudget - share * selectedKeys.length : goldBudget;
 
@@ -144,12 +181,14 @@ function skillCalcEqualDistribution(values, goldBudget) {
       ...skill,
       selected,
       startLevel: values[skill.key],
+      nextCost: skillCalcCost(result.finalLevel),
       ...result
     };
   });
 
   return {
     rows,
+    selectedCount: selectedKeys.length,
     share,
     spentGold: rows.reduce((sum, row) => sum + row.spentGold, 0),
     gainedLevels: rows.reduce((sum, row) => sum + row.gainedLevels, 0),
@@ -157,11 +196,13 @@ function skillCalcEqualDistribution(values, goldBudget) {
   };
 }
 
-function skillCalcOptimalDistribution(values, goldBudget) {
+function skillCalcOptimalDistribution(values, goldBudget, selectedKeysSource = skillCalcState.selectedMultiSkills) {
+  const selectedKeys = Array.isArray(selectedKeysSource) ? new Set(selectedKeysSource) : new Set(selectedKeysSource);
   let remainingGold = Math.max(0, skillCalcCleanNumber(goldBudget));
+  const steps = [];
   const rows = SKILL_CALC_SKILLS.map((skill) => ({
     ...skill,
-    selected: skillCalcState.selectedMultiSkills.has(skill.key),
+    selected: selectedKeys.has(skill.key),
     startLevel: values[skill.key],
     finalLevel: Math.max(5, values[skill.key]),
     spentGold: 0,
@@ -180,6 +221,13 @@ function skillCalcOptimalDistribution(values, goldBudget) {
     }
 
     const row = rows.find((item) => item.key === candidate.key);
+    steps.push({
+      key: row.key,
+      label: row.label,
+      from: row.finalLevel,
+      to: row.finalLevel + 1,
+      cost: candidate.nextCost
+    });
     row.finalLevel += 1;
     row.spentGold += candidate.nextCost;
     row.gainedLevels += 1;
@@ -187,12 +235,18 @@ function skillCalcOptimalDistribution(values, goldBudget) {
     safetyCounter += 1;
   }
 
+  rows.forEach((row) => {
+    row.nextCost = skillCalcCost(row.finalLevel);
+  });
+
   return {
     rows,
+    selectedCount: [...selectedKeys].length,
     share: 0,
     spentGold: rows.reduce((sum, row) => sum + row.spentGold, 0),
     gainedLevels: rows.reduce((sum, row) => sum + row.gainedLevels, 0),
-    remainingGold
+    remainingGold,
+    steps
   };
 }
 
@@ -213,6 +267,17 @@ function skillCalcBreakdownRow(label, value) {
       <strong>${value}</strong>
     </div>
   `;
+}
+
+function skillCalcBadge(label) {
+  return `<span class="skill-plan-badge">${label}</span>`;
+}
+
+function skillCalcGetSelectionModeLabel(selectedCount, strategy) {
+  if (selectedCount <= 1) {
+    return "Tek Skill Odagi";
+  }
+  return strategy === "equal" ? "Esit Dagit" : "Optimum Dagit";
 }
 
 function skillCalcRenderSkillButtons(container, selectedKeys, isMultiMode) {
@@ -324,12 +389,82 @@ function skillCalcRenderMultiResults() {
   `;
 }
 
+function skillCalcRenderPlannerResults() {
+  const values = skillCalcGetPlannerValues();
+  const goldBudget = skillCalcCleanNumber(skillCalcElements.plannerGoldInput.value);
+  const selectedKeys = [...skillCalcState.selectedPlannerSkills];
+
+  if (!selectedKeys.length) {
+    skillCalcElements.plannerSummaryPanel.innerHTML = `
+      <section class="skill-breakdown-card">
+        <h3 class="skill-note-title">Altin Plani</h3>
+        <p class="skill-empty">Altini dagitmak icin en az bir skill sec.</p>
+      </section>
+    `;
+    return;
+  }
+
+  const result = skillCalcState.plannerStrategy === "equal"
+    ? skillCalcEqualDistribution(values, goldBudget, selectedKeys)
+    : skillCalcOptimalDistribution(values, goldBudget, selectedKeys);
+  const selectedRows = result.rows.filter((row) => row.selected);
+  const highestRow = [...selectedRows].sort((left, right) => right.finalLevel - left.finalLevel)[0] || null;
+  const planModeLabel = skillCalcGetSelectionModeLabel(selectedKeys.length, skillCalcState.plannerStrategy);
+  const previewSteps = skillCalcState.plannerStrategy === "optimal"
+    ? (result.steps || []).slice(0, 8)
+    : selectedRows.flatMap((row) => row.steps.slice(0, 2).map((step) => ({
+      label: row.label,
+      from: step.from,
+      to: step.to,
+      cost: step.cost
+    }))).slice(0, 8);
+  const detailRows = selectedRows.map((row) => (
+    skillCalcBreakdownRow(
+      `${row.label}: ${skillCalcFormat(row.startLevel)} -> ${skillCalcFormat(row.finalLevel)}`,
+      `+${skillCalcFormat(row.gainedLevels)} / ${skillCalcFormat(row.spentGold)} altin / sonraki ${skillCalcFormat(row.nextCost)}`
+    )
+  )).join("");
+  const stepRows = previewSteps.map((step, index) => (
+    skillCalcBreakdownRow(
+      `${index + 1}. ${step.label}: ${skillCalcFormat(step.from)} -> ${skillCalcFormat(step.to)}`,
+      `${skillCalcFormat(step.cost)} altin`
+    )
+  )).join("");
+
+  skillCalcElements.plannerSummaryPanel.innerHTML = `
+    <div class="skill-summary-grid">
+      ${skillCalcSummaryCard("Toplam Artis", `+${skillCalcFormat(result.gainedLevels)}`, `${skillCalcFormat(goldBudget)} altin ile secili skilllere eklenen toplam puan`)}
+      ${skillCalcSummaryCard("Plan Tipi", planModeLabel, `${selectedKeys.length === 1 ? "Tum altin tek skill'e yukleniyor." : skillCalcState.plannerStrategy === "equal" ? `Skill basi pay: ${skillCalcFormat(result.share)} altin` : "Her turda en ucuz puan satin alinir."}`)}
+      ${skillCalcSummaryCard("Lider Sonuc", highestRow ? `${highestRow.label} ${skillCalcFormat(highestRow.finalLevel)}` : "-", `Harcanan ${skillCalcFormat(result.spentGold)} / kalan ${skillCalcFormat(result.remainingGold)} altin`)}
+    </div>
+    <div class="skill-plan-badge-row">
+      ${skillCalcBadge(`Secili: ${selectedKeys.length} skill`)}
+      ${skillCalcBadge(`Indirim: ${skillCalcGetDiscountLabel()}`)}
+      ${skillCalcBadge(`Basim Plani: ${skillCalcState.plannerStrategy === "equal" ? "Esit" : "Optimum"}`)}
+    </div>
+    <section class="skill-breakdown-card">
+      <h3 class="skill-note-title">Secili Skill Sonuclari</h3>
+      <div class="skill-breakdown-list">
+        ${detailRows}
+      </div>
+    </section>
+    <section class="skill-breakdown-card">
+      <h3 class="skill-note-title">Ilk Alim Sirasi</h3>
+      <div class="skill-breakdown-list">
+        ${stepRows || '<p class="skill-empty">Bu altinla yeni basim alinmiyor.</p>'}
+      </div>
+    </section>
+  `;
+}
+
 function skillCalcRender() {
   skillCalcElements.targetModeBtn.classList.toggle("is-active", skillCalcState.mode === "target");
   skillCalcElements.budgetModeBtn.classList.toggle("is-active", skillCalcState.mode === "budget");
   skillCalcElements.multiModeBtn.classList.toggle("is-active", skillCalcState.mode === "multi");
   skillCalcElements.equalStrategyBtn.classList.toggle("is-active", skillCalcState.strategy === "equal");
   skillCalcElements.optimalStrategyBtn.classList.toggle("is-active", skillCalcState.strategy === "optimal");
+  skillCalcElements.plannerEqualBtn.classList.toggle("is-active", skillCalcState.plannerStrategy === "equal");
+  skillCalcElements.plannerOptimalBtn.classList.toggle("is-active", skillCalcState.plannerStrategy === "optimal");
   skillCalcElements.discount60Toggle.classList.toggle("is-on", skillCalcState.activeDiscount === "60");
   skillCalcElements.discount30Toggle.classList.toggle("is-on", skillCalcState.activeDiscount === "30");
   skillCalcElements.discount60Toggle.setAttribute("aria-pressed", skillCalcState.activeDiscount === "60" ? "true" : "false");
@@ -347,12 +482,14 @@ function skillCalcRender() {
 
   skillCalcRenderSkillButtons(skillCalcElements.singleSkillGrid, skillCalcState.selectedSkill, false);
   skillCalcRenderSkillButtons(skillCalcElements.multiSkillGrid, skillCalcState.selectedMultiSkills, true);
+  skillCalcRenderSkillButtons(skillCalcElements.plannerSkillGrid, skillCalcState.selectedPlannerSkills, true);
 
   if (skillCalcState.mode === "multi") {
     skillCalcRenderMultiResults();
   } else {
     skillCalcRenderSingleResults();
   }
+  skillCalcRenderPlannerResults();
 }
 
 function skillCalcBindNumericInput(input) {
@@ -371,7 +508,13 @@ function skillCalcBindNumericInput(input) {
   skillCalcElements.multiDexterityInput,
   skillCalcElements.multiEnduranceInput,
   skillCalcElements.multiCharismaInput,
-  skillCalcElements.multiGoldInput
+  skillCalcElements.multiGoldInput,
+  skillCalcElements.plannerStrengthInput,
+  skillCalcElements.plannerDefenseInput,
+  skillCalcElements.plannerDexterityInput,
+  skillCalcElements.plannerEnduranceInput,
+  skillCalcElements.plannerCharismaInput,
+  skillCalcElements.plannerGoldInput
 ].forEach(skillCalcBindNumericInput);
 
 skillCalcElements.targetModeBtn.addEventListener("click", () => {
@@ -406,6 +549,16 @@ skillCalcElements.equalStrategyBtn.addEventListener("click", () => {
 
 skillCalcElements.optimalStrategyBtn.addEventListener("click", () => {
   skillCalcState.strategy = "optimal";
+  skillCalcRender();
+});
+
+skillCalcElements.plannerEqualBtn.addEventListener("click", () => {
+  skillCalcState.plannerStrategy = "equal";
+  skillCalcRender();
+});
+
+skillCalcElements.plannerOptimalBtn.addEventListener("click", () => {
+  skillCalcState.plannerStrategy = "optimal";
   skillCalcRender();
 });
 
@@ -454,6 +607,38 @@ skillCalcElements.resetMultiBtn.addEventListener("click", () => {
   skillCalcElements.multiGoldInput.value = "500000000";
   skillCalcState.selectedMultiSkills = new Set(SKILL_CALC_SKILLS.map((skill) => skill.key));
   skillCalcState.strategy = "equal";
+  skillCalcRender();
+});
+
+skillCalcElements.plannerPresetAllBtn.addEventListener("click", () => {
+  skillCalcState.selectedPlannerSkills = new Set(SKILL_CALC_SKILLS.map((skill) => skill.key));
+  skillCalcRender();
+});
+
+skillCalcElements.plannerPresetFightBtn.addEventListener("click", () => {
+  skillCalcState.selectedPlannerSkills = new Set(["strength", "dexterity"]);
+  skillCalcRender();
+});
+
+skillCalcElements.plannerPresetWarriorBtn.addEventListener("click", () => {
+  skillCalcState.selectedPlannerSkills = new Set(["strength", "defense", "dexterity"]);
+  skillCalcRender();
+});
+
+skillCalcElements.plannerPresetTankBtn.addEventListener("click", () => {
+  skillCalcState.selectedPlannerSkills = new Set(["defense", "endurance"]);
+  skillCalcRender();
+});
+
+skillCalcElements.plannerResetBtn.addEventListener("click", () => {
+  skillCalcElements.plannerStrengthInput.value = "500";
+  skillCalcElements.plannerDefenseInput.value = "500";
+  skillCalcElements.plannerDexterityInput.value = "500";
+  skillCalcElements.plannerEnduranceInput.value = "500";
+  skillCalcElements.plannerCharismaInput.value = "500";
+  skillCalcElements.plannerGoldInput.value = "500000000";
+  skillCalcState.selectedPlannerSkills = new Set(SKILL_CALC_SKILLS.map((skill) => skill.key));
+  skillCalcState.plannerStrategy = "optimal";
   skillCalcRender();
 });
 

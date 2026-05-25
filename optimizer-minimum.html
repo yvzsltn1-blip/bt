@@ -144,7 +144,11 @@
 
         <div class="actions">
           <button id="optimizeBtn" class="button button-primary" type="button">Simule Et</button>
-          <button id="diversityModeBtn" class="button button-secondary" type="button" aria-pressed="false">Cesitlilik Modu</button>
+          <div class="optimizer-mode-toggle-row">
+            <button id="diversityModeBtn" class="button button-secondary" type="button" aria-pressed="false">Cesitlilik Modu</button>
+            <button id="tekilModeBtn" class="button button-secondary" type="button" aria-pressed="false">TekilMod</button>
+            <button id="tekilV2ModeBtn" class="button button-secondary" type="button" aria-pressed="false">Tekil v2</button>
+          </div>
           <div class="batch-run-control">
             <input id="optimizerBatchRunsInput" class="stage-select batch-run-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" value="10" aria-label="Tur sayisi">
             <span class="batch-run-label">Tur</span>
