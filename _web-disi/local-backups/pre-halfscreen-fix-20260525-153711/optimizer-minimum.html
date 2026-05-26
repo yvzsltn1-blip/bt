@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BT Analyss Hizli Optimizer</title>
+  <title>BT Analyss Minimum Kullanim Optimizer</title>
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="styles.css?v=20260505-07">
 </head>
-<body class="site-gate-pending" data-optimizer-variant="quick">
+<body class="site-gate-pending" data-optimizer-variant="minimum">
   <div class="page-shell">
     <header class="hero">
       <div class="hero-copy-block">
@@ -17,10 +17,10 @@
           <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
           <a class="nav-link nav-opt" href="optimizer.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 16v4"/></svg></span><span class="nav-link-label">Optimizer</span></a>
           <a class="nav-link nav-opt2" href="optimizer-v2.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M4 10V4h6"/><path d="M20 14v6h-6"/></svg></span><span class="nav-link-label">Optimizer v2</span></a>
-          <a class="nav-link nav-min" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
+          <a class="nav-link nav-min active" href="optimizer-minimum.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="nav-link-label">Min Kisit</span></a>
           <a class="nav-link nav-rel" href="reliability.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/><path d="m9.5 12 1.8 1.8 3.7-3.8"/></svg></span><span class="nav-link-label">Guvenilirlik</span></a>
           <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
-          <a class="nav-link nav-quick active" href="quick.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2L3 13h8l-1 9L21 11h-7L13 2z"/></svg></span><span class="nav-link-label">Hizli</span></a>
+          <a class="nav-link nav-fav" href="fav.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg></span><span class="nav-link-label">Favlar</span></a>
           <a class="nav-link nav-skill" href="skill.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v10l8 4 8-4V7l-8-4z"/><path d="m9 12 2 2 4-4"/></svg></span><span class="nav-link-label">Skill</span></a>
         </div>
         <h1 class="minimum-hero-title">BT- Analiz</h1>
@@ -63,26 +63,13 @@
                 </select>
               </div>
             </div>
-          <button id="pasteStageBtn" class="button paste-stage-btn" type="button" title="Kat metnini yapistir: Kademe ve rakip orduyu otomatik doldurur">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
-            <span>Kat Yapistir</span>
-          </button>
           </div>
         </div>
 
-        <section class="panel-collapsible optimizer-advanced-collapsible">
-          <div class="panel-collapsible-head">
-            <div class="panel-collapsible-copy">
-              <strong>Ek Ayarlar</strong>
-              <span>Yuvarlama, arama bandi, puan araligi ve kayip kisitlari</span>
-            </div>
-            <button id="optimizerAdvancedControlsToggleBtn" class="button button-ghost button-icon panel-collapsible-toggle" type="button" aria-expanded="true" aria-controls="optimizerAdvancedControlsContent" title="Ek ayarlari kapat">-</button>
-          </div>
-          <div id="optimizerAdvancedControlsContent" class="panel-collapsible-content">
         <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
           <div class="mode-switch" aria-label="Hesap modu">
-            <button class="objective-button rounding-mode-button optimizer-rounding-mode-button active" data-rounding-mode="legacy" type="button">Degismemis</button>
-            <button class="objective-button rounding-mode-button optimizer-rounding-mode-button" data-rounding-mode="safe" type="button">Guvenli</button>
+            <button class="objective-button rounding-mode-button optimizer-rounding-mode-button" data-rounding-mode="legacy" type="button">Degismemis</button>
+            <button class="objective-button rounding-mode-button optimizer-rounding-mode-button active" data-rounding-mode="safe" type="button">Guvenli</button>
             <button class="objective-button rounding-mode-button optimizer-rounding-mode-button" data-rounding-mode="exact" type="button">Gercek</button>
             <button class="objective-button rounding-mode-button optimizer-rounding-mode-button" data-rounding-mode="simulat" type="button">Simulator</button>
           </div>
@@ -157,9 +144,6 @@
           <div id="optimizerLossConstraintInputs" class="unit-grid"></div>
         </section>
 
-          </div>
-        </section>
-
         <div class="roster-grid">
           <section class="roster-card roster-card-ally">
             <div class="roster-head">
@@ -180,71 +164,29 @@
           </section>
         </div>
 
-        <div class="sim-action-bar">
-          <div class="sim-action-row sim-action-row-primary">
-            <button id="optimizeBtn" class="button button-primary sim-btn-main" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-              <span>Simule Et</span>
-            </button>
-            <div class="sim-mode-group">
-              <button id="diversityModeBtn" class="button sim-mode-btn" type="button" aria-pressed="false" title="Cesitlilik Modu">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="m21 3-7 7"/><path d="M8 21H3v-5"/><path d="m3 21 7-7"/><path d="M3 12a9 9 0 0 0 9 9"/><path d="M21 12a9 9 0 0 0-9-9"/></svg>
-                <span>Cesitlilik</span>
-              </button>
-              <button id="tekilModeBtn" class="button sim-mode-btn" type="button" aria-pressed="false" title="TekilMod">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                <span>Tekil</span>
-              </button>
-              <button id="tekilV2ModeBtn" class="button sim-mode-btn" type="button" aria-pressed="false" title="Tekil v2">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
-                <span>Tekil v2</span>
-              </button>
-            </div>
-            <div class="sim-batch-group">
-              <input id="optimizerBatchRunsInput" class="sim-batch-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" value="10" aria-label="Tur sayisi">
-              <span class="sim-batch-sep">×</span>
-              <button id="optimizerBatchRunBtn" class="button sim-batch-btn" type="button">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2H7l-5 5 10 15 10-15-5-5z"/><path d="M12 22V7"/><path d="m7 7 5-5 5 5"/></svg>
-                <span>Turla</span>
-              </button>
-            </div>
+        <div class="actions">
+          <button id="optimizeBtn" class="button button-primary" type="button">Simule Et</button>
+          <div class="optimizer-mode-toggle-row">
+            <button id="diversityModeBtn" class="button button-secondary" type="button" aria-pressed="false">Cesitlilik Modu</button>
+            <button id="tekilModeBtn" class="button button-secondary" type="button" aria-pressed="false">TekilMod</button>
+            <button id="tekilV2ModeBtn" class="button button-secondary" type="button" aria-pressed="false">Tekil v2</button>
           </div>
-          <div class="sim-action-row sim-action-row-secondary">
-            <button id="fillPoolBtn" class="button sim-fill-btn" type="button" title="T1-T7 havuzunu 99 yap">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
-              <span>T1–T7 Havuz: 99</span>
-            </button>
-            <button id="stopOptimizerBtn" class="button sim-stop-btn" type="button" disabled>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-              <span>Durdur</span>
-            </button>
-            <button id="optimizerSampleBtn" class="button sim-util-btn" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
-              <span>Ornek Ordu</span>
-            </button>
-            <button id="optimizerClearBtn" class="button sim-clear-btn" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              <span>Sifirla</span>
-            </button>
+          <div class="batch-run-control">
+            <input id="optimizerBatchRunsInput" class="stage-select batch-run-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" value="10" aria-label="Tur sayisi">
+            <span class="batch-run-label">Tur</span>
+            <button id="optimizerBatchRunBtn" class="button button-secondary" type="button">Turla</button>
           </div>
+          <button id="stopOptimizerBtn" class="button button-ghost" type="button" disabled>Durdur</button>
+          <button id="optimizerSampleBtn" class="button button-secondary" type="button">Ornek Ordu</button>
+          <button id="optimizerClearBtn" class="button button-ghost" type="button">Sifirla</button>
         </div>
       </section>
 
-      <!-- Output panel kept in DOM for JS compatibility but visually hidden on quick variant -->
-      <section class="panel output-panel quick-output-hidden">
+      <section class="panel output-panel">
         <div class="panel-head">
           <h2>Oneri</h2>
         </div>
 
-        <section class="panel-collapsible optimizer-summary-collapsible">
-          <div class="panel-collapsible-head">
-            <div class="panel-collapsible-copy">
-              <strong>Optimizer Ozeti</strong>
-              <span>Detayli sonuc metni ve yardimci kutular</span>
-            </div>
-            <button id="optimizerSummaryToggleBtn" class="button button-ghost button-icon panel-collapsible-toggle" type="button" aria-expanded="true" aria-controls="optimizerSummaryContent" title="Optimizer ozetini kapat">-</button>
-          </div>
-          <div id="optimizerSummaryContent" class="panel-collapsible-content">
         <section id="optimizerSummary" class="summary-panel">
           <p class="summary-empty">Hesaplama henuz calismadi.</p>
         </section>
@@ -262,30 +204,12 @@
           <div id="comparePanelContent" hidden></div>
         </section>
 
-          </div>
-        </section>
-
-        <div class="actions actions-inline action-bar-compact">
-          <button id="saveApprovedBtn" class="button button-action action-save" type="button">
-            <svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-            <span class="action-label">Onayla ve Kaydet</span>
-          </button>
-          <button id="topResultsBtn" class="button button-action action-top" type="button" disabled>
-            <svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            <span class="action-label">Ana Sonuc + 5 Alternatif</span>
-          </button>
-          <button id="favoriteStrategyBtn" class="button button-action action-fav favorite-strategy-button" type="button" disabled>
-            <svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2 8 13.7 4 9.8 9.5 9z"/></svg>
-            <span class="action-label">Favorilere Ekle</span>
-          </button>
-          <button id="openReliabilityFromOptimizerBtn" class="button button-action action-rel" type="button" disabled>
-            <svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-2.9 7.9-7 9-4.1-1.1-7-4.5-7-9V6l7-3z"/></svg>
-            <span class="action-label">Guvenilirlik Analizi</span>
-          </button>
-          <button id="openSimulationFromOptimizerBtn" class="button button-action action-sim" type="button" disabled>
-            <svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-            <span class="action-label">Simulasyon Ekraninda Ac</span>
-          </button>
+        <div class="actions actions-inline">
+          <button id="saveApprovedBtn" class="button button-secondary" type="button">Onayla ve Kaydet</button>
+          <button id="topResultsBtn" class="button button-secondary" type="button" disabled>Ana Sonuc + 5 Alternatif</button>
+          <button id="favoriteStrategyBtn" class="button button-secondary favorite-strategy-button" type="button" disabled>Favorilere Ekle</button>
+          <button id="openReliabilityFromOptimizerBtn" class="button button-secondary" type="button" disabled>Guvenilirlik Analizi</button>
+          <button id="openSimulationFromOptimizerBtn" class="button button-secondary" type="button" disabled>Simulasyon Ekraninda Ac</button>
         </div>
 
         <section id="recommendationPanel" class="recommendation-grid"></section>
@@ -331,34 +255,6 @@
         </section>
       </section>
     </main>
-  </div>
-
-  <!-- Quick result popup (bottom sheet) -->
-  <div id="quickResultPopup" class="quick-popup-overlay" aria-modal="true" role="dialog" aria-label="Optimizasyon sonucu" hidden>
-    <div class="quick-popup-backdrop"></div>
-    <div class="quick-popup-card">
-      <div class="quick-popup-head">
-        <span class="quick-popup-title">Sonuc</span>
-        <button id="quickPopupCloseBtn" class="quick-popup-close" type="button" aria-label="Kapat">&#x2715;</button>
-      </div>
-      <div class="quick-popup-stats">
-        <div class="quick-popup-stat">
-          <span class="quick-popup-stat-label">Kazanma</span>
-          <span class="quick-popup-stat-value" id="quickStatWinRate">—</span>
-        </div>
-        <div class="quick-popup-stat">
-          <span class="quick-popup-stat-label">Kan Kaybi</span>
-          <span class="quick-popup-stat-value" id="quickStatLoss">—</span>
-        </div>
-        <div class="quick-popup-stat">
-          <span class="quick-popup-stat-label">Puan</span>
-          <span class="quick-popup-stat-value" id="quickStatPoints">—</span>
-        </div>
-      </div>
-      <p class="quick-popup-units-title">Onerilen Birlik Dagilimi</p>
-      <ul class="quick-popup-unit-list" id="quickUnitList"></ul>
-
-    </div>
   </div>
 
   <div id="wrongReportModal" class="report-modal" hidden>

@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "BT Birlik Doldurucu",
+  "version": "1.0",
+  "description": "quick.html sonuclarini Bitefight savasa otomatik doldurur",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "file:///*",
+    "*://*.bitefight.org/*",
+    "*://*.bitefight.gameforge.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["file:///*"],
+      "js": ["content-quick.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://*.bitefight.org/*",
+        "*://*.bitefight.gameforge.com/*"
+      ],
+      "js": ["content-bitefight.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

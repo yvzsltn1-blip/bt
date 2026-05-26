@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BT Doldur - Bookmarklet</title>
+<style>
+  body { font-family: sans-serif; background: #111; color: #eee; padding: 24px; max-width: 600px; margin: 0 auto; }
+  h2 { color: #ffd700; }
+  .step { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step strong { color: #ffd700; }
+  a.bookmarklet {
+    display: inline-block;
+    background: #6b0000;
+    color: #ffd700;
+    border: 2px solid #ffd700;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    margin: 12px 0;
+  }
+  .note { color: #aaa; font-size: 13px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h2>BT Doldur — Mobil Kurulum</h2>
+
+<div class="step">
+  <strong>Adim 1:</strong> Asagidaki baglantiya uzun bas → "Yer Imlerine Ekle" (veya masaustunde surukle tarayici yer imleri cubuguna)
+  <br><br>
+  <a class="bookmarklet" href="javascript:(function(){navigator.clipboard.readText().then(function(text){var targets;try{targets=JSON.parse(atob(text));}catch(e){alert('Gecersiz veri! Once quick.htmlde Mobil Kaydet butonuna bas.');return;}var done=0;var keys=Object.keys(targets);(function next(){if(done>=keys.length){alert('Tamamlandi!');return;}var tier=keys[done++];var n=targets[tier];var p10=document.querySelector('.stepBtn.btnPlus10[data-id=&quot;'+tier+'&quot;]');var p1=document.querySelector('.stepBtn.btnPlus1[data-id=&quot;'+tier+'&quot;]');if(!p10||!p1){next();return;}var clicks10=Math.floor(n/10);var clicks1=n%10;var total=clicks10+clicks1;var c=0;function click10(){if(c>=clicks10){c=0;setTimeout(click1,200);return;}p10.click();c++;setTimeout(click10,220+Math.random()*130);}function click1(){if(c>=clicks1){setTimeout(next,450);return;}p1.click();c++;setTimeout(click1,170+Math.random()*110);}click10();})();}).catch(function(){alert('Pano izni gerekli. Tekrar dene.');});})();">BT Doldur</a>
+
+  <p class="note">Mobilde: baglantiya uzun bas → "Yer Imlerine Ekle" de, adi "BT Doldur" yap.</p>
+</div>
+
+<div class="step">
+  <strong>Adim 2 — Her savasta:</strong>
+  <ol>
+    <li>quick.html'de analizi calistir</li>
+    <li>Popup'ta <strong>"Mobil Kaydet"</strong> butonuna bas → veri panoya kopyalanir</li>
+    <li>Bitefight'a gec, rakibi sec</li>
+    <li>Yer imleri cubugundaki <strong>"BT Doldur"</strong>e tikla → birimler otomatik girer</li>
+  </ol>
+</div>
+
+<div class="step">
+  <strong>Not:</strong> Bookmarklet ilk kullanildiginda tarayici pano izni isteyebilir — izin ver.
+</div>
+</body>
+</html>

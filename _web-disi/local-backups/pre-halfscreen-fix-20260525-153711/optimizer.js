@@ -15,8 +15,7 @@ const {
   analyzeKnifeEdgeRisk
 } = window.BattleCore;
 
-const _rawVariant = document.body.dataset.optimizerVariant;
-const optimizerVariant = _rawVariant === "minimum" ? "minimum" : _rawVariant === "quick" ? "quick" : "standard";
+const optimizerVariant = document.body.dataset.optimizerVariant === "minimum" ? "minimum" : "standard";
 const optimizerInputs = {};
 const optimizerMinimumInputs = {};
 const optimizerRequiredLossInputs = {};
@@ -35,13 +34,9 @@ const optimizerCustomBandMinInput = document.querySelector("#optimizerCustomBand
 const optimizerCustomBandMaxInput = document.querySelector("#optimizerCustomBandMax");
 const optimizerPointRangeToggleBtn = document.querySelector("#optimizerPointRangeToggleBtn");
 const optimizerPointRangePanel = document.querySelector("#optimizerPointRangePanel");
-const optimizerAdvancedControlsToggleBtn = document.querySelector("#optimizerAdvancedControlsToggleBtn");
-const optimizerAdvancedControlsContent = document.querySelector("#optimizerAdvancedControlsContent");
 const optimizerManualMinPointsInput = document.querySelector("#optimizerManualMinPoints");
 const optimizerManualMaxPointsInput = document.querySelector("#optimizerManualMaxPoints");
 const optimizerSummary = document.querySelector("#optimizerSummary");
-const optimizerSummaryToggleBtn = document.querySelector("#optimizerSummaryToggleBtn");
-const optimizerSummaryContent = document.querySelector("#optimizerSummaryContent");
 const recommendationPanel = document.querySelector("#recommendationPanel");
 const rosterClipboardIndicator = null;
 const optimizerLogPanel = document.querySelector("#optimizerLogPanel");
@@ -76,9 +71,6 @@ const matchedSavedPanel = document.querySelector("#matchedSavedPanel");
 const modeComparePanel = document.querySelector("#modeComparePanel");
 const compareToggleBtn = document.querySelector("#compareToggleBtn");
 const comparePanelContent = document.querySelector("#comparePanelContent");
-const optimizerHalfScreenMedia = typeof window.matchMedia === "function"
-  ? window.matchMedia("(max-width: 1280px)")
-  : null;
 const wrongReportModal = document.querySelector("#wrongReportModal");
 const closeWrongReportBtn = document.querySelector("#closeWrongReportBtn");
 const cancelWrongReportBtn = document.querySelector("#cancelWrongReportBtn");
@@ -126,10 +118,6 @@ let optimizerTekilV2Mode = false;
 let optimizerStoneMode = false;
 let optimizerComparisonCache = new Map();
 let comparePanelOpen = false;
-let optimizerAdvancedControlsOpen = true;
-let optimizerSummaryOpen = true;
-let optimizerAdvancedControlsPinned = false;
-let optimizerSummaryPinned = false;
 let currentApprovedCandidate = null;
 let currentWrongCandidate = null;
 let currentTopResultsContext = null;
@@ -163,11 +151,7 @@ let lossConstraintModeEnabled = false;
 let optimizerManualPointRangeEnabled = false;
 
 function isMinimumOptimizerVariant() {
-  return optimizerVariant === "minimum" || optimizerVariant === "quick";
-}
-
-function isQuickVariant() {
-  return optimizerVariant === "quick";
+  return optimizerVariant === "minimum";
 }
 
 function createEmptyConstraintCounts() {
@@ -330,11 +314,9 @@ function getRoundingModeLabel(mode) {
 
 function loadStoredRoundingMode() {
   try {
-    const stored = window.localStorage.getItem(ROUNDING_MODE_STORAGE_KEY);
-    if (!stored) return "legacy";
-    return normalizeRoundingMode(stored);
+    return normalizeRoundingMode(window.localStorage.getItem(ROUNDING_MODE_STORAGE_KEY));
   } catch (_error) {
-    return "legacy";
+    return "safe";
   }
 }
 
@@ -719,7 +701,6 @@ buildWrongLossInputs();
 buildInputs(optimizerEnemyInputs, ENEMY_UNITS, "enemy");
 buildInputs(optimizerAllyInputs, ALLY_UNITS, "ally");
 buildLossConstraintInputs();
-
 wireSequentialInputOrder([
   optimizerSearchBandPresetInput,
   optimizerCustomBandMinInput,
@@ -738,15 +719,6 @@ wireSequentialInputOrder([
   })
 ]);
 resetValues();
-if (isQuickVariant()) {
-  optimizerTekilV2Mode = true;
-  ALLY_UNITS.forEach((unit) => {
-    if (unit.key === "rotmaws") return;
-    if (optimizerInputs[unit.key]) {
-      optimizerInputs[unit.key].value = "99";
-    }
-  });
-}
 loadAutoStageAdvanceSetting();
 syncAutoStageAdvanceToggle();
 syncLossConstraintToggle();
@@ -759,15 +731,11 @@ void bindAdminAuth();
 syncDiversityModeButton();
 syncTekilModeButton();
 syncTekilV2ModeButton();
-if (isQuickVariant()) {
-  initQuickPopup();
-}
 syncRoundingModeButtons();
 syncObjectiveSelect();
 syncSearchBandControls();
 syncPointRangeToggle();
 syncComparePanelToggle();
-applyResponsiveCollapsibleDefaults();
 renderComparisonPanel();
 optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
 
@@ -932,31 +900,6 @@ compareToggleBtn.addEventListener("click", () => {
   renderComparisonPanel();
 });
 
-if (optimizerAdvancedControlsToggleBtn) {
-  optimizerAdvancedControlsToggleBtn.addEventListener("click", () => {
-    optimizerAdvancedControlsPinned = true;
-    optimizerAdvancedControlsOpen = !optimizerAdvancedControlsOpen;
-    syncOptimizerAdvancedControlsToggle();
-  });
-}
-
-if (optimizerSummaryToggleBtn) {
-  optimizerSummaryToggleBtn.addEventListener("click", () => {
-    optimizerSummaryPinned = true;
-    optimizerSummaryOpen = !optimizerSummaryOpen;
-    syncOptimizerSummaryToggle();
-  });
-}
-
-if (optimizerHalfScreenMedia) {
-  const handleCollapsibleMediaChange = () => applyResponsiveCollapsibleDefaults();
-  if (typeof optimizerHalfScreenMedia.addEventListener === "function") {
-    optimizerHalfScreenMedia.addEventListener("change", handleCollapsibleMediaChange);
-  } else if (typeof optimizerHalfScreenMedia.addListener === "function") {
-    optimizerHalfScreenMedia.addListener(handleCollapsibleMediaChange);
-  }
-}
-
 stageInput.addEventListener("input", () => {
   stageInput.value = stageInput.value.replace(/\D+/g, "");
   invalidateSearchSession();
@@ -1023,71 +966,6 @@ optimizerSampleBtn.addEventListener("click", () => {
   loadSampleValues();
   optimizerStatus.textContent = "Ornek ordu yuklendi";
 });
-
-function parseStageText(text) {
-  const katMatch = text.match(/Kat\s+(\d+)/i);
-  const stage = katMatch ? parseInt(katMatch[1], 10) : null;
-  const countMatches = [...text.matchAll(/x(\d+)/gi)];
-  const counts = countMatches.map((m) => parseInt(m[1], 10));
-  return { stage, counts };
-}
-
-function applyParsedStage({ stage, counts }) {
-  if (stage !== null) {
-    stageInput.value = String(stage);
-    stageInput.dispatchEvent(new Event("input"));
-    stageInput.dispatchEvent(new Event("blur"));
-  }
-  ENEMY_UNITS.forEach((unit, i) => {
-    const val = counts[i] ?? 0;
-    if (optimizerInputs[unit.key]) {
-      optimizerInputs[unit.key].value = String(val);
-      optimizerInputs[unit.key].dispatchEvent(new Event("input"));
-    }
-  });
-  invalidateSearchSession();
-  renderMatchedSavedStrategy();
-  renderFavoriteButtonState();
-}
-
-const pasteStageBtn = document.querySelector("#pasteStageBtn");
-if (pasteStageBtn) {
-  pasteStageBtn.addEventListener("click", async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      const parsed = parseStageText(text);
-      if (parsed.stage === null && parsed.counts.length === 0) {
-        optimizerStatus.textContent = "Pano: uygun format bulunamadi";
-        return;
-      }
-      applyParsedStage(parsed);
-      const parts = [];
-      if (parsed.stage !== null) parts.push(`Kat ${parsed.stage}`);
-      if (parsed.counts.length > 0) parts.push(`${parsed.counts.length} birim`);
-      optimizerStatus.textContent = `Yapistirıldı: ${parts.join(", ")}`;
-      optimizeBtn.click();
-    } catch {
-      optimizerStatus.textContent = "Pano okuma basarisiz — tarayici izni gerekebilir";
-    }
-  });
-}
-
-const fillPoolBtn = document.querySelector("#fillPoolBtn");
-if (fillPoolBtn) {
-  fillPoolBtn.addEventListener("click", () => {
-    const poolValue = isQuickVariant() ? "99" : "100";
-    ALLY_UNITS.forEach((unit) => {
-      if (unit.key === "rotmaws") return;
-      if (optimizerInputs[unit.key]) {
-        optimizerInputs[unit.key].value = poolValue;
-      }
-    });
-    invalidateSearchSession();
-    renderPointSummary();
-    renderMatchedSavedStrategy();
-    renderFavoriteButtonState();
-  });
-}
 
 optimizerClearBtn.addEventListener("click", () => {
   invalidateSearchSession();
@@ -1774,38 +1652,6 @@ function syncComparePanelToggle() {
   comparePanelContent.hidden = !comparePanelOpen;
 }
 
-function syncOptimizerAdvancedControlsToggle() {
-  if (!optimizerAdvancedControlsToggleBtn || !optimizerAdvancedControlsContent) {
-    return;
-  }
-  optimizerAdvancedControlsToggleBtn.textContent = optimizerAdvancedControlsOpen ? "-" : "+";
-  optimizerAdvancedControlsToggleBtn.setAttribute("aria-expanded", optimizerAdvancedControlsOpen ? "true" : "false");
-  optimizerAdvancedControlsToggleBtn.title = optimizerAdvancedControlsOpen ? "Ek ayarlari kapat" : "Ek ayarlari ac";
-  optimizerAdvancedControlsContent.hidden = !optimizerAdvancedControlsOpen;
-}
-
-function syncOptimizerSummaryToggle() {
-  if (!optimizerSummaryToggleBtn || !optimizerSummaryContent) {
-    return;
-  }
-  optimizerSummaryToggleBtn.textContent = optimizerSummaryOpen ? "-" : "+";
-  optimizerSummaryToggleBtn.setAttribute("aria-expanded", optimizerSummaryOpen ? "true" : "false");
-  optimizerSummaryToggleBtn.title = optimizerSummaryOpen ? "Optimizer ozetini kapat" : "Optimizer ozetini ac";
-  optimizerSummaryContent.hidden = !optimizerSummaryOpen;
-}
-
-function applyResponsiveCollapsibleDefaults() {
-  const compact = !!optimizerHalfScreenMedia?.matches;
-  if (!optimizerAdvancedControlsPinned) {
-    optimizerAdvancedControlsOpen = !compact;
-  }
-  if (!optimizerSummaryPinned) {
-    optimizerSummaryOpen = !compact;
-  }
-  syncOptimizerAdvancedControlsToggle();
-  syncOptimizerSummaryToggle();
-}
-
 function invalidateSearchSession() {
   optimizerSearchSession = createEmptySearchSession();
   setOptimizeButtonLabel("Simule Et");
@@ -2324,21 +2170,19 @@ function syncFavoriteStrategyButtonUi() {
   favoriteStrategyBtn.classList.toggle("is-active", Boolean(currentMatch));
   favoriteStrategyBtn.classList.toggle("has-matches", existingFavorites.length > 0 && !currentMatch);
 
-  const favLabel = favoriteStrategyBtn.querySelector(".action-label");
-
   if (currentMatch) {
-    if (favLabel) favLabel.textContent = "Favli"; else favoriteStrategyBtn.textContent = "Favli";
+    favoriteStrategyBtn.textContent = "Favli";
     favoriteStrategyBtn.title = "Bu dizilim zaten favli. Tiklayinca kayitli favlari gorursun.";
     return;
   }
 
   if (existingFavorites.length > 0) {
-    if (favLabel) favLabel.textContent = "Favlari Gor"; else favoriteStrategyBtn.textContent = "Favlari Gor";
+    favoriteStrategyBtn.textContent = "Favlari Gor";
     favoriteStrategyBtn.title = "Bu rakip icin kayitli favlari ac.";
     return;
   }
 
-  if (favLabel) favLabel.textContent = "Favorilere Ekle"; else favoriteStrategyBtn.textContent = "Favorilere Ekle";
+  favoriteStrategyBtn.textContent = "Favorilere Ekle";
   favoriteStrategyBtn.title = isAdminSession
     ? "Mevcut sonucu favorilere ekle."
     : "Fav kaydetmek icin admin girisi gerekli.";
@@ -5553,6 +5397,96 @@ function renderRecommendationCards(result, maxPoints, meta) {
     return;
   }
   const enemyCounts = collectCounts(ENEMY_UNITS);
+  const knifeEdgeRisk = result.possible
+    ? analyzeKnifeEdgeRisk(enemyCounts, source.counts, {
+      seed: getRepresentativeSeed(source, result) ?? 1,
+      result: result.sampleBattle?.winner ? result.sampleBattle : null,
+      roundingMode: meta.roundingMode
+    })
+    : null;
+
+  if (knifeEdgeRisk?.isKnifeEdge) {
+    const notice = buildKnifeEdgeNotice(knifeEdgeRisk);
+    const actions = document.createElement("div");
+    actions.className = "actions actions-inline";
+
+    const suggestBtn = document.createElement("button");
+    suggestBtn.type = "button";
+    suggestBtn.className = "button button-secondary";
+    suggestBtn.textContent = "Daha stabil alternatif oner";
+
+    const suggestionHost = document.createElement("div");
+    suggestionHost.className = "knife-edge-suggestion-host";
+
+    suggestBtn.addEventListener("click", () => {
+      suggestionHost.innerHTML = "";
+      const suggestion = findStableAlternativeSuggestion(result, enemyCounts, knifeEdgeRisk);
+      if (!suggestion) {
+        const empty = document.createElement("span");
+        empty.className = "knife-edge-suggestion-empty";
+        empty.textContent = "Bu aday havuzunda daha stabil bir alternatif bulunamadi.";
+        suggestionHost.appendChild(empty);
+        return;
+      }
+
+      suggestionHost.appendChild(buildStableAlternativeCard(
+        suggestion,
+        enemyCounts,
+        () => {
+          const seed = getRepresentativeSeed(suggestion.entry) ?? 1;
+          const sampleBattle = simulateBattle(enemyCounts, suggestion.entry.counts, {
+            seed,
+            collectLog: true,
+            roundingMode: meta.roundingMode
+          });
+          const nextResult = {
+            ...result,
+            possible: true,
+            recommendation: {
+              ...suggestion.entry,
+              objective: meta.objective,
+              roundingMode: meta.roundingMode,
+              stoneMode: meta.stoneMode
+            },
+            sampleBattle
+          };
+          const battleView = renderBattleLog(sampleBattle.logText || "");
+          currentApprovedCandidate = {
+            ...(currentApprovedCandidate || {}),
+            stage: currentApprovedCandidate?.stage ?? getCommittedStage(),
+            mode: meta.mode,
+            objective: meta.objective,
+            roundingMode: meta.roundingMode,
+            diversityMode: meta.diversityMode,
+            tekilMode: meta.tekilMode,
+            tekilV2Mode: meta.tekilV2Mode,
+            stoneMode: meta.stoneMode,
+            searchBandSettings: normalizeSearchBandSettings(meta.searchBandSettings),
+            manualPointRangeSettings: normalizeManualPointRangeSettings(meta.manualPointRangeSettings),
+            enemyCounts,
+            result: nextResult,
+            battleView
+          };
+          currentWrongCandidate = createWrongReportEntry(
+            nextResult,
+            currentApprovedCandidate.stage,
+            maxPoints,
+            meta,
+            battleView.summaryText,
+            battleView.logText
+          );
+          renderRecommendationCards(nextResult, maxPoints, meta);
+          renderMatchedActualReport();
+          renderFavoriteButtonState();
+          syncAdminRestrictedActions();
+        }
+      ));
+    });
+
+    actions.appendChild(suggestBtn);
+    notice.append(actions, suggestionHost);
+    recommendationPanel.appendChild(notice);
+  }
 
   const stats = [
     ["Kullanilan puan", `${Math.round(source.avgUsedPoints)} / ${maxPoints}`],
@@ -5595,96 +5529,6 @@ function renderRecommendationCards(result, maxPoints, meta) {
 
   listCard.append(listTitle, listActions, list);
   recommendationPanel.appendChild(listCard);
-
-  if (isQuickVariant()) {
-    showQuickPopup(result, maxPoints, meta);
-  }
-}
-
-function initQuickPopup() {
-  const overlay = document.querySelector("#quickResultPopup");
-  if (!overlay) return;
-
-  const closeBtn = document.querySelector("#quickPopupCloseBtn");
-  const backdrop = overlay.querySelector(".quick-popup-backdrop");
-
-  function closePopup() {
-    overlay.classList.remove("is-visible");
-    overlay.addEventListener("transitionend", () => {
-      overlay.hidden = true;
-    }, { once: true });
-  }
-
-  if (closeBtn) closeBtn.addEventListener("click", closePopup);
-  if (backdrop) backdrop.addEventListener("click", closePopup);
-}
-
-function showQuickPopup(result, maxPoints, meta) {
-  const overlay = document.querySelector("#quickResultPopup");
-  if (!overlay) return;
-
-  // Önceki popup açıksa önce kapat (içeriği güncelleyip tekrar aç)
-  overlay.classList.remove("is-visible");
-
-  const source = result.possible ? result.recommendation : result.fallback || result.fullArmyEvaluation;
-  if (!source) return;
-
-  const winRateEl = document.querySelector("#quickStatWinRate");
-  const lossEl = document.querySelector("#quickStatLoss");
-  const pointsEl = document.querySelector("#quickStatPoints");
-  const unitListEl = document.querySelector("#quickUnitList");
-  const titleEl = overlay.querySelector(".quick-popup-title");
-
-  if (titleEl) {
-    titleEl.textContent = result.possible ? "Kazanilabilir" : "Kazanamaz";
-    titleEl.dataset.outcome = result.possible ? "win" : "lose";
-  }
-  if (winRateEl) winRateEl.textContent = `%${Math.round(source.winRate * 100)}`;
-  if (lossEl) lossEl.textContent = String(Math.round(getDisplayedLossValue(source)));
-  if (pointsEl) pointsEl.textContent = `${Math.round(source.avgUsedPoints)} / ${maxPoints}`;
-
-  if (unitListEl) {
-    unitListEl.innerHTML = "";
-    const lossBreakdown = getDisplayedLossBreakdownSource(source);
-    let shown = 0;
-    ALLY_UNITS.forEach((unit) => {
-      const count = source.counts?.[unit.key] || 0;
-      if (count <= 0) return;
-      shown += 1;
-      const li = document.createElement("li");
-      li.className = "quick-popup-unit-item";
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "quick-popup-unit-name";
-      nameSpan.textContent = unit.label;
-      const countWrap = document.createElement("span");
-      countWrap.className = "quick-popup-unit-count";
-      countWrap.textContent = String(count);
-      const expectedLoss = Math.round(lossBreakdown[unit.key] || 0);
-      if (expectedLoss > 0) {
-        const sep = document.createElement("span");
-        sep.className = "quick-popup-unit-sep";
-        sep.textContent = " / ";
-        const lossSpan = document.createElement("span");
-        lossSpan.className = "quick-popup-unit-loss";
-        lossSpan.textContent = String(expectedLoss);
-        countWrap.append(sep, lossSpan);
-      }
-      li.append(nameSpan, countWrap);
-      unitListEl.appendChild(li);
-    });
-    if (shown === 0) {
-      const li = document.createElement("li");
-      li.className = "quick-popup-unit-item";
-      li.textContent = "Birlik secilmedi";
-      unitListEl.appendChild(li);
-    }
-  }
-
-  overlay.hidden = false;
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => overlay.classList.add("is-visible"));
-  });
-
 }
 
 function renderBattleLog(logText) {
