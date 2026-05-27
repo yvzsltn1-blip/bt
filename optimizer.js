@@ -5633,7 +5633,20 @@ function showQuickPopup(result, maxPoints, meta) {
   const lossEl = document.querySelector("#quickStatLoss");
   const pointsEl = document.querySelector("#quickStatPoints");
   const unitListEl = document.querySelector("#quickUnitList");
+  const openSimulationBtn = document.querySelector("#quickPopupOpenSimulationBtn");
   const titleEl = overlay.querySelector(".quick-popup-title");
+  const enemyCounts = collectCounts(ENEMY_UNITS);
+
+  if (openSimulationBtn) {
+    openSimulationBtn.onclick = () => {
+      openSimulationForCounts(
+        enemyCounts,
+        source.counts || {},
+        getRepresentativeSeed(source, result),
+        meta?.roundingMode || optimizerRoundingMode
+      );
+    };
+  }
 
   if (titleEl) {
     titleEl.textContent = result.possible ? "Kazanilabilir" : "Kazanamaz";
