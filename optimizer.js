@@ -106,6 +106,10 @@ const adminEmailInput = document.querySelector("#adminEmailInput");
 const adminPasswordInput = document.querySelector("#adminPasswordInput");
 const adminLoginBtn = document.querySelector("#adminLoginBtn");
 const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
+const quickPopupWrongReportBtn = document.querySelector("#quickPopupWrongReportBtn");
+const quickPopupApproveBtn = document.querySelector("#quickPopupApproveBtn");
+const quickPopupApprovedPanel = document.querySelector("#quickPopupApprovedPanel");
+const quickPopupActualReportPanel = document.querySelector("#quickPopupActualReportPanel");
 const ROSTER_CLIPBOARD_STORAGE_KEY = "bt-analiz.optimizer.rosterClipboard.v1";
 const ROSTER_CLIPBOARD_TTL_MS = 60 * 1000;
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
@@ -667,6 +671,7 @@ function syncAdminRestrictedActions() {
     openSimulationFromOptimizerBtn.disabled = isBusy || !currentApprovedCandidate || !getPrimaryOptimizerSource(currentApprovedCandidate.result)?.counts;
   }
   syncFavoriteStrategyButtonUi();
+  syncQuickPopupApprovedUi();
 }
 
 function createUnitInputStack(title, input, modifierClass = "") {
@@ -1104,29 +1109,39 @@ optimizerClearBtn.addEventListener("click", () => {
 });
 
 saveApprovedBtn.addEventListener("click", async () => {
+  await saveCurrentApprovedCandidate();
+});
+
+async function saveCurrentApprovedCandidate() {
   if (!isAdminSession) {
     window.alert("Bu islem icin admin girisi gerekli.");
-    return;
+    return false;
   }
   if (!currentApprovedCandidate || !currentApprovedCandidate.result.possible) {
     window.alert("Kaydedilecek onayli bir cozum yok.");
-    return;
+    return false;
   }
 
   const item = createSavedEntry(currentApprovedCandidate);
   try {
     saveApprovedBtn.disabled = true;
+    if (quickPopupApproveBtn) {
+      quickPopupApproveBtn.disabled = true;
+    }
     const savedItem = await window.BTFirebase.saveApprovedStrategy(item);
     approvedStrategies = savedItem ? [savedItem] : [item];
     activeApprovedStrategyId = savedItem?.id || getCurrentApprovedStrategyDocId() || "";
     renderMatchedSavedStrategy();
+    syncQuickPopupApprovedUi();
     window.alert("Cozum onaylanip ortak kayitlara eklendi.");
+    return true;
   } catch (error) {
     window.alert(`Kayit sirasinda hata olustu: ${error.message}`);
+    return false;
   } finally {
     syncAdminRestrictedActions();
   }
-});
+}
 
 topResultsBtn.addEventListener("click", () => {
   if (!currentTopResultsContext || !currentTopResultsContext.candidates.length) {
@@ -3981,6 +3996,11 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   topResultsBtn.disabled = !currentTopResultsContext.candidates.length;
   currentWrongCandidate = createWrongReportEntry(result, stage, maxPoints, meta, battleView.summaryText, battleView.logText);
   reportWrongOptimizerBtn.disabled = false;
+  syncQuickPopupApprovedUi();
+  syncQuickPopupReportUi();
+  if (isQuickVariant()) {
+    showQuickPopup(result, maxPoints, meta);
+  }
   renderMatchedActualReport();
   renderComparisonPanel();
   renderFavoriteButtonState();
@@ -5596,9 +5616,6 @@ function renderRecommendationCards(result, maxPoints, meta) {
   listCard.append(listTitle, listActions, list);
   recommendationPanel.appendChild(listCard);
 
-  if (isQuickVariant()) {
-    showQuickPopup(result, maxPoints, meta);
-  }
 }
 
 function initQuickPopup() {
@@ -5617,6 +5634,41 @@ function initQuickPopup() {
 
   if (closeBtn) closeBtn.addEventListener("click", closePopup);
   if (backdrop) backdrop.addEventListener("click", closePopup);
+}
+
+function closeQuickPopup() {
+  const overlay = document.querySelector("#quickResultPopup");
+  if (!overlay) {
+    return;
+  }
+  overlay.classList.remove("is-visible");
+  overlay.addEventListener("transitionend", () => {
+    overlay.hidden = true;
+  }, { once: true });
+}
+
+function syncQuickPopupReportUi() {
+  if (quickPopupWrongReportBtn) {
+    quickPopupWrongReportBtn.disabled = !currentWrongCandidate;
+    quickPopupWrongReportBtn.onclick = () => {
+      if (!currentWrongCandidate) {
+        return;
+      }
+      closeQuickPopup();
+      openWrongReportModal(currentWrongCandidate);
+    };
+  }
+  renderQuickPopupActualReport(findMatchedWrongReportForCurrentCandidate());
+}
+
+function syncQuickPopupApprovedUi() {
+  if (quickPopupApproveBtn) {
+    quickPopupApproveBtn.disabled = !isAdminSession || !currentApprovedCandidate || !currentApprovedCandidate.result.possible || optimizeBtn.disabled;
+    quickPopupApproveBtn.onclick = async () => {
+      await saveCurrentApprovedCandidate();
+    };
+  }
+  renderQuickPopupApprovedState(findMatchedApprovedStrategyForCurrentCandidate());
 }
 
 function showQuickPopup(result, maxPoints, meta) {
@@ -5647,6 +5699,18 @@ function showQuickPopup(result, maxPoints, meta) {
       );
     };
   }
+
+  if (quickPopupWrongReportBtn) {
+    quickPopupWrongReportBtn.disabled = !currentWrongCandidate;
+    quickPopupWrongReportBtn.onclick = () => {
+      if (!currentWrongCandidate) {
+        return;
+      }
+      closeQuickPopup();
+      openWrongReportModal(currentWrongCandidate);
+    };
+  }
+  syncQuickPopupApprovedUi();
 
   if (titleEl) {
     titleEl.textContent = result.possible ? "Kazanilabilir" : "Kazanamaz";
@@ -6331,28 +6395,15 @@ function renderMatchedActualReport() {
   if (!currentWrongCandidate) {
     activeWrongReportSignature = "";
     wrongReports = [];
+    renderQuickPopupActualReport(null);
     return;
   }
   void ensureWrongReportsLoaded();
 
-  const signature = currentWrongCandidate.matchSignature || buildOptimizerMatchSignature(
-    currentWrongCandidate.stage,
-    currentWrongCandidate.enemyCounts,
-    currentWrongCandidate.allyCounts
-  );
-  const matched = wrongReports.find((item) =>
-    item.source === "optimizer" &&
-    (
-      item.matchSignature === signature ||
-      (
-        Number.isInteger(item.stage) &&
-        Number(item.stage) === Number(currentWrongCandidate.stage) &&
-        buildOptimizerMatchSignature(item.stage, item.enemyCounts || {}, item.allyCounts || {}) === signature
-      )
-    )
-  );
+  const matched = findMatchedWrongReportForCurrentCandidate();
 
   if (!matched || !matched.actualSummaryText) {
+    renderQuickPopupActualReport(null);
     return;
   }
 
@@ -6387,6 +6438,107 @@ function renderMatchedActualReport() {
   summaryGrid.append(expectedWrap, actualWrap);
   card.append(head, summaryGrid);
   matchedActualPanel.appendChild(card);
+  renderQuickPopupActualReport(matched);
+}
+
+function findMatchedWrongReportForCurrentCandidate() {
+  if (!currentWrongCandidate) {
+    return null;
+  }
+  const signature = currentWrongCandidate.matchSignature || buildOptimizerMatchSignature(
+    currentWrongCandidate.stage,
+    currentWrongCandidate.enemyCounts,
+    currentWrongCandidate.allyCounts
+  );
+  return wrongReports.find((item) =>
+    item.source === "optimizer" &&
+    (
+      item.matchSignature === signature ||
+      (
+        Number.isInteger(item.stage) &&
+        Number(item.stage) === Number(currentWrongCandidate.stage) &&
+        buildOptimizerMatchSignature(item.stage, item.enemyCounts || {}, item.allyCounts || {}) === signature
+      )
+    )
+  ) || null;
+}
+
+function findMatchedApprovedStrategyForCurrentCandidate() {
+  if (!currentApprovedCandidate) {
+    return null;
+  }
+  const activeDocId = getCurrentApprovedStrategyDocId();
+  const enemySignature = getEnemySignature(currentApprovedCandidate.stage, currentApprovedCandidate.enemyCounts);
+  return approvedStrategies.find((candidate) => candidate.id === activeDocId) || approvedStrategies.find((candidate) => {
+    if (candidate.source === "simulation") {
+      return Number.isInteger(candidate.stage) && getEnemySignature(candidate.stage, candidate.enemyCounts) === enemySignature;
+    }
+    return candidate.enemySignature === enemySignature;
+  }) || null;
+}
+
+function renderQuickPopupApprovedState(matched) {
+  if (!quickPopupApprovedPanel) {
+    return;
+  }
+
+  if (!matched) {
+    quickPopupApprovedPanel.hidden = true;
+    quickPopupApprovedPanel.innerHTML = "";
+    return;
+  }
+
+  const displayWinRate = matched.source === "simulation" ? Math.round((matched.probabilityBasisPoints || 0) / 100) : (matched.winRate || 0);
+  const displayModeLabel = matched.modeLabel || matched.sourceLabel || "-";
+  quickPopupApprovedPanel.hidden = false;
+  quickPopupApprovedPanel.innerHTML = `
+    <div class="quick-popup-approved-head">
+      <strong>Onaylandi</strong>
+      <span>${formatDate(matched.savedAt)}</span>
+    </div>
+    <div class="quick-popup-approved-meta">
+      <span>${displayModeLabel}</span>
+      <span>%${displayWinRate} win</span>
+      <span>${matched.usedPoints} puan</span>
+    </div>
+  `;
+}
+
+function renderQuickPopupActualReport(matched) {
+  if (!quickPopupActualReportPanel) {
+    return;
+  }
+
+  if (!matched || !matched.actualSummaryText) {
+    quickPopupActualReportPanel.hidden = true;
+    quickPopupActualReportPanel.innerHTML = "";
+    return;
+  }
+
+  quickPopupActualReportPanel.hidden = false;
+  quickPopupActualReportPanel.innerHTML = "";
+
+  const head = document.createElement("div");
+  head.className = "quick-popup-actual-head";
+  head.innerHTML = `<strong>Kayitli Gercek Sonuc</strong><span>${formatDate(matched.reportedAt)}</span>`;
+
+  const block = document.createElement("div");
+  block.className = "terminal-block quick-popup-actual-block";
+  renderStyledLines((matched.actualSummaryText || "").split("\n"), block);
+
+  const action = document.createElement("button");
+  action.type = "button";
+  action.className = "button button-secondary quick-popup-actual-edit";
+  action.textContent = "Gercek Sonucu Duzenle";
+  action.addEventListener("click", () => {
+    if (!currentWrongCandidate) {
+      return;
+    }
+    closeQuickPopup();
+    openWrongReportModal(currentWrongCandidate);
+  });
+
+  quickPopupActualReportPanel.append(head, block, action);
 }
 
 function renderActualWrongSummaryPreview() {
@@ -6417,6 +6569,7 @@ function renderMatchedSavedStrategy() {
   if (!stage) {
     activeApprovedStrategyId = "";
     approvedStrategies = [];
+    renderQuickPopupApprovedState(null);
     return;
   }
   void ensureApprovedStrategyLoaded();
@@ -6430,6 +6583,7 @@ function renderMatchedSavedStrategy() {
     return candidate.enemySignature === enemySignature;
   });
   if (!matched) {
+    renderQuickPopupApprovedState(null);
     return;
   }
 
@@ -6475,6 +6629,7 @@ function renderMatchedSavedStrategy() {
 
   card.append(head, body, list);
   matchedSavedPanel.appendChild(card);
+  renderQuickPopupApprovedState(matched);
 }
 
 function restoreFromQuery() {

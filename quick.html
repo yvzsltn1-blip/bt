@@ -357,11 +357,21 @@
       </div>
       <div class="quick-popup-units-head">
         <p class="quick-popup-units-title">Onerilen Birlik Dagilimi</p>
-        <button id="quickPopupOpenSimulationBtn" class="quick-popup-open-simulation" type="button" aria-label="Sonucu simulatorde gor" title="Simulatorde gor">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-        </button>
+        <div class="quick-popup-actions">
+          <button id="quickPopupWrongReportBtn" class="quick-popup-action-btn" type="button" aria-label="Yanlis sonucu bildir" title="Yanlis sonucu bildir">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5.2-3.4 9-8 10-4.6-1-8-4.8-8-10V6l8-3zm0 5.2a1.1 1.1 0 00-1.1 1.1v4.2a1.1 1.1 0 002.2 0V9.3A1.1 1.1 0 0012 8.2zm0 8.1a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/></svg>
+          </button>
+          <button id="quickPopupApproveBtn" class="quick-popup-action-btn quick-popup-action-btn-approve" type="button" aria-label="Onayli olarak kaydet" title="Onayli olarak kaydet">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+          <button id="quickPopupOpenSimulationBtn" class="quick-popup-open-simulation" type="button" aria-label="Sonucu simulatorde gor" title="Simulatorde gor">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+        </div>
       </div>
       <ul class="quick-popup-unit-list" id="quickUnitList"></ul>
+      <section id="quickPopupApprovedPanel" class="quick-popup-approved-panel" hidden></section>
+      <section id="quickPopupActualReportPanel" class="quick-popup-actual-panel" hidden></section>
 
     </div>
   </div>

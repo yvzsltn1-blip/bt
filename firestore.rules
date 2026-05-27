@@ -232,6 +232,30 @@ service cloud.firestore {
         && data.winRate is int && data.winRate >= 0 && data.winRate <= 100;
     }
 
+    function validOverviewArchive(data, documentId) {
+      return documentId.matches('^overview_[0-9]+_[a-z0-9]+$')
+        && data.keys().hasOnly([
+          'savedAt', 'updatedAt', 'goldText', 'goldValue', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'sourceType', 'host', 'pageUrl', 'pageTitle'
+        ])
+        && data.keys().hasAll([
+          'savedAt', 'updatedAt', 'goldText', 'goldValue', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'sourceType'
+        ])
+        && isShortString(data.savedAt, 40)
+        && isShortString(data.updatedAt, 40)
+        && isShortString(data.goldText, 40)
+        && isWideInt(data.goldValue, 9999999999999)
+        && isShortString(data.lootGoldText, 40)
+        && isWideInt(data.lootGoldValue, 9999999999999)
+        && isShortString(data.expText, 40)
+        && isWideInt(data.expValue, 9999999999999)
+        && isShortString(data.armyPowerText, 20)
+        && isShortString(data.levelText, 20)
+        && data.sourceType in ['manual', 'fill']
+        && (!('host' in data) || isShortString(data.host, 120))
+        && (!('pageUrl' in data) || isShortString(data.pageUrl, 400))
+        && (!('pageTitle' in data) || isShortString(data.pageTitle, 160));
+    }
+
     match /approvedStrategies/{documentId} {
       allow read: if true;
       allow create, update: if validApprovedStrategy(request.resource.data, documentId);
@@ -247,6 +271,13 @@ service cloud.firestore {
     match /favoriteStrategies/{documentId} {
       allow read: if true;
       allow create, update: if true;
+      allow delete: if isAdmin();
+    }
+
+    match /overviewArchives/{documentId} {
+      allow read: if true;
+      allow create: if validOverviewArchive(request.resource.data, documentId);
+      allow update: if isAdmin() || validOverviewArchive(request.resource.data, documentId);
       allow delete: if isAdmin();
     }
 

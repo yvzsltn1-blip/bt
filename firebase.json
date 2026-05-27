@@ -14,6 +14,7 @@
       "_web-disi/**",
       "**/node_modules/**",
       "scripts/**",
+      "tampermonkey/**",
       "test-rounding-fix.js",
       "layers_js_current.json",
       "layers_py_v51.json",
@@ -29,6 +30,19 @@
       }
     ],
     "headers": [
+      {
+        "source": "**/*.user.js",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "text/javascript; charset=utf-8"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-store, no-cache, must-revalidate, max-age=0"
+          }
+        ]
+      },
       {
         "source": "**/*.@(html|js|css)",
         "headers": [

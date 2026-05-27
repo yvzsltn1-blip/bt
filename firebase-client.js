@@ -14,11 +14,13 @@
   const CACHE_KEY = "btAnalyssApprovedStrategiesCache";
   const WRONG_CACHE_KEY = "btAnalyssWrongReportsCache";
   const FAVORITE_CACHE_KEY = "btAnalyssFavoriteStrategiesCache";
+  const OVERVIEW_ARCHIVE_CACHE_KEY = "btAnalyssOverviewArchivesCache";
   const LEGACY_KEY = "btAnalyssApprovedStrategies";
   const MIGRATION_KEY = "btAnalyssApprovedStrategiesMigrated";
   const COLLECTION = "approvedStrategies";
   const WRONG_COLLECTION = "wrongReports";
   const FAVORITE_COLLECTION = "favoriteStrategies";
+  const OVERVIEW_ARCHIVE_COLLECTION = "overviewArchives";
   const DEFAULT_PAGE_SIZE = 10;
   const ENEMY_COUNT_KEYS = [
     "skeletons", "zombies", "cultists", "bonewings", "corpses",
@@ -163,6 +165,34 @@
 
   function writeFavoriteStrategies(items) {
     writeStorage(FAVORITE_CACHE_KEY, mergeFavorites(items));
+  }
+
+  function mergeOverviewArchives(items) {
+    const merged = new Map();
+    items.forEach((item) => {
+      const id = typeof item?.id === "string" ? item.id.trim() : "";
+      if (!id) {
+        return;
+      }
+      const nextItem = { ...item, id };
+      const current = merged.get(id);
+      if (!current) {
+        merged.set(id, nextItem);
+        return;
+      }
+      const currentStamp = current.savedAt || "";
+      const nextStamp = nextItem.savedAt || "";
+      merged.set(id, nextStamp >= currentStamp ? nextItem : current);
+    });
+    return [...merged.values()];
+  }
+
+  function readOverviewArchives() {
+    return mergeOverviewArchives(readStorage(OVERVIEW_ARCHIVE_CACHE_KEY));
+  }
+
+  function writeOverviewArchives(items) {
+    writeStorage(OVERVIEW_ARCHIVE_CACHE_KEY, mergeOverviewArchives(items));
   }
 
   function normalizePageSize(value) {
@@ -449,6 +479,25 @@
       usedPoints: clampInt(item?.usedPoints, 99999),
       lostBlood: clampInt(item?.lostBlood, 999999),
       winRate: clampInt(item?.winRate, 100)
+    };
+  }
+
+  function sanitizeOverviewArchive(item) {
+    return {
+      savedAt: trimText(item?.savedAt || new Date().toISOString(), 40),
+      updatedAt: trimText(new Date().toISOString(), 40),
+      goldText: trimText(item?.goldText || "", 40),
+      goldValue: clampInt(item?.goldValue, 9999999999999),
+      lootGoldText: trimText(item?.lootGoldText || "-", 40),
+      lootGoldValue: clampInt(item?.lootGoldValue, 9999999999999),
+      expText: trimText(item?.expText || "-", 40),
+      expValue: clampInt(item?.expValue, 9999999999999),
+      armyPowerText: trimText(item?.armyPowerText || "-", 20),
+      levelText: trimText(item?.levelText || "-", 20),
+      sourceType: item?.sourceType === "fill" ? "fill" : "manual",
+      host: trimText(item?.host || "", 120),
+      pageUrl: trimText(item?.pageUrl || "", 400),
+      pageTitle: trimText(item?.pageTitle || "", 160)
     };
   }
 
@@ -949,6 +998,32 @@
     return response.json().catch(() => null);
   }
 
+  async function createOverviewArchiveViaRest(docId, payload) {
+    if (typeof globalScope.fetch !== "function") {
+      throw new Error("REST fallback icin fetch kullanilamiyor.");
+    }
+
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}/${OVERVIEW_ARCHIVE_COLLECTION}?documentId=${encodeURIComponent(docId)}&key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fields: toFirestoreRestFields(payload)
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new Error(`REST fallback basarisiz: HTTP ${response.status} ${response.statusText}\n${responseText}`);
+    }
+
+    return response.json().catch(() => null);
+  }
+
   async function migrateLocalStrategies() {
     if (!db || readMigrationFlag() || !isAdminSignedIn()) {
       return;
@@ -990,6 +1065,11 @@
   function buildFavoriteStrategyDocId() {
     const suffix = Math.random().toString(36).slice(2, 9) || "0";
     return `fav_${Date.now()}_${suffix}`;
+  }
+
+  function buildOverviewArchiveDocId() {
+    const suffix = Math.random().toString(36).slice(2, 9) || "0";
+    return `overview_${Date.now()}_${suffix}`;
   }
 
   function validateFavoritePayload(data, docId) {
@@ -1068,6 +1148,71 @@
     }
     if (!Number.isInteger(data.winRate) || data.winRate < 0 || data.winRate > 100) {
       errors.push(`winRate gecersiz: ${data.winRate}`);
+    }
+
+    return errors;
+  }
+
+  function validateOverviewArchivePayload(data, docId) {
+    const errors = [];
+    const allowedKeys = ["savedAt", "updatedAt", "goldText", "goldValue", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "sourceType", "host", "pageUrl", "pageTitle"];
+    const requiredKeys = ["savedAt", "updatedAt", "goldText", "goldValue", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "sourceType"];
+
+    if (!/^overview_[0-9]+_[a-z0-9]+$/.test(docId)) {
+      errors.push(`Belge ID formati hatali: ${docId}`);
+    }
+
+    const keys = Object.keys(data || {});
+    const extraKeys = keys.filter((key) => !allowedKeys.includes(key));
+    if (extraKeys.length > 0) {
+      errors.push(`Izin verilmeyen alanlar: ${extraKeys.join(", ")}`);
+    }
+    const missingKeys = requiredKeys.filter((key) => !(key in data));
+    if (missingKeys.length > 0) {
+      errors.push(`Eksik zorunlu alanlar: ${missingKeys.join(", ")}`);
+    }
+
+    if (!validateShortString(data.savedAt, 40)) {
+      errors.push("savedAt 1..40 karakter olmali.");
+    }
+    if (!validateShortString(data.updatedAt, 40)) {
+      errors.push("updatedAt 1..40 karakter olmali.");
+    }
+    if (!validateShortString(data.goldText, 40)) {
+      errors.push("goldText 1..40 karakter olmali.");
+    }
+    if (!isIntegerInRange(data.goldValue, 0, 9999999999999)) {
+      errors.push("goldValue 0..9999999999999 araliginda tam sayi olmali.");
+    }
+    if (!validateShortString(data.lootGoldText, 40)) {
+      errors.push("lootGoldText 1..40 karakter olmali.");
+    }
+    if (!isIntegerInRange(data.lootGoldValue, 0, 9999999999999)) {
+      errors.push("lootGoldValue 0..9999999999999 araliginda tam sayi olmali.");
+    }
+    if (!validateShortString(data.expText, 40)) {
+      errors.push("expText 1..40 karakter olmali.");
+    }
+    if (!isIntegerInRange(data.expValue, 0, 9999999999999)) {
+      errors.push("expValue 0..9999999999999 araliginda tam sayi olmali.");
+    }
+    if (!validateShortString(data.armyPowerText, 20)) {
+      errors.push("armyPowerText 1..20 karakter olmali.");
+    }
+    if (!validateShortString(data.levelText, 20)) {
+      errors.push("levelText 1..20 karakter olmali.");
+    }
+    if (!["manual", "fill"].includes(data.sourceType)) {
+      errors.push("sourceType manual veya fill olmali.");
+    }
+    if ("host" in data && data.host && !validateShortString(data.host, 120)) {
+      errors.push("host 1..120 karakter olmali.");
+    }
+    if ("pageUrl" in data && data.pageUrl && !validateShortString(data.pageUrl, 400)) {
+      errors.push("pageUrl 1..400 karakter olmali.");
+    }
+    if ("pageTitle" in data && data.pageTitle && !validateShortString(data.pageTitle, 160)) {
+      errors.push("pageTitle 1..160 karakter olmali.");
     }
 
     return errors;
@@ -1483,6 +1628,119 @@
     writeWrongReports([]);
   }
 
+  async function loadOverviewArchives() {
+    if (!db) {
+      return readOverviewArchives();
+    }
+
+    try {
+      const snapshot = await db.collection(OVERVIEW_ARCHIVE_COLLECTION).get();
+      const remoteItems = mergeOverviewArchives(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const items = mergeOverviewArchives([...remoteItems, ...readOverviewArchives()]);
+      writeOverviewArchives(items);
+      return items;
+    } catch (error) {
+      console.warn("Arsiv kayitlari okunamadi, cache kullaniliyor.", error);
+      return readOverviewArchives();
+    }
+  }
+
+  async function loadOverviewArchivesPage(options = {}) {
+    return loadCollectionPage({
+      collectionName: OVERVIEW_ARCHIVE_COLLECTION,
+      orderField: "savedAt",
+      mergeItems: mergeOverviewArchives,
+      readLocal: readOverviewArchives,
+      writeLocal: writeOverviewArchives,
+      pageSize: options.pageSize,
+      cursor: options.cursor || null
+    });
+  }
+
+  async function saveOverviewArchive(item) {
+    const docId = typeof item?.id === "string" && item.id.trim() ? item.id.trim() : buildOverviewArchiveDocId();
+    const payload = sanitizeOverviewArchive(item);
+    const validationErrors = validateOverviewArchivePayload(payload, docId);
+
+    if (validationErrors.length > 0) {
+      throw new Error(`Arsiv verisi kurallara uymuyor:\n${validationErrors.map((entry) => `- ${entry}`).join("\n")}`);
+    }
+
+    if (!db) {
+      const next = mergeOverviewArchives([...readOverviewArchives(), { ...payload, id: docId }]);
+      writeOverviewArchives(next);
+      return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
+    }
+
+    try {
+      await db.collection(OVERVIEW_ARCHIVE_COLLECTION).doc(docId).set(payload);
+      const next = mergeOverviewArchives([...readOverviewArchives(), { ...payload, id: docId }]);
+      writeOverviewArchives(next);
+      return { ...payload, id: docId };
+    } catch (error) {
+      if (error?.code === "permission-denied") {
+        const response = await createOverviewArchiveViaRest(docId, payload);
+        const next = mergeOverviewArchives([...readOverviewArchives(), { ...payload, id: docId }]);
+        writeOverviewArchives(next);
+        return { ...payload, id: docId, savedVia: response ? "rest-fallback" : "rest-fallback" };
+      }
+      console.warn("Arsiv Firestore kaydi basarisiz, yerel cache kullaniliyor.", error);
+      const next = mergeOverviewArchives([...readOverviewArchives(), { ...payload, id: docId }]);
+      writeOverviewArchives(next);
+      return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
+    }
+  }
+
+  async function updateOverviewArchive(item) {
+    const docId = typeof item?.id === "string" ? item.id.trim() : "";
+    if (!docId) {
+      throw new Error("Guncellenecek arsiv kaydi icin id gerekli.");
+    }
+
+    const payload = sanitizeOverviewArchive(item);
+    const validationErrors = validateOverviewArchivePayload(payload, docId);
+    if (validationErrors.length > 0) {
+      throw new Error(`Arsiv verisi kurallara uymuyor:\n${validationErrors.map((entry) => `- ${entry}`).join("\n")}`);
+    }
+
+    if (!db) {
+      const next = mergeOverviewArchives([...readOverviewArchives().filter((candidate) => candidate.id !== docId), { ...payload, id: docId }]);
+      writeOverviewArchives(next);
+      return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
+    }
+
+    const currentUser = auth ? auth.currentUser : null;
+    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+      throw new Error("Arsiv duzenlemek icin admin girisi zorunludur.");
+    }
+
+    await db.collection(OVERVIEW_ARCHIVE_COLLECTION).doc(docId).set(payload);
+    const next = mergeOverviewArchives([...readOverviewArchives().filter((candidate) => candidate.id !== docId), { ...payload, id: docId }]);
+    writeOverviewArchives(next);
+    return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
+  }
+
+  async function deleteOverviewArchive(id) {
+    const docId = typeof id === "string" ? id.trim() : "";
+    if (!docId) {
+      throw new Error("Silinecek arsiv kaydi icin id gerekli.");
+    }
+
+    const nextLocal = readOverviewArchives().filter((candidate) => candidate.id !== docId);
+    if (!db) {
+      writeOverviewArchives(nextLocal);
+      return;
+    }
+
+    const currentUser = auth ? auth.currentUser : null;
+    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+      throw new Error("Arsiv silmek icin admin girisi zorunludur.");
+    }
+
+    await db.collection(OVERVIEW_ARCHIVE_COLLECTION).doc(docId).delete();
+    writeOverviewArchives(nextLocal);
+  }
+
   function getCurrentUser() {
     return auth ? auth.currentUser : null;
   }
@@ -1598,6 +1856,11 @@
     findFavoriteStrategiesByEnemySignature,
     saveFavoriteStrategy,
     deleteFavoriteStrategy,
-    clearFavoriteStrategies
+    clearFavoriteStrategies,
+    loadOverviewArchives,
+    loadOverviewArchivesPage,
+    saveOverviewArchive,
+    updateOverviewArchive,
+    deleteOverviewArchive
   };
 })(window);
