@@ -5636,15 +5636,19 @@ function initQuickPopup() {
   if (backdrop) backdrop.addEventListener("click", closePopup);
 }
 
-function closeQuickPopup() {
+function closeQuickPopup(instant = false) {
   const overlay = document.querySelector("#quickResultPopup");
   if (!overlay) {
     return;
   }
   overlay.classList.remove("is-visible");
-  overlay.addEventListener("transitionend", () => {
+  if (instant) {
     overlay.hidden = true;
-  }, { once: true });
+  } else {
+    overlay.addEventListener("transitionend", () => {
+      overlay.hidden = true;
+    }, { once: true });
+  }
 }
 
 function syncQuickPopupReportUi() {
@@ -5654,7 +5658,7 @@ function syncQuickPopupReportUi() {
       if (!currentWrongCandidate) {
         return;
       }
-      closeQuickPopup();
+      closeQuickPopup(true);
       openWrongReportModal(currentWrongCandidate);
     };
   }
@@ -5706,7 +5710,7 @@ function showQuickPopup(result, maxPoints, meta) {
       if (!currentWrongCandidate) {
         return;
       }
-      closeQuickPopup();
+      closeQuickPopup(true);
       openWrongReportModal(currentWrongCandidate);
     };
   }
@@ -6534,7 +6538,7 @@ function renderQuickPopupActualReport(matched) {
     if (!currentWrongCandidate) {
       return;
     }
-    closeQuickPopup();
+    closeQuickPopup(true);
     openWrongReportModal(currentWrongCandidate);
   });
 

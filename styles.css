@@ -3846,7 +3846,7 @@ body[data-optimizer-variant="minimum"] .layout {
 .report-modal {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 350;
   display: grid;
   place-items: center;
   padding: 18px;
