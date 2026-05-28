@@ -192,7 +192,8 @@
       if (!id) {
         return;
       }
-      const nextItem = { ...item, id };
+      const { goldText, goldValue, ...archiveItem } = item;
+      const nextItem = { ...archiveItem, id };
       const current = merged.get(id);
       if (!current) {
         merged.set(id, nextItem);
@@ -575,7 +576,6 @@
   function buildOverviewArchiveAggregateFromItems(items, options = {}) {
     return {
       count: Array.isArray(items) ? items.length : 0,
-      totalGold: sumOverviewArchiveField(items, "goldValue"),
       totalLoot: sumOverviewArchiveField(items, "lootGoldValue"),
       totalExp: sumOverviewArchiveField(items, "expValue"),
       exact: Boolean(options.exact),
@@ -614,14 +614,12 @@
     try {
       const snapshot = await query.aggregate({
         countOfDocs: aggregateField.count(),
-        totalGold: aggregateField.sum("goldValue"),
         totalLoot: aggregateField.sum("lootGoldValue"),
         totalExp: aggregateField.sum("expValue")
       }).get();
       const data = typeof snapshot?.data === "function" ? snapshot.data() : {};
       return {
         count: toAggregateNumber(data?.countOfDocs),
-        totalGold: toAggregateNumber(data?.totalGold),
         totalLoot: toAggregateNumber(data?.totalLoot),
         totalExp: toAggregateNumber(data?.totalExp),
         exact: true,
@@ -816,8 +814,6 @@
     return {
       savedAt: trimText(item?.savedAt || new Date().toISOString(), 40),
       updatedAt: trimText(new Date().toISOString(), 40),
-      goldText: trimText(item?.goldText || "", 40),
-      goldValue: clampInt(item?.goldValue, 9999999999999),
       lootGoldText: trimText(item?.lootGoldText || "-", 40),
       lootGoldValue: clampInt(item?.lootGoldValue, 9999999999999),
       expText: trimText(item?.expText || "-", 40),
@@ -1489,8 +1485,8 @@
 
   function validateOverviewArchivePayload(data, docId) {
     const errors = [];
-    const allowedKeys = ["savedAt", "updatedAt", "goldText", "goldValue", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "enemyRosterText", "allyRosterText", "fallenUnitsText", "reviveStoneText", "sourceType", "host", "pageUrl", "pageTitle"];
-    const requiredKeys = ["savedAt", "updatedAt", "goldText", "goldValue", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "sourceType"];
+    const allowedKeys = ["savedAt", "updatedAt", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "enemyRosterText", "allyRosterText", "fallenUnitsText", "reviveStoneText", "sourceType", "host", "pageUrl", "pageTitle"];
+    const requiredKeys = ["savedAt", "updatedAt", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "sourceType"];
 
     if (!/^overview_[0-9]+_[a-z0-9]+$/.test(docId)) {
       errors.push(`Belge ID formati hatali: ${docId}`);
@@ -1511,12 +1507,6 @@
     }
     if (!validateShortString(data.updatedAt, 40)) {
       errors.push("updatedAt 1..40 karakter olmali.");
-    }
-    if (!validateShortString(data.goldText, 40)) {
-      errors.push("goldText 1..40 karakter olmali.");
-    }
-    if (!isIntegerInRange(data.goldValue, 0, 9999999999999)) {
-      errors.push("goldValue 0..9999999999999 araliginda tam sayi olmali.");
     }
     if (!validateShortString(data.lootGoldText, 40)) {
       errors.push("lootGoldText 1..40 karakter olmali.");

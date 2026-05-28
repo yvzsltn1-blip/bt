@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260528-08">
+  <link rel="stylesheet" href="styles.css?v=20260529-11">
 </head>
 <body class="site-gate-pending">
   <div class="page-shell">
@@ -79,7 +79,7 @@
               </select>
             </label>
             <label class="field archive-filter-field">
-              <span>Sayfa Boyutu</span>
+              <span>Acma Adedi</span>
               <select id="archivePageSizeSelect" class="archive-filter-control">
                 <option value="20">20</option>
                 <option value="40" selected>40</option>
@@ -126,6 +126,22 @@
           </div>
         </section>
 
+        <section id="archiveSelectionSummary" class="archive-selection-summary" hidden>
+          <strong id="archiveSelectionCount">0 kayit secildi</strong>
+          <span id="archiveSelectionTotals">0 EXP / 0 ganimet</span>
+        </section>
+
+        <section id="archiveList" class="archive-list">
+          <p class="summary-empty">Henuz arsiv kaydi yok.</p>
+        </section>
+
+        <section id="archivePagination" class="list-pagination archive-pagination" hidden>
+          <button id="archivePrevPageBtn" class="button button-ghost archive-page-nav" type="button" aria-label="Onceki sayfa">‹</button>
+          <div id="archivePageNumbers" class="archive-page-numbers" aria-label="Sayfa numaralari"></div>
+          <div id="archivePageInfo" class="list-pagination-info"></div>
+          <button id="archiveNextPageBtn" class="button button-ghost archive-page-nav" type="button" aria-label="Sonraki sayfa">›</button>
+        </section>
+
         <section class="admin-auth-panel admin-auth-panel-tight">
           <div class="admin-auth-copy">
             <strong>Admin Girisi</strong>
@@ -138,17 +154,6 @@
             <button id="adminLoginBtn" class="button button-secondary" type="button">Admin Giris</button>
             <button id="adminLogoutBtn" class="button button-ghost" type="button" hidden>Cikis</button>
           </div>
-        </section>
-
-        <section id="archiveList" class="archive-list">
-          <p class="summary-empty">Henuz arsiv kaydi yok.</p>
-        </section>
-
-        <section id="archivePagination" class="list-pagination archive-pagination" hidden>
-          <button id="archivePrevPageBtn" class="button button-ghost archive-page-nav" type="button" aria-label="Onceki sayfa">‹</button>
-          <div id="archivePageNumbers" class="archive-page-numbers" aria-label="Sayfa numaralari"></div>
-          <div id="archivePageInfo" class="list-pagination-info"></div>
-          <button id="archiveNextPageBtn" class="button button-ghost archive-page-nav" type="button" aria-label="Sonraki sayfa">›</button>
         </section>
 
       </section>
@@ -178,14 +183,6 @@
             <option value="manual">manual</option>
             <option value="fill">fill</option>
           </select>
-        </label>
-        <label class="report-field">
-          <span>Gold Text</span>
-          <input id="archiveEditGoldTextInput" type="text" placeholder="123456">
-        </label>
-        <label class="report-field">
-          <span>Gold Value</span>
-          <input id="archiveEditGoldValueInput" type="number" min="0" inputmode="numeric" placeholder="123456">
         </label>
         <label class="report-field">
           <span>Loot Gold Text</span>
@@ -254,10 +251,10 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="site-gate.js?v=20260502-02" defer></script>
-  <script src="firebase-client.js?v=20260528-06" defer></script>
+  <script src="firebase-client.js?v=20260528-07" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
   <script src="battle-core.js?v=20260515-03" defer></script>
-  <script src="bulk-regression.js?v=20260528-06" defer></script>
-  <script src="archive.js?v=20260528-11" defer></script>
+  <script src="bulk-regression.js?v=20260529-10" defer></script>
+  <script src="archive.js?v=20260529-11" defer></script>
 </body>
 </html>

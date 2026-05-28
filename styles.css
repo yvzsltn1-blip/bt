@@ -270,6 +270,12 @@ body.site-gate-ready .page-shell {
   --nav-icon: #f1a1b8;
 }
 
+.nav-archive {
+  --nav-tone: linear-gradient(180deg, rgba(55, 51, 35, 0.94), rgba(30, 27, 17, 0.96));
+  --nav-border: rgba(202, 166, 86, 0.28);
+  --nav-icon: #f0cd79;
+}
+
 .nav-quick {
   --nav-tone: linear-gradient(180deg, rgba(38, 54, 72, 0.94), rgba(18, 28, 42, 0.96));
   --nav-border: rgba(100, 180, 255, 0.3);
@@ -3608,6 +3614,38 @@ body[data-optimizer-variant="minimum"] .layout {
   display: block;
 }
 
+.archive-selection-summary {
+  position: sticky;
+  top: 10px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 216, 142, 0.26);
+  border-radius: 14px;
+  background: rgba(12, 18, 27, 0.96);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+}
+
+.archive-selection-summary[hidden] {
+  display: none;
+}
+
+.archive-selection-summary strong {
+  color: #ffffff;
+  font-size: 0.92rem;
+}
+
+.archive-selection-summary span {
+  color: #ffe19c;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .archive-toolbar {
   display: grid;
   gap: 16px;
@@ -3891,9 +3929,62 @@ body[data-optimizer-variant="minimum"] .layout {
   transition: background-color 0.15s ease;
 }
 
+.archive-exp-cell {
+  color: #ffd88e !important;
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(255, 216, 142, 0.15);
+}
+
 .archive-table th:last-child,
 .archive-table td:last-child {
   width: 88px;
+}
+
+.archive-select-col,
+.archive-select-cell {
+  width: 56px !important;
+  text-align: center !important;
+}
+
+.archive-select-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.archive-select-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.archive-select-check span {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(160, 185, 214, 0.34);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.archive-select-check input:checked + span {
+  border-color: rgba(255, 216, 142, 0.78);
+  background: #ffd88e;
+  box-shadow: 0 0 0 3px rgba(255, 216, 142, 0.14);
+}
+
+.archive-select-check input:checked + span::after {
+  content: "";
+  display: block;
+  width: 9px;
+  height: 5px;
+  margin: 4px auto 0;
+  border-left: 2px solid #131820;
+  border-bottom: 2px solid #131820;
+  transform: rotate(-45deg);
 }
 
 .archive-detail-col,
@@ -3911,6 +4002,11 @@ body[data-optimizer-variant="minimum"] .layout {
   color: #ffffff;
 }
 
+.archive-table tbody tr.is-selected td,
+.archive-card.is-selected {
+  background: rgba(255, 216, 142, 0.07);
+}
+
 .archive-table tbody tr:last-child td {
   border-bottom: 0;
 }
@@ -3926,15 +4022,6 @@ body[data-optimizer-variant="minimum"] .layout {
 .archive-table tbody tr:hover td:last-child {
   border-top-right-radius: 6px;
   border-bottom-right-radius: 6px;
-}
-
-.archive-gold-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #ffd88e;
-  font-weight: 700;
-  text-shadow: 0 0 12px rgba(255, 216, 142, 0.15);
 }
 
 .archive-detail-toggle {
@@ -4054,6 +4141,39 @@ body[data-optimizer-variant="minimum"] .layout {
   color: #d9ffd6;
   background: rgba(26, 78, 40, 0.22);
   border-color: rgba(115, 230, 142, 0.18);
+}
+
+.archive-inline-sim-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  min-width: 1.15em;
+  height: 1.15em;
+  margin-left: 6px;
+  padding: 0;
+  vertical-align: -0.16em;
+  border: 1px solid rgba(96, 165, 250, 0.42);
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12);
+  color: #bfdbfe;
+  cursor: pointer;
+}
+
+.archive-inline-sim-btn:hover {
+  border-color: rgba(147, 197, 253, 0.72);
+  background: rgba(59, 130, 246, 0.24);
+  color: #ffffff;
+}
+
+.archive-inline-sim-btn svg {
+  width: 0.82em;
+  height: 0.82em;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .archive-action-group {
@@ -4361,9 +4481,9 @@ body[data-optimizer-variant="minimum"] .layout {
 }
 
 .archive-page-nav {
-  width: 42px;
-  min-width: 42px;
-  padding: 10px 0;
+  width: auto;
+  min-width: 120px;
+  padding: 10px 16px;
   font-size: 1rem;
   line-height: 1;
 }
@@ -6121,7 +6241,7 @@ body.simulation-log-fullscreen {
   }
 
   .archive-table {
-    min-width: 525px;
+    min-width: 634px;
     border-collapse: separate;
     border-spacing: 0;
   }
@@ -6147,11 +6267,46 @@ body.simulation-log-fullscreen {
     background: rgba(14, 21, 31, 0.98);
   }
 
-  /* 1. Kat Sütunu (HTML'de 6. çocuk) - Mobilde En Solda Sabit (Sticky) */
+  /* 1. Kat sütunu - mobilde en solda sabit */
+  .archive-selection-summary {
+    top: 6px;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 10px 12px;
+  }
+
+  .archive-selection-summary strong,
+  .archive-selection-summary span {
+    font-size: 0.82rem;
+  }
+
+  .archive-select-col,
+  .archive-select-cell {
+    position: sticky;
+    left: 0;
+    z-index: 6;
+    background: #0d1520 !important;
+    border-right: 1.5px solid rgba(160, 185, 214, 0.16);
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.35);
+    width: 44px !important;
+    min-width: 44px !important;
+    flex: 0 0 44px !important;
+    order: 1;
+    padding-inline: 8px !important;
+  }
+
+  .archive-table tbody tr:nth-child(even) .archive-select-cell {
+    background: #0f1824 !important;
+  }
+
+  .archive-table tbody tr:hover .archive-select-cell {
+    background: rgba(108, 182, 255, 0.12) !important;
+  }
+
   .archive-table th:nth-child(6),
   .archive-table td:nth-child(6) {
     position: sticky;
-    left: 0;
+    left: 44px;
     z-index: 5;
     background: #0d1520 !important;
     border-right: 1.5px solid rgba(160, 185, 214, 0.16);
@@ -6160,7 +6315,7 @@ body.simulation-log-fullscreen {
     min-width: 60px;
     flex: 0 0 60px;
     font-weight: 700;
-    order: 1;
+    order: 2;
     text-align: center;
   }
 
@@ -6173,59 +6328,52 @@ body.simulation-log-fullscreen {
     color: #ffffff;
   }
 
-  /* 2. Ganimet Altın Sütunu (HTML'de 3. çocuk) */
+  /* 2. Ganimet sütunu */
   .archive-table th:nth-child(3),
   .archive-table td:nth-child(3) {
     width: 95px;
     min-width: 95px;
     flex: 0 0 95px;
-    order: 2;
+    order: 3;
   }
 
-  /* 3. EXP Sütunu (HTML'de 4. çocuk) */
+  /* 3. EXP sütunu */
   .archive-table th:nth-child(4),
   .archive-table td:nth-child(4) {
     width: 85px;
     min-width: 85px;
     flex: 0 0 85px;
-    order: 3;
+    order: 4;
   }
 
-  /* 4. Seviye Sütunu (HTML'de 5. çocuk) */
+  /* 4. Seviye sütunu */
   .archive-table th:nth-child(5),
   .archive-table td:nth-child(5) {
     width: 65px;
     min-width: 65px;
     flex: 0 0 65px;
-    order: 4;
+    order: 5;
     text-align: center;
   }
 
-  /* 5. Gold Sütunu (HTML'de 2. çocuk) */
+  /* 5. Tarih sütunu */
   .archive-table th:nth-child(2),
   .archive-table td:nth-child(2) {
-    width: 100px;
-    min-width: 100px;
-    flex: 0 0 100px;
-    order: 5;
-  }
-
-  /* 6. Tarih Sütunu (HTML'de 1. çocuk) - En Sağda */
-  .archive-table th:first-child,
-  .archive-table td:first-child {
-    width: 120px;
-    min-width: 120px;
-    flex: 0 0 120px;
+    width: 138px;
+    min-width: 138px;
+    flex: 0 0 138px;
     order: 6;
+    padding-right: 18px;
   }
 
   .archive-table th:nth-child(7),
   .archive-table td:nth-child(7) {
-    width: 58px;
-    min-width: 58px;
-    flex: 0 0 58px;
+    width: 66px;
+    min-width: 66px;
+    flex: 0 0 66px;
     order: 7;
     text-align: center;
+    padding-left: 14px;
   }
 
   .archive-table th:nth-child(8),
@@ -6235,11 +6383,6 @@ body.simulation-log-fullscreen {
     flex: 0 0 72px;
     order: 8;
     text-align: center;
-  }
-
-  .archive-gold-cell {
-    gap: 4px;
-    font-size: 0.84rem;
   }
 
   .archive-source-icon {

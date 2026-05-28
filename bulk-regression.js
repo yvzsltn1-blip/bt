@@ -398,6 +398,8 @@
     prepareApprovedItems,
     prepareWrongItems,
     prepareArchiveItems,
+    parseArchiveEnemyCounts,
+    parseArchiveAllyCounts,
     getWrongSimulationCounts,
     extractOutcomeLine,
     inferWinnerFromOutcomeLine,

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      1.7
+// @version      1.8
 // @description  quick.html sonuclarini Bitefight savasa otomatik doldurur ve arsiv kaydi tutar
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -124,16 +124,6 @@
     GM_setValue(LAST_ARCHIVE_ID_KEY, '');
     GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, '');
     GM_setValue(LAST_LOOT_SYNC_KEY, '');
-  }
-
-  function getGoldText() {
-    const el = document.querySelector('div.gold');
-    if (!el) return '';
-    const value = [...el.childNodes]
-      .filter((node) => node.nodeType === Node.TEXT_NODE)
-      .map((node) => cleanText(node.textContent))
-      .find(Boolean);
-    return value || '';
   }
 
   function getArmyPowerText() {
@@ -305,19 +295,12 @@
   }
 
   function getOverviewPayload(sourceType, options = {}) {
-    const goldText = getGoldText();
-    if (!goldText) {
-      throw new Error('Altin bilgisi bulunamadi.');
-    }
-
     const nowIso = new Date().toISOString();
     const enemyRosterText = getEnemyRosterText();
     const allyRosterText = getAllyRosterText(options.targets, Boolean(options.preferTargets));
     return {
       savedAt: nowIso,
       updatedAt: nowIso,
-      goldText,
-      goldValue: parseDigits(goldText),
       lootGoldText: '-',
       lootGoldValue: 0,
       expText: '-',
@@ -338,8 +321,6 @@
     return {
       savedAt: { stringValue: payload.savedAt },
       updatedAt: { stringValue: payload.updatedAt },
-      goldText: { stringValue: payload.goldText },
-      goldValue: { integerValue: String(payload.goldValue) },
       lootGoldText: { stringValue: payload.lootGoldText },
       lootGoldValue: { integerValue: String(payload.lootGoldValue) },
       expText: { stringValue: payload.expText },
@@ -548,7 +529,7 @@
 
       try {
         const result = await createArchiveRecord('manual');
-        saveBtn.textContent = `Kaydedildi: ${result.payload.goldText}`;
+        saveBtn.textContent = 'Kaydedildi';
         saveBtn.style.background = '#1a6b2a';
         saveBtn.style.borderColor = '#98ffb0';
         saveBtn.style.color = '#f3fff6';

@@ -235,15 +235,13 @@ service cloud.firestore {
     function validOverviewArchive(data, documentId) {
       return documentId.matches('^overview_[0-9]+_[a-z0-9]+$')
         && data.keys().hasOnly([
-          'savedAt', 'updatedAt', 'goldText', 'goldValue', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'enemyRosterText', 'allyRosterText', 'fallenUnitsText', 'reviveStoneText', 'sourceType', 'host', 'pageUrl', 'pageTitle'
+          'savedAt', 'updatedAt', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'enemyRosterText', 'allyRosterText', 'fallenUnitsText', 'reviveStoneText', 'sourceType', 'host', 'pageUrl', 'pageTitle'
         ])
         && data.keys().hasAll([
-          'savedAt', 'updatedAt', 'goldText', 'goldValue', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'sourceType'
+          'savedAt', 'updatedAt', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'sourceType'
         ])
         && isShortString(data.savedAt, 40)
         && isShortString(data.updatedAt, 40)
-        && isShortString(data.goldText, 40)
-        && isWideInt(data.goldValue, 9999999999999)
         && isShortString(data.lootGoldText, 40)
         && isWideInt(data.lootGoldValue, 9999999999999)
         && isShortString(data.expText, 40)

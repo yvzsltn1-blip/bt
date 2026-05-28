@@ -25,6 +25,9 @@ const archiveTodayLootValue = document.querySelector("#archiveTodayLootValue");
 const archiveFirstTenExpValue = document.querySelector("#archiveFirstTenExpValue");
 const archiveFirstTenLootValue = document.querySelector("#archiveFirstTenLootValue");
 const archiveFirstXInput = document.querySelector("#archiveFirstXInput");
+const archiveSelectionSummary = document.querySelector("#archiveSelectionSummary");
+const archiveSelectionCount = document.querySelector("#archiveSelectionCount");
+const archiveSelectionTotals = document.querySelector("#archiveSelectionTotals");
 const adminAuthStatus = document.querySelector("#adminAuthStatus");
 const adminEmailInput = document.querySelector("#adminEmailInput");
 const adminPasswordInput = document.querySelector("#adminPasswordInput");
@@ -39,8 +42,6 @@ const archiveEditUpdatedAtLabel = document.querySelector("#archiveEditUpdatedAtL
 const archiveEditErrorBox = document.querySelector("#archiveEditErrorBox");
 const archiveEditSavedAtInput = document.querySelector("#archiveEditSavedAtInput");
 const archiveEditSourceTypeInput = document.querySelector("#archiveEditSourceTypeInput");
-const archiveEditGoldTextInput = document.querySelector("#archiveEditGoldTextInput");
-const archiveEditGoldValueInput = document.querySelector("#archiveEditGoldValueInput");
 const archiveEditLootGoldTextInput = document.querySelector("#archiveEditLootGoldTextInput");
 const archiveEditLootGoldValueInput = document.querySelector("#archiveEditLootGoldValueInput");
 const archiveEditExpTextInput = document.querySelector("#archiveEditExpTextInput");
@@ -79,7 +80,8 @@ const archiveState = {
   },
   firstX: 10,
   pageSize: DEFAULT_PAGE_SIZE,
-  currentPage: 0,
+  visibleLimit: DEFAULT_PAGE_SIZE,
+  selectedIds: new Set(),
   expandedIds: new Set(),
   loadedItems: [],
   remoteCursor: null,
@@ -98,37 +100,17 @@ void bindAdminAuth();
 void refreshArchiveView();
 
 archivePrevPageBtn?.addEventListener("click", () => {
-  if (archiveState.currentPage <= 0) {
-    return;
-  }
-  archiveState.currentPage -= 1;
+  archiveState.visibleLimit = archiveState.pageSize;
   renderArchivePage();
 });
 
 archiveNextPageBtn?.addEventListener("click", async () => {
-  const targetPage = archiveState.currentPage + 1;
-  const ready = await ensureArchivePageLoaded(targetPage);
+  const targetLimit = archiveState.visibleLimit + archiveState.pageSize;
+  const ready = await ensureArchiveItemsLoadedUntil(targetLimit);
   if (!ready) {
     return;
   }
-  archiveState.currentPage = targetPage;
-  renderArchivePage();
-});
-
-archivePageNumbers?.addEventListener("click", async (event) => {
-  const pageButton = event.target instanceof Element ? event.target.closest("[data-page-index]") : null;
-  if (!pageButton) {
-    return;
-  }
-  const targetPage = Number.parseInt(pageButton.getAttribute("data-page-index") || "", 10);
-  if (!Number.isInteger(targetPage) || targetPage < 0 || targetPage === archiveState.currentPage) {
-    return;
-  }
-  const ready = await ensureArchivePageLoaded(targetPage);
-  if (!ready) {
-    return;
-  }
-  archiveState.currentPage = targetPage;
+  archiveState.visibleLimit = Math.min(targetLimit, archiveState.loadedItems.length);
   renderArchivePage();
 });
 
@@ -151,6 +133,15 @@ archiveList?.addEventListener("click", (event) => {
     return;
   }
 
+  const simButton = event.target instanceof Element ? event.target.closest("[data-archive-sim-id]") : null;
+  if (simButton) {
+    const id = simButton.getAttribute("data-archive-sim-id") || "";
+    if (id) {
+      openArchiveItemSimulation(id);
+    }
+    return;
+  }
+
   const detailButton = event.target instanceof Element ? event.target.closest("[data-archive-detail-id]") : null;
   if (!detailButton) {
     return;
@@ -165,6 +156,25 @@ archiveList?.addEventListener("click", (event) => {
     archiveState.expandedIds.add(id);
   }
   renderArchivePage();
+});
+
+archiveList?.addEventListener("change", (event) => {
+  const checkbox = event.target instanceof HTMLInputElement
+    ? event.target.closest("[data-archive-select-id]")
+    : null;
+  if (!checkbox) {
+    return;
+  }
+  const id = checkbox.getAttribute("data-archive-select-id") || "";
+  if (!id) {
+    return;
+  }
+  if (checkbox.checked) {
+    archiveState.selectedIds.add(id);
+  } else {
+    archiveState.selectedIds.delete(id);
+  }
+  renderArchiveSelectionSummary();
 });
 
 function bindArchiveControls() {
@@ -262,10 +272,12 @@ async function applyFilters() {
 
 async function refreshArchiveView(options = {}) {
   const requestToken = ++archiveRequestToken;
-  archiveState.currentPage = 0;
+  archiveState.visibleLimit = archiveState.pageSize;
   archiveState.remoteCursor = null;
   archiveState.remoteHasMore = false;
   archiveState.loadedItems = [];
+  archiveState.selectedIds.clear();
+  renderArchiveSelectionSummary();
   renderArchiveLoadingState();
 
   const [pageResult] = await Promise.all([
@@ -297,7 +309,7 @@ async function loadArchivePage(options = {}) {
   if (options.reset) {
     archiveState.remoteCursor = null;
     archiveState.remoteHasMore = false;
-    archiveState.currentPage = 0;
+    archiveState.visibleLimit = archiveState.pageSize;
     archiveState.loadedItems = [];
   }
 
@@ -380,7 +392,6 @@ async function loadArchiveAggregateWithCache(options) {
     savedAt: new Date().toISOString(),
     data: {
       count: normalizeMetricNumber(aggregate?.count),
-      totalGold: normalizeMetricNumber(aggregate?.totalGold),
       totalLoot: normalizeMetricNumber(aggregate?.totalLoot),
       totalExp: normalizeMetricNumber(aggregate?.totalExp),
       exact: aggregate?.exact !== false
@@ -390,7 +401,6 @@ async function loadArchiveAggregateWithCache(options) {
 
   return {
     count: normalizeMetricNumber(aggregate?.count),
-    totalGold: normalizeMetricNumber(aggregate?.totalGold),
     totalLoot: normalizeMetricNumber(aggregate?.totalLoot),
     totalExp: normalizeMetricNumber(aggregate?.totalExp),
     exact: aggregate?.exact !== false,
@@ -459,19 +469,19 @@ function renderArchivePage() {
   if (!archiveState.loadedItems.length) {
     archiveList.innerHTML = '<p class="summary-empty">Bu filtrelerde kayit bulunamadi.</p>';
     archivePagination.hidden = true;
+    renderArchiveSelectionSummary();
     return;
   }
 
-  const start = archiveState.currentPage * archiveState.pageSize;
-  const pageItems = archiveState.loadedItems.slice(start, start + archiveState.pageSize);
+  const pageItems = archiveState.loadedItems.slice(0, archiveState.visibleLimit);
   archiveList.innerHTML = `
     <div class="archive-table-wrap archive-table-desktop">
       <table class="archive-table">
         <thead>
           <tr>
+            <th class="archive-select-col">Sec</th>
             <th>Tarih</th>
-            <th>Gold</th>
-            <th>Ganimet Altin</th>
+            <th>Ganimet</th>
             <th>EXP</th>
             <th>Seviye</th>
             <th>Kat</th>
@@ -494,21 +504,27 @@ function renderArchivePage() {
     ? exactTotal
     : archiveState.loadedItems.length;
 
-  archivePagination.hidden = totalCount <= archiveState.pageSize && !archiveState.remoteHasMore;
-  archivePageInfo.textContent = `${start + 1}-${start + pageItems.length} / ${formatNumber(totalCount)}`;
-  archivePrevPageBtn.disabled = archiveState.currentPage === 0;
-  archiveNextPageBtn.disabled = start + archiveState.pageSize >= archiveState.loadedItems.length && !archiveState.remoteHasMore;
-  archivePageNumbers.innerHTML = renderArchivePageNumberButtons(totalCount);
+  const hasMoreVisible = pageItems.length < archiveState.loadedItems.length || archiveState.remoteHasMore;
+  archivePagination.hidden = !hasMoreVisible && pageItems.length <= archiveState.pageSize;
+  archivePageInfo.textContent = `${formatNumber(pageItems.length)} / ${formatNumber(totalCount)} gosteriliyor`;
+  archivePrevPageBtn.hidden = pageItems.length <= archiveState.pageSize;
+  archivePrevPageBtn.disabled = pageItems.length <= archiveState.pageSize;
+  archivePrevPageBtn.textContent = `Ilk ${archiveState.pageSize}`;
+  archiveNextPageBtn.disabled = !hasMoreVisible;
+  archiveNextPageBtn.textContent = "Devamini Gor";
+  archivePageNumbers.innerHTML = "";
+  renderArchiveSelectionSummary();
 }
 
 function renderArchiveRow(item) {
   const isExpanded = archiveState.expandedIds.has(item?.id);
+  const isSelected = archiveState.selectedIds.has(item?.id);
   return `
-    <tr class="archive-row-main">
+    <tr class="archive-row-main${isSelected ? " is-selected" : ""}">
+      <td class="archive-select-cell">${renderArchiveSelectCheckbox(item, isSelected)}</td>
       <td>${escapeHtml(formatDateTime(item?.savedAt))}</td>
-      <td>${renderArchiveGoldCell(item)}</td>
       <td>${escapeHtml(formatNumber(item?.lootGoldValue, item?.lootGoldText || "-"))}</td>
-      <td>${escapeHtml(formatNumber(item?.expValue, item?.expText || "-"))}</td>
+      <td class="archive-exp-cell">${escapeHtml(formatNumber(item?.expValue, item?.expText || "-"))}</td>
       <td>${escapeHtml(item?.levelText || "-")}</td>
       <td>${escapeHtml(formatArmyPowerDisplay(item?.armyPowerText || "-"))}</td>
       <td class="archive-detail-cell">${renderArchiveDetailButton(item, isExpanded)}</td>
@@ -519,13 +535,15 @@ function renderArchiveRow(item) {
 }
 
 function renderArchiveCard(item) {
+  const isSelected = archiveState.selectedIds.has(item?.id);
   return `
-    <article class="archive-card">
+    <article class="archive-card${isSelected ? " is-selected" : ""}">
       <div class="archive-card-head">
+        ${renderArchiveSelectCheckbox(item, isSelected)}
         <div>
           <p class="archive-card-date">${escapeHtml(formatDateTime(item?.savedAt))}</p>
           <div class="archive-card-title-row">
-            <strong>${escapeHtml(formatNumber(item?.goldValue, item?.goldText || "-"))} gold</strong>
+            <strong>${escapeHtml(formatNumber(item?.lootGoldValue, item?.lootGoldText || "-"))} ganimet</strong>
           </div>
         </div>
         ${renderArchiveActionGroup(item)}
@@ -538,6 +556,32 @@ function renderArchiveCard(item) {
       </div>
     </article>
   `;
+}
+
+function renderArchiveSelectCheckbox(item, isSelected) {
+  return `
+    <label class="archive-select-check" title="Kaydi sec">
+      <input
+        type="checkbox"
+        data-archive-select-id="${escapeAttribute(item?.id || "")}"
+        ${isSelected ? "checked" : ""}
+        aria-label="Kaydi sec"
+      >
+      <span></span>
+    </label>
+  `;
+}
+
+function renderArchiveSelectionSummary() {
+  if (!archiveSelectionSummary || !archiveSelectionCount || !archiveSelectionTotals) {
+    return;
+  }
+  const selectedItems = archiveState.loadedItems.filter((item) => archiveState.selectedIds.has(item?.id));
+  const totalExp = selectedItems.reduce((sum, item) => sum + normalizeMetricNumber(item?.expValue), 0);
+  const totalLoot = selectedItems.reduce((sum, item) => sum + normalizeMetricNumber(item?.lootGoldValue), 0);
+  archiveSelectionSummary.hidden = selectedItems.length === 0;
+  archiveSelectionCount.textContent = `${formatNumber(selectedItems.length)} kayit secildi`;
+  archiveSelectionTotals.textContent = `${formatNumber(totalExp)} EXP / ${formatNumber(totalLoot)} ganimet`;
 }
 
 function renderArchiveActionGroup(item) {
@@ -579,13 +623,6 @@ function renderArchiveCardMetric(label, value) {
   `;
 }
 
-function renderArchiveGoldCell(item) {
-  const manualIcon = item?.sourceType === "manual"
-    ? '<span class="archive-source-icon" title="Manuel kayit" aria-label="Manuel kayit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 5-3.4 9.2-7 10-3.6-.8-7-5-7-10V6l7-3z"></path><path d="M9.5 12.5l1.7 1.7 3.8-4.2"></path></svg></span>'
-    : "";
-  return `<span class="archive-gold-cell">${manualIcon}<span>${escapeHtml(formatNumber(item?.goldValue, item?.goldText || "-"))}</span></span>`;
-}
-
 function renderArchiveDetailButton(item, isExpanded) {
   const hasDetails = hasArchiveDetails(item);
   return `
@@ -609,7 +646,7 @@ function renderArchiveDetailButton(item, isExpanded) {
 function renderArchiveDetailRow(item) {
   const detailLines = getArchiveDetailEntries(item)
     .map((entry) => `
-      <span class="archive-detail-inline ${entry.className}">${escapeHtml(entry.text)}</span>
+      <span class="archive-detail-inline ${entry.className}">${escapeHtml(entry.text)}${entry.actionHtml || ""}</span>
     `)
     .join("");
 
@@ -641,17 +678,62 @@ function getArchiveDetailEntries(item) {
   ]
     .map((entry) => ({
       className: entry.className,
-      text: formatArchiveDetailEntryText(normalizeArchiveDetailText(entry.value), entry.className)
+      text: formatArchiveDetailEntryText(normalizeArchiveDetailText(entry.value), entry.className),
+      actionHtml: entry.className === "is-fallen" ? renderArchiveSimulationButton(item) : ""
     }))
     .filter((entry) => entry.text);
 }
 
 function formatArchiveDetailEntryText(text, className) {
+  if (className === "is-fallen") {
+    return formatArchiveFallenDisplayText(text);
+  }
   return text || "";
+}
+
+function formatArchiveFallenDisplayText(text) {
+  const entries = [...String(text || "").matchAll(/\(T(\d+)\)\s*x\s*(\d+)/gi)]
+    .map((match) => `T${match[1]} x${match[2]}`);
+  if (!entries.length) {
+    return text || "";
+  }
+  return `Olenler : [${entries.join(", ")}]`;
 }
 
 function hasArchiveDetails(item) {
   return getArchiveDetailEntries(item).length > 0;
+}
+
+function renderArchiveSimulationButton(item) {
+  if (!item?.id || !window.BulkBattleRegression || typeof window.BulkBattleRegression.openSimulationForCounts !== "function") {
+    return "";
+  }
+  return `
+    <button
+      class="archive-inline-sim-btn"
+      type="button"
+      data-archive-sim-id="${escapeAttribute(item.id)}"
+      aria-label="Simulasyonda ac"
+      title="Simulasyonda ac"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+    </button>
+  `;
+}
+
+function openArchiveItemSimulation(id) {
+  const item = archiveState.loadedItems.find((entry) => entry.id === id);
+  const regression = window.BulkBattleRegression;
+  if (!item || !regression) {
+    return;
+  }
+  if (typeof regression.parseArchiveEnemyCounts !== "function" || typeof regression.parseArchiveAllyCounts !== "function") {
+    window.alert("Simulasyon hazir degil.");
+    return;
+  }
+  const enemyCounts = regression.parseArchiveEnemyCounts(item.enemyRosterText || "");
+  const allyCounts = regression.parseArchiveAllyCounts(item.allyRosterText || "");
+  regression.openSimulationForCounts(enemyCounts, allyCounts);
 }
 
 function formatArmyPowerDisplay(value) {
@@ -756,8 +838,6 @@ function openArchiveEditModal(item) {
   setText(archiveEditUpdatedAtLabel, formatDateTime(item.updatedAt || item.savedAt));
   setInputValue(archiveEditSavedAtInput, item.savedAt || "");
   setInputValue(archiveEditSourceTypeInput, item.sourceType || "manual");
-  setInputValue(archiveEditGoldTextInput, item.goldText || "");
-  setInputValue(archiveEditGoldValueInput, item.goldValue ?? "");
   setInputValue(archiveEditLootGoldTextInput, item.lootGoldText || "-");
   setInputValue(archiveEditLootGoldValueInput, item.lootGoldValue ?? 0);
   setInputValue(archiveEditExpTextInput, item.expText || "-");
@@ -827,7 +907,6 @@ async function submitArchiveEditModal() {
 }
 
 function buildArchiveEditPayload(item) {
-  const goldValue = parseRequiredArchiveInt(archiveEditGoldValueInput?.value, "Gold Value");
   const lootGoldValue = parseRequiredArchiveInt(archiveEditLootGoldValueInput?.value, "Loot Gold Value");
   const expValue = parseRequiredArchiveInt(archiveEditExpValueInput?.value, "EXP Value");
   const savedAt = normalizeRequiredArchiveText(archiveEditSavedAtInput?.value, "Kayit Tarihi");
@@ -838,8 +917,6 @@ function buildArchiveEditPayload(item) {
   return {
     ...item,
     savedAt,
-    goldText: normalizeArchiveText(archiveEditGoldTextInput?.value, String(goldValue)),
-    goldValue,
     lootGoldText: normalizeArchiveText(archiveEditLootGoldTextInput?.value, String(lootGoldValue)),
     lootGoldValue,
     expText: normalizeArchiveText(archiveEditExpTextInput?.value, String(expValue)),
@@ -988,7 +1065,6 @@ function hasAnyActiveArchiveFilter() {
 function buildEmptyAggregate() {
   return {
     count: 0,
-    totalGold: 0,
     totalLoot: 0,
     totalExp: 0,
     exact: true,
@@ -996,12 +1072,11 @@ function buildEmptyAggregate() {
   };
 }
 
-async function ensureArchivePageLoaded(targetPage) {
-  const targetStart = targetPage * archiveState.pageSize;
-  while (targetStart >= archiveState.loadedItems.length && archiveState.remoteHasMore) {
+async function ensureArchiveItemsLoadedUntil(targetCount) {
+  while (targetCount > archiveState.loadedItems.length && archiveState.remoteHasMore) {
     await loadArchivePage();
   }
-  return targetStart < archiveState.loadedItems.length;
+  return archiveState.loadedItems.length > 0;
 }
 
 async function ensureAllArchiveItemsLoaded() {
@@ -1015,81 +1090,6 @@ async function ensureAllArchiveItemsLoaded() {
       break;
     }
   }
-}
-
-function renderArchivePageNumberButtons(totalCount) {
-  const totalPages = Math.max(1, Math.ceil(totalCount / archiveState.pageSize));
-  const pageItems = buildArchivePageNumberItems(totalPages, archiveState.currentPage);
-  return pageItems.map((item) => {
-    if (item === "...") {
-      return '<span class="archive-page-ellipsis">...</span>';
-    }
-    const pageIndex = Number(item);
-    const isActive = pageIndex === archiveState.currentPage;
-    return `
-      <button
-        class="archive-page-number${isActive ? " is-active" : ""}"
-        type="button"
-        data-page-index="${pageIndex}"
-        ${isActive ? 'aria-current="page"' : ""}
-      >${pageIndex + 1}</button>
-    `;
-  }).join("");
-}
-
-function buildArchivePageNumberItems(totalPages, currentPage) {
-  if (typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches) {
-    if (totalPages <= 4) {
-      return Array.from({ length: totalPages }, (_, index) => index);
-    }
-
-    const pages = new Set([0, currentPage, totalPages - 1]);
-    if (currentPage > 1 && currentPage < totalPages - 2) {
-      pages.add(currentPage + 1);
-    } else if (currentPage <= 1) {
-      pages.add(1);
-    } else {
-      pages.add(totalPages - 2);
-    }
-
-    const sortedPages = [...pages].sort((left, right) => left - right);
-    const items = [];
-    sortedPages.forEach((page, index) => {
-      if (index > 0 && page - sortedPages[index - 1] > 1) {
-        items.push("...");
-      }
-      items.push(page);
-    });
-    return items;
-  }
-
-  if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, index) => index);
-  }
-
-  const pages = new Set([0, totalPages - 1, currentPage]);
-  if (currentPage - 1 > 0) {
-    pages.add(currentPage - 1);
-  }
-  if (currentPage - 2 > 0) {
-    pages.add(currentPage - 2);
-  }
-  if (currentPage + 1 < totalPages - 1) {
-    pages.add(currentPage + 1);
-  }
-  if (currentPage + 2 < totalPages - 1) {
-    pages.add(currentPage + 2);
-  }
-
-  const sortedPages = [...pages].sort((left, right) => left - right);
-  const items = [];
-  sortedPages.forEach((page, index) => {
-    if (index > 0 && page - sortedPages[index - 1] > 1) {
-      items.push("...");
-    }
-    items.push(page);
-  });
-  return items;
 }
 
 function normalizeDigits(value) {
