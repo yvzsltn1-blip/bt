@@ -61,7 +61,7 @@ const archiveEditPageTitleInput = document.querySelector("#archiveEditPageTitleI
 const DEFAULT_PAGE_SIZE = 40;
 const PAGE_SIZE_OPTIONS = new Set([20, 40, 80]);
 const ARCHIVE_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
-const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV4";
+const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV5";
 const ARCHIVE_SUMMARY_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 
 function getFirstXLevels(x) {
@@ -524,13 +524,14 @@ function updateLevelDifference() {
 
   const getNumericLevel = (item) => {
     if (!item) return 0;
-    if (item.levelValue !== undefined && item.levelValue !== null) {
-      const val = Number(item.levelValue);
-      if (!isNaN(val)) return val;
+    const directValue = Number(item.levelValue);
+    if (Number.isFinite(directValue) && directValue > 0) {
+      return directValue;
     }
-    if (item.levelText) {
-      const val = parseInt(item.levelText, 10);
-      if (!isNaN(val)) return val;
+    const match = String(item.levelText || "").match(/\d+/);
+    if (match) {
+      const val = Number.parseInt(match[0], 10);
+      if (Number.isFinite(val) && val > 0) return val;
     }
     return 0;
   };
@@ -541,7 +542,7 @@ function updateLevelDifference() {
   if (startLevel > 0 && endLevel > 0) {
     const diff = endLevel - startLevel;
     const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
-    archiveFilteredLevelValue.textContent = `${startLevel} → ${endLevel}`;
+    archiveFilteredLevelValue.textContent = `${startLevel} -> ${endLevel}`;
     archiveFilteredLevelHint.textContent = `Seviye Farki: ${diffText}`;
   } else {
     archiveFilteredLevelValue.textContent = "-";

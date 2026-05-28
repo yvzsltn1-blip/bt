@@ -661,13 +661,57 @@
   }
 
   function buildOverviewArchiveLevelBoundsFromItems(items, options = {}) {
-    const sortedItems = [...(items || [])].sort((left, right) => String(left?.savedAt || "").localeCompare(String(right?.savedAt || "")));
+    const sortedItems = [...(items || [])]
+      .filter((item) => getOverviewArchiveLevelNumber(item) > 0)
+      .sort((left, right) => String(left?.savedAt || "").localeCompare(String(right?.savedAt || "")));
     return {
       oldest: sortedItems[0] || null,
       newest: sortedItems[sortedItems.length - 1] || null,
       exact: Boolean(options.exact),
       readSource: options.readSource || "cache"
     };
+  }
+
+  function getOverviewArchiveLevelNumber(item) {
+    if (!item) {
+      return 0;
+    }
+    const directValue = Number(item.levelValue);
+    if (Number.isFinite(directValue) && directValue > 0) {
+      return directValue;
+    }
+    const match = String(item.levelText || "").match(/\d+/);
+    if (!match) {
+      return 0;
+    }
+    const numeric = Number.parseInt(match[0], 10);
+    return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+  }
+
+  async function findOverviewArchiveLevelBound(collection, filters, sortDirection) {
+    let cursor = null;
+    let safety = 0;
+    while (safety < 20) {
+      let query = applyOverviewArchiveFiltersToQuery(collection, filters, {
+        includeOrderBy: true,
+        sortDirection
+      });
+      if (cursor) {
+        query = query.startAfter(cursor);
+      }
+      const snapshot = await query.limit(50).get();
+      const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+      const foundDoc = docs.find((doc) => getOverviewArchiveLevelNumber(doc?.data?.()) > 0);
+      if (foundDoc) {
+        return { ...foundDoc.data(), id: foundDoc.id };
+      }
+      if (docs.length < 50) {
+        return null;
+      }
+      cursor = docs[docs.length - 1];
+      safety += 1;
+    }
+    return null;
   }
 
   async function loadOverviewArchiveLevelBounds(options = {}) {
@@ -682,21 +726,13 @@
 
     const collection = db.collection(OVERVIEW_ARCHIVE_COLLECTION);
     try {
-      const [oldestSnapshot, newestSnapshot] = await Promise.all([
-        applyOverviewArchiveFiltersToQuery(collection, filters, {
-          includeOrderBy: true,
-          sortDirection: "asc"
-        }).limit(1).get(),
-        applyOverviewArchiveFiltersToQuery(collection, filters, {
-          includeOrderBy: true,
-          sortDirection: "desc"
-        }).limit(1).get()
+      const [oldest, newest] = await Promise.all([
+        findOverviewArchiveLevelBound(collection, filters, "asc"),
+        findOverviewArchiveLevelBound(collection, filters, "desc")
       ]);
-      const oldestDoc = oldestSnapshot?.docs?.[0] || null;
-      const newestDoc = newestSnapshot?.docs?.[0] || null;
       const bounds = {
-        oldest: oldestDoc ? { ...oldestDoc.data(), id: oldestDoc.id } : null,
-        newest: newestDoc ? { ...newestDoc.data(), id: newestDoc.id } : null,
+        oldest,
+        newest,
         exact: true,
         readSource: "server"
       };
