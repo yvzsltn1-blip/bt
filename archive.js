@@ -10,8 +10,8 @@ const archivePageNumbers = document.querySelector("#archivePageNumbers");
 const archivePageInfo = document.querySelector("#archivePageInfo");
 const archiveFilterSummary = document.querySelector("#archiveFilterSummary");
 const archiveLevelFilterInput = document.querySelector("#archiveLevelFilterInput");
+const archiveHoursFilterInput = document.querySelector("#archiveHoursFilterInput");
 const archiveDatePresetSelect = document.querySelector("#archiveDatePresetSelect");
-const archiveSourceFilterSelect = document.querySelector("#archiveSourceFilterSelect");
 const archivePageSizeSelect = document.querySelector("#archivePageSizeSelect");
 const archiveResetFiltersBtn = document.querySelector("#archiveResetFiltersBtn");
 const archiveRefreshBtn = document.querySelector("#archiveRefreshBtn");
@@ -24,6 +24,8 @@ const archiveTodayExpValue = document.querySelector("#archiveTodayExpValue");
 const archiveTodayLootValue = document.querySelector("#archiveTodayLootValue");
 const archiveFirstTenExpValue = document.querySelector("#archiveFirstTenExpValue");
 const archiveFirstTenLootValue = document.querySelector("#archiveFirstTenLootValue");
+const archiveFilteredLevelValue = document.querySelector("#archiveFilteredLevelValue");
+const archiveFilteredLevelHint = document.querySelector("#archiveFilteredLevelHint");
 const archiveFirstXInput = document.querySelector("#archiveFirstXInput");
 const archiveSelectionSummary = document.querySelector("#archiveSelectionSummary");
 const archiveSelectionCount = document.querySelector("#archiveSelectionCount");
@@ -59,7 +61,7 @@ const archiveEditPageTitleInput = document.querySelector("#archiveEditPageTitleI
 const DEFAULT_PAGE_SIZE = 40;
 const PAGE_SIZE_OPTIONS = new Set([20, 40, 80]);
 const ARCHIVE_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
-const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV3";
+const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV4";
 const ARCHIVE_SUMMARY_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 
 function getFirstXLevels(x) {
@@ -68,6 +70,7 @@ function getFirstXLevels(x) {
 }
 
 let archiveLevelInputDebounce = 0;
+let archiveHoursInputDebounce = 0;
 let archiveRequestToken = 0;
 let isAdminSession = false;
 let currentEditingArchiveId = "";
@@ -76,7 +79,8 @@ const archiveState = {
   filters: {
     armyPowerText: "",
     datePreset: "all",
-    sourceType: ""
+    sourceType: "",
+    hours: null
   },
   firstX: 10,
   pageSize: DEFAULT_PAGE_SIZE,
@@ -91,7 +95,8 @@ const archiveState = {
     filtered: buildEmptyAggregate(),
     today: buildEmptyAggregate(),
     firstTen: buildEmptyAggregate()
-  }
+  },
+  levelBounds: buildEmptyLevelBounds()
 };
 
 bindArchiveControls();
@@ -185,13 +190,18 @@ function bindArchiveControls() {
     }, 220);
   });
 
+  archiveHoursFilterInput?.addEventListener("input", () => {
+    window.clearTimeout(archiveHoursInputDebounce);
+    archiveHoursInputDebounce = window.setTimeout(() => {
+      void applyFilters();
+    }, 250);
+  });
+
   archiveDatePresetSelect?.addEventListener("change", () => {
     void applyFilters();
   });
 
-  archiveSourceFilterSelect?.addEventListener("change", () => {
-    void applyFilters();
-  });
+
 
   archivePageSizeSelect?.addEventListener("change", () => {
     const nextPageSize = normalizePageSize(archivePageSizeSelect?.value);
@@ -276,6 +286,7 @@ async function refreshArchiveView(options = {}) {
   archiveState.remoteCursor = null;
   archiveState.remoteHasMore = false;
   archiveState.loadedItems = [];
+  archiveState.levelBounds = buildEmptyLevelBounds();
   archiveState.selectedIds.clear();
   renderArchiveSelectionSummary();
   renderArchiveLoadingState();
@@ -321,7 +332,7 @@ async function loadArchivePage(options = {}) {
     filters: {
       armyPowerText: archiveState.filters.armyPowerText,
       datePreset: archiveState.filters.datePreset,
-      sourceType: archiveState.filters.sourceType
+      hours: archiveState.filters.hours
     }
   });
 
@@ -340,7 +351,7 @@ async function loadArchivePage(options = {}) {
 
 async function refreshArchiveAggregates(options = {}) {
   const firstXLevels = getFirstXLevels(archiveState.firstX);
-  const [filtered, today, firstTen] = await Promise.all([
+  const [filtered, today, firstTen, levelBounds] = await Promise.all([
     loadArchiveAggregateWithCache({
       cacheKey: buildAggregateCacheKey("filtered", archiveState.filters),
       forceRemote: Boolean(options.forceRemote),
@@ -355,6 +366,11 @@ async function refreshArchiveAggregates(options = {}) {
       cacheKey: buildAggregateCacheKey(`firstX_${archiveState.firstX}`, { armyPowerTextIn: firstXLevels }),
       forceRemote: Boolean(options.forceRemote),
       filters: { armyPowerTextIn: firstXLevels }
+    }),
+    loadArchiveLevelBoundsWithCache({
+      cacheKey: buildAggregateCacheKey("levelBounds", archiveState.filters),
+      forceRemote: Boolean(options.forceRemote),
+      filters: archiveState.filters
     })
   ]);
 
@@ -365,6 +381,7 @@ async function refreshArchiveAggregates(options = {}) {
   archiveState.aggregates.filtered = filtered;
   archiveState.aggregates.today = today;
   archiveState.aggregates.firstTen = firstTen;
+  archiveState.levelBounds = levelBounds;
   renderArchiveHeader();
   renderArchiveAggregates();
 }
@@ -406,6 +423,38 @@ async function loadArchiveAggregateWithCache(options) {
     exact: aggregate?.exact !== false,
     readSource: aggregate?.readSource || "server"
   };
+}
+
+async function loadArchiveLevelBoundsWithCache(options) {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadOverviewArchiveLevelBounds !== "function") {
+    return buildEmptyLevelBounds();
+  }
+
+  const summaryCache = readArchiveSummaryCache();
+  const cachedEntry = summaryCache[options.cacheKey];
+  if (!options.forceRemote && isSummaryCacheFresh(cachedEntry)) {
+    return {
+      ...buildEmptyLevelBounds(),
+      ...cachedEntry.data,
+      readSource: "cache"
+    };
+  }
+
+  const bounds = await window.BTFirebase.loadOverviewArchiveLevelBounds({
+    filters: options.filters || {}
+  });
+  const normalizedBounds = {
+    oldest: bounds?.oldest || null,
+    newest: bounds?.newest || null,
+    exact: bounds?.exact !== false,
+    readSource: bounds?.readSource || "server"
+  };
+  summaryCache[options.cacheKey] = {
+    savedAt: new Date().toISOString(),
+    data: normalizedBounds
+  };
+  writeArchiveSummaryCache(summaryCache);
+  return normalizedBounds;
 }
 
 function renderArchiveLoadingState() {
@@ -459,6 +508,45 @@ function renderArchiveAggregates() {
   setText(archiveTodayLootValue, `${formatNumber(todayAggregate.totalLoot)} ganimet`);
   setText(archiveFirstTenExpValue, `${formatNumber(firstTenAggregate.totalExp)} EXP`);
   setText(archiveFirstTenLootValue, `${formatNumber(firstTenAggregate.totalLoot)} ganimet`);
+  updateLevelDifference();
+}
+
+function updateLevelDifference() {
+  if (!archiveFilteredLevelValue || !archiveFilteredLevelHint) return;
+
+  const oldestItem = archiveState.levelBounds?.oldest || null;
+  const newestItem = archiveState.levelBounds?.newest || null;
+  if (!oldestItem || !newestItem) {
+    archiveFilteredLevelValue.textContent = "-";
+    archiveFilteredLevelHint.textContent = "Veri yetersiz";
+    return;
+  }
+
+  const getNumericLevel = (item) => {
+    if (!item) return 0;
+    if (item.levelValue !== undefined && item.levelValue !== null) {
+      const val = Number(item.levelValue);
+      if (!isNaN(val)) return val;
+    }
+    if (item.levelText) {
+      const val = parseInt(item.levelText, 10);
+      if (!isNaN(val)) return val;
+    }
+    return 0;
+  };
+
+  const startLevel = getNumericLevel(oldestItem);
+  const endLevel = getNumericLevel(newestItem);
+
+  if (startLevel > 0 && endLevel > 0) {
+    const diff = endLevel - startLevel;
+    const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
+    archiveFilteredLevelValue.textContent = `${startLevel} → ${endLevel}`;
+    archiveFilteredLevelHint.textContent = `Seviye Farki: ${diffText}`;
+  } else {
+    archiveFilteredLevelValue.textContent = "-";
+    archiveFilteredLevelHint.textContent = "Seviye bulunamadi";
+  }
 }
 
 function renderArchivePage() {
@@ -985,7 +1073,7 @@ function readArchiveFiltersFromUi() {
   return {
     armyPowerText: normalizeDigits(archiveLevelFilterInput?.value || ""),
     datePreset: normalizeDatePreset(archiveDatePresetSelect?.value),
-    sourceType: normalizeSourceType(archiveSourceFilterSelect?.value)
+    hours: archiveHoursFilterInput?.value ? parseInt(archiveHoursFilterInput.value, 10) : null
   };
 }
 
@@ -993,17 +1081,17 @@ function resetArchiveFilters() {
   archiveState.filters = {
     armyPowerText: "",
     datePreset: "all",
-    sourceType: ""
+    hours: null
   };
   archiveState.pageSize = DEFAULT_PAGE_SIZE;
   if (archiveLevelFilterInput) {
     archiveLevelFilterInput.value = "";
   }
+  if (archiveHoursFilterInput) {
+    archiveHoursFilterInput.value = "";
+  }
   if (archiveDatePresetSelect) {
     archiveDatePresetSelect.value = "all";
-  }
-  if (archiveSourceFilterSelect) {
-    archiveSourceFilterSelect.value = "";
   }
   if (archivePageSizeSelect) {
     archivePageSizeSelect.value = String(DEFAULT_PAGE_SIZE);
@@ -1015,18 +1103,16 @@ function buildArchiveFilterSummaryText(filteredAggregate) {
   if (archiveState.filters.armyPowerText) {
     parts.push(`${archiveState.filters.armyPowerText}. kat`);
   }
-  if (archiveState.filters.datePreset === "today") {
+  if (archiveState.filters.hours) {
+    parts.push(`son ${archiveState.filters.hours} saat`);
+  } else if (archiveState.filters.datePreset === "today") {
     parts.push("bugun");
   } else if (archiveState.filters.datePreset === "7d") {
     parts.push("son 7 gun");
   } else if (archiveState.filters.datePreset === "30d") {
     parts.push("son 30 gun");
   }
-  if (archiveState.filters.sourceType === "manual") {
-    parts.push("manuel");
-  } else if (archiveState.filters.sourceType === "fill") {
-    parts.push("fill");
-  }
+
   if (!parts.length) {
     return "En yeni kayitlar listeleniyor. Acilislar cache-first calisir, gerekirse canli veri cekilir.";
   }
@@ -1039,15 +1125,14 @@ function buildArchiveRegressionScopeLabel(count) {
   if (archiveState.filters.armyPowerText) {
     parts.push(`${archiveState.filters.armyPowerText}. kat`);
   }
-  if (archiveState.filters.datePreset === "today") {
+  if (archiveState.filters.hours) {
+    parts.push(`son ${archiveState.filters.hours} saat`);
+  } else if (archiveState.filters.datePreset === "today") {
     parts.push("bugun");
   } else if (archiveState.filters.datePreset === "7d") {
     parts.push("son 7 gun");
   } else if (archiveState.filters.datePreset === "30d") {
     parts.push("son 30 gun");
-  }
-  if (archiveState.filters.sourceType) {
-    parts.push(archiveState.filters.sourceType);
   }
   return parts.length
     ? `${count} arsiv kaydi secildi (${parts.join(" / ")})`
@@ -1057,7 +1142,7 @@ function buildArchiveRegressionScopeLabel(count) {
 function hasAnyActiveArchiveFilter() {
   return Boolean(
     archiveState.filters.armyPowerText ||
-    archiveState.filters.sourceType ||
+    archiveState.filters.hours ||
     archiveState.filters.datePreset !== "all"
   );
 }
@@ -1067,6 +1152,15 @@ function buildEmptyAggregate() {
     count: 0,
     totalLoot: 0,
     totalExp: 0,
+    exact: true,
+    readSource: "cache"
+  };
+}
+
+function buildEmptyLevelBounds() {
+  return {
+    oldest: null,
+    newest: null,
     exact: true,
     readSource: "cache"
   };
@@ -1110,7 +1204,7 @@ function formatArchiveKatStorage(value) {
 }
 
 function normalizeDatePreset(value) {
-  return value === "today" || value === "7d" || value === "30d" ? value : "all";
+  return value === "today" || value === "7d" || value === "30d" || value === "1h" || value === "6h" || value === "12h" || value === "24h" || value === "48h" ? value : "all";
 }
 
 function normalizeSourceType(value) {

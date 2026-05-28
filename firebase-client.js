@@ -485,6 +485,7 @@
     }
 
     const now = new Date();
+
     const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const end = new Date(dayStart);
     end.setDate(end.getDate() + 1);
@@ -502,11 +503,36 @@
     };
   }
 
+  function normalizeOverviewArchiveDateRange(value) {
+    const startIso = String(value?.startIso || "");
+    const endIso = String(value?.endIso || "");
+    if (!startIso || !endIso) {
+      return null;
+    }
+    if (!Number.isFinite(Date.parse(startIso)) || !Number.isFinite(Date.parse(endIso))) {
+      return null;
+    }
+    return { startIso, endIso };
+  }
+
   function normalizeOverviewArchiveFilters(options = {}) {
     const armyPowerText = normalizeOverviewArchiveNumericFilter(options.armyPowerText);
+    let dateRange = normalizeOverviewArchiveDateRange(options.dateRange)
+      || buildOverviewArchiveDateRange(options.datePreset);
+    
+    const hours = options.hours ? Number.parseInt(options.hours, 10) : null;
+    if (Number.isFinite(hours) && hours > 0) {
+      const now = new Date();
+      const start = new Date(now.getTime() - hours * 60 * 60 * 1000);
+      dateRange = {
+        startIso: start.toISOString(),
+        endIso: now.toISOString()
+      };
+    }
+
     return {
       datePreset: normalizeOverviewArchiveDatePreset(options.datePreset),
-      dateRange: buildOverviewArchiveDateRange(options.datePreset),
+      dateRange,
       armyPowerText,
       armyPowerTextIn: armyPowerText ? [] : normalizeOverviewArchiveNumericFilterList(options.armyPowerTextIn),
       sourceType: normalizeOverviewArchiveSourceType(options.sourceType)
@@ -628,6 +654,60 @@
     } catch (error) {
       console.warn("Arsiv aggregate okunamadi, cache kullaniliyor.", error);
       return buildOverviewArchiveAggregateFromItems(localItems, {
+        exact: false,
+        readSource: "cache-fallback"
+      });
+    }
+  }
+
+  function buildOverviewArchiveLevelBoundsFromItems(items, options = {}) {
+    const sortedItems = [...(items || [])].sort((left, right) => String(left?.savedAt || "").localeCompare(String(right?.savedAt || "")));
+    return {
+      oldest: sortedItems[0] || null,
+      newest: sortedItems[sortedItems.length - 1] || null,
+      exact: Boolean(options.exact),
+      readSource: options.readSource || "cache"
+    };
+  }
+
+  async function loadOverviewArchiveLevelBounds(options = {}) {
+    const filters = normalizeOverviewArchiveFilters(options.filters || {});
+    const localItems = filterOverviewArchiveItems(readOverviewArchives(), filters);
+    if (!db) {
+      return buildOverviewArchiveLevelBoundsFromItems(localItems, {
+        exact: true,
+        readSource: "cache"
+      });
+    }
+
+    const collection = db.collection(OVERVIEW_ARCHIVE_COLLECTION);
+    try {
+      const [oldestSnapshot, newestSnapshot] = await Promise.all([
+        applyOverviewArchiveFiltersToQuery(collection, filters, {
+          includeOrderBy: true,
+          sortDirection: "asc"
+        }).limit(1).get(),
+        applyOverviewArchiveFiltersToQuery(collection, filters, {
+          includeOrderBy: true,
+          sortDirection: "desc"
+        }).limit(1).get()
+      ]);
+      const oldestDoc = oldestSnapshot?.docs?.[0] || null;
+      const newestDoc = newestSnapshot?.docs?.[0] || null;
+      const bounds = {
+        oldest: oldestDoc ? { ...oldestDoc.data(), id: oldestDoc.id } : null,
+        newest: newestDoc ? { ...newestDoc.data(), id: newestDoc.id } : null,
+        exact: true,
+        readSource: "server"
+      };
+      const cacheItems = [bounds.oldest, bounds.newest].filter(Boolean);
+      if (cacheItems.length > 0) {
+        writeOverviewArchives(mergeOverviewArchives([...readOverviewArchives(), ...cacheItems]));
+      }
+      return bounds;
+    } catch (error) {
+      console.warn("Arsiv seviye sinirlari okunamadi, cache kullaniliyor.", error);
+      return buildOverviewArchiveLevelBoundsFromItems(localItems, {
         exact: false,
         readSource: "cache-fallback"
       });
@@ -2207,6 +2287,7 @@
     loadOverviewArchives,
     loadOverviewArchivesPage,
     loadOverviewArchiveAggregate,
+    loadOverviewArchiveLevelBounds,
     getOverviewArchiveCacheInfo,
     saveOverviewArchive,
     updateOverviewArchive,
