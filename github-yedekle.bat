@@ -3,6 +3,12 @@ setlocal
 
 cd /d "%~dp0"
 
+echo ========================================
+echo GitHub yedekleme baslatiliyor...
+echo Klasor: %cd%
+echo ========================================
+echo.
+
 where git >nul 2>nul
 if errorlevel 1 (
   echo Git bulunamadi. Lutfen Git kurulu oldugundan emin olun.
@@ -17,8 +23,12 @@ if not defined BRANCH (
   exit /b 1
 )
 
+echo Aktif branch: %BRANCH%
+
 for /f "delims=" %%i in ('powershell -NoProfile -Command "Get-Date -Format ''yyyy-MM-dd HH:mm:ss''"') do set "STAMP=%%i"
 
+echo.
+echo Degisiklikler hazirlaniyor...
 git add -A
 if errorlevel 1 (
   echo Dosyalar eklenemedi.
@@ -26,10 +36,14 @@ if errorlevel 1 (
   exit /b 1
 )
 
+echo _web-disi/local-backups commit disi birakiliyor...
+git reset HEAD -- "_web-disi/local-backups" >nul 2>nul
+
 git diff --cached --quiet
 if "%errorlevel%"=="0" (
-  echo Degisiklik yok. Yine de GitHub'a push denenecek.
+  echo Commitlenecek degisiklik yok. Yine de push denenecek.
 ) else (
+  echo Commit olusturuluyor...
   git commit -m "Backup: %STAMP%"
   if errorlevel 1 (
     echo Commit olusturulamadi.
@@ -38,6 +52,8 @@ if "%errorlevel%"=="0" (
   )
 )
 
+echo.
+echo GitHub'a yukleme basliyor...
 git push origin %BRANCH%
 if errorlevel 1 (
   echo Push basarisiz oldu.
@@ -45,6 +61,8 @@ if errorlevel 1 (
   exit /b 1
 )
 
+echo.
 echo GitHub yedegi tamamlandi.
-timeout /t 3 >nul
+echo Pencereyi kapatmak icin bir tusa basin.
+pause >nul
 exit /b 0
