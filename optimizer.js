@@ -746,9 +746,8 @@ resetValues();
 if (isQuickVariant()) {
   optimizerTekilV2Mode = true;
   ALLY_UNITS.forEach((unit) => {
-    if (unit.key === "rotmaws") return;
     if (optimizerInputs[unit.key]) {
-      optimizerInputs[unit.key].value = "99";
+      optimizerInputs[unit.key].value = unit.key === "rotmaws" ? "1" : "99";
     }
   });
 }

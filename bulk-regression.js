@@ -36,6 +36,10 @@
     return Object.values(counts || {}).some((value) => Number(value || 0) > 0);
   }
 
+  function createEmptyCountMap(units) {
+    return Object.fromEntries((units || []).map((unit) => [unit.key, 0]));
+  }
+
   function getSummaryUnitName(key) {
     const names = {
       bats: "Yarasa Surusu (T1)",
@@ -216,6 +220,149 @@
     }));
   }
 
+  function prepareArchiveItems(items) {
+    return (items || []).map((item) => {
+      const enemyCounts = parseArchiveEnemyCounts(item?.enemyRosterText || "");
+      const allyCounts = parseArchiveAllyCounts(item?.allyRosterText || "");
+      const expectedAllyLosses = parseArchiveFallenLosses(item?.fallenUnitsText || "");
+      const hasRecordedOutcome = hasArchiveRecordedOutcome(item);
+      const expectedWinner = inferArchiveWinner(item);
+
+      return {
+        id: String(item?.id || ""),
+        source: "archive",
+        sourceType: item?.sourceType === "fill" ? "fill" : "manual",
+        savedAt: String(item?.savedAt || ""),
+        stage: parseArchiveStage(item?.armyPowerText || ""),
+        enemyTitle: String(item?.enemyRosterText || "Versus"),
+        enemyCounts,
+        allyCounts,
+        roundingMode: null,
+        summaryText: "",
+        expectedWinner,
+        expectedLostBlood: calculateLostBlood(expectedAllyLosses),
+        expectedAllyLosses,
+        expectedUsedCapacity: null,
+        hasRecordedOutcome,
+        lootGoldValue: Number(item?.lootGoldValue || 0),
+        expValue: Number(item?.expValue || 0),
+        fallenUnitsText: String(item?.fallenUnitsText || ""),
+        enemyRosterText: String(item?.enemyRosterText || ""),
+        allyRosterText: String(item?.allyRosterText || "")
+      };
+    });
+  }
+
+  function parseArchiveStage(value) {
+    const text = String(value || "").trim();
+    const slashMatch = text.match(/^(\d+)\s*\/\s*(\d+)$/);
+    if (slashMatch) {
+      const total = Number.parseInt(slashMatch[2], 10);
+      return Number.isFinite(total) ? Math.max(0, Math.floor((total - 10) / 10)) : null;
+    }
+    const direct = Number.parseInt(text.replace(/[^\d]/g, ""), 10);
+    return Number.isFinite(direct) ? direct : null;
+  }
+
+  function parseArchiveEnemyCounts(text) {
+    return parseArchiveRosterCounts(text, getEnemyUnits(), "R", { allowLegacySequential: false });
+  }
+
+  function parseArchiveAllyCounts(text) {
+    return parseArchiveRosterCounts(text, getAllyUnits(), "T", { allowLegacySequential: true });
+  }
+
+  function parseArchiveRosterCounts(text, units, prefix, options = {}) {
+    const counts = createEmptyCountMap(units);
+    const normalized = String(text || "");
+    const labelMatches = [...normalized.matchAll(new RegExp(`${prefix}(\\d+)\\s*[:=]\\s*(\\d+)`, "gi"))];
+    if (labelMatches.length > 0) {
+      labelMatches.forEach((match) => {
+        const index = Number.parseInt(match[1], 10) - 1;
+        const qty = Number.parseInt(match[2], 10);
+        if (units[index] && Number.isFinite(qty) && qty > 0) {
+          counts[units[index].key] = qty;
+        }
+      });
+      return counts;
+    }
+
+    const nameMatches = [...normalized.matchAll(new RegExp(`\\(${prefix}(\\d+)\\)\\s*x\\s*(\\d+)`, "gi"))];
+    if (nameMatches.length > 0) {
+      nameMatches.forEach((match) => {
+        const index = Number.parseInt(match[1], 10) - 1;
+        const qty = Number.parseInt(match[2], 10);
+        if (units[index] && Number.isFinite(qty) && qty > 0) {
+          counts[units[index].key] = qty;
+        }
+      });
+      return counts;
+    }
+
+    if (!options.allowLegacySequential) {
+      return counts;
+    }
+
+    const bracketMatch = normalized.match(/\[([^\]]+)\]/);
+    if (!bracketMatch) {
+      return counts;
+    }
+    const values = bracketMatch[1]
+      .split("-")
+      .map((entry) => Number.parseInt(String(entry).trim(), 10))
+      .filter((entry) => Number.isFinite(entry) && entry >= 0);
+    values.forEach((value, index) => {
+      if (units[index]) {
+        counts[units[index].key] = value;
+      }
+    });
+    return counts;
+  }
+
+  function parseArchiveFallenLosses(text) {
+    const counts = createEmptyCountMap(getAllyUnits());
+    const normalized = String(text || "");
+    [...normalized.matchAll(/\(T(\d+)\)\s*x\s*(\d+)/gi)].forEach((match) => {
+      const index = Number.parseInt(match[1], 10) - 1;
+      const qty = Number.parseInt(match[2], 10);
+      const unit = getAllyUnits()[index];
+      if (unit && Number.isFinite(qty) && qty > 0) {
+        counts[unit.key] += qty;
+      }
+    });
+    return counts;
+  }
+
+  function inferArchiveWinner(item) {
+    if (!hasArchiveRecordedOutcome(item)) {
+      return "unknown";
+    }
+    if (Number(item?.lootGoldValue || 0) > 0 || Number(item?.expValue || 0) > 0) {
+      return "ally";
+    }
+    const lootText = String(item?.lootGoldText || "").trim();
+    const expText = String(item?.expText || "").trim();
+    if ((lootText && lootText !== "-") || (expText && expText !== "-")) {
+      return "ally";
+    }
+    if (/\(T\d+\)\s*x\s*\d+/i.test(String(item?.fallenUnitsText || ""))) {
+      return "ally";
+    }
+    return "unknown";
+  }
+
+  function hasArchiveRecordedOutcome(item) {
+    if (Number(item?.lootGoldValue || 0) > 0 || Number(item?.expValue || 0) > 0) {
+      return true;
+    }
+    const lootText = String(item?.lootGoldText || "").trim();
+    const expText = String(item?.expText || "").trim();
+    if ((lootText && lootText !== "-") || (expText && expText !== "-")) {
+      return true;
+    }
+    return /\(T\d+\)\s*x\s*\d+/i.test(String(item?.fallenUnitsText || ""));
+  }
+
   function writePayload(payload) {
     globalScope.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }
@@ -250,6 +397,7 @@
     openSimulationForCounts,
     prepareApprovedItems,
     prepareWrongItems,
+    prepareArchiveItems,
     getWrongSimulationCounts,
     extractOutcomeLine,
     inferWinnerFromOutcomeLine,

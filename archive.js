@@ -15,6 +15,7 @@ const archiveSourceFilterSelect = document.querySelector("#archiveSourceFilterSe
 const archivePageSizeSelect = document.querySelector("#archivePageSizeSelect");
 const archiveResetFiltersBtn = document.querySelector("#archiveResetFiltersBtn");
 const archiveRefreshBtn = document.querySelector("#archiveRefreshBtn");
+const archiveBulkRegressionBtn = document.querySelector("#archiveBulkRegressionBtn");
 const archiveFilteredCountValue = document.querySelector("#archiveFilteredCountValue");
 const archiveFilteredCountHint = document.querySelector("#archiveFilteredCountHint");
 const archiveFilteredExpValue = document.querySelector("#archiveFilteredExpValue");
@@ -198,6 +199,38 @@ function bindArchiveControls() {
 
   archiveRefreshBtn?.addEventListener("click", () => {
     void refreshArchiveView({ forceRemote: true });
+  });
+
+  archiveBulkRegressionBtn?.addEventListener("click", async () => {
+    if (!window.BulkBattleRegression || typeof window.BulkBattleRegression.openReportPage !== "function") {
+      window.alert("Toplu test araci henuz hazir degil.");
+      return;
+    }
+
+    archiveBulkRegressionBtn.disabled = true;
+    try {
+      await ensureAllArchiveItemsLoaded();
+    } finally {
+      archiveBulkRegressionBtn.disabled = false;
+    }
+
+    if (!archiveState.loadedItems.length) {
+      window.alert("Toplu test icin filtrede kayit yok.");
+      return;
+    }
+
+    window.BulkBattleRegression.openReportPage({
+      kind: "archive",
+      title: "Arsiv Toplu Test",
+      scopeLabel: buildArchiveRegressionScopeLabel(archiveState.loadedItems.length),
+      selectedCount: archiveState.loadedItems.length,
+      totalCount: archiveState.loadedItems.length,
+      backHref: "archive.html",
+      backLabel: "Arsiv",
+      items: typeof window.BulkBattleRegression.prepareArchiveItems === "function"
+        ? window.BulkBattleRegression.prepareArchiveItems(archiveState.loadedItems)
+        : archiveState.loadedItems
+    });
   });
 
   const firstXInputs = document.querySelectorAll(".archive-first-x-input");
@@ -924,6 +957,26 @@ function buildArchiveFilterSummaryText(filteredAggregate) {
   return `${parts.join(" / ")} filtresi aktif. ${formatNumber(filteredAggregate?.count || 0)} kayit bulundu, ${exactSuffix}.`;
 }
 
+function buildArchiveRegressionScopeLabel(count) {
+  const parts = [];
+  if (archiveState.filters.armyPowerText) {
+    parts.push(`${archiveState.filters.armyPowerText}. kat`);
+  }
+  if (archiveState.filters.datePreset === "today") {
+    parts.push("bugun");
+  } else if (archiveState.filters.datePreset === "7d") {
+    parts.push("son 7 gun");
+  } else if (archiveState.filters.datePreset === "30d") {
+    parts.push("son 30 gun");
+  }
+  if (archiveState.filters.sourceType) {
+    parts.push(archiveState.filters.sourceType);
+  }
+  return parts.length
+    ? `${count} arsiv kaydi secildi (${parts.join(" / ")})`
+    : `${count} arsiv kaydi secildi`;
+}
+
 function hasAnyActiveArchiveFilter() {
   return Boolean(
     archiveState.filters.armyPowerText ||
@@ -949,6 +1002,19 @@ async function ensureArchivePageLoaded(targetPage) {
     await loadArchivePage();
   }
   return targetStart < archiveState.loadedItems.length;
+}
+
+async function ensureAllArchiveItemsLoaded() {
+  let safety = 0;
+  while (archiveState.remoteHasMore && safety < 500) {
+    const previousCount = archiveState.loadedItems.length;
+    const previousCursorId = archiveState.remoteCursor?.id || "";
+    await loadArchivePage();
+    safety += 1;
+    if (archiveState.loadedItems.length === previousCount && (archiveState.remoteCursor?.id || "") === previousCursorId) {
+      break;
+    }
+  }
 }
 
 function renderArchivePageNumberButtons(totalCount) {

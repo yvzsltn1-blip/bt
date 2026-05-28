@@ -38,12 +38,13 @@
               <span>Test modu</span>
               <select id="reportRoundingModeSelect" class="stage-select">
                 <option value="stored">Kayda gore</option>
-                <option value="legacy">Degismemis</option>
+                <option value="legacy" selected>Degismemis</option>
                 <option value="safe">Guvenli</option>
                 <option value="exact">Gercek</option>
               </select>
             </label>
             <span id="reportProgress" class="report-progress">Hazirlaniyor...</span>
+            <button id="downloadChangedTxtBtn" class="button button-ghost" type="button">Farklilari TXT Indir</button>
             <button id="rerunReportBtn" class="button button-secondary" type="button">Tekrar Tara</button>
           </div>
         </div>
@@ -126,7 +127,7 @@
   <script src="firebase-client.js?v=20260503-01" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
   <script src="battle-core.js?v=20260515-03" defer></script>
-  <script src="bulk-regression.js?v=20260515-04" defer></script>
-  <script src="regression-report.js?v=20260515-06" defer></script>
+  <script src="bulk-regression.js?v=20260528-06" defer></script>
+  <script src="regression-report.js?v=20260528-09" defer></script>
 </body>
 </html>

@@ -28,6 +28,18 @@
     'kanli ay kahini': 'T7',
     'cehennem ucurumu': 'T8'
   };
+  const ENEMY_SLOT_LABELS = {
+    1: 'R1',
+    2: 'R2',
+    3: 'R3',
+    4: 'R4',
+    5: 'R5',
+    6: 'R6',
+    7: 'R7',
+    8: 'R8',
+    9: 'R9',
+    10: 'R10'
+  };
 
   if (location.hostname === 'bt-analiz.web.app') {
     const observer = new MutationObserver(() => {
@@ -89,6 +101,29 @@
     const digits = String(value || '').replace(/[^\d]/g, '');
     if (!digits) return 0;
     return Number.parseInt(digits, 10) || 0;
+  }
+
+  function hasRecordedOutcome(payload) {
+    if (!payload || typeof payload !== 'object') {
+      return false;
+    }
+    if (Number(payload.lootGoldValue || 0) > 0 || Number(payload.expValue || 0) > 0) {
+      return true;
+    }
+    const lootGoldText = cleanText(payload.lootGoldText || '');
+    const expText = cleanText(payload.expText || '');
+    const fallenUnitsText = cleanText(payload.fallenUnitsText || '');
+    return (
+      (lootGoldText && lootGoldText !== '-') ||
+      (expText && expText !== '-') ||
+      (fallenUnitsText && fallenUnitsText !== '-' && fallenUnitsText !== 'Olenler : 0')
+    );
+  }
+
+  function clearPendingArchiveSync() {
+    GM_setValue(LAST_ARCHIVE_ID_KEY, '');
+    GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, '');
+    GM_setValue(LAST_LOOT_SYNC_KEY, '');
   }
 
   function getGoldText() {
@@ -183,11 +218,14 @@
     return match ? Number.parseInt(match[0], 10) : null;
   }
 
-  function buildRosterText(label, counts) {
+  function buildRosterText(label, counts, formatter) {
     if (!Array.isArray(counts) || !counts.length) {
       return '-';
     }
-    return `${label} : [${counts.join('-')}]`;
+    const entries = typeof formatter === 'function'
+      ? counts.map((count, index) => formatter(count, index)).filter(Boolean)
+      : counts.filter((count) => count !== null && count !== undefined).map((count) => String(count));
+    return entries.length ? `${label} : [${entries.join('-')}]` : '-';
   }
 
   function getEnemyRosterText() {
@@ -214,7 +252,10 @@
         return left.order - right.order;
       });
 
-    return buildRosterText('Rakip', entries.map((entry) => entry.qty));
+    return buildRosterText('Rakip', entries, (entry) => {
+      const tier = ENEMY_SLOT_LABELS[entry.order] || `R${entry.order}`;
+      return `${tier}:${entry.qty}`;
+    });
   }
 
   function getOpenAllyTiers() {
@@ -260,7 +301,7 @@
       return Number.isInteger(explicitCount) ? explicitCount : 0;
     });
 
-    return buildRosterText('Biz', counts);
+    return buildRosterText('Biz', counts, (count, index) => `T${index + 1}:${count}`);
   }
 
   function getOverviewPayload(sourceType, options = {}) {
@@ -333,8 +374,13 @@
       throw new Error(`Kayit basarisiz: ${response.status} ${response.statusText} ${message}`);
     }
 
-    GM_setValue(LAST_ARCHIVE_ID_KEY, docId);
-    GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, JSON.stringify(payload));
+    if (hasRecordedOutcome(payload)) {
+      clearPendingArchiveSync();
+    } else {
+      GM_setValue(LAST_ARCHIVE_ID_KEY, docId);
+      GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, JSON.stringify(payload));
+      GM_setValue(LAST_LOOT_SYNC_KEY, '');
+    }
     return { docId, payload };
   }
 
@@ -356,6 +402,10 @@
     try {
       payload = JSON.parse(rawPayload);
     } catch {
+      return false;
+    }
+    if (hasRecordedOutcome(payload)) {
+      clearPendingArchiveSync();
       return false;
     }
 
@@ -392,8 +442,8 @@
       throw new Error(`Ganimet kaydi guncellenemedi: ${response.status} ${response.statusText} ${message}`);
     }
 
-    GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, JSON.stringify(nextPayload));
     GM_setValue(LAST_LOOT_SYNC_KEY, syncSignature);
+    clearPendingArchiveSync();
     return true;
   }
 
@@ -402,19 +452,10 @@
       const count = targets[tier];
       const plus10 = document.querySelector(`.stepBtn.btnPlus10[data-id="${tier}"]`);
       const plus1 = document.querySelector(`.stepBtn.btnPlus1[data-id="${tier}"]`);
-      const minus1 = document.querySelector(`.stepBtn.btnMinus1[data-id="${tier}"]`);
       if (!plus10 || !plus1) continue;
 
-      let plus10Clicks = Math.floor(count / 10);
-      let plus1Clicks = count % 10;
-      let minus1Clicks = 0;
-
-      if (plus1Clicks >= 6 && minus1) {
-        plus10Clicks += 1;
-        const overshoot = 10 - plus1Clicks;
-        plus1Clicks = 0;
-        minus1Clicks = overshoot;
-      }
+      const plus10Clicks = Math.floor(count / 10);
+      const plus1Clicks = count % 10;
 
       for (let i = 0; i < plus10Clicks; i += 1) {
         plus10.click();
@@ -423,11 +464,6 @@
 
       for (let j = 0; j < plus1Clicks; j += 1) {
         plus1.click();
-        await sleep(240 + Math.random() * 100);
-      }
-
-      for (let k = 0; k < minus1Clicks; k += 1) {
-        minus1.click();
         await sleep(240 + Math.random() * 100);
       }
 

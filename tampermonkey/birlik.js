@@ -28,6 +28,19 @@
     'kanli ay kahini': 'T7',
     'cehennem ucurumu': 'T8'
   };
+  const ENEMY_SLOT_LABELS = {
+    1: 'R1',
+    2: 'R2',
+    3: 'R3',
+    4: 'R4',
+    5: 'R5',
+    6: 'R6',
+    7: 'R7',
+    8: 'R8',
+    9: 'R9',
+    10: 'R10'
+  };
+  let bestFallenUnitsSnapshot = null;
 
   if (location.hostname === 'bt-analiz.web.app') {
     const observer = new MutationObserver(() => {
@@ -91,6 +104,29 @@
     return Number.parseInt(digits, 10) || 0;
   }
 
+  function hasRecordedOutcome(payload) {
+    if (!payload || typeof payload !== 'object') {
+      return false;
+    }
+    if (Number(payload.lootGoldValue || 0) > 0 || Number(payload.expValue || 0) > 0) {
+      return true;
+    }
+    const lootGoldText = cleanText(payload.lootGoldText || '');
+    const expText = cleanText(payload.expText || '');
+    const fallenUnitsText = cleanText(payload.fallenUnitsText || '');
+    return (
+      (lootGoldText && lootGoldText !== '-') ||
+      (expText && expText !== '-') ||
+      (fallenUnitsText && fallenUnitsText !== '-' && fallenUnitsText !== 'Olenler : 0')
+    );
+  }
+
+  function clearPendingArchiveSync() {
+    GM_setValue(LAST_ARCHIVE_ID_KEY, '');
+    GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, '');
+    GM_setValue(LAST_LOOT_SYNC_KEY, '');
+  }
+
   function getGoldText() {
     const el = document.querySelector('div.gold');
     if (!el) return '';
@@ -140,6 +176,7 @@
     if (!Array.isArray(items) || items.length < 2) {
       return items;
     }
+    const sameEntry = (left, right) => JSON.stringify(left) === JSON.stringify(right);
     for (let chunkSize = 1; chunkSize <= Math.floor(items.length / 2); chunkSize += 1) {
       if (items.length % chunkSize !== 0) {
         continue;
@@ -148,7 +185,7 @@
       let repeated = true;
       for (let index = chunkSize; index < items.length; index += chunkSize) {
         const chunk = items.slice(index, index + chunkSize);
-        if (chunk.length !== firstChunk.length || chunk.some((entry, entryIndex) => entry !== firstChunk[entryIndex])) {
+        if (chunk.length !== firstChunk.length || chunk.some((entry, entryIndex) => !sameEntry(entry, firstChunk[entryIndex]))) {
           repeated = false;
           break;
         }
@@ -161,8 +198,8 @@
   }
 
   function getFallenUnitsText() {
-    const items = collapseRepeatedEntries(
-      [...document.querySelectorAll('.allFallenUnits .fallenUnit')]
+    const parseFallenEntries = (root) => collapseRepeatedEntries(
+      [...root.querySelectorAll('.fallenUnit')]
       .map((item) => {
         const name = cleanText(item.querySelector('.fallenUnitName')?.textContent || '');
         const qty = parseQtyValue(item.querySelector('.fallenUnitQty')?.textContent || '');
@@ -171,11 +208,35 @@
         }
         const tier = ALLY_TIER_LABELS[normalizeTurkishText(name)];
         const displayName = tier ? `${name}(${tier})` : name;
-        return `${displayName} x${qty}`;
+        return {
+          text: `${displayName} x${qty}`,
+          qty
+        };
       })
       .filter(Boolean)
     );
-    return items.length ? `Olenler : [${items.join(', ')}]` : 'Olenler : 0';
+
+    const containers = [...document.querySelectorAll('.allFallenUnits')];
+    const candidates = (containers.length ? containers : [document])
+      .map((container) => {
+        const entries = parseFallenEntries(container);
+        const total = entries.reduce((sum, entry) => sum + entry.qty, 0);
+        const text = entries.length ? `Olenler : [${entries.map((entry) => entry.text).join(', ')}]` : 'Olenler : 0';
+        return { entries, total, text };
+      })
+      .filter((candidate) => candidate.total > 0);
+
+    const current = candidates
+      .sort((left, right) => right.total - left.total)[0] || { total: 0, text: 'Olenler : 0' };
+
+    if (current.total > 0 && (!bestFallenUnitsSnapshot || current.total > bestFallenUnitsSnapshot.total)) {
+      bestFallenUnitsSnapshot = {
+        total: current.total,
+        text: current.text
+      };
+    }
+
+    return bestFallenUnitsSnapshot ? bestFallenUnitsSnapshot.text : current.text;
   }
 
   function parseQtyValue(value) {
@@ -183,11 +244,14 @@
     return match ? Number.parseInt(match[0], 10) : null;
   }
 
-  function buildRosterText(label, counts) {
+  function buildRosterText(label, counts, formatter) {
     if (!Array.isArray(counts) || !counts.length) {
       return '-';
     }
-    return `${label} : [${counts.join('-')}]`;
+    const entries = typeof formatter === 'function'
+      ? counts.map((count, index) => formatter(count, index)).filter(Boolean)
+      : counts.filter((count) => count !== null && count !== undefined).map((count) => String(count));
+    return entries.length ? `${label} : [${entries.join('-')}]` : '-';
   }
 
   function getEnemyRosterText() {
@@ -214,7 +278,10 @@
         return left.order - right.order;
       });
 
-    return buildRosterText('Rakip', entries.map((entry) => entry.qty));
+    return buildRosterText('Rakip', entries, (entry) => {
+      const tier = ENEMY_SLOT_LABELS[entry.order] || `R${entry.order}`;
+      return `${tier}:${entry.qty}`;
+    });
   }
 
   function getOpenAllyTiers() {
@@ -260,7 +327,7 @@
       return Number.isInteger(explicitCount) ? explicitCount : 0;
     });
 
-    return buildRosterText('Biz', counts);
+    return buildRosterText('Biz', counts, (count, index) => `T${index + 1}:${count}`);
   }
 
   function getOverviewPayload(sourceType, options = {}) {
@@ -333,8 +400,13 @@
       throw new Error(`Kayit basarisiz: ${response.status} ${response.statusText} ${message}`);
     }
 
-    GM_setValue(LAST_ARCHIVE_ID_KEY, docId);
-    GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, JSON.stringify(payload));
+    if (hasRecordedOutcome(payload)) {
+      clearPendingArchiveSync();
+    } else {
+      GM_setValue(LAST_ARCHIVE_ID_KEY, docId);
+      GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, JSON.stringify(payload));
+      GM_setValue(LAST_LOOT_SYNC_KEY, '');
+    }
     return { docId, payload };
   }
 
@@ -356,6 +428,10 @@
     try {
       payload = JSON.parse(rawPayload);
     } catch {
+      return false;
+    }
+    if (hasRecordedOutcome(payload)) {
+      clearPendingArchiveSync();
       return false;
     }
 
@@ -392,8 +468,8 @@
       throw new Error(`Ganimet kaydi guncellenemedi: ${response.status} ${response.statusText} ${message}`);
     }
 
-    GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, JSON.stringify(nextPayload));
     GM_setValue(LAST_LOOT_SYNC_KEY, syncSignature);
+    clearPendingArchiveSync();
     return true;
   }
 
@@ -402,19 +478,10 @@
       const count = targets[tier];
       const plus10 = document.querySelector(`.stepBtn.btnPlus10[data-id="${tier}"]`);
       const plus1 = document.querySelector(`.stepBtn.btnPlus1[data-id="${tier}"]`);
-      const minus1 = document.querySelector(`.stepBtn.btnMinus1[data-id="${tier}"]`);
       if (!plus10 || !plus1) continue;
 
-      let plus10Clicks = Math.floor(count / 10);
-      let plus1Clicks = count % 10;
-      let minus1Clicks = 0;
-
-      if (plus1Clicks >= 6 && minus1) {
-        plus10Clicks += 1;
-        const overshoot = 10 - plus1Clicks;
-        plus1Clicks = 0;
-        minus1Clicks = overshoot;
-      }
+      const plus10Clicks = Math.floor(count / 10);
+      const plus1Clicks = count % 10;
 
       for (let i = 0; i < plus10Clicks; i += 1) {
         plus10.click();
@@ -423,11 +490,6 @@
 
       for (let j = 0; j < plus1Clicks; j += 1) {
         plus1.click();
-        await sleep(240 + Math.random() * 100);
-      }
-
-      for (let k = 0; k < minus1Clicks; k += 1) {
-        minus1.click();
         await sleep(240 + Math.random() * 100);
       }
 

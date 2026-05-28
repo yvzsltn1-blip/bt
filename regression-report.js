@@ -26,6 +26,7 @@ const reportScope = document.querySelector("#reportScope");
 const reportCountLabel = document.querySelector("#reportCountLabel");
 const reportProgress = document.querySelector("#reportProgress");
 const rerunReportBtn = document.querySelector("#rerunReportBtn");
+const downloadChangedTxtBtn = document.querySelector("#downloadChangedTxtBtn");
 const reportRoundingModeSelect = document.querySelector("#reportRoundingModeSelect");
 const reportSummaryGrid = document.querySelector("#reportSummaryGrid");
 const reportInsightsGrid = document.querySelector("#reportInsightsGrid");
@@ -48,6 +49,7 @@ const reportAdminPasswordInput = document.querySelector("#reportAdminPasswordInp
 const reportAdminLoginBtn = document.querySelector("#reportAdminLoginBtn");
 const reportAdminLogoutBtn = document.querySelector("#reportAdminLogoutBtn");
 const RANDOM_FALLBACK_SEED_COUNT = 64;
+const ARCHIVE_DEEP_SEED_COUNT = 1024;
 
 let currentPayload = readPayload();
 let lastAuditResults = [];
@@ -59,6 +61,9 @@ let currentReportFilter = "all";
 hydrateReportShell();
 rerunReportBtn?.addEventListener("click", () => {
   void runRegressionAudit();
+});
+downloadChangedTxtBtn?.addEventListener("click", () => {
+  downloadChangedResultsTxt();
 });
 clearReportFilterBtn?.addEventListener("click", () => {
   currentReportFilter = "all";
@@ -86,7 +91,7 @@ function scrollToReportSection(filterKey) {
 }
 
 function setReportFilter(filterKey = "all") {
-  currentReportFilter = filterKey || "all";
+  currentReportFilter = filterKey === "skipped" ? "all" : (filterKey || "all");
   renderAuditResults(lastAuditResults);
   if (currentReportFilter !== "all") {
     scrollToReportSection(currentReportFilter);
@@ -201,9 +206,10 @@ async function runRegressionAudit() {
       </article>
     `;
     reportChangedList.innerHTML = '<p class="summary-empty">Degerlendirilecek kayit yok.</p>';
-    reportSkippedList.innerHTML = '<p class="summary-empty">Atlanan kayit yok.</p>';
     changedSectionMeta.textContent = "0 kayit";
-    skippedSectionMeta.textContent = "0 kayit";
+    if (reportSkippedSection) {
+      reportSkippedSection.hidden = true;
+    }
     syncPromotionUi();
     return;
   }
@@ -219,7 +225,9 @@ async function runRegressionAudit() {
     </article>
   `;
   reportChangedList.innerHTML = '<p class="summary-empty">Kontrol suruyor...</p>';
-  reportSkippedList.innerHTML = '<p class="summary-empty">Kontrol suruyor...</p>';
+  if (reportSkippedSection) {
+    reportSkippedSection.hidden = true;
+  }
   syncPromotionUi();
 
   const results = [];
@@ -240,6 +248,9 @@ function evaluateRecord(kind, item) {
   try {
     if (kind === "approved") {
       return evaluateApprovedRecord(item);
+    }
+    if (kind === "archive") {
+      return evaluateArchiveRecord(item);
     }
     return evaluateWrongRecord(item);
   } catch (error) {
@@ -276,10 +287,12 @@ function evaluateApprovedRecord(item) {
       status: differences.length === 0 ? "same" : "changed",
       auditLabel: "Seedli simulasyon",
       seed: item.representativeSeed,
+      seedLabel: "Kayitli seed",
       expected,
       actual,
       differences,
       auditRoundingMode,
+      simulationButtonLabel: "Ayni Seed ile Ac",
       simulationTarget: {
         enemyCounts: item.enemyCounts,
         allyCounts: item.allyCounts,
@@ -297,11 +310,14 @@ function evaluateApprovedRecord(item) {
     status: sampled.hasExpectedMatch ? "same" : "changed",
     auditLabel: `${sampled.sampleCount} seed orneklemi`,
     seed: sampled.representativeSeed,
+    seedLabel: sampled.hasExpectedMatch ? "Beklenen seed" : "Temsilci seed",
     expected,
     actual: sampled.actual,
     differences: sampled.hasExpectedMatch ? [] : differences,
     auditRoundingMode,
     samplingNote: sampled.note,
+    actualCardLabel: sampled.hasExpectedMatch ? "Dogrulanan" : "Temsilci Seed",
+    simulationButtonLabel: sampled.hasExpectedMatch ? "Dogrulayan Seed ile Ac" : "Temsilci Seed ile Ac",
     simulationTarget: {
       enemyCounts: item.enemyCounts,
       allyCounts: item.allyCounts,
@@ -335,6 +351,7 @@ function evaluateWrongRecord(item) {
       status: differences.length === 0 ? "same" : "changed",
       auditLabel: item.source === "optimizer" ? "Kayitli optimizer savasi" : "Kayitli simulasyon",
       seed: item.seed,
+      seedLabel: "Kayitli seed",
       expected,
       actual,
       actualTruth,
@@ -342,6 +359,7 @@ function evaluateWrongRecord(item) {
       matchesStoredActual,
       actualNote: item.actualNote || "",
       auditRoundingMode,
+      simulationButtonLabel: "Ayni Seed ile Ac",
       simulationTarget: {
         enemyCounts: item.enemyCounts,
         allyCounts: item.allyCounts,
@@ -359,6 +377,7 @@ function evaluateWrongRecord(item) {
     status: sampled.hasExpectedMatch ? "same" : "changed",
     auditLabel: `${item.source === "optimizer" ? "Optimizer" : "Simulasyon"} / ${sampled.sampleCount} seed orneklemi`,
     seed: sampled.representativeSeed,
+    seedLabel: sampled.hasExpectedMatch ? "Beklenen seed" : "Temsilci seed",
     expected,
     actual: sampled.actual,
     actualTruth,
@@ -367,6 +386,8 @@ function evaluateWrongRecord(item) {
     actualNote: item.actualNote || "",
     auditRoundingMode,
     samplingNote: sampled.note,
+    actualCardLabel: sampled.hasExpectedMatch ? "Dogrulanan" : "Temsilci Seed",
+    simulationButtonLabel: sampled.hasExpectedMatch ? "Dogrulayan Seed ile Ac" : "Temsilci Seed ile Ac",
     simulationTarget: {
       enemyCounts: item.enemyCounts,
       allyCounts: item.allyCounts,
@@ -374,6 +395,74 @@ function evaluateWrongRecord(item) {
       roundingMode: auditRoundingMode
     }
   });
+}
+
+function evaluateArchiveRecord(item) {
+  if (!item.hasRecordedOutcome) {
+    return buildSkippedRecord(
+      item,
+      "Sonuc sync eksik",
+      "Bu arsiv satirinda savas sonucu henuz kaydedilmemis. Loot/EXP veya olen birlik verisi yok."
+    );
+  }
+  if (!hasAnyPositiveCounts(item.enemyCounts)) {
+    return buildSkippedRecord(
+      item,
+      "Dusman etiketi eksik",
+      "Bu arsiv kaydinda R1-R10 etiketi yok. Eski kayitlar birebir simulasyon testine alinamiyor."
+    );
+  }
+  if (!hasAnyPositiveCounts(item.allyCounts)) {
+    return buildSkippedRecord(item, "Eksik dizilim", "Biz dizilim bilgisi eksik.");
+  }
+
+  const expected = getArchiveExpectedFingerprint(item);
+  const auditRoundingMode = resolveAuditRoundingMode(item);
+  const sampled = evaluateArchiveSeedSample(item, expected, auditRoundingMode);
+  const differences = collectFingerprintDifferences(expected, sampled.actual);
+
+  return buildComparedRecord(item, {
+    status: sampled.hasExpectedMatch ? "same" : "changed",
+    auditLabel: `Arsiv / ${sampled.sampleCount} seed orneklemi`,
+    seed: sampled.representativeSeed,
+    seedLabel: sampled.hasExpectedMatch ? "Beklenen seed" : "Temsilci seed",
+    expected,
+    actual: sampled.actual,
+    differences: sampled.hasExpectedMatch ? [] : differences,
+    auditRoundingMode,
+    samplingNote: sampled.note,
+    expectedCardLabel: "Kayitli",
+    actualCardLabel: sampled.hasExpectedMatch ? "Dogrulanan" : "Temsilci Seed",
+    simulationButtonLabel: sampled.hasExpectedMatch ? "Dogrulayan Seed ile Ac" : "Temsilci Seed ile Ac",
+    simulationTarget: {
+      enemyCounts: item.enemyCounts,
+      allyCounts: item.allyCounts,
+      seed: sampled.representativeSeed,
+      roundingMode: auditRoundingMode
+    }
+  });
+}
+
+function evaluateArchiveSeedSample(item, expected, roundingMode) {
+  const initialSeeds = buildDeterministicSampleSeeds(item, RANDOM_FALLBACK_SEED_COUNT);
+  const initialSample = evaluateSeedSample(item.enemyCounts, item.allyCounts, initialSeeds, expected, null, roundingMode);
+  if (initialSample.hasExpectedMatch) {
+    return initialSample;
+  }
+
+  const deepSeeds = buildDeterministicSampleSeeds(item, ARCHIVE_DEEP_SEED_COUNT);
+  const deepSample = evaluateSeedSample(item.enemyCounts, item.allyCounts, deepSeeds, expected, null, roundingMode);
+  if (deepSample.hasExpectedMatch) {
+    return {
+      ...deepSample,
+      note: `Ilk ${RANDOM_FALLBACK_SEED_COUNT} seedde eslesme cikmadi; ${ARCHIVE_DEEP_SEED_COUNT} seed derin taramada beklenen sonuc bulundu.`
+    };
+  }
+
+  return {
+    ...deepSample,
+    note: `Ilk ${RANDOM_FALLBACK_SEED_COUNT} seedde eslesme cikmadi; ${ARCHIVE_DEEP_SEED_COUNT} seed derin taramada da beklenen sonuc bulunamadi. Bu arsiv kaydi muhtemelen yanlis loot/kayip verisiyle overwrite oldu.`
+  };
 }
 
 function getApprovedExpectedFingerprint(item) {
@@ -428,6 +517,20 @@ function getWrongExpectedFingerprint(item) {
   };
 }
 
+function getArchiveExpectedFingerprint(item) {
+  return {
+    winner: item.expectedWinner === "ally" || item.expectedWinner === "enemy"
+      ? item.expectedWinner
+      : "unknown",
+    lostBloodTotal: Number.isFinite(Number(item.expectedLostBlood))
+      ? Number(item.expectedLostBlood)
+      : calculateLostBlood(item.expectedAllyLosses || {}),
+    allyLosses: cloneCountMap(item.expectedAllyLosses || {}, ALLY_UNITS),
+    usedCapacity: Number.isFinite(item.expectedUsedCapacity) ? item.expectedUsedCapacity : null,
+    signature: ""
+  };
+}
+
 function getActualTruthFingerprint(summaryText) {
   if (!summaryText) {
     return null;
@@ -465,7 +568,7 @@ function collectFingerprintDifferences(expected, actual) {
     return differences;
   }
 
-  if (expected.winner !== actual.winner) {
+  if (isWinnerComparable(expected.winner) && expected.winner !== actual.winner) {
     differences.push("Galip taraf degisti.");
   }
   if (expected.lostBloodTotal !== actual.lostBloodTotal) {
@@ -504,6 +607,10 @@ function buildComparedRecord(item, details) {
     samplingNote: details.samplingNote || "",
     auditRoundingMode: normalizeStoredRoundingMode(details.auditRoundingMode) || "safe",
     storedRoundingMode: normalizeStoredRoundingMode(item?.roundingMode),
+    seedLabel: String(details.seedLabel || "Seed"),
+    expectedCardLabel: String(details.expectedCardLabel || (item.source === "archive" ? "Kayitli" : "Beklenen")),
+    actualCardLabel: String(details.actualCardLabel || "Simdiki"),
+    simulationButtonLabel: String(details.simulationButtonLabel || "Simulasyona Git"),
     simulationTarget: details.simulationTarget || null,
     sourceItem: item,
     versusLabel: buildRosterLabel(item.enemyCounts, ENEMY_UNITS, 2) || item.enemyTitle || "Versus",
@@ -524,6 +631,12 @@ function buildSkippedRecord(item, title, reason) {
 }
 
 function buildRecordTitle(item) {
+  if (item.source === "archive") {
+    if (Number.isInteger(item.stage)) {
+      return `Arsiv / ${item.stage}. Kademe`;
+    }
+    return "Arsiv Kaydi";
+  }
   if (item.source === "optimizer") {
     if (Number.isInteger(item.stage)) {
       return `${item.modeLabel || "Optimizer"} / ${item.stage}. Kademe`;
@@ -536,6 +649,13 @@ function buildRecordTitle(item) {
 function buildRecordSubtitle(item) {
   const stamp = item.savedAt || item.reportedAt || "";
   const formatted = formatDate(stamp);
+  if (item.source === "archive") {
+    const sourceLabel = item.sourceType === "fill" ? "fill" : "manual";
+    if (Number.isInteger(item.stage)) {
+      return `${item.stage}. Kademe / ${sourceLabel} / ${formatted}`;
+    }
+    return `${sourceLabel} / ${formatted}`;
+  }
   if (Number.isInteger(item.stage)) {
     return `${item.stage}. Kademe / ${formatted}`;
   }
@@ -555,15 +675,11 @@ function renderAuditResults(results) {
   const actualMatchCount = results.filter((item) => item.matchesStoredActual).length;
   promotableResults = getPromotableResults(results);
   const filteredChangedItems = filterChangedItems(changedItems, currentReportFilter);
-  const filteredSkippedItems = currentReportFilter === "skipped" ? skippedItems : skippedItems;
-  const showChangedSection = currentReportFilter !== "skipped";
-  const showSkippedSection = currentReportFilter === "all" || currentReportFilter === "skipped";
 
   reportSummaryGrid.innerHTML = "";
   reportSummaryGrid.append(
     createSummaryCard("Ayni", String(sameCount), "same", { hint: "Liste gosterimi yok" }),
     createSummaryCard("Degisen", String(changedCount), "changed", { filterKey: "changed", hint: "Degisen kayitlari goster" }),
-    createSummaryCard("Atlanan", String(skippedCount), "skipped", { filterKey: "skipped", hint: "Atlananlari goster" }),
     createSummaryCard("Maglubiyete donen", String(becameDefeatCount), "changed", { filterKey: "became_defeat" }),
     createSummaryCard("Kan kaybi artan", String(lostBloodIncreasedCount), "changed", { filterKey: "lost_blood_up" }),
     createSummaryCard("Kan kaybi azalan", String(lostBloodDecreasedCount), "same", { filterKey: "lost_blood_down" })
@@ -575,24 +691,56 @@ function renderAuditResults(results) {
   }
 
   renderInsights(changedItems);
-  syncActiveFilterUi(filteredChangedItems, skippedItems);
+  syncActiveFilterUi(filteredChangedItems, skippedCount);
   if (reportChangedSection) {
-    reportChangedSection.hidden = !showChangedSection;
+    reportChangedSection.hidden = false;
   }
   if (reportSkippedSection) {
-    reportSkippedSection.hidden = !showSkippedSection;
+    reportSkippedSection.hidden = true;
   }
 
   changedSectionMeta.textContent = currentReportFilter === "all"
     ? `${changedCount} kayit`
     : `${filteredChangedItems.length}/${changedCount} kayit`;
-  skippedSectionMeta.textContent = currentReportFilter === "skipped"
-    ? `${skippedCount} kayit`
-    : `${skippedCount} kayit`;
 
   renderChangedItems(filteredChangedItems);
-  renderSkippedItems(currentReportFilter === "skipped" ? filteredSkippedItems : skippedItems);
   syncPromotionUi();
+}
+
+function downloadChangedResultsTxt() {
+  const changedItems = lastAuditResults.filter((item) => item.status === "changed");
+  if (!changedItems.length) {
+    window.alert("TXT indirmek icin farkli kayit yok.");
+    return;
+  }
+
+  const lines = [
+    currentPayload?.title || "Toplu Test Raporu",
+    currentPayload?.scopeLabel || "",
+    `Degisen kayit: ${changedItems.length}`,
+    ""
+  ];
+
+  changedItems.forEach((item, index) => {
+    lines.push(`#${index + 1} ${item.title}`);
+    lines.push(`Tarih: ${item.subtitle}`);
+    lines.push(`Kontrol: ${item.auditLabel}`);
+    lines.push(`Rakip: ${item.versusLabel || "-"}`);
+    lines.push(`Biz: ${item.allyLabel || "-"}`);
+    lines.push(`Beklenen sonuc: ${formatWinner(item.expected?.winner)}`);
+    lines.push(`Sim sonuc: ${formatWinner(item.actual?.winner)}`);
+    lines.push(`Beklenen kan: ${formatNumberValue(item.expected?.lostBloodTotal)}`);
+    lines.push(`Sim kan: ${formatNumberValue(item.actual?.lostBloodTotal)}`);
+    lines.push(`Beklenen kayip: ${formatLosses(item.expected?.allyLosses)}`);
+    lines.push(`Sim kayip: ${formatLosses(item.actual?.allyLosses)}`);
+    lines.push(`Farklar: ${(item.detailChips || item.differences || []).join(" | ") || "-"}`);
+    if (item.samplingNote) {
+      lines.push(`Not: ${item.samplingNote}`);
+    }
+    lines.push("");
+  });
+
+  downloadTextFile(lines.join("\n"), `regression-changed-${buildTimestampForFile()}.txt`);
 }
 
 function createSummaryCard(label, value, tone, options = {}) {
@@ -612,7 +760,7 @@ function createSummaryCard(label, value, tone, options = {}) {
   return card;
 }
 
-function syncActiveFilterUi(filteredChangedItems, skippedItems) {
+function syncActiveFilterUi(filteredChangedItems) {
   if (clearReportFilterBtn) {
     clearReportFilterBtn.hidden = currentReportFilter === "all";
   }
@@ -624,7 +772,7 @@ function syncActiveFilterUi(filteredChangedItems, skippedItems) {
     return;
   }
   const baseLabel = getReportFilterLabel(currentReportFilter);
-  const count = currentReportFilter === "skipped" ? skippedItems.length : filteredChangedItems.length;
+  const count = filteredChangedItems.length;
   reportActiveFilterNote.textContent = `Aktif filtre: ${baseLabel} (${count} kayit).`;
 }
 
@@ -632,7 +780,6 @@ function getReportFilterLabel(filterKey) {
   const labels = {
     all: "Tum degisenler",
     changed: "Degisenler",
-    skipped: "Atlananlar",
     became_defeat: "Maglubiyete donenler",
     lost_blood_up: "Kan kaybi artanlar",
     lost_blood_down: "Kan kaybi azalanlar",
@@ -831,7 +978,7 @@ function renderChangedItems(items) {
       const simulationBtn = document.createElement("button");
       simulationBtn.className = "button button-secondary";
       simulationBtn.type = "button";
-      simulationBtn.textContent = "Simulasyona Git";
+      simulationBtn.textContent = item.simulationButtonLabel || "Simulasyona Git";
       simulationBtn.addEventListener("click", () => {
         openSimulationForCounts(
           item.simulationTarget.enemyCounts,
@@ -851,7 +998,7 @@ function renderChangedItems(items) {
       '<span class="report-status is-changed">Degisti</span>',
       `<span>Kontrol: <strong>${escapeHtml(item.auditLabel)}</strong></span>`,
       `<span>Test modu: <strong>${escapeHtml(buildAuditModeBadgeText(item))}</strong></span>`,
-      item.seed !== null ? `<span>Seed: <strong>${item.seed}</strong></span>` : "",
+      item.seed !== null ? `<span>${escapeHtml(item.seedLabel || "Seed")}: <strong>${item.seed}</strong></span>` : "",
       item.matchesStoredActual ? '<span class="report-status is-promoted">Tasinabilir</span>' : "",
       item.matchesStoredActual ? '<span>Durum: <strong>Kayitli gercekle artik ayni</strong></span>' : ""
     ].filter(Boolean);
@@ -863,8 +1010,8 @@ function renderChangedItems(items) {
       compare.classList.add("is-triple");
     }
     compare.append(
-      buildCompareCard("Beklenen", item.expected),
-      buildCompareCard("Simdiki", item.actual)
+      buildCompareCard(item.expectedCardLabel || "Beklenen", item.expected),
+      buildCompareCard(item.actualCardLabel || "Simdiki", item.actual)
     );
     if (item.actualTruth) {
       compare.append(buildCompareCard("Kayitli Gercek", item.actualTruth));
@@ -930,34 +1077,6 @@ function buildCompareRow(label, value) {
       <strong>${escapeHtml(value)}</strong>
     </div>
   `;
-}
-
-function renderSkippedItems(items) {
-  reportSkippedList.innerHTML = "";
-  if (!items.length) {
-    reportSkippedList.innerHTML = '<p class="summary-empty">Atlanan kayit yok.</p>';
-    return;
-  }
-
-  items.forEach((item) => {
-    const card = document.createElement("article");
-    card.className = "saved-card report-entry-card";
-    card.innerHTML = `
-      <div class="saved-card-head">
-        <div>
-          <strong>${escapeHtml(item.title)}</strong>
-          <span>${escapeHtml(item.subtitle)}</span>
-        </div>
-      </div>
-      <div class="saved-meta">
-        <span class="report-status is-skipped">Atlandi</span>
-        <span>${escapeHtml(item.skipTitle || "Atlandi")}</span>
-      </div>
-      <p class="report-note">${escapeHtml(item.skipReason || "")}</p>
-      <p class="report-note">${escapeHtml(item.versusLabel || "")}</p>
-    `;
-    reportSkippedList.appendChild(card);
-  });
 }
 
 async function promoteMatchedWrongReports() {
@@ -1229,7 +1348,7 @@ function isFingerprintExactMatch(left, right) {
     return false;
   }
   return (
-    left.winner === right.winner &&
+    winnersAreCompatible(left.winner, right.winner) &&
     Number(left.lostBloodTotal || 0) === Number(right.lostBloodTotal || 0) &&
     areLossMapsEqual(left.allyLosses, right.allyLosses)
   );
@@ -1237,7 +1356,7 @@ function isFingerprintExactMatch(left, right) {
 
 function fingerprintDistance(expected, actual) {
   let score = 0;
-  if (expected.winner !== actual.winner) {
+  if (isWinnerComparable(expected.winner) && expected.winner !== actual.winner) {
     score += 1000000;
   }
   score += Math.abs(Number(expected.lostBloodTotal || 0) - Number(actual.lostBloodTotal || 0)) * 100;
@@ -1305,7 +1424,7 @@ function normalizeAuditRoundingMode(mode) {
   if (mode === "legacy" || mode === "safe" || mode === "exact") {
     return mode;
   }
-  return "stored";
+  return "legacy";
 }
 
 function getSelectedAuditRoundingMode() {
@@ -1371,6 +1490,17 @@ function formatWinner(value) {
     return "Maglubiyet";
   }
   return "Bilinmiyor";
+}
+
+function isWinnerComparable(value) {
+  return value === "ally" || value === "enemy";
+}
+
+function winnersAreCompatible(expectedWinner, actualWinner) {
+  if (!isWinnerComparable(expectedWinner)) {
+    return true;
+  }
+  return expectedWinner === actualWinner;
 }
 
 function formatLosses(losses) {
@@ -1445,7 +1575,7 @@ function buildDifferenceDetailChips(expected, actual) {
     return [];
   }
   const chips = [];
-  if (expected.winner !== actual.winner) {
+  if (isWinnerComparable(expected.winner) && expected.winner !== actual.winner) {
     chips.push(`Sonuc: ${formatWinner(expected.winner)} -> ${formatWinner(actual.winner)}`);
   }
   const lostBloodDelta = Number(actual.lostBloodTotal || 0) - Number(expected.lostBloodTotal || 0);
@@ -1464,6 +1594,22 @@ function buildDifferenceDetailChips(expected, actual) {
     chips.push(`Kapasite: ${formatSignedNumber(Number(actual.usedCapacity) - Number(expected.usedCapacity))}`);
   }
   return chips;
+}
+
+function downloadTextFile(content, filename) {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function buildTimestampForFile() {
+  return new Date().toISOString().replace(/[:.]/g, "-");
 }
 
 function escapeHtml(value) {
