@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         BT Birlik Doldurucu v2
+// @name         Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      1.4
+// @version      1.7
 // @description  quick.html sonuclarini Bitefight savasa otomatik doldurur ve arsiv kaydi tutar
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -18,6 +18,16 @@
   const LAST_ARCHIVE_ID_KEY = 'btLastArchiveId';
   const LAST_ARCHIVE_PAYLOAD_KEY = 'btLastArchivePayload';
   const LAST_LOOT_SYNC_KEY = 'btLastLootSyncSignature';
+  const ALLY_TIER_LABELS = {
+    'dehset kurdu': 'T1',
+    'yikici': 'T2',
+    'gece avcisi': 'T3',
+    'fantom dehseti': 'T4',
+    'kurt saman': 'T5',
+    'mezar pencesi': 'T6',
+    'kanli ay kahini': 'T7',
+    'cehennem ucurumu': 'T8'
+  };
 
   if (location.hostname === 'bt-analiz.web.app') {
     const observer = new MutationObserver(() => {
@@ -62,6 +72,17 @@
 
   function cleanText(value) {
     return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function normalizeTurkishText(value) {
+    return cleanText(value)
+      .toLocaleLowerCase('tr-TR')
+      .replace(/ı/g, 'i')
+      .replace(/ğ/g, 'g')
+      .replace(/ü/g, 'u')
+      .replace(/ş/g, 's')
+      .replace(/ö/g, 'o')
+      .replace(/ç/g, 'c');
   }
 
   function parseDigits(value) {
@@ -115,13 +136,142 @@
     return el ? cleanText(el.textContent) : '';
   }
 
-  function getOverviewPayload(sourceType) {
+  function collapseRepeatedEntries(items) {
+    if (!Array.isArray(items) || items.length < 2) {
+      return items;
+    }
+    for (let chunkSize = 1; chunkSize <= Math.floor(items.length / 2); chunkSize += 1) {
+      if (items.length % chunkSize !== 0) {
+        continue;
+      }
+      const firstChunk = items.slice(0, chunkSize);
+      let repeated = true;
+      for (let index = chunkSize; index < items.length; index += chunkSize) {
+        const chunk = items.slice(index, index + chunkSize);
+        if (chunk.length !== firstChunk.length || chunk.some((entry, entryIndex) => entry !== firstChunk[entryIndex])) {
+          repeated = false;
+          break;
+        }
+      }
+      if (repeated) {
+        return firstChunk;
+      }
+    }
+    return items;
+  }
+
+  function getFallenUnitsText() {
+    const items = collapseRepeatedEntries(
+      [...document.querySelectorAll('.allFallenUnits .fallenUnit')]
+      .map((item) => {
+        const name = cleanText(item.querySelector('.fallenUnitName')?.textContent || '');
+        const qty = parseQtyValue(item.querySelector('.fallenUnitQty')?.textContent || '');
+        if (!name || qty === null) {
+          return null;
+        }
+        const tier = ALLY_TIER_LABELS[normalizeTurkishText(name)];
+        const displayName = tier ? `${name}(${tier})` : name;
+        return `${displayName} x${qty}`;
+      })
+      .filter(Boolean)
+    );
+    return items.length ? `Olenler : [${items.join(', ')}]` : 'Olenler : 0';
+  }
+
+  function parseQtyValue(value) {
+    const match = cleanText(value).match(/-?\d+/);
+    return match ? Number.parseInt(match[0], 10) : null;
+  }
+
+  function buildRosterText(label, counts) {
+    if (!Array.isArray(counts) || !counts.length) {
+      return '-';
+    }
+    return `${label} : [${counts.join('-')}]`;
+  }
+
+  function getEnemyRosterText() {
+    const entries = [...document.querySelectorAll('.enemySlot')]
+      .map((slot, index) => {
+        const styleText = slot.getAttribute('style') || '';
+        const match = styleText.match(/enemyUnit_(\d+)\.jpg/i);
+        const qtyEl = slot.querySelector('.qtyValue');
+        const qty = parseQtyValue(qtyEl ? qtyEl.textContent : '');
+        if (!match || qty === null) {
+          return null;
+        }
+        return {
+          order: Number.parseInt(match[1], 10),
+          qty,
+          index
+        };
+      })
+      .filter(Boolean)
+      .sort((left, right) => {
+        if (left.order === right.order) {
+          return left.index - right.index;
+        }
+        return left.order - right.order;
+      });
+
+    return buildRosterText('Rakip', entries.map((entry) => entry.qty));
+  }
+
+  function getOpenAllyTiers() {
+    return [...new Set(
+      [...document.querySelectorAll('.stepBtn[data-id]')]
+        .map((button) => Number.parseInt(button.getAttribute('data-id') || '', 10))
+        .filter((tier) => Number.isInteger(tier) && tier > 0)
+    )].sort((left, right) => left - right);
+  }
+
+  function findAllyCardRoot(tier) {
+    const button = document.querySelector(`.stepBtn[data-id="${tier}"]`);
+    let node = button;
+    for (let depth = 0; node && depth < 8; depth += 1) {
+      if (node.querySelector('.qtyValue')) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return button ? button.parentElement : null;
+  }
+
+  function getAllyRosterText(targets, preferTargets) {
+    const tiers = getOpenAllyTiers();
+    if (!tiers.length) {
+      return '-';
+    }
+
+    const counts = tiers.map((tier) => {
+      const explicitCount = targets && Object.prototype.hasOwnProperty.call(targets, tier)
+        ? Number.parseInt(targets[tier], 10)
+        : null;
+      if (preferTargets && Number.isInteger(explicitCount)) {
+        return explicitCount;
+      }
+
+      const root = findAllyCardRoot(tier);
+      const qtyEl = root ? root.querySelector('.qtyValue') : null;
+      const qty = parseQtyValue(qtyEl ? qtyEl.textContent : '');
+      if (qty !== null) {
+        return qty;
+      }
+      return Number.isInteger(explicitCount) ? explicitCount : 0;
+    });
+
+    return buildRosterText('Biz', counts);
+  }
+
+  function getOverviewPayload(sourceType, options = {}) {
     const goldText = getGoldText();
     if (!goldText) {
       throw new Error('Altin bilgisi bulunamadi.');
     }
 
     const nowIso = new Date().toISOString();
+    const enemyRosterText = getEnemyRosterText();
+    const allyRosterText = getAllyRosterText(options.targets, Boolean(options.preferTargets));
     return {
       savedAt: nowIso,
       updatedAt: nowIso,
@@ -133,6 +283,9 @@
       expValue: 0,
       armyPowerText: getArmyPowerText() || '-',
       levelText: getLevelText() || '-',
+      enemyRosterText,
+      allyRosterText,
+      fallenUnitsText: 'Olenler : 0',
       sourceType: sourceType === 'fill' ? 'fill' : 'manual',
       host: location.host,
       pageUrl: location.href,
@@ -152,6 +305,9 @@
       expValue: { integerValue: String(payload.expValue) },
       armyPowerText: { stringValue: payload.armyPowerText },
       levelText: { stringValue: payload.levelText },
+      enemyRosterText: { stringValue: payload.enemyRosterText || '-' },
+      allyRosterText: { stringValue: payload.allyRosterText || '-' },
+      fallenUnitsText: { stringValue: payload.fallenUnitsText || 'Olenler : 0' },
       sourceType: { stringValue: payload.sourceType },
       host: { stringValue: payload.host },
       pageUrl: { stringValue: payload.pageUrl },
@@ -159,8 +315,8 @@
     };
   }
 
-  async function createArchiveRecord(sourceType) {
-    const payload = getOverviewPayload(sourceType);
+  async function createArchiveRecord(sourceType, options = {}) {
+    const payload = getOverviewPayload(sourceType, options);
     const docId = `overview_${Date.now()}_${Math.random().toString(36).slice(2, 9) || '0'}`;
     const response = await fetch(`${FIRESTORE_ARCHIVE_URL}?documentId=${encodeURIComponent(docId)}&key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
       method: 'POST',
@@ -185,7 +341,8 @@
   async function syncLootResultToLastArchive() {
     const lootGoldText = getLootGoldText();
     const expText = getLootExpText();
-    if (!lootGoldText || !expText) {
+    const fallenUnitsText = getFallenUnitsText();
+    if (!lootGoldText && !expText && fallenUnitsText === 'Olenler : 0') {
       return false;
     }
 
@@ -202,7 +359,7 @@
       return false;
     }
 
-    const syncSignature = `${docId}|${location.pathname}|${lootGoldText}|${expText}`;
+    const syncSignature = `${docId}|${location.pathname}|${lootGoldText}|${expText}|${fallenUnitsText}`;
     if (GM_getValue(LAST_LOOT_SYNC_KEY, '') === syncSignature) {
       return true;
     }
@@ -210,10 +367,11 @@
     const nextPayload = {
       ...payload,
       updatedAt: new Date().toISOString(),
-      lootGoldText,
-      lootGoldValue: parseDigits(lootGoldText),
-      expText,
-      expValue: parseDigits(expText),
+      lootGoldText: lootGoldText || payload.lootGoldText || '-',
+      lootGoldValue: lootGoldText ? parseDigits(lootGoldText) : (payload.lootGoldValue || 0),
+      expText: expText || payload.expText || '-',
+      expValue: expText ? parseDigits(expText) : (payload.expValue || 0),
+      fallenUnitsText,
       host: location.host,
       pageUrl: location.href,
       pageTitle: document.title || payload.pageTitle || ''
@@ -331,7 +489,7 @@
       fillBtn.disabled = true;
 
       try {
-        await createArchiveRecord('fill');
+        await createArchiveRecord('fill', { targets, preferTargets: true });
       } catch (error) {
         console.error('Otomatik arsiv kaydi olusturulamadi.', error);
       }

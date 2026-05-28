@@ -469,12 +469,12 @@
     }
     const uniqueValues = new Set();
     values.forEach((value) => {
-      const normalized = buildOverviewArchiveKatStorageValue(value);
+      const normalized = normalizeOverviewArchiveNumericFilter(value);
       if (normalized) {
         uniqueValues.add(normalized);
       }
     });
-    return [...uniqueValues].slice(0, 10);
+    return [...uniqueValues].slice(0, 100);
   }
 
   function buildOverviewArchiveDateRange(datePreset) {
@@ -544,7 +544,12 @@
     if (filters.armyPowerText) {
       query = query.where("armyPowerText", "in", buildOverviewArchiveKatStorageVariants(filters.armyPowerText));
     } else if (filters.armyPowerTextIn.length > 0) {
-      query = query.where("armyPowerText", "in", filters.armyPowerTextIn);
+      const variants = [];
+      filters.armyPowerTextIn.forEach((val) => {
+        variants.push(...buildOverviewArchiveKatStorageVariants(val));
+      });
+      const uniqueVariants = [...new Set(variants)].slice(0, 30);
+      query = query.where("armyPowerText", "in", uniqueVariants);
     }
     if (filters.sourceType) {
       query = query.where("sourceType", "==", filters.sourceType);
@@ -819,6 +824,10 @@
       expValue: clampInt(item?.expValue, 9999999999999),
       armyPowerText: trimText(item?.armyPowerText || "-", 20),
       levelText: trimText(item?.levelText || "-", 20),
+      enemyRosterText: trimText(item?.enemyRosterText || "-", 160),
+      allyRosterText: trimText(item?.allyRosterText || "-", 160),
+      fallenUnitsText: trimText(item?.fallenUnitsText || "-", 240),
+      reviveStoneText: trimText(item?.reviveStoneText || "-", 40),
       sourceType: item?.sourceType === "fill" ? "fill" : "manual",
       host: trimText(item?.host || "", 120),
       pageUrl: trimText(item?.pageUrl || "", 400),
@@ -1480,7 +1489,7 @@
 
   function validateOverviewArchivePayload(data, docId) {
     const errors = [];
-    const allowedKeys = ["savedAt", "updatedAt", "goldText", "goldValue", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "sourceType", "host", "pageUrl", "pageTitle"];
+    const allowedKeys = ["savedAt", "updatedAt", "goldText", "goldValue", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "enemyRosterText", "allyRosterText", "fallenUnitsText", "reviveStoneText", "sourceType", "host", "pageUrl", "pageTitle"];
     const requiredKeys = ["savedAt", "updatedAt", "goldText", "goldValue", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "sourceType"];
 
     if (!/^overview_[0-9]+_[a-z0-9]+$/.test(docId)) {
@@ -1526,6 +1535,18 @@
     }
     if (!validateShortString(data.levelText, 20)) {
       errors.push("levelText 1..20 karakter olmali.");
+    }
+    if ("enemyRosterText" in data && data.enemyRosterText && !validateShortString(data.enemyRosterText, 160)) {
+      errors.push("enemyRosterText 1..160 karakter olmali.");
+    }
+    if ("allyRosterText" in data && data.allyRosterText && !validateShortString(data.allyRosterText, 160)) {
+      errors.push("allyRosterText 1..160 karakter olmali.");
+    }
+    if ("fallenUnitsText" in data && data.fallenUnitsText && !validateShortString(data.fallenUnitsText, 240)) {
+      errors.push("fallenUnitsText 1..240 karakter olmali.");
+    }
+    if ("reviveStoneText" in data && data.reviveStoneText && !validateShortString(data.reviveStoneText, 40)) {
+      errors.push("reviveStoneText 1..40 karakter olmali.");
     }
     if (!["manual", "fill"].includes(data.sourceType)) {
       errors.push("sourceType manual veya fill olmali.");

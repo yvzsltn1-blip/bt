@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260528-05">
+  <link rel="stylesheet" href="styles.css?v=20260528-08">
 </head>
 <body class="site-gate-pending">
   <div class="page-shell">
@@ -41,9 +41,6 @@
       <section class="panel output-panel">
         <div class="panel-head">
           <h2>Kayit Tablosu</h2>
-          <div class="actions actions-inline">
-            <a class="button button-secondary" href="https://bt-analiz.web.app/archive.html" target="_blank" rel="noreferrer">Yeni Sekmede Ac</a>
-          </div>
         </div>
 
         <section class="archive-toolbar">
@@ -112,15 +109,33 @@
               <small id="archiveTodayLootValue">0 ganimet</small>
             </article>
             <article class="archive-insight-card archive-insight-card-accent">
-              <span class="archive-insight-label">Ilk 10 Kat</span>
+              <span class="archive-insight-label" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                Ilk <input id="archiveFirstXInput" class="archive-first-x-input" type="number" min="1" max="100" value="10" style="width: 44px; height: 22px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; border-radius: 6px; padding: 0 4px; font-size: 0.8rem; text-align: center; font-weight: bold; outline: none;" inputmode="numeric"> Kat EXP
+              </span>
               <strong id="archiveFirstTenExpValue">0 EXP</strong>
-              <small id="archiveFirstTenLootValue">0 ganimet</small>
+              <small>İlk x katın toplam EXP miktarı</small>
             </article>
-            <article class="archive-insight-card">
-              <span class="archive-insight-label">Cache Durumu</span>
-              <strong id="archiveCacheStatusValue">Yok</strong>
-              <small id="archiveCacheStatusHint">Yerel cache hazir degil</small>
+            <article class="archive-insight-card archive-insight-card-accent">
+              <span class="archive-insight-label" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                Ilk <input id="archiveFirstXLootInput" class="archive-first-x-input" type="number" min="1" max="100" value="10" style="width: 44px; height: 22px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; border-radius: 6px; padding: 0 4px; font-size: 0.8rem; text-align: center; font-weight: bold; outline: none;" inputmode="numeric"> Kat Ganimet
+              </span>
+              <strong id="archiveFirstTenLootValue">0 ganimet</strong>
+              <small>İlk x katın toplam ganimet miktarı</small>
             </article>
+          </div>
+        </section>
+
+        <section class="admin-auth-panel admin-auth-panel-tight">
+          <div class="admin-auth-copy">
+            <strong>Admin Girisi</strong>
+            <span>Silme ve duzenleme islemleri sadece admin oturumunda acilir.</span>
+          </div>
+          <div class="admin-auth-controls">
+            <span id="adminAuthStatus" class="admin-auth-status">Admin kapali</span>
+            <input id="adminEmailInput" class="admin-auth-input" type="email" value="yavuz@gmail.com" autocomplete="username" spellcheck="false">
+            <input id="adminPasswordInput" class="admin-auth-input" type="password" placeholder="Admin sifresi" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+            <button id="adminLoginBtn" class="button button-secondary" type="button">Admin Giris</button>
+            <button id="adminLogoutBtn" class="button button-ghost" type="button" hidden>Cikis</button>
           </div>
         </section>
 
@@ -135,29 +150,111 @@
           <button id="archiveNextPageBtn" class="button button-ghost archive-page-nav" type="button" aria-label="Sonraki sayfa">›</button>
         </section>
 
-        <section class="admin-auth-panel admin-auth-panel-tight">
-          <div class="admin-auth-copy">
-            <strong>Admin Girisi</strong>
-            <span>Duzenle ve sil islemleri admin oturumuyla acilir.</span>
-          </div>
-          <div class="admin-auth-controls">
-            <span id="archiveAdminAuthStatus" class="admin-auth-status">Admin kapali</span>
-            <input id="archiveAdminEmailInput" class="admin-auth-input" type="email" value="yavuz@gmail.com" autocomplete="username" spellcheck="false">
-            <input id="archiveAdminPasswordInput" class="admin-auth-input" type="password" placeholder="Admin sifresi" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
-            <button id="archiveAdminLoginBtn" class="button button-secondary" type="button">Admin Giris</button>
-            <button id="archiveAdminLogoutBtn" class="button button-ghost" type="button" hidden>Cikis</button>
-          </div>
-        </section>
       </section>
     </main>
+  </div>
+
+  <div id="archiveEditModal" class="report-modal" hidden>
+    <div class="report-modal-card">
+      <div class="panel-head">
+        <h2>Arsiv Kaydini Duzenle</h2>
+        <button id="archiveEditCloseBtn" class="button button-ghost" type="button">Kapat</button>
+      </div>
+
+      <div class="archive-edit-meta">
+        <span><strong>ID:</strong> <span id="archiveEditDocIdLabel">-</span></span>
+        <span><strong>Son Guncelleme:</strong> <span id="archiveEditUpdatedAtLabel">-</span></span>
+      </div>
+
+      <div class="report-form-grid archive-edit-grid">
+        <label class="report-field">
+          <span>Kayit Tarihi</span>
+          <input id="archiveEditSavedAtInput" type="text" placeholder="2026-05-28T10:00:00.000Z">
+        </label>
+        <label class="report-field">
+          <span>Kaynak</span>
+          <select id="archiveEditSourceTypeInput" class="stage-select">
+            <option value="manual">manual</option>
+            <option value="fill">fill</option>
+          </select>
+        </label>
+        <label class="report-field">
+          <span>Gold Text</span>
+          <input id="archiveEditGoldTextInput" type="text" placeholder="123456">
+        </label>
+        <label class="report-field">
+          <span>Gold Value</span>
+          <input id="archiveEditGoldValueInput" type="number" min="0" inputmode="numeric" placeholder="123456">
+        </label>
+        <label class="report-field">
+          <span>Loot Gold Text</span>
+          <input id="archiveEditLootGoldTextInput" type="text" placeholder="12345">
+        </label>
+        <label class="report-field">
+          <span>Loot Gold Value</span>
+          <input id="archiveEditLootGoldValueInput" type="number" min="0" inputmode="numeric" placeholder="12345">
+        </label>
+        <label class="report-field">
+          <span>EXP Text</span>
+          <input id="archiveEditExpTextInput" type="text" placeholder="1234">
+        </label>
+        <label class="report-field">
+          <span>EXP Value</span>
+          <input id="archiveEditExpValueInput" type="number" min="0" inputmode="numeric" placeholder="1234">
+        </label>
+        <label class="report-field">
+          <span>Seviye</span>
+          <input id="archiveEditLevelTextInput" type="text" placeholder="10">
+        </label>
+        <label class="report-field">
+          <span>Army Power Text</span>
+          <input id="archiveEditArmyPowerTextInput" type="text" placeholder="0/20">
+        </label>
+        <label class="report-field report-field-full">
+          <span>Rakip Dizilim</span>
+          <input id="archiveEditEnemyRosterTextInput" type="text" placeholder="Rakip : [1-2-3]">
+        </label>
+        <label class="report-field report-field-full">
+          <span>Biz Dizilim</span>
+          <input id="archiveEditAllyRosterTextInput" type="text" placeholder="Biz : [4-5-6]">
+        </label>
+        <label class="report-field report-field-full">
+          <span>Olenler</span>
+          <textarea id="archiveEditFallenUnitsTextInput" rows="3" placeholder="Olenler : 0"></textarea>
+        </label>
+        <label class="report-field">
+          <span>Diriltme Tasi</span>
+          <input id="archiveEditReviveStoneTextInput" type="text" placeholder="-">
+        </label>
+        <label class="report-field">
+          <span>Host</span>
+          <input id="archiveEditHostInput" type="text" placeholder="s66-tr.bitefight.gameforge.com">
+        </label>
+        <label class="report-field report-field-full">
+          <span>Sayfa URL</span>
+          <input id="archiveEditPageUrlInput" type="text" placeholder="https://...">
+        </label>
+        <label class="report-field report-field-full">
+          <span>Sayfa Basligi</span>
+          <input id="archiveEditPageTitleInput" type="text" placeholder="Sayfa basligi">
+        </label>
+      </div>
+
+      <div id="archiveEditErrorBox" class="terminal-block wrong-report-error-box" hidden></div>
+
+      <div class="actions">
+        <button id="archiveEditSaveBtn" class="button button-secondary" type="button">Kaydet</button>
+        <button id="archiveEditCancelBtn" class="button button-ghost" type="button">Vazgec</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="site-gate.js?v=20260502-02" defer></script>
-  <script src="firebase-client.js?v=20260528-04" defer></script>
+  <script src="firebase-client.js?v=20260528-06" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="archive.js?v=20260528-06" defer></script>
+  <script src="archive.js?v=20260528-10" defer></script>
 </body>
 </html>

@@ -15,6 +15,8 @@
       "**/node_modules/**",
       "scripts/**",
       "tampermonkey/**",
+      "*.bat",
+      "**/*.bat",
       "test-rounding-fix.js",
       "layers_js_current.json",
       "layers_py_v51.json",

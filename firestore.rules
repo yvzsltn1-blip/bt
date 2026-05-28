@@ -235,7 +235,7 @@ service cloud.firestore {
     function validOverviewArchive(data, documentId) {
       return documentId.matches('^overview_[0-9]+_[a-z0-9]+$')
         && data.keys().hasOnly([
-          'savedAt', 'updatedAt', 'goldText', 'goldValue', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'sourceType', 'host', 'pageUrl', 'pageTitle'
+          'savedAt', 'updatedAt', 'goldText', 'goldValue', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'enemyRosterText', 'allyRosterText', 'fallenUnitsText', 'reviveStoneText', 'sourceType', 'host', 'pageUrl', 'pageTitle'
         ])
         && data.keys().hasAll([
           'savedAt', 'updatedAt', 'goldText', 'goldValue', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'sourceType'
@@ -250,6 +250,10 @@ service cloud.firestore {
         && isWideInt(data.expValue, 9999999999999)
         && isShortString(data.armyPowerText, 20)
         && isShortString(data.levelText, 20)
+        && (!('enemyRosterText' in data) || isShortString(data.enemyRosterText, 160))
+        && (!('allyRosterText' in data) || isShortString(data.allyRosterText, 160))
+        && (!('fallenUnitsText' in data) || isShortString(data.fallenUnitsText, 240))
+        && (!('reviveStoneText' in data) || isShortString(data.reviveStoneText, 40))
         && data.sourceType in ['manual', 'fill']
         && (!('host' in data) || isShortString(data.host, 120))
         && (!('pageUrl' in data) || isShortString(data.pageUrl, 400))

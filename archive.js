@@ -23,24 +23,52 @@ const archiveTodayExpValue = document.querySelector("#archiveTodayExpValue");
 const archiveTodayLootValue = document.querySelector("#archiveTodayLootValue");
 const archiveFirstTenExpValue = document.querySelector("#archiveFirstTenExpValue");
 const archiveFirstTenLootValue = document.querySelector("#archiveFirstTenLootValue");
-const archiveCacheStatusValue = document.querySelector("#archiveCacheStatusValue");
-const archiveCacheStatusHint = document.querySelector("#archiveCacheStatusHint");
-const archiveAdminAuthStatus = document.querySelector("#archiveAdminAuthStatus");
-const archiveAdminEmailInput = document.querySelector("#archiveAdminEmailInput");
-const archiveAdminPasswordInput = document.querySelector("#archiveAdminPasswordInput");
-const archiveAdminLoginBtn = document.querySelector("#archiveAdminLoginBtn");
-const archiveAdminLogoutBtn = document.querySelector("#archiveAdminLogoutBtn");
+const archiveFirstXInput = document.querySelector("#archiveFirstXInput");
+const adminAuthStatus = document.querySelector("#adminAuthStatus");
+const adminEmailInput = document.querySelector("#adminEmailInput");
+const adminPasswordInput = document.querySelector("#adminPasswordInput");
+const adminLoginBtn = document.querySelector("#adminLoginBtn");
+const adminLogoutBtn = document.querySelector("#adminLogoutBtn");
+const archiveEditModal = document.querySelector("#archiveEditModal");
+const archiveEditCloseBtn = document.querySelector("#archiveEditCloseBtn");
+const archiveEditCancelBtn = document.querySelector("#archiveEditCancelBtn");
+const archiveEditSaveBtn = document.querySelector("#archiveEditSaveBtn");
+const archiveEditDocIdLabel = document.querySelector("#archiveEditDocIdLabel");
+const archiveEditUpdatedAtLabel = document.querySelector("#archiveEditUpdatedAtLabel");
+const archiveEditErrorBox = document.querySelector("#archiveEditErrorBox");
+const archiveEditSavedAtInput = document.querySelector("#archiveEditSavedAtInput");
+const archiveEditSourceTypeInput = document.querySelector("#archiveEditSourceTypeInput");
+const archiveEditGoldTextInput = document.querySelector("#archiveEditGoldTextInput");
+const archiveEditGoldValueInput = document.querySelector("#archiveEditGoldValueInput");
+const archiveEditLootGoldTextInput = document.querySelector("#archiveEditLootGoldTextInput");
+const archiveEditLootGoldValueInput = document.querySelector("#archiveEditLootGoldValueInput");
+const archiveEditExpTextInput = document.querySelector("#archiveEditExpTextInput");
+const archiveEditExpValueInput = document.querySelector("#archiveEditExpValueInput");
+const archiveEditLevelTextInput = document.querySelector("#archiveEditLevelTextInput");
+const archiveEditArmyPowerTextInput = document.querySelector("#archiveEditArmyPowerTextInput");
+const archiveEditEnemyRosterTextInput = document.querySelector("#archiveEditEnemyRosterTextInput");
+const archiveEditAllyRosterTextInput = document.querySelector("#archiveEditAllyRosterTextInput");
+const archiveEditFallenUnitsTextInput = document.querySelector("#archiveEditFallenUnitsTextInput");
+const archiveEditReviveStoneTextInput = document.querySelector("#archiveEditReviveStoneTextInput");
+const archiveEditHostInput = document.querySelector("#archiveEditHostInput");
+const archiveEditPageUrlInput = document.querySelector("#archiveEditPageUrlInput");
+const archiveEditPageTitleInput = document.querySelector("#archiveEditPageTitleInput");
 
 const DEFAULT_PAGE_SIZE = 40;
 const PAGE_SIZE_OPTIONS = new Set([20, 40, 80]);
 const ARCHIVE_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV3";
 const ARCHIVE_SUMMARY_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
-const FIRST_TEN_LEVELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
-let isAdminSession = false;
+function getFirstXLevels(x) {
+  const count = Math.max(1, Math.min(100, Number(x) || 10));
+  return Array.from({ length: count }, (_, index) => String(index + 1));
+}
+
 let archiveLevelInputDebounce = 0;
 let archiveRequestToken = 0;
+let isAdminSession = false;
+let currentEditingArchiveId = "";
 
 const archiveState = {
   filters: {
@@ -48,8 +76,10 @@ const archiveState = {
     datePreset: "all",
     sourceType: ""
   },
+  firstX: 10,
   pageSize: DEFAULT_PAGE_SIZE,
   currentPage: 0,
+  expandedIds: new Set(),
   loadedItems: [],
   remoteCursor: null,
   remoteHasMore: false,
@@ -61,8 +91,9 @@ const archiveState = {
   }
 };
 
-void bindAdminAuth();
 bindArchiveControls();
+bindArchiveEditModal();
+void bindAdminAuth();
 void refreshArchiveView();
 
 archivePrevPageBtn?.addEventListener("click", () => {
@@ -100,31 +131,39 @@ archivePageNumbers?.addEventListener("click", async (event) => {
   renderArchivePage();
 });
 
-archiveList?.addEventListener("click", async (event) => {
-  const actionButton = event.target instanceof Element ? event.target.closest("[data-action]") : null;
-  if (!actionButton) {
+archiveList?.addEventListener("click", (event) => {
+  const editButton = event.target instanceof Element ? event.target.closest("[data-archive-edit-id]") : null;
+  if (editButton) {
+    const id = editButton.getAttribute("data-archive-edit-id") || "";
+    if (id) {
+      void handleEditArchive(id);
+    }
     return;
   }
 
-  const action = actionButton.getAttribute("data-action");
-  const id = actionButton.getAttribute("data-id") || "";
+  const deleteButton = event.target instanceof Element ? event.target.closest("[data-archive-delete-id]") : null;
+  if (deleteButton) {
+    const id = deleteButton.getAttribute("data-archive-delete-id") || "";
+    if (id) {
+      void handleDeleteArchive(id);
+    }
+    return;
+  }
+
+  const detailButton = event.target instanceof Element ? event.target.closest("[data-archive-detail-id]") : null;
+  if (!detailButton) {
+    return;
+  }
+  const id = detailButton.getAttribute("data-archive-detail-id") || "";
   if (!id) {
     return;
   }
-
-  if (!isAdminSession) {
-    window.alert("Bu islem icin once admin girisi yapin.");
-    return;
+  if (archiveState.expandedIds.has(id)) {
+    archiveState.expandedIds.delete(id);
+  } else {
+    archiveState.expandedIds.add(id);
   }
-
-  if (action === "delete") {
-    await handleDeleteArchive(id);
-    return;
-  }
-
-  if (action === "edit") {
-    await handleEditArchive(id);
-  }
+  renderArchivePage();
 });
 
 function bindArchiveControls() {
@@ -160,24 +199,27 @@ function bindArchiveControls() {
   archiveRefreshBtn?.addEventListener("click", () => {
     void refreshArchiveView({ forceRemote: true });
   });
+
+  const firstXInputs = document.querySelectorAll(".archive-first-x-input");
+  firstXInputs.forEach((input) => {
+    input.addEventListener("input", () => {
+      const val = Math.max(1, Math.min(100, Number(input.value) || 10));
+      firstXInputs.forEach((other) => {
+        if (other !== input) {
+          other.value = String(val);
+        }
+      });
+      if (val !== archiveState.firstX) {
+        archiveState.firstX = val;
+        void refreshArchiveAggregatesOnly();
+      }
+    });
+  });
 }
 
-async function bindAdminAuth() {
-  if (!window.AdminAuthUI || typeof window.AdminAuthUI.bindAdminControls !== "function") {
-    return;
-  }
-
-  await window.AdminAuthUI.bindAdminControls({
-    statusLabel: archiveAdminAuthStatus,
-    emailInput: archiveAdminEmailInput,
-    passwordInput: archiveAdminPasswordInput,
-    loginButton: archiveAdminLoginBtn,
-    logoutButton: archiveAdminLogoutBtn,
-    onStateChange: (isAdmin) => {
-      isAdminSession = isAdmin;
-      renderArchivePage();
-    }
-  });
+async function refreshArchiveAggregatesOnly() {
+  const requestToken = ++archiveRequestToken;
+  await refreshArchiveAggregates({ requestToken });
 }
 
 async function applyFilters() {
@@ -212,7 +254,6 @@ async function refreshArchiveView(options = {}) {
   archiveState.readSource = pageResult?.readSource || archiveState.readSource;
   renderArchiveHeader();
   renderArchivePage();
-  renderArchiveCacheInfo();
 }
 
 async function loadArchivePage(options = {}) {
@@ -230,7 +271,7 @@ async function loadArchivePage(options = {}) {
   const page = await window.BTFirebase.loadOverviewArchivesPage({
     pageSize: archiveState.pageSize,
     cursor: options.reset ? null : archiveState.remoteCursor,
-    preferCache: Boolean(options.reset && !options.forceRemote && !hasAnyActiveArchiveFilter()),
+    preferCache: false,
     cacheMaxAgeMs: options.forceRemote ? 0 : ARCHIVE_CACHE_MAX_AGE_MS,
     filters: {
       armyPowerText: archiveState.filters.armyPowerText,
@@ -249,11 +290,11 @@ async function loadArchivePage(options = {}) {
   archiveState.readSource = page?.readSource || archiveState.readSource;
   renderArchiveHeader();
   renderArchivePage();
-  renderArchiveCacheInfo();
   return page;
 }
 
 async function refreshArchiveAggregates(options = {}) {
+  const firstXLevels = getFirstXLevels(archiveState.firstX);
   const [filtered, today, firstTen] = await Promise.all([
     loadArchiveAggregateWithCache({
       cacheKey: buildAggregateCacheKey("filtered", archiveState.filters),
@@ -266,9 +307,9 @@ async function refreshArchiveAggregates(options = {}) {
       filters: { datePreset: "today" }
     }),
     loadArchiveAggregateWithCache({
-      cacheKey: buildAggregateCacheKey("firstTen", { armyPowerTextIn: FIRST_TEN_LEVELS }),
+      cacheKey: buildAggregateCacheKey(`firstX_${archiveState.firstX}`, { armyPowerTextIn: firstXLevels }),
       forceRemote: Boolean(options.forceRemote),
-      filters: { armyPowerTextIn: FIRST_TEN_LEVELS }
+      filters: { armyPowerTextIn: firstXLevels }
     })
   ]);
 
@@ -377,22 +418,6 @@ function renderArchiveAggregates() {
   setText(archiveFirstTenLootValue, `${formatNumber(firstTenAggregate.totalLoot)} ganimet`);
 }
 
-function renderArchiveCacheInfo() {
-  if (!window.BTFirebase || typeof window.BTFirebase.getOverviewArchiveCacheInfo !== "function") {
-    return;
-  }
-
-  const cacheInfo = window.BTFirebase.getOverviewArchiveCacheInfo();
-  if (!cacheInfo?.lastSyncedAt) {
-    setText(archiveCacheStatusValue, "Bos");
-    setText(archiveCacheStatusHint, "Yerel cache henuz dolmadi");
-    return;
-  }
-
-  setText(archiveCacheStatusValue, formatRelativeCacheAge(cacheInfo.lastSyncedAt));
-  setText(archiveCacheStatusHint, `${formatNumber(cacheInfo.itemCount || 0)} kayit cache icinde`);
-}
-
 function renderArchivePage() {
   if (!archiveList || !archivePagination || !archivePageInfo || !archivePrevPageBtn || !archiveNextPageBtn || !archivePageNumbers) {
     return;
@@ -417,7 +442,8 @@ function renderArchivePage() {
             <th>EXP</th>
             <th>Seviye</th>
             <th>Kat</th>
-            <th>Islem</th>
+            <th class="archive-detail-col">Detay</th>
+            <th class="archive-actions-col">Islem</th>
           </tr>
         </thead>
         <tbody>
@@ -443,53 +469,33 @@ function renderArchivePage() {
 }
 
 function renderArchiveRow(item) {
-  const sourceBadge = renderSourceBadge(item);
-  const actionDisabled = isAdminSession ? "" : "disabled";
-
+  const isExpanded = archiveState.expandedIds.has(item?.id);
   return `
-    <tr>
+    <tr class="archive-row-main">
       <td>${escapeHtml(formatDateTime(item?.savedAt))}</td>
       <td>${renderArchiveGoldCell(item)}</td>
       <td>${escapeHtml(formatNumber(item?.lootGoldValue, item?.lootGoldText || "-"))}</td>
       <td>${escapeHtml(formatNumber(item?.expValue, item?.expText || "-"))}</td>
       <td>${escapeHtml(item?.levelText || "-")}</td>
       <td>${escapeHtml(formatArmyPowerDisplay(item?.armyPowerText || "-"))}</td>
-      <td>
-        <div class="archive-action-group">
-          ${sourceBadge}
-          <button class="button button-ghost archive-action-btn" type="button" data-action="edit" data-id="${escapeAttribute(item?.id || "")}" ${actionDisabled} title="Duzenle" aria-label="Duzenle">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-          </button>
-          <button class="button button-ghost archive-action-btn archive-action-btn-danger" type="button" data-action="delete" data-id="${escapeAttribute(item?.id || "")}" ${actionDisabled} title="Sil" aria-label="Sil">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
-          </button>
-        </div>
-      </td>
+      <td class="archive-detail-cell">${renderArchiveDetailButton(item, isExpanded)}</td>
+      <td class="archive-action-cell">${renderArchiveActionGroup(item)}</td>
     </tr>
+    ${isExpanded ? renderArchiveDetailRow(item) : ""}
   `;
 }
 
 function renderArchiveCard(item) {
-  const sourceBadge = renderSourceBadge(item);
-  const actionDisabled = isAdminSession ? "" : "disabled";
   return `
     <article class="archive-card">
       <div class="archive-card-head">
         <div>
           <p class="archive-card-date">${escapeHtml(formatDateTime(item?.savedAt))}</p>
           <div class="archive-card-title-row">
-            ${sourceBadge}
             <strong>${escapeHtml(formatNumber(item?.goldValue, item?.goldText || "-"))} gold</strong>
           </div>
         </div>
-        <div class="archive-action-group">
-          <button class="button button-ghost archive-action-btn" type="button" data-action="edit" data-id="${escapeAttribute(item?.id || "")}" ${actionDisabled} title="Duzenle" aria-label="Duzenle">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-          </button>
-          <button class="button button-ghost archive-action-btn archive-action-btn-danger" type="button" data-action="delete" data-id="${escapeAttribute(item?.id || "")}" ${actionDisabled} title="Sil" aria-label="Sil">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
-          </button>
-        </div>
+        ${renderArchiveActionGroup(item)}
       </div>
       <div class="archive-card-metrics">
         ${renderArchiveCardMetric("Ganimet", formatNumber(item?.lootGoldValue, item?.lootGoldText || "-"))}
@@ -498,6 +504,36 @@ function renderArchiveCard(item) {
         ${renderArchiveCardMetric("Kat", formatArmyPowerDisplay(item?.armyPowerText || "-"))}
       </div>
     </article>
+  `;
+}
+
+function renderArchiveActionGroup(item) {
+  const adminTitle = isAdminSession
+    ? "Admin islem"
+    : "Duzenleme ve silme icin admin girisi gerekli";
+  return `
+    <div class="archive-action-group">
+      <button
+        class="archive-action-btn"
+        type="button"
+        data-archive-edit-id="${escapeAttribute(item?.id || "")}"
+        aria-label="Kaydi duzenle"
+        title="${isAdminSession ? "Kaydi duzenle" : adminTitle}"
+        ${isAdminSession ? "" : "disabled"}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
+      <button
+        class="archive-action-btn archive-action-btn-danger"
+        type="button"
+        data-archive-delete-id="${escapeAttribute(item?.id || "")}"
+        aria-label="Kaydi sil"
+        title="${isAdminSession ? "Kaydi sil" : adminTitle}"
+        ${isAdminSession ? "" : "disabled"}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>
   `;
 }
 
@@ -517,10 +553,72 @@ function renderArchiveGoldCell(item) {
   return `<span class="archive-gold-cell">${manualIcon}<span>${escapeHtml(formatNumber(item?.goldValue, item?.goldText || "-"))}</span></span>`;
 }
 
-function renderSourceBadge(item) {
-  const label = item?.sourceType === "fill" ? "Fill" : "Manuel";
-  const className = item?.sourceType === "fill" ? "archive-source-pill archive-source-pill-fill" : "archive-source-pill archive-source-pill-manual";
-  return `<span class="${className}">${escapeHtml(label)}</span>`;
+function renderArchiveDetailButton(item, isExpanded) {
+  const hasDetails = hasArchiveDetails(item);
+  return `
+    <button
+      class="archive-detail-toggle${isExpanded ? " is-open" : ""}"
+      type="button"
+      data-archive-detail-id="${item?.id || ""}"
+      aria-label="Detay"
+      aria-expanded="${isExpanded ? "true" : "false"}"
+      ${hasDetails ? "" : "disabled"}
+      title="${hasDetails ? "Detayi ac" : "Detay yok"}"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 5c5.5 0 9.5 5.2 10.5 7-1 1.8-5 7-10.5 7S2.5 13.8 1.5 12C2.5 10.2 6.5 5 12 5z"></path>
+        <circle cx="12" cy="12" r="3.2"></circle>
+      </svg>
+    </button>
+  `;
+}
+
+function renderArchiveDetailRow(item) {
+  const detailLines = getArchiveDetailEntries(item)
+    .map((entry) => `
+      <span class="archive-detail-inline ${entry.className}">${escapeHtml(entry.text)}</span>
+    `)
+    .join("");
+
+  if (!detailLines) {
+    return "";
+  }
+
+  return `
+    <tr class="archive-detail-row">
+      <td colspan="8">
+        <div class="archive-detail-panel archive-detail-panel-inline">
+          ${detailLines}
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function normalizeArchiveDetailText(value) {
+  const text = String(value || "").trim();
+  return text && text !== "-" ? text : "";
+}
+
+function getArchiveDetailEntries(item) {
+  return [
+    { value: item?.enemyRosterText, className: "is-enemy" },
+    { value: item?.allyRosterText, className: "is-ally" },
+    { value: item?.fallenUnitsText, className: "is-fallen" }
+  ]
+    .map((entry) => ({
+      className: entry.className,
+      text: formatArchiveDetailEntryText(normalizeArchiveDetailText(entry.value), entry.className)
+    }))
+    .filter((entry) => entry.text);
+}
+
+function formatArchiveDetailEntryText(text, className) {
+  return text || "";
+}
+
+function hasArchiveDetails(item) {
+  return getArchiveDetailEntries(item).length > 0;
 }
 
 function formatArmyPowerDisplay(value) {
@@ -547,6 +645,10 @@ function formatArmyPowerDisplay(value) {
 }
 
 async function handleDeleteArchive(id) {
+  if (!isAdminSession) {
+    window.alert("Arsiv silmek icin admin girisi zorunlu.");
+    return;
+  }
   const item = archiveState.loadedItems.find((entry) => entry.id === id);
   if (!item) {
     return;
@@ -566,74 +668,207 @@ async function handleDeleteArchive(id) {
 }
 
 async function handleEditArchive(id) {
+  if (!isAdminSession) {
+    window.alert("Arsiv duzenlemek icin admin girisi zorunlu.");
+    return;
+  }
   const item = archiveState.loadedItems.find((entry) => entry.id === id);
   if (!item) {
     return;
   }
+  openArchiveEditModal(item);
+}
 
-  const currentGold = formatNumber(item?.goldValue, item?.goldText || "");
-  const currentLoot = formatNumber(item?.lootGoldValue, item?.lootGoldText || "");
-  const currentExp = formatNumber(item?.expValue, item?.expText || "");
-  const currentArmyPower = formatArmyPowerDisplay(item?.armyPowerText || "-");
-  const currentLevel = String(item?.levelText || "-");
+function bindArchiveEditModal() {
+  archiveEditCloseBtn?.addEventListener("click", closeArchiveEditModal);
+  archiveEditCancelBtn?.addEventListener("click", closeArchiveEditModal);
+  archiveEditSaveBtn?.addEventListener("click", () => {
+    void submitArchiveEditModal();
+  });
+  archiveEditModal?.addEventListener("click", (event) => {
+    if (event.target === archiveEditModal) {
+      closeArchiveEditModal();
+    }
+  });
+}
 
-  const nextGold = window.prompt("Yeni gold degeri", currentGold);
-  if (nextGold === null) {
+async function bindAdminAuth() {
+  if (!window.AdminAuthUI || typeof window.AdminAuthUI.bindAdminControls !== "function") {
     return;
   }
 
-  const nextLoot = window.prompt("Yeni ganimet altin degeri", currentLoot);
-  if (nextLoot === null) {
+  await window.AdminAuthUI.bindAdminControls({
+    statusLabel: adminAuthStatus,
+    emailInput: adminEmailInput,
+    passwordInput: adminPasswordInput,
+    loginButton: adminLoginBtn,
+    logoutButton: adminLogoutBtn,
+    onStateChange: (isAdmin) => {
+      isAdminSession = isAdmin;
+      if (!isAdminSession) {
+        closeArchiveEditModal();
+      }
+      renderArchivePage();
+    }
+  });
+}
+
+function openArchiveEditModal(item) {
+  if (!archiveEditModal || !item?.id) {
     return;
   }
 
-  const nextExp = window.prompt("Yeni EXP degeri", currentExp);
-  if (nextExp === null) {
+  currentEditingArchiveId = item.id;
+  setText(archiveEditDocIdLabel, item.id);
+  setText(archiveEditUpdatedAtLabel, formatDateTime(item.updatedAt || item.savedAt));
+  setInputValue(archiveEditSavedAtInput, item.savedAt || "");
+  setInputValue(archiveEditSourceTypeInput, item.sourceType || "manual");
+  setInputValue(archiveEditGoldTextInput, item.goldText || "");
+  setInputValue(archiveEditGoldValueInput, item.goldValue ?? "");
+  setInputValue(archiveEditLootGoldTextInput, item.lootGoldText || "-");
+  setInputValue(archiveEditLootGoldValueInput, item.lootGoldValue ?? 0);
+  setInputValue(archiveEditExpTextInput, item.expText || "-");
+  setInputValue(archiveEditExpValueInput, item.expValue ?? 0);
+  setInputValue(archiveEditLevelTextInput, item.levelText || "-");
+  setInputValue(archiveEditArmyPowerTextInput, item.armyPowerText || "-");
+  setInputValue(archiveEditEnemyRosterTextInput, item.enemyRosterText || "-");
+  setInputValue(archiveEditAllyRosterTextInput, item.allyRosterText || "-");
+  setInputValue(archiveEditFallenUnitsTextInput, item.fallenUnitsText || "-");
+  setInputValue(archiveEditReviveStoneTextInput, item.reviveStoneText || "-");
+  setInputValue(archiveEditHostInput, item.host || "");
+  setInputValue(archiveEditPageUrlInput, item.pageUrl || "");
+  setInputValue(archiveEditPageTitleInput, item.pageTitle || "");
+  if (archiveEditSaveBtn) {
+    archiveEditSaveBtn.disabled = false;
+  }
+  setArchiveEditError("");
+  archiveEditModal.hidden = false;
+}
+
+function closeArchiveEditModal() {
+  if (!archiveEditModal) {
+    return;
+  }
+  archiveEditModal.hidden = true;
+  currentEditingArchiveId = "";
+  setArchiveEditError("");
+}
+
+async function submitArchiveEditModal() {
+  if (!isAdminSession) {
+    setArchiveEditError("Admin girisi kapali. Tekrar giris yap.");
+    return;
+  }
+  const item = archiveState.loadedItems.find((entry) => entry.id === currentEditingArchiveId);
+  if (!item) {
+    setArchiveEditError("Duzenlenen kayit bulunamadi.");
     return;
   }
 
-  const nextArmyPower = window.prompt("Yeni kat degeri", currentArmyPower);
-  if (nextArmyPower === null) {
+  let payload;
+  try {
+    payload = buildArchiveEditPayload(item);
+  } catch (error) {
+    setArchiveEditError(error?.message || "Form verisi gecersiz.");
     return;
   }
 
-  const nextLevel = window.prompt("Yeni seviye", currentLevel);
-  if (nextLevel === null) {
-    return;
+  if (archiveEditSaveBtn) {
+    archiveEditSaveBtn.disabled = true;
   }
-
-  const normalizedGoldDigits = normalizeDigits(nextGold);
-  const normalizedLootDigits = normalizeDigits(nextLoot);
-  const normalizedExpDigits = normalizeDigits(nextExp);
-  const normalizedArmyPowerDigits = normalizeDigits(nextArmyPower);
-  const normalizedLevelDigits = normalizeDigits(nextLevel);
-
-  if (!normalizedGoldDigits || !normalizedLootDigits || !normalizedExpDigits || !normalizedArmyPowerDigits || !normalizedLevelDigits) {
-    window.alert("Gold, ganimet, EXP, kat ve seviye sayisal olmali.");
-    return;
-  }
-
-  const updatedItem = {
-    ...item,
-    goldText: normalizedGoldDigits,
-    goldValue: Number.parseInt(normalizedGoldDigits, 10),
-    lootGoldText: normalizedLootDigits,
-    lootGoldValue: Number.parseInt(normalizedLootDigits, 10),
-    expText: normalizedExpDigits,
-    expValue: Number.parseInt(normalizedExpDigits, 10),
-    armyPowerText: formatArchiveKatStorage(normalizedArmyPowerDigits),
-    levelText: normalizedLevelDigits,
-    updatedAt: new Date().toISOString()
-  };
+  setArchiveEditError("");
 
   try {
-    await window.BTFirebase.updateOverviewArchive(updatedItem);
+    await window.BTFirebase.updateOverviewArchive(payload);
     clearArchiveSummaryCache();
+    closeArchiveEditModal();
     await refreshArchiveView({ forceRemote: true });
   } catch (error) {
     console.warn("Arsiv satiri guncellenemedi.", error);
-    window.alert(error?.message || "Satir guncellenemedi.");
+    setArchiveEditError(error?.message || "Satir guncellenemedi.");
+  } finally {
+    if (archiveEditSaveBtn) {
+      archiveEditSaveBtn.disabled = false;
+    }
   }
+}
+
+function buildArchiveEditPayload(item) {
+  const goldValue = parseRequiredArchiveInt(archiveEditGoldValueInput?.value, "Gold Value");
+  const lootGoldValue = parseRequiredArchiveInt(archiveEditLootGoldValueInput?.value, "Loot Gold Value");
+  const expValue = parseRequiredArchiveInt(archiveEditExpValueInput?.value, "EXP Value");
+  const savedAt = normalizeRequiredArchiveText(archiveEditSavedAtInput?.value, "Kayit Tarihi");
+  const levelText = normalizeRequiredArchiveText(archiveEditLevelTextInput?.value, "Seviye");
+  const armyPowerText = normalizeRequiredArchiveText(archiveEditArmyPowerTextInput?.value, "Army Power Text");
+  const sourceType = normalizeArchiveSourceType(archiveEditSourceTypeInput?.value);
+
+  return {
+    ...item,
+    savedAt,
+    goldText: normalizeArchiveText(archiveEditGoldTextInput?.value, String(goldValue)),
+    goldValue,
+    lootGoldText: normalizeArchiveText(archiveEditLootGoldTextInput?.value, String(lootGoldValue)),
+    lootGoldValue,
+    expText: normalizeArchiveText(archiveEditExpTextInput?.value, String(expValue)),
+    expValue,
+    levelText,
+    armyPowerText,
+    enemyRosterText: normalizeArchiveText(archiveEditEnemyRosterTextInput?.value, "-"),
+    allyRosterText: normalizeArchiveText(archiveEditAllyRosterTextInput?.value, "-"),
+    fallenUnitsText: normalizeArchiveText(archiveEditFallenUnitsTextInput?.value, "-"),
+    reviveStoneText: normalizeArchiveText(archiveEditReviveStoneTextInput?.value, "-"),
+    sourceType,
+    host: normalizeArchiveText(archiveEditHostInput?.value, ""),
+    pageUrl: normalizeArchiveText(archiveEditPageUrlInput?.value, ""),
+    pageTitle: normalizeArchiveText(archiveEditPageTitleInput?.value, "")
+  };
+}
+
+function setArchiveEditError(message) {
+  if (!archiveEditErrorBox) {
+    return;
+  }
+  const text = String(message || "").trim();
+  archiveEditErrorBox.hidden = !text;
+  archiveEditErrorBox.textContent = text;
+}
+
+function setInputValue(node, value) {
+  if (node) {
+    node.value = String(value ?? "");
+  }
+}
+
+function normalizeArchiveText(value, fallback) {
+  const text = String(value ?? "").trim();
+  if (text) {
+    return text;
+  }
+  return String(fallback ?? "").trim();
+}
+
+function normalizeRequiredArchiveText(value, label) {
+  const text = normalizeArchiveText(value, "");
+  if (!text) {
+    throw new Error(`${label} bos birakilamaz.`);
+  }
+  return text;
+}
+
+function parseRequiredArchiveInt(value, label) {
+  const digits = normalizeDigits(value);
+  if (!digits) {
+    throw new Error(`${label} sayisal olmali.`);
+  }
+  const numeric = Number.parseInt(digits, 10);
+  if (!Number.isFinite(numeric) || numeric < 0) {
+    throw new Error(`${label} gecersiz.`);
+  }
+  return numeric;
+}
+
+function normalizeArchiveSourceType(value) {
+  return value === "fill" ? "fill" : "manual";
 }
 
 function readArchiveFiltersFromUi() {
@@ -737,6 +972,31 @@ function renderArchivePageNumberButtons(totalCount) {
 }
 
 function buildArchivePageNumberItems(totalPages, currentPage) {
+  if (typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches) {
+    if (totalPages <= 4) {
+      return Array.from({ length: totalPages }, (_, index) => index);
+    }
+
+    const pages = new Set([0, currentPage, totalPages - 1]);
+    if (currentPage > 1 && currentPage < totalPages - 2) {
+      pages.add(currentPage + 1);
+    } else if (currentPage <= 1) {
+      pages.add(1);
+    } else {
+      pages.add(totalPages - 2);
+    }
+
+    const sortedPages = [...pages].sort((left, right) => left - right);
+    const items = [];
+    sortedPages.forEach((page, index) => {
+      if (index > 0 && page - sortedPages[index - 1] > 1) {
+        items.push("...");
+      }
+      items.push(page);
+    });
+    return items;
+  }
+
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, index) => index);
   }
