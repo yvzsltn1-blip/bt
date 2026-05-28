@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260527-03">
+  <link rel="stylesheet" href="styles.css?v=20260528-05">
 </head>
 <body class="site-gate-pending">
   <div class="page-shell">
@@ -29,6 +29,12 @@
           <strong id="archiveCountLabel">0</strong>
         </div>
       </div>
+      <div class="hero-stat hero-stat-status">
+        <span>Veri Modu</span>
+        <div class="hero-stat-value">
+          <strong id="archiveDataModeLabel">Hazirlaniyor</strong>
+        </div>
+      </div>
     </header>
 
     <main class="single-layout">
@@ -40,14 +46,93 @@
           </div>
         </div>
 
+        <section class="archive-toolbar">
+          <div class="archive-toolbar-head">
+            <div>
+              <strong>Filtreler ve Ozet</strong>
+              <p id="archiveFilterSummary" class="archive-toolbar-copy">En yeni kayitlar listeleniyor.</p>
+            </div>
+            <div class="archive-toolbar-actions">
+              <button id="archiveResetFiltersBtn" class="button button-ghost" type="button">Filtreyi Temizle</button>
+              <button id="archiveRefreshBtn" class="button button-secondary" type="button">Yenile</button>
+            </div>
+          </div>
+
+          <div class="archive-filter-grid">
+            <label class="field archive-filter-field">
+              <span>Kat</span>
+              <input id="archiveLevelFilterInput" class="archive-filter-control" type="number" min="1" inputmode="numeric" placeholder="Orn. 1">
+            </label>
+            <label class="field archive-filter-field">
+              <span>Tarih</span>
+              <select id="archiveDatePresetSelect" class="archive-filter-control">
+                <option value="all">Tum zamanlar</option>
+                <option value="today">Bugun</option>
+                <option value="7d">Son 7 gun</option>
+                <option value="30d">Son 30 gun</option>
+              </select>
+            </label>
+            <label class="field archive-filter-field">
+              <span>Kaynak</span>
+              <select id="archiveSourceFilterSelect" class="archive-filter-control">
+                <option value="">Hepsi</option>
+                <option value="manual">Manuel</option>
+                <option value="fill">Fill</option>
+              </select>
+            </label>
+            <label class="field archive-filter-field">
+              <span>Sayfa Boyutu</span>
+              <select id="archivePageSizeSelect" class="archive-filter-control">
+                <option value="20">20</option>
+                <option value="40" selected>40</option>
+                <option value="80">80</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="archive-insight-grid">
+            <article class="archive-insight-card">
+              <span class="archive-insight-label">Filtre Kaydi</span>
+              <strong id="archiveFilteredCountValue">0</strong>
+              <small id="archiveFilteredCountHint">Tum filtreler icin toplam</small>
+            </article>
+            <article class="archive-insight-card">
+              <span class="archive-insight-label">Filtre EXP</span>
+              <strong id="archiveFilteredExpValue">0</strong>
+              <small>Filtre sonucundaki toplam EXP</small>
+            </article>
+            <article class="archive-insight-card">
+              <span class="archive-insight-label">Filtre Ganimet</span>
+              <strong id="archiveFilteredLootValue">0</strong>
+              <small>Filtre sonucundaki toplam ganimet</small>
+            </article>
+            <article class="archive-insight-card archive-insight-card-accent">
+              <span class="archive-insight-label">Bugun</span>
+              <strong id="archiveTodayExpValue">0 EXP</strong>
+              <small id="archiveTodayLootValue">0 ganimet</small>
+            </article>
+            <article class="archive-insight-card archive-insight-card-accent">
+              <span class="archive-insight-label">Ilk 10 Kat</span>
+              <strong id="archiveFirstTenExpValue">0 EXP</strong>
+              <small id="archiveFirstTenLootValue">0 ganimet</small>
+            </article>
+            <article class="archive-insight-card">
+              <span class="archive-insight-label">Cache Durumu</span>
+              <strong id="archiveCacheStatusValue">Yok</strong>
+              <small id="archiveCacheStatusHint">Yerel cache hazir degil</small>
+            </article>
+          </div>
+        </section>
+
         <section id="archiveList" class="archive-list">
           <p class="summary-empty">Henuz arsiv kaydi yok.</p>
         </section>
 
-        <section id="archivePagination" class="list-pagination" hidden>
-          <button id="archivePrevPageBtn" class="button button-ghost" type="button">Onceki 40</button>
+        <section id="archivePagination" class="list-pagination archive-pagination" hidden>
+          <button id="archivePrevPageBtn" class="button button-ghost archive-page-nav" type="button" aria-label="Onceki sayfa">‹</button>
+          <div id="archivePageNumbers" class="archive-page-numbers" aria-label="Sayfa numaralari"></div>
           <div id="archivePageInfo" class="list-pagination-info"></div>
-          <button id="archiveNextPageBtn" class="button button-ghost" type="button">Sonraki 40</button>
+          <button id="archiveNextPageBtn" class="button button-ghost archive-page-nav" type="button" aria-label="Sonraki sayfa">›</button>
         </section>
 
         <section class="admin-auth-panel admin-auth-panel-tight">
@@ -71,8 +156,8 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="site-gate.js?v=20260502-02" defer></script>
-  <script src="firebase-client.js?v=20260527-03" defer></script>
+  <script src="firebase-client.js?v=20260528-04" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="archive.js?v=20260527-03" defer></script>
+  <script src="archive.js?v=20260528-06" defer></script>
 </body>
 </html>

@@ -23,7 +23,10 @@
       "WebFetch(domain:forum.bitefight.gameforge.com)",
       "Bash(grep -E \"^[<>].*unit-row|^[<>].*has-constraint|^[<>].*roster|^[<>].*unit-grid|^---$|^[0-9]\")",
       "Bash(dir \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\*.html\" /b)",
-      "PowerShell(New-Item *)"
+      "PowerShell(New-Item *)",
+      "Bash(grep -v \"^\\\\s*//\")",
+      "Bash(powershell -Command \"\\(Get-Content optimizer.html\\) -replace 'styles.css\\\\?v=20260505-07', 'styles.css?v=20260528-01' | Set-Content optimizer.html -Encoding utf8; \\(Get-Content optimizer-minimum.html\\) -replace 'styles.css\\\\?v=20260505-07', 'styles.css?v=20260528-01' | Set-Content optimizer-minimum.html -Encoding utf8; \\(Get-Content optimizer-minimum.html\\) -replace 'optimizer.js\\\\?v=20260520-01', 'optimizer.js?v=20260528-01' | Set-Content optimizer-minimum.html -Encoding utf8; \\(Get-Content optimizer.html\\) -replace 'optimizer.js\\\\?v=20260520-01', 'optimizer.js?v=20260528-01' | Set-Content optimizer.html -Encoding utf8\")",
+      "Bash(powershell -Command ' *)"
     ]
   }
 }

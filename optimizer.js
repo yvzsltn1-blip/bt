@@ -5654,12 +5654,14 @@ function closeQuickPopup(instant = false) {
 function syncQuickPopupReportUi() {
   if (quickPopupWrongReportBtn) {
     quickPopupWrongReportBtn.disabled = !currentWrongCandidate;
-    quickPopupWrongReportBtn.onclick = () => {
+    quickPopupWrongReportBtn.onclick = (event) => {
+      event.stopPropagation();
       if (!currentWrongCandidate) {
         return;
       }
+      const candidate = currentWrongCandidate;
       closeQuickPopup(true);
-      openWrongReportModal(currentWrongCandidate);
+      requestAnimationFrame(() => openWrongReportModal(candidate));
     };
   }
   renderQuickPopupActualReport(findMatchedWrongReportForCurrentCandidate());
@@ -5706,12 +5708,14 @@ function showQuickPopup(result, maxPoints, meta) {
 
   if (quickPopupWrongReportBtn) {
     quickPopupWrongReportBtn.disabled = !currentWrongCandidate;
-    quickPopupWrongReportBtn.onclick = () => {
+    quickPopupWrongReportBtn.onclick = (event) => {
+      event.stopPropagation();
       if (!currentWrongCandidate) {
         return;
       }
+      const candidate = currentWrongCandidate;
       closeQuickPopup(true);
-      openWrongReportModal(currentWrongCandidate);
+      requestAnimationFrame(() => openWrongReportModal(candidate));
     };
   }
   syncQuickPopupApprovedUi();
@@ -6534,12 +6538,14 @@ function renderQuickPopupActualReport(matched) {
   action.type = "button";
   action.className = "button button-secondary quick-popup-actual-edit";
   action.textContent = "Gercek Sonucu Duzenle";
-  action.addEventListener("click", () => {
+  action.addEventListener("click", (event) => {
+    event.stopPropagation();
     if (!currentWrongCandidate) {
       return;
     }
+    const candidate = currentWrongCandidate;
     closeQuickPopup(true);
-    openWrongReportModal(currentWrongCandidate);
+    requestAnimationFrame(() => openWrongReportModal(candidate));
   });
 
   quickPopupActualReportPanel.append(head, block, action);

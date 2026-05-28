@@ -15,6 +15,7 @@
   const WRONG_CACHE_KEY = "btAnalyssWrongReportsCache";
   const FAVORITE_CACHE_KEY = "btAnalyssFavoriteStrategiesCache";
   const OVERVIEW_ARCHIVE_CACHE_KEY = "btAnalyssOverviewArchivesCache";
+  const OVERVIEW_ARCHIVE_CACHE_META_KEY = "btAnalyssOverviewArchivesCacheMeta";
   const LEGACY_KEY = "btAnalyssApprovedStrategies";
   const MIGRATION_KEY = "btAnalyssApprovedStrategiesMigrated";
   const COLLECTION = "approvedStrategies";
@@ -74,6 +75,23 @@
 
   function writeStorage(key, items) {
     localStorage.setItem(key, JSON.stringify(items));
+  }
+
+  function readObjectStorage(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        return {};
+      }
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writeObjectStorage(key, value) {
+    localStorage.setItem(key, JSON.stringify(value && typeof value === "object" ? value : {}));
   }
 
   function writeCache(items) {
@@ -192,7 +210,38 @@
   }
 
   function writeOverviewArchives(items) {
-    writeStorage(OVERVIEW_ARCHIVE_CACHE_KEY, mergeOverviewArchives(items));
+    const merged = mergeOverviewArchives(items);
+    writeStorage(OVERVIEW_ARCHIVE_CACHE_KEY, merged);
+    writeOverviewArchiveCacheMeta({
+      itemCount: merged.length,
+      lastSyncedAt: new Date().toISOString()
+    });
+  }
+
+  function readOverviewArchiveCacheMeta() {
+    const meta = readObjectStorage(OVERVIEW_ARCHIVE_CACHE_META_KEY);
+    return {
+      itemCount: Number.isInteger(meta?.itemCount) && meta.itemCount >= 0 ? meta.itemCount : 0,
+      lastSyncedAt: typeof meta?.lastSyncedAt === "string" ? meta.lastSyncedAt : ""
+    };
+  }
+
+  function writeOverviewArchiveCacheMeta(value) {
+    const itemCount = Number.isInteger(value?.itemCount) && value.itemCount >= 0
+      ? value.itemCount
+      : readOverviewArchives().length;
+    writeObjectStorage(OVERVIEW_ARCHIVE_CACHE_META_KEY, {
+      itemCount,
+      lastSyncedAt: trimText(value?.lastSyncedAt || new Date().toISOString(), 40)
+    });
+  }
+
+  function getOverviewArchiveCacheInfo() {
+    const meta = readOverviewArchiveCacheMeta();
+    return {
+      itemCount: meta.itemCount,
+      lastSyncedAt: meta.lastSyncedAt
+    };
   }
 
   function normalizePageSize(value) {
@@ -203,13 +252,37 @@
     return Math.min(parsed, 100);
   }
 
-  function sortByStringFieldDesc(items, field) {
-    return [...items].sort((left, right) => String(right?.[field] || "").localeCompare(String(left?.[field] || "")));
+  function normalizeSortDirection(value) {
+    return value === "asc" ? "asc" : "desc";
   }
 
-  function buildLocalPageResult(items, orderField, pageSize, cursor) {
+  function sortByStringField(items, field, direction = "desc") {
+    const normalizedDirection = normalizeSortDirection(direction);
+    return [...items].sort((left, right) => {
+      const leftValue = String(left?.[field] || "");
+      const rightValue = String(right?.[field] || "");
+      return normalizedDirection === "asc"
+        ? leftValue.localeCompare(rightValue)
+        : rightValue.localeCompare(leftValue);
+    });
+  }
+
+  function sortByStringFieldDesc(items, field) {
+    return sortByStringField(items, field, "desc");
+  }
+
+  function isFreshCache(meta, maxAgeMs) {
+    const normalizedMaxAgeMs = Number.parseInt(maxAgeMs, 10);
+    if (!meta?.lastSyncedAt || !Number.isFinite(normalizedMaxAgeMs) || normalizedMaxAgeMs <= 0) {
+      return false;
+    }
+    const age = Date.now() - Date.parse(meta.lastSyncedAt);
+    return Number.isFinite(age) && age >= 0 && age <= normalizedMaxAgeMs;
+  }
+
+  function buildLocalPageResult(items, orderField, pageSize, cursor, options = {}) {
     const normalizedPageSize = normalizePageSize(pageSize);
-    const sortedItems = sortByStringFieldDesc(items, orderField);
+    const sortedItems = sortByStringField(items, orderField, options.sortDirection);
     let startIndex = 0;
     if (cursor?.id) {
       const cursorIndex = sortedItems.findIndex((item) => item.id === cursor.id);
@@ -251,15 +324,43 @@
     readLocal,
     writeLocal,
     pageSize = DEFAULT_PAGE_SIZE,
-    cursor = null
+    cursor = null,
+    sortDirection = "desc",
+    filterLocalItems = null,
+    buildRemoteQuery = null,
+    allowLegacyFirstPageFallback = true,
+    preferCache = false,
+    cacheMaxAgeMs = 0,
+    readMeta = null
   }) {
     const normalizedPageSize = normalizePageSize(pageSize);
+    const normalizedSortDirection = normalizeSortDirection(sortDirection);
+    const localItems = typeof filterLocalItems === "function" ? filterLocalItems(readLocal()) : readLocal();
     if (!db) {
-      return buildLocalPageResult(readLocal(), orderField, normalizedPageSize, cursor);
+      return {
+        ...buildLocalPageResult(localItems, orderField, normalizedPageSize, cursor, {
+          sortDirection: normalizedSortDirection
+        }),
+        readSource: "cache"
+      };
+    }
+
+    if (!cursor && preferCache && localItems.length > 0 && isFreshCache(typeof readMeta === "function" ? readMeta() : null, cacheMaxAgeMs)) {
+      return {
+        ...buildLocalPageResult(localItems, orderField, normalizedPageSize, cursor, {
+          sortDirection: normalizedSortDirection
+        }),
+        readSource: "cache"
+      };
     }
 
     try {
-      let query = db.collection(collectionName).orderBy(orderField, "desc");
+      let query = typeof buildRemoteQuery === "function"
+        ? buildRemoteQuery(db.collection(collectionName), {
+          cursor,
+          sortDirection: normalizedSortDirection
+        })
+        : db.collection(collectionName).orderBy(orderField, normalizedSortDirection);
       if (cursor?.id) {
         query = query.startAfter(cursor);
       }
@@ -268,7 +369,7 @@
       const hasMore = docs.length > normalizedPageSize;
       const pageDocs = hasMore ? docs.slice(0, normalizedPageSize) : docs;
       const items = mergeItems(pageDocs.map((doc) => ({ ...doc.data(), id: doc.id })));
-      if (!cursor && items.length === 0) {
+      if (!cursor && allowLegacyFirstPageFallback && items.length === 0) {
         return loadLegacyFirstPageFallback({
           collectionName,
           orderField,
@@ -284,11 +385,12 @@
       return {
         items,
         cursor: pageDocs.length ? pageDocs[pageDocs.length - 1] : cursor || null,
-        hasMore
+        hasMore,
+        readSource: "server"
       };
     } catch (error) {
       console.warn(`${collectionName} sayfali okunamadi, cache kullaniliyor.`, error);
-      if (!cursor) {
+      if (!cursor && allowLegacyFirstPageFallback) {
         try {
           return await loadLegacyFirstPageFallback({
             collectionName,
@@ -302,7 +404,230 @@
           console.warn(`${collectionName} legacy ilk sayfa fallback'i de okunamadi.`, fallbackError);
         }
       }
-      return buildLocalPageResult(readLocal(), orderField, normalizedPageSize, cursor);
+      return {
+        ...buildLocalPageResult(localItems, orderField, normalizedPageSize, cursor, {
+          sortDirection: normalizedSortDirection
+        }),
+        readSource: "cache-fallback"
+      };
+    }
+  }
+
+  function normalizeOverviewArchiveNumericFilter(value) {
+    const digits = String(value ?? "").replace(/[^\d]/g, "");
+    if (!digits) {
+      return "";
+    }
+    return String(Number.parseInt(digits, 10));
+  }
+
+  function normalizeOverviewArchiveDatePreset(value) {
+    if (value === "today" || value === "7d" || value === "30d") {
+      return value;
+    }
+    return "all";
+  }
+
+  function normalizeOverviewArchiveSourceType(value) {
+    return value === "manual" || value === "fill" ? value : "";
+  }
+
+  function extractOverviewArchiveKatValue(value) {
+    const text = String(value || "").trim();
+    if (!text || text === "-") {
+      return "";
+    }
+    const slashMatch = text.match(/^(\d+)\s*\/\s*(\d+)$/);
+    if (slashMatch) {
+      const total = Number.parseInt(slashMatch[2], 10);
+      if (!Number.isFinite(total)) {
+        return "";
+      }
+      return normalizeOverviewArchiveNumericFilter(Math.max(0, Math.floor((total - 10) / 10)));
+    }
+    return normalizeOverviewArchiveNumericFilter(text);
+  }
+
+  function buildOverviewArchiveKatStorageValue(value) {
+    const kat = Number.parseInt(normalizeOverviewArchiveNumericFilter(value), 10);
+    if (!Number.isFinite(kat) || kat <= 0) {
+      return "";
+    }
+    return `0/${(kat * 10) + 10}`;
+  }
+
+  function buildOverviewArchiveKatStorageVariants(value) {
+    const direct = normalizeOverviewArchiveNumericFilter(value);
+    const slash = buildOverviewArchiveKatStorageValue(value);
+    const legacySlash = direct ? `${direct}/${(Number.parseInt(direct, 10) * 10) + 10}` : "";
+    return [...new Set([direct, slash, legacySlash].filter(Boolean))];
+  }
+
+  function normalizeOverviewArchiveNumericFilterList(values) {
+    if (!Array.isArray(values)) {
+      return [];
+    }
+    const uniqueValues = new Set();
+    values.forEach((value) => {
+      const normalized = buildOverviewArchiveKatStorageValue(value);
+      if (normalized) {
+        uniqueValues.add(normalized);
+      }
+    });
+    return [...uniqueValues].slice(0, 10);
+  }
+
+  function buildOverviewArchiveDateRange(datePreset) {
+    const normalizedPreset = normalizeOverviewArchiveDatePreset(datePreset);
+    if (normalizedPreset === "all") {
+      return null;
+    }
+
+    const now = new Date();
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = new Date(dayStart);
+    end.setDate(end.getDate() + 1);
+
+    const start = new Date(dayStart);
+    if (normalizedPreset === "7d") {
+      start.setDate(start.getDate() - 6);
+    } else if (normalizedPreset === "30d") {
+      start.setDate(start.getDate() - 29);
+    }
+
+    return {
+      startIso: start.toISOString(),
+      endIso: end.toISOString()
+    };
+  }
+
+  function normalizeOverviewArchiveFilters(options = {}) {
+    const armyPowerText = normalizeOverviewArchiveNumericFilter(options.armyPowerText);
+    return {
+      datePreset: normalizeOverviewArchiveDatePreset(options.datePreset),
+      dateRange: buildOverviewArchiveDateRange(options.datePreset),
+      armyPowerText,
+      armyPowerTextIn: armyPowerText ? [] : normalizeOverviewArchiveNumericFilterList(options.armyPowerTextIn),
+      sourceType: normalizeOverviewArchiveSourceType(options.sourceType)
+    };
+  }
+
+  function isOverviewArchiveFilterEmpty(filters) {
+    return !filters.armyPowerText && !filters.armyPowerTextIn.length && !filters.sourceType && !filters.dateRange;
+  }
+
+  function filterOverviewArchiveItems(items, rawFilters = {}) {
+    const filters = normalizeOverviewArchiveFilters(rawFilters);
+    return (items || []).filter((item) => {
+      const savedAt = String(item?.savedAt || "");
+      const armyPowerText = extractOverviewArchiveKatValue(item?.armyPowerText || "");
+      const sourceType = normalizeOverviewArchiveSourceType(item?.sourceType);
+      if (filters.armyPowerText && armyPowerText !== filters.armyPowerText) {
+        return false;
+      }
+      if (filters.armyPowerTextIn.length > 0 && !filters.armyPowerTextIn.includes(armyPowerText)) {
+        return false;
+      }
+      if (filters.sourceType && sourceType !== filters.sourceType) {
+        return false;
+      }
+      if (filters.dateRange && !(savedAt >= filters.dateRange.startIso && savedAt < filters.dateRange.endIso)) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  function applyOverviewArchiveFiltersToQuery(collectionRef, rawFilters = {}, options = {}) {
+    const filters = normalizeOverviewArchiveFilters(rawFilters);
+    let query = collectionRef;
+    if (filters.armyPowerText) {
+      query = query.where("armyPowerText", "in", buildOverviewArchiveKatStorageVariants(filters.armyPowerText));
+    } else if (filters.armyPowerTextIn.length > 0) {
+      query = query.where("armyPowerText", "in", filters.armyPowerTextIn);
+    }
+    if (filters.sourceType) {
+      query = query.where("sourceType", "==", filters.sourceType);
+    }
+    if (filters.dateRange) {
+      query = query
+        .where("savedAt", ">=", filters.dateRange.startIso)
+        .where("savedAt", "<", filters.dateRange.endIso);
+    }
+    if (options.includeOrderBy !== false) {
+      query = query.orderBy("savedAt", normalizeSortDirection(options.sortDirection));
+    }
+    return query;
+  }
+
+  function sumOverviewArchiveField(items, fieldName) {
+    return (items || []).reduce((total, item) => {
+      const value = Number(item?.[fieldName]);
+      return total + (Number.isFinite(value) ? value : 0);
+    }, 0);
+  }
+
+  function buildOverviewArchiveAggregateFromItems(items, options = {}) {
+    return {
+      count: Array.isArray(items) ? items.length : 0,
+      totalGold: sumOverviewArchiveField(items, "goldValue"),
+      totalLoot: sumOverviewArchiveField(items, "lootGoldValue"),
+      totalExp: sumOverviewArchiveField(items, "expValue"),
+      exact: Boolean(options.exact),
+      readSource: options.readSource || "cache"
+    };
+  }
+
+  function toAggregateNumber(value) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : 0;
+  }
+
+  async function loadOverviewArchiveAggregate(options = {}) {
+    const filters = normalizeOverviewArchiveFilters(options.filters || {});
+    const localItems = filterOverviewArchiveItems(readOverviewArchives(), filters);
+    if (!db) {
+      return buildOverviewArchiveAggregateFromItems(localItems, {
+        exact: true,
+        readSource: "cache"
+      });
+    }
+
+    const aggregateField = globalScope.firebase?.firestore?.AggregateField;
+    const collection = db.collection(OVERVIEW_ARCHIVE_COLLECTION);
+    const query = applyOverviewArchiveFiltersToQuery(collection, filters, {
+      includeOrderBy: false
+    });
+
+    if (!aggregateField || typeof query?.aggregate !== "function") {
+      return buildOverviewArchiveAggregateFromItems(localItems, {
+        exact: false,
+        readSource: "cache-fallback"
+      });
+    }
+
+    try {
+      const snapshot = await query.aggregate({
+        countOfDocs: aggregateField.count(),
+        totalGold: aggregateField.sum("goldValue"),
+        totalLoot: aggregateField.sum("lootGoldValue"),
+        totalExp: aggregateField.sum("expValue")
+      }).get();
+      const data = typeof snapshot?.data === "function" ? snapshot.data() : {};
+      return {
+        count: toAggregateNumber(data?.countOfDocs),
+        totalGold: toAggregateNumber(data?.totalGold),
+        totalLoot: toAggregateNumber(data?.totalLoot),
+        totalExp: toAggregateNumber(data?.totalExp),
+        exact: true,
+        readSource: "server"
+      };
+    } catch (error) {
+      console.warn("Arsiv aggregate okunamadi, cache kullaniliyor.", error);
+      return buildOverviewArchiveAggregateFromItems(localItems, {
+        exact: false,
+        readSource: "cache-fallback"
+      });
     }
   }
 
@@ -1646,6 +1971,7 @@
   }
 
   async function loadOverviewArchivesPage(options = {}) {
+    const filters = normalizeOverviewArchiveFilters(options.filters || {});
     return loadCollectionPage({
       collectionName: OVERVIEW_ARCHIVE_COLLECTION,
       orderField: "savedAt",
@@ -1653,7 +1979,17 @@
       readLocal: readOverviewArchives,
       writeLocal: writeOverviewArchives,
       pageSize: options.pageSize,
-      cursor: options.cursor || null
+      cursor: options.cursor || null,
+      sortDirection: "desc",
+      filterLocalItems: (items) => filterOverviewArchiveItems(items, filters),
+      buildRemoteQuery: (collection) => applyOverviewArchiveFiltersToQuery(collection, filters, {
+        includeOrderBy: true,
+        sortDirection: "desc"
+      }),
+      allowLegacyFirstPageFallback: isOverviewArchiveFilterEmpty(filters),
+      preferCache: Boolean(options.preferCache),
+      cacheMaxAgeMs: options.cacheMaxAgeMs,
+      readMeta: readOverviewArchiveCacheMeta
     });
   }
 
@@ -1859,6 +2195,8 @@
     clearFavoriteStrategies,
     loadOverviewArchives,
     loadOverviewArchivesPage,
+    loadOverviewArchiveAggregate,
+    getOverviewArchiveCacheInfo,
     saveOverviewArchive,
     updateOverviewArchive,
     deleteOverviewArchive
