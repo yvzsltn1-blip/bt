@@ -3980,7 +3980,7 @@ body[data-optimizer-variant="minimum"] .layout {
 
 .archive-table th:last-child,
 .archive-table td:last-child {
-  width: 88px;
+  width: 116px;
 }
 
 .archive-select-col,
@@ -4239,12 +4239,14 @@ body[data-optimizer-variant="minimum"] .layout {
   display: flex;
   align-items: center;
   gap: 8px;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .archive-action-cell,
 .archive-actions-col {
   text-align: center;
+  padding-left: 10px !important;
+  padding-right: 18px !important;
 }
 
 .archive-card-head .archive-action-group {

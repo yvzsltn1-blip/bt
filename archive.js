@@ -9,6 +9,7 @@ const archiveNextPageBtn = document.querySelector("#archiveNextPageBtn");
 const archivePageNumbers = document.querySelector("#archivePageNumbers");
 const archivePageInfo = document.querySelector("#archivePageInfo");
 const archiveFilterSummary = document.querySelector("#archiveFilterSummary");
+const archiveServerFilterSelect = document.querySelector("#archiveServerFilterSelect");
 const archiveLevelFilterInput = document.querySelector("#archiveLevelFilterInput");
 const archiveHoursFilterInput = document.querySelector("#archiveHoursFilterInput");
 const archiveDatePresetSelect = document.querySelector("#archiveDatePresetSelect");
@@ -63,6 +64,10 @@ const PAGE_SIZE_OPTIONS = new Set([20, 40, 80]);
 const ARCHIVE_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV5";
 const ARCHIVE_SUMMARY_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
+const ARCHIVE_SNAPSHOT_BASE_URL = "https://firebasestorage.googleapis.com/v0/b/bt-analiz.firebasestorage.app/o/";
+const ARCHIVE_SNAPSHOT_TOKEN = "fe99d2c6-71b5-4f58-9c16-7f7f6e9f5b6d";
+const ARCHIVE_SNAPSHOT_MANIFEST_PATH = "archive-snapshots/manifest.json";
+const ARCHIVE_SNAPSHOT_LEGACY_PATH = "archive-snapshots/latest.json";
 
 function getFirstXLevels(x) {
   const count = Math.max(1, Math.min(100, Number(x) || 10));
@@ -77,6 +82,7 @@ let currentEditingArchiveId = "";
 
 const archiveState = {
   filters: {
+    server: "s66",
     armyPowerText: "",
     datePreset: "all",
     sourceType: "",
@@ -88,6 +94,8 @@ const archiveState = {
   selectedIds: new Set(),
   expandedIds: new Set(),
   loadedItems: [],
+  snapshotParts: [],
+  snapshotLoadedPartPaths: new Set(),
   remoteCursor: null,
   remoteHasMore: false,
   readSource: "idle",
@@ -210,7 +218,9 @@ function bindArchiveControls() {
     void applyFilters();
   });
 
-
+  archiveServerFilterSelect?.addEventListener("change", () => {
+    void applyFilters();
+  });
 
   archivePageSizeSelect?.addEventListener("change", () => {
     const nextPageSize = normalizePageSize(archivePageSizeSelect?.value);
@@ -236,14 +246,19 @@ function bindArchiveControls() {
       return;
     }
 
+    let regressionItems = [];
     archiveBulkRegressionBtn.disabled = true;
     try {
+      regressionItems = await loadArchiveSnapshotItemsForRegression();
+    } catch (error) {
+      console.warn("Arsiv snapshot okunamadi, Firestore fallback kullaniliyor.", error);
       await ensureAllArchiveItemsLoaded();
+      regressionItems = archiveState.loadedItems;
     } finally {
       archiveBulkRegressionBtn.disabled = false;
     }
 
-    if (!archiveState.loadedItems.length) {
+    if (!regressionItems.length) {
       window.alert("Toplu test icin filtrede kayit yok.");
       return;
     }
@@ -251,14 +266,14 @@ function bindArchiveControls() {
     window.BulkBattleRegression.openReportPage({
       kind: "archive",
       title: "Arsiv Toplu Test",
-      scopeLabel: buildArchiveRegressionScopeLabel(archiveState.loadedItems.length),
-      selectedCount: archiveState.loadedItems.length,
-      totalCount: archiveState.loadedItems.length,
+      scopeLabel: buildArchiveRegressionScopeLabel(regressionItems.length),
+      selectedCount: regressionItems.length,
+      totalCount: regressionItems.length,
       backHref: "archive.html",
       backLabel: "Arsiv",
       items: typeof window.BulkBattleRegression.prepareArchiveItems === "function"
-        ? window.BulkBattleRegression.prepareArchiveItems(archiveState.loadedItems)
-        : archiveState.loadedItems
+        ? window.BulkBattleRegression.prepareArchiveItems(regressionItems)
+        : regressionItems
     });
   });
 
@@ -281,6 +296,16 @@ function bindArchiveControls() {
 
 async function refreshArchiveAggregatesOnly() {
   const requestToken = ++archiveRequestToken;
+  try {
+    const payload = await loadArchiveSnapshotPayload();
+    applyArchiveSnapshotState(payload);
+    renderArchiveHeader();
+    renderArchiveAggregates();
+    renderArchivePage();
+    return;
+  } catch (error) {
+    console.warn("Arsiv snapshot ozetleri okunamadi, Firestore fallback kullaniliyor.", error);
+  }
   await refreshArchiveAggregates({ requestToken });
 }
 
@@ -294,11 +319,27 @@ async function refreshArchiveView(options = {}) {
   archiveState.visibleLimit = archiveState.pageSize;
   archiveState.remoteCursor = null;
   archiveState.remoteHasMore = false;
+  archiveState.snapshotParts = [];
+  archiveState.snapshotLoadedPartPaths = new Set();
   archiveState.loadedItems = [];
   archiveState.levelBounds = buildEmptyLevelBounds();
   archiveState.selectedIds.clear();
   renderArchiveSelectionSummary();
   renderArchiveLoadingState();
+
+  try {
+    const payload = await loadArchiveSnapshotPayload();
+    if (requestToken !== archiveRequestToken) {
+      return;
+    }
+    applyArchiveSnapshotState(payload);
+    renderArchiveHeader();
+    renderArchiveAggregates();
+    renderArchivePage();
+    return;
+  } catch (error) {
+    console.warn("Arsiv snapshot okunamadi, Firestore fallback kullaniliyor.", error);
+  }
 
   const [pageResult] = await Promise.all([
     loadArchivePage({
@@ -329,6 +370,8 @@ async function loadArchivePage(options = {}) {
   if (options.reset) {
     archiveState.remoteCursor = null;
     archiveState.remoteHasMore = false;
+    archiveState.snapshotParts = [];
+    archiveState.snapshotLoadedPartPaths = new Set();
     archiveState.visibleLimit = archiveState.pageSize;
     archiveState.loadedItems = [];
   }
@@ -339,6 +382,7 @@ async function loadArchivePage(options = {}) {
     preferCache: false,
     cacheMaxAgeMs: options.forceRemote ? 0 : ARCHIVE_CACHE_MAX_AGE_MS,
     filters: {
+      server: archiveState.filters.server,
       armyPowerText: archiveState.filters.armyPowerText,
       datePreset: archiveState.filters.datePreset,
       hours: archiveState.filters.hours
@@ -1127,6 +1171,7 @@ function normalizeArchiveSourceType(value) {
 
 function readArchiveFiltersFromUi() {
   return {
+    server: normalizeArchiveServerFilter(archiveServerFilterSelect?.value || "s66"),
     armyPowerText: normalizeDigits(archiveLevelFilterInput?.value || ""),
     datePreset: normalizeDatePreset(archiveDatePresetSelect?.value),
     hours: archiveHoursFilterInput?.value ? parseInt(archiveHoursFilterInput.value, 10) : null
@@ -1135,10 +1180,14 @@ function readArchiveFiltersFromUi() {
 
 function resetArchiveFilters() {
   archiveState.filters = {
+    server: "s66",
     armyPowerText: "",
     datePreset: "all",
     hours: null
   };
+  if (archiveServerFilterSelect) {
+    archiveServerFilterSelect.value = "s66";
+  }
   archiveState.pageSize = DEFAULT_PAGE_SIZE;
   if (archiveLevelFilterInput) {
     archiveLevelFilterInput.value = "";
@@ -1156,6 +1205,9 @@ function resetArchiveFilters() {
 
 function buildArchiveFilterSummaryText(filteredAggregate) {
   const parts = [];
+  if (archiveState.filters.server && archiveState.filters.server !== "all") {
+    parts.push(archiveState.filters.server);
+  }
   if (archiveState.filters.armyPowerText) {
     parts.push(`${archiveState.filters.armyPowerText}. kat`);
   }
@@ -1178,6 +1230,9 @@ function buildArchiveFilterSummaryText(filteredAggregate) {
 
 function buildArchiveRegressionScopeLabel(count) {
   const parts = [];
+  if (archiveState.filters.server && archiveState.filters.server !== "all") {
+    parts.push(archiveState.filters.server);
+  }
   if (archiveState.filters.armyPowerText) {
     parts.push(`${archiveState.filters.armyPowerText}. kat`);
   }
@@ -1198,6 +1253,7 @@ function buildArchiveRegressionScopeLabel(count) {
 function hasAnyActiveArchiveFilter() {
   return Boolean(
     archiveState.filters.armyPowerText ||
+    (archiveState.filters.server && archiveState.filters.server !== "all") ||
     archiveState.filters.hours ||
     archiveState.filters.datePreset !== "all"
   );
@@ -1222,9 +1278,424 @@ function buildEmptyLevelBounds() {
   };
 }
 
+async function loadArchiveSnapshotItemsForRegression() {
+  const payload = await loadArchiveSnapshotPayload({ partMode: "all" });
+  return filterArchiveSnapshotItems(payload.items);
+}
+
+async function loadArchiveSnapshotPayload(options = {}) {
+  try {
+    return await loadArchiveSnapshotPayloadFromManifest(options);
+  } catch (error) {
+    console.warn("Arsiv manifest okunamadi, legacy snapshot deneniyor.", error);
+    return await loadArchiveSnapshotPayloadFromLegacy();
+  }
+}
+
+async function loadArchiveSnapshotPayloadFromManifest(options = {}) {
+  const manifest = await fetchArchiveSnapshotJson(ARCHIVE_SNAPSHOT_MANIFEST_PATH);
+  const allParts = selectArchiveSnapshotParts(manifest, { mode: "all" });
+  const parts = options.partMode === "all"
+    ? allParts
+    : selectArchiveSnapshotParts(manifest, { mode: "latest" });
+  const partPayloads = await Promise.all(parts.map((part) => fetchArchiveSnapshotJson(part.path)));
+  const items = partPayloads.flatMap((payload) => Array.isArray(payload?.items) ? payload.items : []);
+  const summary = getArchiveSnapshotManifestSummary(manifest);
+  return {
+    version: Number(manifest?.version || 2),
+    generatedAt: String(manifest?.generatedAt || ""),
+    reason: String(manifest?.reason || ""),
+    source: String(manifest?.source || "overviewArchives"),
+    count: Number(summary?.count || items.length),
+    summary,
+    availableParts: allParts,
+    loadedPartPaths: parts.map((part) => part.path),
+    items: items
+      .map(normalizeArchiveSnapshotItem)
+      .filter((item) => item.id)
+      .sort((left, right) => String(right?.savedAt || "").localeCompare(String(left?.savedAt || "")))
+  };
+}
+
+async function loadArchiveSnapshotPayloadFromLegacy() {
+  const payload = await fetchArchiveSnapshotJson(ARCHIVE_SNAPSHOT_LEGACY_PATH);
+  if (!payload || !Array.isArray(payload.items)) {
+    throw new Error("Snapshot formati gecersiz.");
+  }
+
+  return {
+    ...payload,
+    items: payload.items.map(normalizeArchiveSnapshotItem).filter((item) => item.id)
+  };
+}
+
+function selectArchiveSnapshotParts(manifest, options = {}) {
+  const servers = manifest?.servers && typeof manifest.servers === "object" ? manifest.servers : {};
+  const selectedServer = normalizeArchiveServerFilter(archiveState.filters?.server || "all");
+  const serverNames = selectedServer === "all" ? Object.keys(servers) : [selectedServer];
+  return serverNames.flatMap((server) => {
+    const parts = Array.isArray(servers?.[server]?.parts) ? servers[server].parts : [];
+    const selectedParts = options.mode === "all" ? parts : [parts[parts.length - 1]];
+    return selectedParts
+      .filter((part) => part?.path)
+      .map((part) => ({ ...part, server }));
+  }).sort((left, right) => {
+    const serverCompare = String(left.server || "").localeCompare(String(right.server || ""));
+    if (serverCompare !== 0) return serverCompare;
+    return Number(right.part || 0) - Number(left.part || 0);
+  });
+}
+
+function getArchiveSnapshotManifestSummary(manifest) {
+  const servers = manifest?.servers && typeof manifest.servers === "object" ? manifest.servers : {};
+  const selectedServer = normalizeArchiveServerFilter(archiveState.filters?.server || "all");
+  if (selectedServer !== "all") {
+    return servers?.[selectedServer]?.summary || null;
+  }
+  return manifest?.summary || null;
+}
+
+async function fetchArchiveSnapshotJson(path) {
+  const encodedPath = encodeURIComponent(path);
+  const url = `${ARCHIVE_SNAPSHOT_BASE_URL}${encodedPath}?alt=media&token=${encodeURIComponent(ARCHIVE_SNAPSHOT_TOKEN)}&_=${Date.now()}`;
+  const response = await fetch(url, {
+    cache: "no-store"
+  });
+  if (!response.ok) {
+    throw new Error(`Snapshot okunamadi: ${path} HTTP ${response.status}`);
+  }
+
+  return await response.json();
+}
+
+function normalizeArchiveSnapshotItem(item = {}) {
+  return {
+    ...item,
+    id: String(item?.id || ""),
+    lootGoldValue: normalizeMetricNumber(item?.lootGoldValue),
+    expValue: normalizeMetricNumber(item?.expValue)
+  };
+}
+
+function applyArchiveSnapshotState(payload) {
+  const filteredItems = filterArchiveSnapshotItems(payload.items);
+  archiveState.loadedItems = filteredItems;
+  archiveState.snapshotParts = Array.isArray(payload.availableParts) ? payload.availableParts : [];
+  archiveState.snapshotLoadedPartPaths = new Set(Array.isArray(payload.loadedPartPaths) ? payload.loadedPartPaths : []);
+  archiveState.remoteCursor = null;
+  archiveState.remoteHasMore = hasMoreArchiveSnapshotParts();
+  archiveState.readSource = "json";
+  archiveState.aggregates.filtered = buildArchiveSnapshotAggregateFromSummary(payload.summary, archiveState.filters)
+    || buildArchiveSnapshotAggregate(filteredItems, "json");
+  archiveState.aggregates.today = buildArchiveSnapshotAggregateFromSummary(payload.summary, { datePreset: "today" })
+    || buildArchiveSnapshotAggregate(filterArchiveSnapshotItems(payload.items, { datePreset: "today" }), "json");
+  archiveState.aggregates.firstTen = buildArchiveSnapshotAggregateFromSummary(payload.summary, { armyPowerTextIn: getFirstXLevels(archiveState.firstX) })
+    || buildArchiveSnapshotAggregate(filterArchiveSnapshotItems(payload.items, { armyPowerTextIn: getFirstXLevels(archiveState.firstX) }), "json");
+  archiveState.levelBounds = buildArchiveSnapshotLevelBoundsFromSummary(payload.summary, archiveState.filters)
+    || buildArchiveSnapshotLevelBounds(filteredItems);
+}
+
+function normalizeArchiveLevelBoundItem(item) {
+  if (!item) {
+    return null;
+  }
+  return {
+    ...item,
+    levelText: item.levelText || (Number(item.level) > 0 ? String(item.level) : "")
+  };
+}
+
+function hasMoreArchiveSnapshotParts() {
+  return archiveState.snapshotParts.some((part) => part?.path && !archiveState.snapshotLoadedPartPaths.has(part.path));
+}
+
+async function loadPreviousArchiveSnapshotPart() {
+  const nextPart = archiveState.snapshotParts.find((part) => {
+    if (!part?.path || archiveState.snapshotLoadedPartPaths.has(part.path)) {
+      return false;
+    }
+    if (canSkipArchiveSnapshotPart(part)) {
+      archiveState.snapshotLoadedPartPaths.add(part.path);
+      return false;
+    }
+    return true;
+  });
+  if (!nextPart) {
+    archiveState.remoteHasMore = hasMoreArchiveSnapshotParts();
+    return false;
+  }
+
+  const payload = await fetchArchiveSnapshotJson(nextPart.path);
+  archiveState.snapshotLoadedPartPaths.add(nextPart.path);
+  const items = Array.isArray(payload?.items)
+    ? filterArchiveSnapshotItems(payload.items.map(normalizeArchiveSnapshotItem).filter((item) => item.id))
+    : [];
+  mergeArchiveItems(items);
+  archiveState.remoteHasMore = hasMoreArchiveSnapshotParts();
+  return items.length > 0 || archiveState.remoteHasMore;
+}
+
+function canSkipArchiveSnapshotPart(part) {
+  const summary = part?.summary || null;
+  if (!summary) {
+    return false;
+  }
+  const selected = selectArchiveSnapshotSummary(summary, archiveState.filters || {});
+  return selected && normalizeMetricNumber(selected.count) === 0;
+}
+
+function buildArchiveSnapshotAggregateFromSummary(summary, filters = {}) {
+  const selected = selectArchiveSnapshotSummary(summary, filters);
+  if (!selected) {
+    return null;
+  }
+  return {
+    count: normalizeMetricNumber(selected.count),
+    totalLoot: normalizeMetricNumber(selected.totalLoot),
+    totalExp: normalizeMetricNumber(selected.totalExp),
+    exact: true,
+    readSource: "json"
+  };
+}
+
+function buildArchiveSnapshotLevelBoundsFromSummary(summary, filters = {}) {
+  const selected = selectArchiveSnapshotSummary(summary, filters);
+  if (!selected) {
+    return null;
+  }
+  return {
+    oldest: normalizeArchiveLevelBoundItem(selected.oldest),
+    newest: normalizeArchiveLevelBoundItem(selected.newest),
+    exact: true,
+    readSource: "json"
+  };
+}
+
+function selectArchiveSnapshotSummary(summary, filters = {}) {
+  if (!summary) {
+    return null;
+  }
+  const armyPowerText = normalizeDigits(filters.armyPowerText || "");
+  const armyPowerTextIn = Array.isArray(filters.armyPowerTextIn)
+    ? filters.armyPowerTextIn.map(normalizeDigits).filter(Boolean)
+    : [];
+  const hasTimeFilter = Boolean(filters.hours || (filters.datePreset && filters.datePreset !== "all"));
+  if (armyPowerText && !hasTimeFilter) {
+    return summary.byKat?.[armyPowerText] || createArchiveEmptySummary();
+  }
+  if (armyPowerTextIn.length > 0 && !hasTimeFilter) {
+    return armyPowerTextIn.reduce(
+      (combined, key) => mergeArchiveSummaries(combined, summary.byKat?.[key]),
+      createArchiveEmptySummary()
+    );
+  }
+  if (!armyPowerText && armyPowerTextIn.length === 0 && filters.hours) {
+    return selectArchiveHourSummary(summary, filters.hours);
+  }
+  if (!armyPowerText && armyPowerTextIn.length === 0 && filters.datePreset && filters.datePreset !== "all") {
+    return selectArchiveDaySummary(summary, filters.datePreset);
+  }
+  if (!armyPowerText && armyPowerTextIn.length === 0) {
+    return summary;
+  }
+  return null;
+}
+
+function createArchiveEmptySummary() {
+  return {
+    count: 0,
+    totalExp: 0,
+    totalLoot: 0,
+    oldest: null,
+    newest: null,
+    byKat: {},
+    byDay: {},
+    byHour: {}
+  };
+}
+
+function mergeArchiveSummaries(left = createArchiveEmptySummary(), right = null) {
+  if (!right) {
+    return left;
+  }
+  const result = {
+    ...createArchiveEmptySummary(),
+    count: normalizeMetricNumber(left.count) + normalizeMetricNumber(right.count),
+    totalExp: normalizeMetricNumber(left.totalExp) + normalizeMetricNumber(right.totalExp),
+    totalLoot: normalizeMetricNumber(left.totalLoot) + normalizeMetricNumber(right.totalLoot),
+    oldest: left.oldest || null,
+    newest: left.newest || null
+  };
+  [right.oldest, right.newest].filter(Boolean).forEach((item) => {
+    if (!result.oldest || String(item.savedAt || "") < String(result.oldest.savedAt || "")) {
+      result.oldest = item;
+    }
+    if (!result.newest || String(item.savedAt || "") > String(result.newest.savedAt || "")) {
+      result.newest = item;
+    }
+  });
+  return result;
+}
+
+function selectArchiveDaySummary(summary, datePreset) {
+  const range = buildArchiveSnapshotDateRange({ datePreset });
+  if (!range) {
+    return summary;
+  }
+  return Object.entries(summary.byDay || {}).reduce((combined, [day, value]) => {
+    const dayIso = `${day}T00:00:00.000Z`;
+    return dayIso >= range.startIso && dayIso < range.endIso
+      ? mergeArchiveSummaries(combined, value)
+      : combined;
+  }, createArchiveEmptySummary());
+}
+
+function selectArchiveHourSummary(summary, hours) {
+  const range = buildArchiveSnapshotDateRange({ hours });
+  if (!range) {
+    return summary;
+  }
+  return Object.entries(summary.byHour || {}).reduce((combined, [hour, value]) => {
+    const hourIso = `${hour}:00:00.000Z`;
+    return hourIso >= range.startIso && hourIso < range.endIso
+      ? mergeArchiveSummaries(combined, value)
+      : combined;
+  }, createArchiveEmptySummary());
+}
+
+function buildArchiveSnapshotAggregate(items, readSource) {
+  return {
+    count: Array.isArray(items) ? items.length : 0,
+    totalLoot: (items || []).reduce((sum, item) => sum + normalizeMetricNumber(item?.lootGoldValue), 0),
+    totalExp: (items || []).reduce((sum, item) => sum + normalizeMetricNumber(item?.expValue), 0),
+    exact: true,
+    readSource
+  };
+}
+
+function buildArchiveSnapshotLevelBounds(items) {
+  const sortedItems = [...(items || [])]
+    .filter((item) => getArchiveSnapshotLevelNumber(item) > 0)
+    .sort((left, right) => String(left?.savedAt || "").localeCompare(String(right?.savedAt || "")));
+  return {
+    oldest: sortedItems[0] || null,
+    newest: sortedItems[sortedItems.length - 1] || null,
+    exact: true,
+    readSource: "json"
+  };
+}
+
+function getArchiveSnapshotLevelNumber(item) {
+  const match = String(item?.levelText || "").match(/\d+/);
+  if (!match) {
+    return 0;
+  }
+  const numeric = Number.parseInt(match[0], 10);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+}
+
+function filterArchiveSnapshotItems(items, overrideFilters = null) {
+  const filters = overrideFilters || archiveState.filters || {};
+  const server = normalizeArchiveServerFilter(filters.server || "all");
+  const dateRange = buildArchiveSnapshotDateRange(filters);
+  const armyPowerText = normalizeDigits(filters.armyPowerText || "");
+  const armyPowerTextIn = Array.isArray(filters.armyPowerTextIn)
+    ? filters.armyPowerTextIn.map(normalizeDigits).filter(Boolean)
+    : [];
+  const sourceType = normalizeArchiveSourceTypeFilter(filters.sourceType || "");
+
+  return (items || []).filter((item) => {
+    const savedAt = String(item?.savedAt || "");
+    const itemArmyPowerText = extractArchiveSnapshotKatValue(item?.armyPowerText || "");
+    if (server !== "all" && extractArchiveSnapshotServerValue(item?.host || "") !== server) {
+      return false;
+    }
+    if (armyPowerText && itemArmyPowerText !== armyPowerText) {
+      return false;
+    }
+    if (armyPowerTextIn.length > 0 && !armyPowerTextIn.includes(itemArmyPowerText)) {
+      return false;
+    }
+    if (sourceType && normalizeArchiveSourceTypeFilter(item?.sourceType || "") !== sourceType) {
+      return false;
+    }
+    if (dateRange && !(savedAt >= dateRange.startIso && savedAt < dateRange.endIso)) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function buildArchiveSnapshotDateRange(filters) {
+  const hours = filters?.hours ? Number.parseInt(filters.hours, 10) : null;
+  if (Number.isFinite(hours) && hours > 0) {
+    const now = new Date();
+    return {
+      startIso: new Date(now.getTime() - hours * 60 * 60 * 1000).toISOString(),
+      endIso: now.toISOString()
+    };
+  }
+
+  const preset = normalizeDatePreset(filters?.datePreset || "all");
+  if (preset === "all") {
+    return null;
+  }
+
+  const now = new Date();
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const end = new Date(dayStart);
+  end.setDate(end.getDate() + 1);
+
+  const start = new Date(dayStart);
+  if (preset === "7d") {
+    start.setDate(start.getDate() - 6);
+  } else if (preset === "30d") {
+    start.setDate(start.getDate() - 29);
+  }
+
+  return {
+    startIso: start.toISOString(),
+    endIso: end.toISOString()
+  };
+}
+
+function extractArchiveSnapshotKatValue(value) {
+  const text = String(value || "").trim();
+  if (!text || text === "-") {
+    return "";
+  }
+  const slashMatch = text.match(/^(\d+)\s*\/\s*(\d+)$/);
+  if (slashMatch) {
+    const total = Number.parseInt(slashMatch[2], 10);
+    return Number.isFinite(total) ? normalizeDigits(Math.max(0, Math.floor((total - 10) / 10))) : "";
+  }
+  return normalizeDigits(text);
+}
+
+function normalizeArchiveSourceTypeFilter(value) {
+  return value === "manual" || value === "fill" ? value : "";
+}
+
+function normalizeArchiveServerFilter(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return /^s\d+$/.test(normalized) ? normalized : "all";
+}
+
+function extractArchiveSnapshotServerValue(host) {
+  const match = String(host || "").trim().toLowerCase().match(/^s(\d+)(?:-|\.|$)/);
+  return match ? `s${match[1]}` : "";
+}
+
 async function ensureArchiveItemsLoadedUntil(targetCount) {
   while (targetCount > archiveState.loadedItems.length && archiveState.remoteHasMore) {
-    await loadArchivePage();
+    if (archiveState.readSource === "json") {
+      const loaded = await loadPreviousArchiveSnapshotPart();
+      if (!loaded && !archiveState.remoteHasMore) {
+        break;
+      }
+    } else {
+      await loadArchivePage();
+    }
   }
   return archiveState.loadedItems.length > 0;
 }
@@ -1234,9 +1705,17 @@ async function ensureAllArchiveItemsLoaded() {
   while (archiveState.remoteHasMore && safety < 500) {
     const previousCount = archiveState.loadedItems.length;
     const previousCursorId = archiveState.remoteCursor?.id || "";
-    await loadArchivePage();
+    if (archiveState.readSource === "json") {
+      await loadPreviousArchiveSnapshotPart();
+    } else {
+      await loadArchivePage();
+    }
     safety += 1;
-    if (archiveState.loadedItems.length === previousCount && (archiveState.remoteCursor?.id || "") === previousCursorId) {
+    if (
+      archiveState.readSource !== "json" &&
+      archiveState.loadedItems.length === previousCount &&
+      (archiveState.remoteCursor?.id || "") === previousCursorId
+    ) {
       break;
     }
   }
@@ -1286,6 +1765,9 @@ function normalizeMetricNumber(value) {
 }
 
 function formatReadSourceLabel(value) {
+  if (value === "json") {
+    return "JSON";
+  }
   if (value === "server") {
     return "Canli";
   }
