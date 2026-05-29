@@ -3944,6 +3944,7 @@ body[data-optimizer-variant="minimum"] .layout {
 }
 
 .archive-table th {
+  height: 58px;
   color: #8fa0b5;
   font-size: 0.74rem;
   font-weight: 800;
@@ -3954,6 +3955,14 @@ body[data-optimizer-variant="minimum"] .layout {
   position: sticky;
   top: 0;
   z-index: 10;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.archive-table thead .archive-select-col {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
 }
 
 .archive-table td {
@@ -4010,6 +4019,12 @@ body[data-optimizer-variant="minimum"] .layout {
   box-shadow: 0 0 0 3px rgba(255, 216, 142, 0.14);
 }
 
+.archive-select-check input:indeterminate + span {
+  border-color: rgba(255, 216, 142, 0.72);
+  background: rgba(255, 216, 142, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 216, 142, 0.1);
+}
+
 .archive-select-check input:checked + span::after {
   content: "";
   display: block;
@@ -4019,6 +4034,16 @@ body[data-optimizer-variant="minimum"] .layout {
   border-left: 2px solid #131820;
   border-bottom: 2px solid #131820;
   transform: rotate(-45deg);
+}
+
+.archive-select-check input:indeterminate + span::after {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 2px;
+  margin: 7px auto 0;
+  border-radius: 999px;
+  background: #ffd88e;
 }
 
 .archive-detail-col,
@@ -6329,9 +6354,17 @@ body.simulation-log-fullscreen {
   }
 
   .archive-table th {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    line-height: 1;
     font-size: 0.64rem;
     letter-spacing: 0.06em;
     background: rgba(14, 21, 31, 0.98);
+  }
+
+  .archive-table thead .archive-select-col {
+    justify-content: center;
   }
 
   /* 1. Kat sütunu - mobilde en solda sabit */

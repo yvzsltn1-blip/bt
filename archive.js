@@ -164,6 +164,15 @@ archiveList?.addEventListener("click", (event) => {
 });
 
 archiveList?.addEventListener("change", (event) => {
+  const selectAllCheckbox = event.target instanceof HTMLInputElement
+    ? event.target.closest("[data-archive-select-all-visible]")
+    : null;
+  if (selectAllCheckbox) {
+    setVisibleArchiveSelection(selectAllCheckbox.checked);
+    renderArchivePage();
+    return;
+  }
+
   const checkbox = event.target instanceof HTMLInputElement
     ? event.target.closest("[data-archive-select-id]")
     : null;
@@ -568,7 +577,7 @@ function renderArchivePage() {
       <table class="archive-table">
         <thead>
           <tr>
-            <th class="archive-select-col">Sec</th>
+            <th class="archive-select-col">${renderArchiveSelectAllCheckbox(pageItems)}</th>
             <th>Tarih</th>
             <th>Ganimet</th>
             <th>EXP</th>
@@ -602,7 +611,52 @@ function renderArchivePage() {
   archiveNextPageBtn.disabled = !hasMoreVisible;
   archiveNextPageBtn.textContent = "Devamini Gor";
   archivePageNumbers.innerHTML = "";
+  syncArchiveSelectAllVisibleControl();
   renderArchiveSelectionSummary();
+}
+
+function getVisibleArchiveItems() {
+  return archiveState.loadedItems.slice(0, archiveState.visibleLimit);
+}
+
+function setVisibleArchiveSelection(selected) {
+  getVisibleArchiveItems().forEach((item) => {
+    const id = item?.id || "";
+    if (!id) {
+      return;
+    }
+    if (selected) {
+      archiveState.selectedIds.add(id);
+    } else {
+      archiveState.selectedIds.delete(id);
+    }
+  });
+}
+
+function renderArchiveSelectAllCheckbox(pageItems) {
+  const visibleCount = pageItems.filter((item) => item?.id).length;
+  return `
+    <label class="archive-select-check archive-select-all-check" title="Gorunen ${formatNumber(visibleCount)} kaydi sec">
+      <input
+        type="checkbox"
+        data-archive-select-all-visible="1"
+        aria-label="Gorunen kayitlari sec"
+        ${visibleCount === 0 ? "disabled" : ""}
+      >
+      <span></span>
+    </label>
+  `;
+}
+
+function syncArchiveSelectAllVisibleControl() {
+  const checkbox = archiveList?.querySelector("[data-archive-select-all-visible]");
+  if (!(checkbox instanceof HTMLInputElement)) {
+    return;
+  }
+  const visibleItems = getVisibleArchiveItems().filter((item) => item?.id);
+  const selectedCount = visibleItems.filter((item) => archiveState.selectedIds.has(item.id)).length;
+  checkbox.checked = visibleItems.length > 0 && selectedCount === visibleItems.length;
+  checkbox.indeterminate = selectedCount > 0 && selectedCount < visibleItems.length;
 }
 
 function renderArchiveRow(item) {
@@ -671,6 +725,7 @@ function renderArchiveSelectionSummary() {
   archiveSelectionSummary.hidden = selectedItems.length === 0;
   archiveSelectionCount.textContent = `${formatNumber(selectedItems.length)} kayit secildi`;
   archiveSelectionTotals.textContent = `${formatNumber(totalExp)} EXP / ${formatNumber(totalLoot)} ganimet`;
+  syncArchiveSelectAllVisibleControl();
 }
 
 function renderArchiveActionGroup(item) {
