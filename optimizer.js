@@ -2552,7 +2552,8 @@ function renderFavoriteStrategiesModal() {
       entry.enemyCounts,
       entry.recommendationCounts,
       "Simulasyonda Ac",
-      getRepresentativeSeed(entry)
+      getRepresentativeSeed(entry),
+      entry.roundingMode || optimizerRoundingMode
     ));
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
@@ -3827,6 +3828,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   const lossRangeSummary = source ? formatOptimizerLossRangeSummary(source) : null;
   const progressLines = [
     `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.tekilMode, meta.tekilV2Mode, meta.stoneMode, meta.roundingMode)}`,
+    ...(source?.actualGuard ? [`- gercek dogrulama: Guvenli modda +${source.actualGuard.addedPoints} puan / +${source.actualGuard.addedUnits} birlik`] : []),
     `- arama bandi: ${formatSearchRangeSummary(maxPoints, searchBandSettings, manualPointRangeSettings)}`,
     ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),
     ...(activeRequiredLossEntries.length ? [`- kayip hedefi: ${formatRequiredLossRequirements(activeRequiredLossEntries, 6)}`] : []),
@@ -5292,7 +5294,8 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
       currentTopResultsContext.enemyCounts,
       entry.counts,
       "Simulasyonda Ac",
-      getRepresentativeSeed(entry)
+      getRepresentativeSeed(entry),
+      entry.roundingMode || currentTopResultsContext.roundingMode
     ));
   }
   const detailBtn = document.createElement("button");
@@ -5548,7 +5551,8 @@ function buildStableAlternativeCard(suggestion, enemyCounts, onApply) {
       enemyCounts,
       suggestion.entry.counts,
       "Simulasyon Ekraninda Ac",
-      getRepresentativeSeed(suggestion.entry) ?? 1
+      getRepresentativeSeed(suggestion.entry) ?? 1,
+      suggestion.entry.roundingMode || optimizerRoundingMode
     )
   );
 
@@ -5605,7 +5609,8 @@ function renderRecommendationCards(result, maxPoints, meta) {
     enemyCounts,
     source.counts,
     "Simulasyon Ekraninda Ac",
-    getRepresentativeSeed(source, result)
+    getRepresentativeSeed(source, result),
+    source.roundingMode || meta.roundingMode
   ));
 
   const list = buildTopResultUnitList(source.counts, {
@@ -5700,7 +5705,7 @@ function showQuickPopup(result, maxPoints, meta) {
         enemyCounts,
         source.counts || {},
         getRepresentativeSeed(source, result),
-        meta?.roundingMode || optimizerRoundingMode
+        source.roundingMode || meta?.roundingMode || optimizerRoundingMode
       );
     };
   }

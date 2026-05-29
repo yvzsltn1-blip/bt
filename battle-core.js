@@ -2228,7 +2228,9 @@
     const objective = options.objective === "min_army" || options.objective === "safe_win"
       ? options.objective
       : "min_loss";
-    const roundingMode = normalizeRoundingMode(options.roundingMode);
+    const requestedRoundingMode = normalizeRoundingMode(options.roundingMode);
+    const actualGuardMode = requestedRoundingMode === "exact";
+    const roundingMode = actualGuardMode ? "legacy" : requestedRoundingMode;
     const stoneMode = Boolean(options.stoneMode);
     const trialCount = options.trialCount || 10;
     const fullArmyTrials = options.fullArmyTrials || 12;
@@ -2396,12 +2398,14 @@
       }));
     }
 
-    function evaluateCandidate(counts, localTrialCount = trialCount) {
+    function evaluateCandidate(counts, localTrialCount = trialCount, candidateRoundingMode = roundingMode) {
+      const normalizedCandidateRoundingMode = normalizeRoundingMode(candidateRoundingMode);
       const effectiveCounts = toEffectiveCounts(counts);
       const signature = getCountSignature(effectiveCounts, ALLY_UNITS);
       uniqueSignatures.add(signature);
-      if (evaluations.has(`${signature}:${localTrialCount}`)) {
-        return evaluations.get(`${signature}:${localTrialCount}`);
+      const evaluationKey = `${signature}:${localTrialCount}:${normalizedCandidateRoundingMode}`;
+      if (evaluations.has(evaluationKey)) {
+        return evaluations.get(evaluationKey);
       }
 
       let wins = 0;
@@ -2428,7 +2432,11 @@
       for (let trial = 0; trial < localTrialCount; trial += 1) {
         simulationRuns += 1;
         const seed = baseSeed + trial * 977;
-        const result = simulateBattle(enemyCounts, effectiveCounts, { seed, collectLog: false, roundingMode });
+        const result = simulateBattle(enemyCounts, effectiveCounts, {
+          seed,
+          collectLog: false,
+          roundingMode: normalizedCandidateRoundingMode
+        });
         usedCapacitySum += result.usedCapacity;
         usedPointsSum += result.usedPoints;
         enemyRemainingHealthSum += result.enemyRemainingHealth;
@@ -2501,12 +2509,13 @@
         tekilMode,
         tekilV2Mode,
         stoneMode,
+        roundingMode: normalizedCandidateRoundingMode,
         winningSeeds
       };
       evaluation.meetsRequiredLosses = evaluationMeetsRequiredLosses(evaluation);
       evaluation.feasible = winRate >= minWinRate && evaluation.meetsRequiredLosses;
 
-      evaluations.set(`${signature}:${localTrialCount}`, evaluation);
+      evaluations.set(evaluationKey, evaluation);
       return evaluation;
     }
 
@@ -2644,8 +2653,99 @@
         tekilMode: entry.tekilMode,
         tekilV2Mode: entry.tekilV2Mode,
         stoneMode: entry.stoneMode,
+        roundingMode: normalizeRoundingMode(entry.roundingMode),
         winningSeeds: [...(entry.winningSeeds || [])]
       };
+    }
+
+    function getAddedUnitCount(baseCounts, candidateCounts) {
+      return ALLY_UNITS.reduce((sum, unit) =>
+        sum + Math.max(0, (candidateCounts?.[unit.key] || 0) - (baseCounts?.[unit.key] || 0)), 0);
+    }
+
+    function compareActualGuardStates(left, right) {
+      if (left.addedPoints !== right.addedPoints) {
+        return left.addedPoints - right.addedPoints;
+      }
+      if (left.addedUnits !== right.addedUnits) {
+        return left.addedUnits - right.addedUnits;
+      }
+      return getCountSignature(left.counts, ALLY_UNITS).localeCompare(getCountSignature(right.counts, ALLY_UNITS));
+    }
+
+    function findMinimumSafeEvaluation(baseEntry) {
+      if (!baseEntry?.counts) {
+        return null;
+      }
+
+      const baseSearchCounts = cloneCounts(baseEntry.searchCounts || toSearchCounts(baseEntry.counts), ALLY_UNITS);
+      const baseUsedPoints = calculateArmyPoints(baseSearchCounts);
+      const remainingPoints = Number.isFinite(maxPoints)
+        ? Math.max(0, maxPoints - baseUsedPoints)
+        : calculateArmyPoints(availableAllyCounts);
+      const seedOrder = getStrategicUnitOrder(availableAllyCounts, enemyCounts);
+      const expansionOrder = [
+        ...seedOrder,
+        ...ALLY_UNITS.filter((unit) => !seedOrder.some((candidate) => candidate.key === unit.key))
+      ].sort((left, right) => {
+        const pointDelta = POINTS_BY_ALLY_KEY[left.key] - POINTS_BY_ALLY_KEY[right.key];
+        if (pointDelta !== 0) {
+          return pointDelta;
+        }
+        return seedOrder.findIndex((unit) => unit.key === left.key) - seedOrder.findIndex((unit) => unit.key === right.key);
+      });
+      const queue = [{
+        counts: baseSearchCounts,
+        addedPoints: 0,
+        addedUnits: 0
+      }];
+      const seen = new Set([getCountSignature(baseSearchCounts, ALLY_UNITS)]);
+      const maxChecks = Math.max(120, Math.min(900, 90 + expansionOrder.length * 80));
+      let checked = 0;
+
+      while (queue.length > 0 && checked < maxChecks) {
+        queue.sort(compareActualGuardStates);
+        const state = queue.shift();
+        checked += 1;
+
+        const quickSafe = evaluateCandidate(state.counts, trialCount, "safe");
+        if (quickSafe.feasible) {
+          const stableSafe = evaluateCandidate(state.counts, stabilityTrials, "safe");
+          if (stableSafe.feasible) {
+            stableSafe.actualGuard = {
+              sourceRoundingMode: "legacy",
+              verificationRoundingMode: "safe",
+              addedPoints: state.addedPoints,
+              addedUnits: state.addedUnits,
+              checkedCandidates: checked
+            };
+            return stableSafe;
+          }
+        }
+
+        for (const unit of expansionOrder) {
+          const currentCount = state.counts[unit.key] || 0;
+          const maxCount = availableAllyCounts[unit.key] || 0;
+          const unitPoints = POINTS_BY_ALLY_KEY[unit.key] || 0;
+          if (currentCount >= maxCount || state.addedPoints + unitPoints > remainingPoints) {
+            continue;
+          }
+          const nextCounts = cloneCounts(state.counts, ALLY_UNITS);
+          nextCounts[unit.key] = currentCount + 1;
+          const signature = getCountSignature(nextCounts, ALLY_UNITS);
+          if (seen.has(signature)) {
+            continue;
+          }
+          seen.add(signature);
+          queue.push({
+            counts: nextCounts,
+            addedPoints: calculateArmyPoints(nextCounts) - baseUsedPoints,
+            addedUnits: getAddedUnitCount(baseSearchCounts, nextCounts)
+          });
+        }
+      }
+
+      return null;
     }
 
     function getRoundedLossSignature(entry) {
@@ -2909,20 +3009,29 @@
     const fallbackEvaluation = compareEntries(stableFullArmyEvaluation, fullArmyEvaluation) < 0
       ? stableFullArmyEvaluation
       : fullArmyEvaluation;
-    const finalEvaluation = best.feasible ? best : fallbackEvaluation;
+    const searchFinalEvaluation = best.feasible ? best : fallbackEvaluation;
+    const finalEvaluation = actualGuardMode
+      ? (findMinimumSafeEvaluation(searchFinalEvaluation) || evaluateCandidate(
+          searchFinalEvaluation.searchCounts || toSearchCounts(searchFinalEvaluation.counts),
+          stabilityTrials,
+          "safe"
+        ))
+      : searchFinalEvaluation;
+    const finalPossible = actualGuardMode ? finalEvaluation.feasible : best.feasible;
+    const sampleRoundingMode = actualGuardMode ? "safe" : roundingMode;
 
     let sampleBattle = null;
     if (finalEvaluation.winningSeeds.length > 0) {
       sampleBattle = simulateBattle(enemyCounts, finalEvaluation.counts, {
         seed: finalEvaluation.winningSeeds[0],
         collectLog: true,
-        roundingMode
+        roundingMode: sampleRoundingMode
       });
     } else {
       sampleBattle = simulateBattle(enemyCounts, finalEvaluation.counts, {
         seed: baseSeed + 999,
         collectLog: true,
-        roundingMode
+        roundingMode: sampleRoundingMode
       });
     }
 
@@ -2936,11 +3045,15 @@
         topCandidatePool.set(entry.signature, entry);
       }
     });
+    const sanitizedFinalEvaluation = sanitizeEvaluation(finalEvaluation);
+    if (sanitizedFinalEvaluation) {
+      topCandidatePool.set(sanitizedFinalEvaluation.signature, sanitizedFinalEvaluation);
+    }
 
     return {
-      possible: best.feasible,
-      recommendation: best.feasible ? best : null,
-      fallback: best.feasible ? null : fallbackEvaluation,
+      possible: finalPossible,
+      recommendation: finalPossible ? finalEvaluation : null,
+      fallback: finalPossible ? null : finalEvaluation,
       fullArmyEvaluation,
       topCandidates: [...topCandidatePool.values()].sort(compareEntries).slice(0, 120),
       searchedCandidates: evaluations.size,
@@ -2948,7 +3061,9 @@
       uniqueCandidateSignatures: [...uniqueSignatures],
       simulationRuns,
       sampleBattle,
-      roundingMode,
+      roundingMode: requestedRoundingMode,
+      searchRoundingMode: roundingMode,
+      verificationRoundingMode: actualGuardMode ? "safe" : roundingMode,
       minimumRequiredCounts,
       minimumRequiredPoints,
       requiredLossCounts,
