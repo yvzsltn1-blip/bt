@@ -1,4 +1,4 @@
-﻿Yanlis Sonuclar Kisa Liste
+Yanlis Sonuclar Kisa Liste
 ==========================
 Olusturma Tarihi: 2026-05-02T14:28:28.384Z
 Toplam rapor: 22

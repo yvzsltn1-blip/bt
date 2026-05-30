@@ -127,6 +127,12 @@
     GM_setValue(LAST_LOOT_SYNC_KEY, '');
   }
 
+  function savePendingArchivePayload(payload) {
+    GM_setValue(LAST_ARCHIVE_ID_KEY, '');
+    GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, JSON.stringify(payload));
+    GM_setValue(LAST_LOOT_SYNC_KEY, '');
+  }
+
   function getArmyPowerText() {
     const el = document.querySelector('h2.armyPower');
     if (!el) return '';
@@ -363,10 +369,9 @@
     };
   }
 
-  async function createArchiveRecord(sourceType, options = {}) {
-    const payload = getOverviewPayload(sourceType, options);
-    const docId = `overview_${Date.now()}_${Math.random().toString(36).slice(2, 9) || '0'}`;
-    const response = await fetch(`${FIRESTORE_ARCHIVE_URL}?documentId=${encodeURIComponent(docId)}&key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
+  async function postArchiveRecord(payload, docId = '') {
+    const finalDocId = docId || `overview_${Date.now()}_${Math.random().toString(36).slice(2, 9) || '0'}`;
+    const response = await fetch(`${FIRESTORE_ARCHIVE_URL}?documentId=${encodeURIComponent(finalDocId)}&key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -380,6 +385,18 @@
       const message = await response.text();
       throw new Error(`Kayit basarisiz: ${response.status} ${response.statusText} ${message}`);
     }
+
+    return finalDocId;
+  }
+
+  async function createArchiveRecord(sourceType, options = {}) {
+    const payload = getOverviewPayload(sourceType, options);
+    if (sourceType === 'fill' && !hasRecordedOutcome(payload)) {
+      savePendingArchivePayload(payload);
+      return { docId: '', payload, queued: true };
+    }
+
+    const docId = await postArchiveRecord(payload);
 
     if (hasRecordedOutcome(payload)) {
       clearPendingArchiveSync();
@@ -399,9 +416,8 @@
       return false;
     }
 
-    const docId = GM_getValue(LAST_ARCHIVE_ID_KEY, '');
     const rawPayload = GM_getValue(LAST_ARCHIVE_PAYLOAD_KEY, '');
-    if (!docId || !rawPayload) {
+    if (!rawPayload) {
       return false;
     }
 
@@ -416,7 +432,8 @@
       return false;
     }
 
-    const syncSignature = `${docId}|${location.pathname}|${lootGoldText}|${expText}|${fallenUnitsText}`;
+    const pendingDocId = GM_getValue(LAST_ARCHIVE_ID_KEY, '');
+    const syncSignature = `${pendingDocId || 'queued'}|${location.pathname}|${lootGoldText}|${expText}|${fallenUnitsText}`;
     if (GM_getValue(LAST_LOOT_SYNC_KEY, '') === syncSignature) {
       return true;
     }
@@ -434,19 +451,23 @@
       pageTitle: document.title || payload.pageTitle || ''
     };
 
-    const response = await fetch(`${FIRESTORE_ARCHIVE_URL}/${encodeURIComponent(docId)}?key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        fields: toFirestoreFieldMap(nextPayload)
-      })
-    });
+    if (pendingDocId) {
+      const response = await fetch(`${FIRESTORE_ARCHIVE_URL}/${encodeURIComponent(pendingDocId)}?key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: toFirestoreFieldMap(nextPayload)
+        })
+      });
 
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(`Ganimet kaydi guncellenemedi: ${response.status} ${response.statusText} ${message}`);
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(`Ganimet kaydi guncellenemedi: ${response.status} ${response.statusText} ${message}`);
+      }
+    } else {
+      await postArchiveRecord(nextPayload);
     }
 
     GM_setValue(LAST_LOOT_SYNC_KEY, syncSignature);
@@ -513,7 +534,6 @@
       'align-items:center'
     ].join(';');
 
-    const saveBtn = buildActionButton('Kaydet', 'background:#1d3f6b;color:#e7f1ff;border-color:#8cc4ff');
     const fillBtn = buildActionButton('BT Doldur', '');
     fillBtn.id = 'bt-filler-btn';
 
@@ -529,6 +549,9 @@
 
       const targets = JSON.parse(raw);
       fillBtn.textContent = 'Dolduruluyor...';
+      fillBtn.style.background = '#8a4b00';
+      fillBtn.style.borderColor = '#ffd27a';
+      fillBtn.style.color = '#fff4db';
       fillBtn.disabled = true;
 
       try {
@@ -548,35 +571,6 @@
       }, 3000);
     };
 
-    saveBtn.onclick = async () => {
-      const defaultText = 'Kaydet';
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Kaydediliyor...';
-
-      try {
-        const result = await createArchiveRecord('manual');
-        saveBtn.textContent = 'Kaydedildi';
-        saveBtn.style.background = '#1a6b2a';
-        saveBtn.style.borderColor = '#98ffb0';
-        saveBtn.style.color = '#f3fff6';
-      } catch (error) {
-        console.error(error);
-        saveBtn.textContent = 'Kayit hatasi';
-        saveBtn.style.background = '#6b1d1d';
-        saveBtn.style.borderColor = '#ff9a9a';
-        saveBtn.style.color = '#fff1f1';
-      }
-
-      setTimeout(() => {
-        saveBtn.textContent = defaultText;
-        saveBtn.style.background = '#1d3f6b';
-        saveBtn.style.borderColor = '#8cc4ff';
-        saveBtn.style.color = '#e7f1ff';
-        saveBtn.disabled = false;
-      }, 3000);
-    };
-
-    panel.appendChild(saveBtn);
     panel.appendChild(fillBtn);
     document.body.appendChild(panel);
   }

@@ -287,4 +287,3 @@ Son koddan sonra `Gercek Sonucu Kaydet` akisinin, `wrongReports` dokumanini mini
 Eger hala hata olursa bir sonraki bakilacak yer:
 
 - Canli Firestore rules release'inin birebir dump edilip `wrongReports` create kuralinin dogrudan dogrulanmasi
-

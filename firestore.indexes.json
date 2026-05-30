@@ -91,6 +91,117 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "host",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "savedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "host",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "savedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "host",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "armyPowerText",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "savedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "host",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "armyPowerText",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "savedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host", "order": "ASCENDING" },
+        { "fieldPath": "expValue", "order": "ASCENDING" },
+        { "fieldPath": "lootGoldValue", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host", "order": "ASCENDING" },
+        { "fieldPath": "armyPowerText", "order": "ASCENDING" },
+        { "fieldPath": "expValue", "order": "ASCENDING" },
+        { "fieldPath": "lootGoldValue", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "ASCENDING" },
+        { "fieldPath": "expValue", "order": "ASCENDING" },
+        { "fieldPath": "lootGoldValue", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "savedAt", "order": "ASCENDING" },
+        { "fieldPath": "expValue", "order": "ASCENDING" },
+        { "fieldPath": "lootGoldValue", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "armyPowerText", "order": "ASCENDING" },
+        { "fieldPath": "expValue", "order": "ASCENDING" },
+        { "fieldPath": "lootGoldValue", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

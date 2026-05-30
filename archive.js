@@ -6,17 +6,20 @@ const archiveDataModeLabel = document.querySelector("#archiveDataModeLabel");
 const archivePagination = document.querySelector("#archivePagination");
 const archivePrevPageBtn = document.querySelector("#archivePrevPageBtn");
 const archiveNextPageBtn = document.querySelector("#archiveNextPageBtn");
+const archiveLastPageBtn = document.querySelector("#archiveLastPageBtn");
 const archivePageNumbers = document.querySelector("#archivePageNumbers");
 const archivePageInfo = document.querySelector("#archivePageInfo");
 const archiveFilterSummary = document.querySelector("#archiveFilterSummary");
-const archiveServerFilterSelect = document.querySelector("#archiveServerFilterSelect");
 const archiveLevelFilterInput = document.querySelector("#archiveLevelFilterInput");
 const archiveHoursFilterInput = document.querySelector("#archiveHoursFilterInput");
 const archiveDatePresetSelect = document.querySelector("#archiveDatePresetSelect");
+const archiveHostFilterSelect = document.querySelector("#archiveHostFilterSelect");
 const archivePageSizeSelect = document.querySelector("#archivePageSizeSelect");
 const archiveResetFiltersBtn = document.querySelector("#archiveResetFiltersBtn");
 const archiveRefreshBtn = document.querySelector("#archiveRefreshBtn");
 const archiveBulkRegressionBtn = document.querySelector("#archiveBulkRegressionBtn");
+const archiveBulkRegressionModeSelect = document.querySelector("#archiveBulkRegressionModeSelect");
+const archiveBulkRegressionLimitInput = document.querySelector("#archiveBulkRegressionLimitInput");
 const archiveFilteredCountValue = document.querySelector("#archiveFilteredCountValue");
 const archiveFilteredCountHint = document.querySelector("#archiveFilteredCountHint");
 const archiveFilteredExpValue = document.querySelector("#archiveFilteredExpValue");
@@ -31,6 +34,7 @@ const archiveFirstXInput = document.querySelector("#archiveFirstXInput");
 const archiveSelectionSummary = document.querySelector("#archiveSelectionSummary");
 const archiveSelectionCount = document.querySelector("#archiveSelectionCount");
 const archiveSelectionTotals = document.querySelector("#archiveSelectionTotals");
+const archiveDeleteSelectedBtn = document.querySelector("#archiveDeleteSelectedBtn");
 const adminAuthStatus = document.querySelector("#adminAuthStatus");
 const adminEmailInput = document.querySelector("#adminEmailInput");
 const adminPasswordInput = document.querySelector("#adminPasswordInput");
@@ -61,13 +65,50 @@ const archiveEditPageTitleInput = document.querySelector("#archiveEditPageTitleI
 
 const DEFAULT_PAGE_SIZE = 40;
 const PAGE_SIZE_OPTIONS = new Set([20, 40, 80]);
-const ARCHIVE_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
+// Sunucu filtresi: bos = tum sunucular. Varsayilan s66.
+const ARCHIVE_DEFAULT_HOST = "s66-tr.bitefight.gameforge.com";
+const ARCHIVE_HOST_OPTIONS = new Set(["", "s66-tr.bitefight.gameforge.com", "s62-tr.bitefight.gameforge.com"]);
+function normalizeArchiveHost(value) {
+  return ARCHIVE_HOST_OPTIONS.has(value) ? value : ARCHIVE_DEFAULT_HOST;
+}
+const ARCHIVE_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV5";
-const ARCHIVE_SUMMARY_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
-const ARCHIVE_SNAPSHOT_BASE_URL = "https://firebasestorage.googleapis.com/v0/b/bt-analiz.firebasestorage.app/o/";
-const ARCHIVE_SNAPSHOT_TOKEN = "fe99d2c6-71b5-4f58-9c16-7f7f6e9f5b6d";
-const ARCHIVE_SNAPSHOT_MANIFEST_PATH = "archive-snapshots/manifest.json";
-const ARCHIVE_SNAPSHOT_LEGACY_PATH = "archive-snapshots/latest.json";
+const ARCHIVE_SUMMARY_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
+// Sunucu aggregate'i calismazsa tam-tarama fallback'inde okunacak azami kayit (maliyet korumasi).
+const ARCHIVE_FALLBACK_MAX_DOCS = 300;
+// Degisim-token'i: koleksiyon degismediyse tum sayfayi cache'ten gosterip 1 okumaya iniyoruz.
+const ARCHIVE_CHANGE_TOKEN_KEY = "btAnalyssArchiveChangeTokenV1";
+
+function readArchiveChangeToken() {
+  try {
+    const raw = localStorage.getItem(ARCHIVE_CHANGE_TOKEN_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeArchiveChangeToken(token) {
+  try {
+    if (token && typeof token === "object") {
+      localStorage.setItem(ARCHIVE_CHANGE_TOKEN_KEY, JSON.stringify(token));
+    }
+  } catch {
+    // sessizce gec
+  }
+}
+
+function archiveChangeTokensEqual(a, b) {
+  if (!a || !b) {
+    return false;
+  }
+  return Boolean(a.empty) === Boolean(b.empty)
+    && String(a.newestUpdatedAt || "") === String(b.newestUpdatedAt || "");
+}
 
 function getFirstXLevels(x) {
   const count = Math.max(1, Math.min(100, Number(x) || 10));
@@ -82,11 +123,11 @@ let currentEditingArchiveId = "";
 
 const archiveState = {
   filters: {
-    server: "s66",
     armyPowerText: "",
     datePreset: "all",
     sourceType: "",
-    hours: null
+    hours: null,
+    host: ARCHIVE_DEFAULT_HOST
   },
   firstX: 10,
   pageSize: DEFAULT_PAGE_SIZE,
@@ -94,10 +135,10 @@ const archiveState = {
   selectedIds: new Set(),
   expandedIds: new Set(),
   loadedItems: [],
-  snapshotParts: [],
-  snapshotLoadedPartPaths: new Set(),
   remoteCursor: null,
   remoteHasMore: false,
+  tailMode: false,
+  tailItems: [],
   readSource: "idle",
   aggregates: {
     filtered: buildEmptyAggregate(),
@@ -113,11 +154,17 @@ void bindAdminAuth();
 void refreshArchiveView();
 
 archivePrevPageBtn?.addEventListener("click", () => {
+  archiveState.tailMode = false;
+  archiveState.tailItems = [];
   archiveState.visibleLimit = archiveState.pageSize;
   renderArchivePage();
 });
 
 archiveNextPageBtn?.addEventListener("click", async () => {
+  if (archiveState.tailMode) {
+    archiveState.tailMode = false;
+    archiveState.tailItems = [];
+  }
   const targetLimit = archiveState.visibleLimit + archiveState.pageSize;
   const ready = await ensureArchiveItemsLoadedUntil(targetLimit);
   if (!ready) {
@@ -126,6 +173,50 @@ archiveNextPageBtn?.addEventListener("click", async () => {
   archiveState.visibleLimit = Math.min(targetLimit, archiveState.loadedItems.length);
   renderArchivePage();
 });
+
+archiveLastPageBtn?.addEventListener("click", async () => {
+  await loadArchiveTailPage();
+});
+
+archiveDeleteSelectedBtn?.addEventListener("click", () => {
+  void handleDeleteSelectedArchives();
+});
+
+async function loadArchiveTailPage() {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadOverviewArchivesPage !== "function") {
+    return;
+  }
+  const requestToken = ++archiveRequestToken;
+  archiveLastPageBtn.disabled = true;
+  renderArchiveLoadingState();
+  try {
+    // En eski kayitlari ters yonde (asc) cek; aradaki veriyi okumadan sadece son sayfa.
+    const page = await window.BTFirebase.loadOverviewArchivesPage({
+      pageSize: archiveState.pageSize,
+      cursor: null,
+      preferCache: false,
+      cacheMaxAgeMs: 0,
+      sortDirection: "asc",
+      filters: {
+        armyPowerText: archiveState.filters.armyPowerText,
+        datePreset: archiveState.filters.datePreset,
+        hours: archiveState.filters.hours,
+        host: archiveState.filters.host
+      }
+    });
+    if (requestToken !== archiveRequestToken) {
+      return;
+    }
+    // asc geldigi icin ters cevirip yine en yeni-ustte duzeninde gosteriyoruz.
+    archiveState.tailItems = (page?.items || []).slice().reverse();
+    archiveState.tailMode = true;
+    archiveState.readSource = page?.readSource || archiveState.readSource;
+    renderArchiveHeader();
+    renderArchivePage();
+  } finally {
+    archiveLastPageBtn.disabled = false;
+  }
+}
 
 archiveList?.addEventListener("click", (event) => {
   const editButton = event.target instanceof Element ? event.target.closest("[data-archive-edit-id]") : null;
@@ -218,9 +309,11 @@ function bindArchiveControls() {
     void applyFilters();
   });
 
-  archiveServerFilterSelect?.addEventListener("change", () => {
+  archiveHostFilterSelect?.addEventListener("change", () => {
     void applyFilters();
   });
+
+
 
   archivePageSizeSelect?.addEventListener("change", () => {
     const nextPageSize = normalizePageSize(archivePageSizeSelect?.value);
@@ -246,27 +339,40 @@ function bindArchiveControls() {
       return;
     }
 
+    const mode = archiveBulkRegressionModeSelect?.value === "selected" ? "selected" : "first_n";
+    const limit = Math.max(1, Math.min(500, Number.parseInt(archiveBulkRegressionLimitInput?.value || String(archiveState.pageSize), 10) || archiveState.pageSize));
     let regressionItems = [];
+
     archiveBulkRegressionBtn.disabled = true;
     try {
-      regressionItems = await loadArchiveSnapshotItemsForRegression();
-    } catch (error) {
-      console.warn("Arsiv snapshot okunamadi, Firestore fallback kullaniliyor.", error);
-      await ensureAllArchiveItemsLoaded();
-      regressionItems = archiveState.loadedItems;
+      if (mode === "selected") {
+        // Secili kayitlar hem normal listeden hem de "Son 40" (tail) sayfasindan gelebilir.
+        const selectionPool = new Map();
+        [...archiveState.loadedItems, ...archiveState.tailItems].forEach((item) => {
+          if (item?.id) {
+            selectionPool.set(item.id, item);
+          }
+        });
+        regressionItems = [...selectionPool.values()].filter((item) => archiveState.selectedIds.has(item?.id));
+      } else {
+        await ensureArchiveItemsLoadedUntil(limit);
+        regressionItems = archiveState.loadedItems.slice(0, limit);
+      }
     } finally {
       archiveBulkRegressionBtn.disabled = false;
     }
 
     if (!regressionItems.length) {
-      window.alert("Toplu test icin filtrede kayit yok.");
+      window.alert(mode === "selected" ? "Toplu test icin once kayit sec." : "Toplu test icin filtrede kayit yok.");
       return;
     }
 
     window.BulkBattleRegression.openReportPage({
       kind: "archive",
       title: "Arsiv Toplu Test",
-      scopeLabel: buildArchiveRegressionScopeLabel(regressionItems.length),
+      scopeLabel: mode === "selected"
+        ? buildArchiveRegressionSelectedScopeLabel(regressionItems.length)
+        : buildArchiveRegressionFirstNScopeLabel(regressionItems.length),
       selectedCount: regressionItems.length,
       totalCount: regressionItems.length,
       backHref: "archive.html",
@@ -296,16 +402,6 @@ function bindArchiveControls() {
 
 async function refreshArchiveAggregatesOnly() {
   const requestToken = ++archiveRequestToken;
-  try {
-    const payload = await loadArchiveSnapshotPayload();
-    applyArchiveSnapshotState(payload);
-    renderArchiveHeader();
-    renderArchiveAggregates();
-    renderArchivePage();
-    return;
-  } catch (error) {
-    console.warn("Arsiv snapshot ozetleri okunamadi, Firestore fallback kullaniliyor.", error);
-  }
   await refreshArchiveAggregates({ requestToken });
 }
 
@@ -319,42 +415,55 @@ async function refreshArchiveView(options = {}) {
   archiveState.visibleLimit = archiveState.pageSize;
   archiveState.remoteCursor = null;
   archiveState.remoteHasMore = false;
-  archiveState.snapshotParts = [];
-  archiveState.snapshotLoadedPartPaths = new Set();
+  archiveState.tailMode = false;
+  archiveState.tailItems = [];
   archiveState.loadedItems = [];
   archiveState.levelBounds = buildEmptyLevelBounds();
   archiveState.selectedIds.clear();
   renderArchiveSelectionSummary();
   renderArchiveLoadingState();
 
-  try {
-    const payload = await loadArchiveSnapshotPayload();
+  // Degisim-token kontrolu: koleksiyon son senkrondan beri degismediyse her seyi
+  // cache'ten goster (toplam 1 okuma). forceRemote ("Yenile") her zaman canli okur.
+  let liveToken = null;
+  let cacheOnly = false;
+  let shouldBypassFreshCache = false;
+  if (typeof window.BTFirebase?.loadOverviewArchiveChangeToken === "function") {
+    liveToken = await window.BTFirebase.loadOverviewArchiveChangeToken();
     if (requestToken !== archiveRequestToken) {
       return;
     }
-    applyArchiveSnapshotState(payload);
-    renderArchiveHeader();
-    renderArchiveAggregates();
-    renderArchivePage();
-    return;
-  } catch (error) {
-    console.warn("Arsiv snapshot okunamadi, Firestore fallback kullaniliyor.", error);
+    if (!options.forceRemote && liveToken) {
+      const cachedToken = readArchiveChangeToken();
+      if (archiveChangeTokensEqual(liveToken, cachedToken)) {
+        cacheOnly = true;
+      } else {
+        shouldBypassFreshCache = true;
+      }
+    }
   }
 
   const [pageResult] = await Promise.all([
     loadArchivePage({
       reset: true,
-      forceRemote: Boolean(options.forceRemote),
+      forceRemote: Boolean(options.forceRemote || shouldBypassFreshCache),
+      cacheOnly,
       requestToken
     }),
     refreshArchiveAggregates({
-      forceRemote: Boolean(options.forceRemote),
+      forceRemote: Boolean(options.forceRemote || shouldBypassFreshCache),
+      cacheOnly,
       requestToken
     })
   ]);
 
   if (requestToken !== archiveRequestToken) {
     return;
+  }
+
+  // Canli okuma yaptiysak (cache-only degilsek) yeni token'i sakla.
+  if (!cacheOnly && liveToken) {
+    writeArchiveChangeToken(liveToken);
   }
 
   archiveState.readSource = pageResult?.readSource || archiveState.readSource;
@@ -370,8 +479,6 @@ async function loadArchivePage(options = {}) {
   if (options.reset) {
     archiveState.remoteCursor = null;
     archiveState.remoteHasMore = false;
-    archiveState.snapshotParts = [];
-    archiveState.snapshotLoadedPartPaths = new Set();
     archiveState.visibleLimit = archiveState.pageSize;
     archiveState.loadedItems = [];
   }
@@ -379,13 +486,17 @@ async function loadArchivePage(options = {}) {
   const page = await window.BTFirebase.loadOverviewArchivesPage({
     pageSize: archiveState.pageSize,
     cursor: options.reset ? null : archiveState.remoteCursor,
-    preferCache: false,
-    cacheMaxAgeMs: options.forceRemote ? 0 : ARCHIVE_CACHE_MAX_AGE_MS,
+    // cacheOnly: token degismedi -> TTL'yi yok say, cache'ten ver. Aksi halde:
+    // ilk sayfa acilisi cache-first; "Yenile" (forceRemote) ve sayfalama (cursor) canli kalir.
+    preferCache: options.cacheOnly ? true : (Boolean(options.reset) && !options.forceRemote),
+    cacheMaxAgeMs: options.cacheOnly
+      ? Number.MAX_SAFE_INTEGER
+      : (options.forceRemote ? 0 : ARCHIVE_CACHE_MAX_AGE_MS),
     filters: {
-      server: archiveState.filters.server,
       armyPowerText: archiveState.filters.armyPowerText,
       datePreset: archiveState.filters.datePreset,
-      hours: archiveState.filters.hours
+      hours: archiveState.filters.hours,
+      host: archiveState.filters.host
     }
   });
 
@@ -404,25 +515,30 @@ async function loadArchivePage(options = {}) {
 
 async function refreshArchiveAggregates(options = {}) {
   const firstXLevels = getFirstXLevels(archiveState.firstX);
+  const ignoreTtl = Boolean(options.cacheOnly);
   const [filtered, today, firstTen, levelBounds] = await Promise.all([
     loadArchiveAggregateWithCache({
       cacheKey: buildAggregateCacheKey("filtered", archiveState.filters),
       forceRemote: Boolean(options.forceRemote),
+      ignoreTtl,
       filters: archiveState.filters
     }),
     loadArchiveAggregateWithCache({
-      cacheKey: buildAggregateCacheKey("today", { datePreset: "today" }),
+      cacheKey: buildAggregateCacheKey("today", { datePreset: "today", host: archiveState.filters.host }),
       forceRemote: Boolean(options.forceRemote),
-      filters: { datePreset: "today" }
+      ignoreTtl,
+      filters: { datePreset: "today", host: archiveState.filters.host }
     }),
     loadArchiveAggregateWithCache({
-      cacheKey: buildAggregateCacheKey(`firstX_${archiveState.firstX}`, { armyPowerTextIn: firstXLevels }),
+      cacheKey: buildAggregateCacheKey(`firstX_${archiveState.firstX}`, { armyPowerTextIn: firstXLevels, host: archiveState.filters.host }),
       forceRemote: Boolean(options.forceRemote),
-      filters: { armyPowerTextIn: firstXLevels }
+      ignoreTtl,
+      filters: { armyPowerTextIn: firstXLevels, host: archiveState.filters.host }
     }),
     loadArchiveLevelBoundsWithCache({
       cacheKey: buildAggregateCacheKey("levelBounds", archiveState.filters),
       forceRemote: Boolean(options.forceRemote),
+      ignoreTtl,
       filters: archiveState.filters
     })
   ]);
@@ -439,6 +555,48 @@ async function refreshArchiveAggregates(options = {}) {
   renderArchiveAggregates();
 }
 
+async function computeArchiveAggregateFromFullPages(rawFilters) {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadOverviewArchivesPage !== "function") {
+    return buildEmptyAggregate();
+  }
+  const filters = rawFilters || {};
+  let allItems = [];
+  let cursor = null;
+  let hasMore = true;
+  const pageSize = 100;
+  let safety = 0;
+  // Maliyet korumasi: sunucu aggregate'i calismadiginda tum koleksiyonu okumak
+  // yerine en fazla ARCHIVE_FALLBACK_MAX_DOCS kayit oku, sonrasini "yaklasik" isaretle.
+  const maxPages = Math.ceil(ARCHIVE_FALLBACK_MAX_DOCS / pageSize);
+  while (hasMore && safety < maxPages) {
+    const page = await window.BTFirebase.loadOverviewArchivesPage({
+      pageSize,
+      cursor,
+      preferCache: false,
+      cacheMaxAgeMs: 0,
+      filters
+    });
+    const items = Array.isArray(page?.items) ? page.items : [];
+    allItems = allItems.concat(items);
+    cursor = page?.cursor || null;
+    hasMore = Boolean(page?.hasMore);
+    safety += 1;
+    if (!cursor) break;
+  }
+  // Tavana takildiysak (hala devami var) sayilar tam degil; "exact:false" don.
+  const capped = hasMore && Boolean(cursor);
+  const count = allItems.length;
+  const totalExp = allItems.reduce((s, it) => s + normalizeMetricNumber(it?.expValue), 0);
+  const totalLoot = allItems.reduce((s, it) => s + normalizeMetricNumber(it?.lootGoldValue), 0);
+  return {
+    count,
+    totalLoot,
+    totalExp,
+    exact: !capped,
+    readSource: capped ? "server-capped" : "server-full"
+  };
+}
+
 async function loadArchiveAggregateWithCache(options) {
   if (!window.BTFirebase || typeof window.BTFirebase.loadOverviewArchiveAggregate !== "function") {
     return buildEmptyAggregate();
@@ -446,7 +604,10 @@ async function loadArchiveAggregateWithCache(options) {
 
   const summaryCache = readArchiveSummaryCache();
   const cachedEntry = summaryCache[options.cacheKey];
-  if (!options.forceRemote && isSummaryCacheFresh(cachedEntry)) {
+  const cacheUsable = options.ignoreTtl
+    ? Boolean(cachedEntry?.data)
+    : (!options.forceRemote && isSummaryCacheFresh(cachedEntry));
+  if (cacheUsable) {
     return {
       ...buildEmptyAggregate(),
       ...cachedEntry.data,
@@ -458,23 +619,29 @@ async function loadArchiveAggregateWithCache(options) {
     filters: options.filters || {}
   });
 
+  let finalAgg = aggregate;
+  const isWeak = !aggregate || aggregate.exact === false || (aggregate.readSource || "").includes("cache");
+  if (isWeak) {
+    finalAgg = await computeArchiveAggregateFromFullPages(options.filters || {});
+  }
+
   summaryCache[options.cacheKey] = {
     savedAt: new Date().toISOString(),
     data: {
-      count: normalizeMetricNumber(aggregate?.count),
-      totalLoot: normalizeMetricNumber(aggregate?.totalLoot),
-      totalExp: normalizeMetricNumber(aggregate?.totalExp),
-      exact: aggregate?.exact !== false
+      count: normalizeMetricNumber(finalAgg?.count),
+      totalLoot: normalizeMetricNumber(finalAgg?.totalLoot),
+      totalExp: normalizeMetricNumber(finalAgg?.totalExp),
+      exact: finalAgg?.exact !== false
     }
   };
   writeArchiveSummaryCache(summaryCache);
 
   return {
-    count: normalizeMetricNumber(aggregate?.count),
-    totalLoot: normalizeMetricNumber(aggregate?.totalLoot),
-    totalExp: normalizeMetricNumber(aggregate?.totalExp),
-    exact: aggregate?.exact !== false,
-    readSource: aggregate?.readSource || "server"
+    count: normalizeMetricNumber(finalAgg?.count),
+    totalLoot: normalizeMetricNumber(finalAgg?.totalLoot),
+    totalExp: normalizeMetricNumber(finalAgg?.totalExp),
+    exact: finalAgg?.exact !== false,
+    readSource: finalAgg?.readSource || "server"
   };
 }
 
@@ -485,7 +652,10 @@ async function loadArchiveLevelBoundsWithCache(options) {
 
   const summaryCache = readArchiveSummaryCache();
   const cachedEntry = summaryCache[options.cacheKey];
-  if (!options.forceRemote && isSummaryCacheFresh(cachedEntry)) {
+  const cacheUsable = options.ignoreTtl
+    ? Boolean(cachedEntry?.data)
+    : (!options.forceRemote && isSummaryCacheFresh(cachedEntry));
+  if (cacheUsable) {
     return {
       ...buildEmptyLevelBounds(),
       ...cachedEntry.data,
@@ -534,9 +704,7 @@ function mergeArchiveItems(items) {
 
 function renderArchiveHeader() {
   const filteredAggregate = archiveState.aggregates.filtered || buildEmptyAggregate();
-  const totalCount = filteredAggregate.count > 0 || hasAnyActiveArchiveFilter()
-    ? filteredAggregate.count
-    : archiveState.loadedItems.length;
+  const totalCount = getArchiveDisplayedTotalCount(filteredAggregate);
   if (archiveCountLabel) {
     archiveCountLabel.textContent = formatNumber(totalCount);
   }
@@ -553,7 +721,7 @@ function renderArchiveAggregates() {
   const todayAggregate = archiveState.aggregates.today || buildEmptyAggregate();
   const firstTenAggregate = archiveState.aggregates.firstTen || buildEmptyAggregate();
 
-  setText(archiveFilteredCountValue, formatNumber(filteredAggregate.count));
+  setText(archiveFilteredCountValue, formatNumber(getArchiveDisplayedTotalCount(filteredAggregate)));
   setText(archiveFilteredCountHint, filteredAggregate.exact ? "Tum filtreler icin toplam" : "Cache uzerinden yaklasik");
   setText(archiveFilteredExpValue, formatNumber(filteredAggregate.totalExp));
   setText(archiveFilteredLootValue, formatNumber(filteredAggregate.totalLoot));
@@ -608,14 +776,19 @@ function renderArchivePage() {
     return;
   }
 
-  if (!archiveState.loadedItems.length) {
+  const hasAnyItems = archiveState.tailMode
+    ? archiveState.tailItems.length > 0
+    : archiveState.loadedItems.length > 0;
+  if (!hasAnyItems) {
     archiveList.innerHTML = '<p class="summary-empty">Bu filtrelerde kayit bulunamadi.</p>';
     archivePagination.hidden = true;
     renderArchiveSelectionSummary();
     return;
   }
 
-  const pageItems = archiveState.loadedItems.slice(0, archiveState.visibleLimit);
+  const pageItems = archiveState.tailMode
+    ? archiveState.tailItems
+    : archiveState.loadedItems.slice(0, archiveState.visibleLimit);
   archiveList.innerHTML = `
     <div class="archive-table-wrap archive-table-desktop">
       <table class="archive-table">
@@ -641,25 +814,43 @@ function renderArchivePage() {
     </div>
   `;
 
-  const exactTotal = archiveState.aggregates.filtered?.count || 0;
-  const totalCount = exactTotal > 0 || hasAnyActiveArchiveFilter()
-    ? exactTotal
-    : archiveState.loadedItems.length;
+  const totalCount = getArchiveDisplayedTotalCount(archiveState.aggregates.filtered || buildEmptyAggregate());
 
-  const hasMoreVisible = pageItems.length < archiveState.loadedItems.length || archiveState.remoteHasMore;
-  archivePagination.hidden = !hasMoreVisible && pageItems.length <= archiveState.pageSize;
-  archivePageInfo.textContent = `${formatNumber(pageItems.length)} / ${formatNumber(totalCount)} gosteriliyor`;
-  archivePrevPageBtn.hidden = pageItems.length <= archiveState.pageSize;
-  archivePrevPageBtn.disabled = pageItems.length <= archiveState.pageSize;
+  const hasMoreVisible = !archiveState.tailMode
+    && (pageItems.length < archiveState.loadedItems.length || archiveState.remoteHasMore);
+  // Birden fazla sayfa var mi? (Son 40 butonu icin)
+  const hasMultiplePages = archiveState.remoteHasMore
+    || archiveState.loadedItems.length > archiveState.pageSize
+    || totalCount > archiveState.pageSize;
+
+  archivePagination.hidden = !archiveState.tailMode && !hasMoreVisible && pageItems.length <= archiveState.pageSize;
+  archivePageInfo.textContent = archiveState.tailMode
+    ? `Son ${formatNumber(pageItems.length)} (en eski) / ${formatNumber(totalCount)}`
+    : `${formatNumber(pageItems.length)} / ${formatNumber(totalCount)} gosteriliyor`;
+
+  const showFirstBtn = archiveState.tailMode || pageItems.length > archiveState.pageSize;
+  archivePrevPageBtn.hidden = !showFirstBtn;
+  archivePrevPageBtn.disabled = !showFirstBtn;
   archivePrevPageBtn.textContent = `Ilk ${archiveState.pageSize}`;
+
+  archiveNextPageBtn.hidden = archiveState.tailMode;
   archiveNextPageBtn.disabled = !hasMoreVisible;
   archiveNextPageBtn.textContent = "Devamini Gor";
+
+  if (archiveLastPageBtn) {
+    archiveLastPageBtn.hidden = !hasMultiplePages;
+    archiveLastPageBtn.disabled = archiveState.tailMode;
+    archiveLastPageBtn.textContent = `Son ${archiveState.pageSize}`;
+  }
   archivePageNumbers.innerHTML = "";
   syncArchiveSelectAllVisibleControl();
   renderArchiveSelectionSummary();
 }
 
 function getVisibleArchiveItems() {
+  if (archiveState.tailMode) {
+    return archiveState.tailItems;
+  }
   return archiveState.loadedItems.slice(0, archiveState.visibleLimit);
 }
 
@@ -759,16 +950,32 @@ function renderArchiveSelectCheckbox(item, isSelected) {
   `;
 }
 
+function getSelectedArchiveItems() {
+  const pool = new Map();
+  [...archiveState.loadedItems, ...archiveState.tailItems].forEach((item) => {
+    if (item?.id && archiveState.selectedIds.has(item.id)) {
+      pool.set(item.id, item);
+    }
+  });
+  return [...pool.values()];
+}
+
 function renderArchiveSelectionSummary() {
   if (!archiveSelectionSummary || !archiveSelectionCount || !archiveSelectionTotals) {
     return;
   }
-  const selectedItems = archiveState.loadedItems.filter((item) => archiveState.selectedIds.has(item?.id));
+  const selectedItems = getSelectedArchiveItems();
   const totalExp = selectedItems.reduce((sum, item) => sum + normalizeMetricNumber(item?.expValue), 0);
   const totalLoot = selectedItems.reduce((sum, item) => sum + normalizeMetricNumber(item?.lootGoldValue), 0);
   archiveSelectionSummary.hidden = selectedItems.length === 0;
   archiveSelectionCount.textContent = `${formatNumber(selectedItems.length)} kayit secildi`;
   archiveSelectionTotals.textContent = `${formatNumber(totalExp)} EXP / ${formatNumber(totalLoot)} ganimet`;
+  if (archiveDeleteSelectedBtn) {
+    archiveDeleteSelectedBtn.disabled = !isAdminSession || selectedItems.length === 0;
+    archiveDeleteSelectedBtn.title = isAdminSession
+      ? "Secili kayitlari sil"
+      : "Silme icin admin girisi gerekli";
+  }
   syncArchiveSelectAllVisibleControl();
 }
 
@@ -910,7 +1117,7 @@ function renderArchiveSimulationButton(item) {
 }
 
 function openArchiveItemSimulation(id) {
-  const item = archiveState.loadedItems.find((entry) => entry.id === id);
+  const item = findArchiveItemById(id);
   const regression = window.BulkBattleRegression;
   if (!item || !regression) {
     return;
@@ -947,12 +1154,18 @@ function formatArmyPowerDisplay(value) {
   return text;
 }
 
+function findArchiveItemById(id) {
+  return archiveState.loadedItems.find((entry) => entry.id === id)
+    || archiveState.tailItems.find((entry) => entry.id === id)
+    || null;
+}
+
 async function handleDeleteArchive(id) {
   if (!isAdminSession) {
     window.alert("Arsiv silmek icin admin girisi zorunlu.");
     return;
   }
-  const item = archiveState.loadedItems.find((entry) => entry.id === id);
+  const item = findArchiveItemById(id);
   if (!item) {
     return;
   }
@@ -970,12 +1183,45 @@ async function handleDeleteArchive(id) {
   }
 }
 
+async function handleDeleteSelectedArchives() {
+  if (!isAdminSession) {
+    window.alert("Arsiv silmek icin admin girisi zorunlu.");
+    return;
+  }
+  if (typeof window.BTFirebase?.deleteOverviewArchives !== "function") {
+    window.alert("Toplu silme araci hazir degil.");
+    return;
+  }
+  const ids = getSelectedArchiveItems().map((item) => item?.id).filter(Boolean);
+  if (ids.length === 0) {
+    window.alert("Once silinecek kayitlari sec.");
+    return;
+  }
+  if (!window.confirm(`${ids.length} kayit silinsin mi? Bu islem geri alinamaz.`)) {
+    return;
+  }
+
+  if (archiveDeleteSelectedBtn) {
+    archiveDeleteSelectedBtn.disabled = true;
+  }
+  try {
+    await window.BTFirebase.deleteOverviewArchives(ids);
+    archiveState.selectedIds.clear();
+    clearArchiveSummaryCache();
+    await refreshArchiveView({ forceRemote: true });
+  } catch (error) {
+    console.warn("Secili arsiv kayitlari silinemedi.", error);
+    window.alert(error?.message || "Secili kayitlar silinemedi.");
+    renderArchiveSelectionSummary();
+  }
+}
+
 async function handleEditArchive(id) {
   if (!isAdminSession) {
     window.alert("Arsiv duzenlemek icin admin girisi zorunlu.");
     return;
   }
-  const item = archiveState.loadedItems.find((entry) => entry.id === id);
+  const item = findArchiveItemById(id);
   if (!item) {
     return;
   }
@@ -1171,23 +1417,20 @@ function normalizeArchiveSourceType(value) {
 
 function readArchiveFiltersFromUi() {
   return {
-    server: normalizeArchiveServerFilter(archiveServerFilterSelect?.value || "s66"),
     armyPowerText: normalizeDigits(archiveLevelFilterInput?.value || ""),
     datePreset: normalizeDatePreset(archiveDatePresetSelect?.value),
-    hours: archiveHoursFilterInput?.value ? parseInt(archiveHoursFilterInput.value, 10) : null
+    hours: archiveHoursFilterInput?.value ? parseInt(archiveHoursFilterInput.value, 10) : null,
+    host: normalizeArchiveHost(archiveHostFilterSelect?.value)
   };
 }
 
 function resetArchiveFilters() {
   archiveState.filters = {
-    server: "s66",
     armyPowerText: "",
     datePreset: "all",
-    hours: null
+    hours: null,
+    host: ARCHIVE_DEFAULT_HOST
   };
-  if (archiveServerFilterSelect) {
-    archiveServerFilterSelect.value = "s66";
-  }
   archiveState.pageSize = DEFAULT_PAGE_SIZE;
   if (archiveLevelFilterInput) {
     archiveLevelFilterInput.value = "";
@@ -1198,6 +1441,9 @@ function resetArchiveFilters() {
   if (archiveDatePresetSelect) {
     archiveDatePresetSelect.value = "all";
   }
+  if (archiveHostFilterSelect) {
+    archiveHostFilterSelect.value = ARCHIVE_DEFAULT_HOST;
+  }
   if (archivePageSizeSelect) {
     archivePageSizeSelect.value = String(DEFAULT_PAGE_SIZE);
   }
@@ -1205,9 +1451,6 @@ function resetArchiveFilters() {
 
 function buildArchiveFilterSummaryText(filteredAggregate) {
   const parts = [];
-  if (archiveState.filters.server && archiveState.filters.server !== "all") {
-    parts.push(archiveState.filters.server);
-  }
   if (archiveState.filters.armyPowerText) {
     parts.push(`${archiveState.filters.armyPowerText}. kat`);
   }
@@ -1225,14 +1468,20 @@ function buildArchiveFilterSummaryText(filteredAggregate) {
     return "En yeni kayitlar listeleniyor. Acilislar cache-first calisir, gerekirse canli veri cekilir.";
   }
   const exactSuffix = filteredAggregate?.exact ? "tam toplam" : "cache tahmini";
-  return `${parts.join(" / ")} filtresi aktif. ${formatNumber(filteredAggregate?.count || 0)} kayit bulundu, ${exactSuffix}.`;
+  return `${parts.join(" / ")} filtresi aktif. ${formatNumber(getArchiveDisplayedTotalCount(filteredAggregate))} kayit bulundu, ${exactSuffix}.`;
+}
+
+function getArchiveDisplayedTotalCount(filteredAggregate) {
+  const aggregateCount = Number(filteredAggregate?.count || 0);
+  const loadedCount = Number(archiveState.loadedItems.length || 0);
+  if (aggregateCount > 0 || hasAnyActiveArchiveFilter()) {
+    return Math.max(aggregateCount, loadedCount);
+  }
+  return loadedCount;
 }
 
 function buildArchiveRegressionScopeLabel(count) {
   const parts = [];
-  if (archiveState.filters.server && archiveState.filters.server !== "all") {
-    parts.push(archiveState.filters.server);
-  }
   if (archiveState.filters.armyPowerText) {
     parts.push(`${archiveState.filters.armyPowerText}. kat`);
   }
@@ -1253,7 +1502,6 @@ function buildArchiveRegressionScopeLabel(count) {
 function hasAnyActiveArchiveFilter() {
   return Boolean(
     archiveState.filters.armyPowerText ||
-    (archiveState.filters.server && archiveState.filters.server !== "all") ||
     archiveState.filters.hours ||
     archiveState.filters.datePreset !== "all"
   );
@@ -1278,424 +1526,9 @@ function buildEmptyLevelBounds() {
   };
 }
 
-async function loadArchiveSnapshotItemsForRegression() {
-  const payload = await loadArchiveSnapshotPayload({ partMode: "all" });
-  return filterArchiveSnapshotItems(payload.items);
-}
-
-async function loadArchiveSnapshotPayload(options = {}) {
-  try {
-    return await loadArchiveSnapshotPayloadFromManifest(options);
-  } catch (error) {
-    console.warn("Arsiv manifest okunamadi, legacy snapshot deneniyor.", error);
-    return await loadArchiveSnapshotPayloadFromLegacy();
-  }
-}
-
-async function loadArchiveSnapshotPayloadFromManifest(options = {}) {
-  const manifest = await fetchArchiveSnapshotJson(ARCHIVE_SNAPSHOT_MANIFEST_PATH);
-  const allParts = selectArchiveSnapshotParts(manifest, { mode: "all" });
-  const parts = options.partMode === "all"
-    ? allParts
-    : selectArchiveSnapshotParts(manifest, { mode: "latest" });
-  const partPayloads = await Promise.all(parts.map((part) => fetchArchiveSnapshotJson(part.path)));
-  const items = partPayloads.flatMap((payload) => Array.isArray(payload?.items) ? payload.items : []);
-  const summary = getArchiveSnapshotManifestSummary(manifest);
-  return {
-    version: Number(manifest?.version || 2),
-    generatedAt: String(manifest?.generatedAt || ""),
-    reason: String(manifest?.reason || ""),
-    source: String(manifest?.source || "overviewArchives"),
-    count: Number(summary?.count || items.length),
-    summary,
-    availableParts: allParts,
-    loadedPartPaths: parts.map((part) => part.path),
-    items: items
-      .map(normalizeArchiveSnapshotItem)
-      .filter((item) => item.id)
-      .sort((left, right) => String(right?.savedAt || "").localeCompare(String(left?.savedAt || "")))
-  };
-}
-
-async function loadArchiveSnapshotPayloadFromLegacy() {
-  const payload = await fetchArchiveSnapshotJson(ARCHIVE_SNAPSHOT_LEGACY_PATH);
-  if (!payload || !Array.isArray(payload.items)) {
-    throw new Error("Snapshot formati gecersiz.");
-  }
-
-  return {
-    ...payload,
-    items: payload.items.map(normalizeArchiveSnapshotItem).filter((item) => item.id)
-  };
-}
-
-function selectArchiveSnapshotParts(manifest, options = {}) {
-  const servers = manifest?.servers && typeof manifest.servers === "object" ? manifest.servers : {};
-  const selectedServer = normalizeArchiveServerFilter(archiveState.filters?.server || "all");
-  const serverNames = selectedServer === "all" ? Object.keys(servers) : [selectedServer];
-  return serverNames.flatMap((server) => {
-    const parts = Array.isArray(servers?.[server]?.parts) ? servers[server].parts : [];
-    const selectedParts = options.mode === "all" ? parts : [parts[parts.length - 1]];
-    return selectedParts
-      .filter((part) => part?.path)
-      .map((part) => ({ ...part, server }));
-  }).sort((left, right) => {
-    const serverCompare = String(left.server || "").localeCompare(String(right.server || ""));
-    if (serverCompare !== 0) return serverCompare;
-    return Number(right.part || 0) - Number(left.part || 0);
-  });
-}
-
-function getArchiveSnapshotManifestSummary(manifest) {
-  const servers = manifest?.servers && typeof manifest.servers === "object" ? manifest.servers : {};
-  const selectedServer = normalizeArchiveServerFilter(archiveState.filters?.server || "all");
-  if (selectedServer !== "all") {
-    return servers?.[selectedServer]?.summary || null;
-  }
-  return manifest?.summary || null;
-}
-
-async function fetchArchiveSnapshotJson(path) {
-  const encodedPath = encodeURIComponent(path);
-  const url = `${ARCHIVE_SNAPSHOT_BASE_URL}${encodedPath}?alt=media&token=${encodeURIComponent(ARCHIVE_SNAPSHOT_TOKEN)}&_=${Date.now()}`;
-  const response = await fetch(url, {
-    cache: "no-store"
-  });
-  if (!response.ok) {
-    throw new Error(`Snapshot okunamadi: ${path} HTTP ${response.status}`);
-  }
-
-  return await response.json();
-}
-
-function normalizeArchiveSnapshotItem(item = {}) {
-  return {
-    ...item,
-    id: String(item?.id || ""),
-    lootGoldValue: normalizeMetricNumber(item?.lootGoldValue),
-    expValue: normalizeMetricNumber(item?.expValue)
-  };
-}
-
-function applyArchiveSnapshotState(payload) {
-  const filteredItems = filterArchiveSnapshotItems(payload.items);
-  archiveState.loadedItems = filteredItems;
-  archiveState.snapshotParts = Array.isArray(payload.availableParts) ? payload.availableParts : [];
-  archiveState.snapshotLoadedPartPaths = new Set(Array.isArray(payload.loadedPartPaths) ? payload.loadedPartPaths : []);
-  archiveState.remoteCursor = null;
-  archiveState.remoteHasMore = hasMoreArchiveSnapshotParts();
-  archiveState.readSource = "json";
-  archiveState.aggregates.filtered = buildArchiveSnapshotAggregateFromSummary(payload.summary, archiveState.filters)
-    || buildArchiveSnapshotAggregate(filteredItems, "json");
-  archiveState.aggregates.today = buildArchiveSnapshotAggregateFromSummary(payload.summary, { datePreset: "today" })
-    || buildArchiveSnapshotAggregate(filterArchiveSnapshotItems(payload.items, { datePreset: "today" }), "json");
-  archiveState.aggregates.firstTen = buildArchiveSnapshotAggregateFromSummary(payload.summary, { armyPowerTextIn: getFirstXLevels(archiveState.firstX) })
-    || buildArchiveSnapshotAggregate(filterArchiveSnapshotItems(payload.items, { armyPowerTextIn: getFirstXLevels(archiveState.firstX) }), "json");
-  archiveState.levelBounds = buildArchiveSnapshotLevelBoundsFromSummary(payload.summary, archiveState.filters)
-    || buildArchiveSnapshotLevelBounds(filteredItems);
-}
-
-function normalizeArchiveLevelBoundItem(item) {
-  if (!item) {
-    return null;
-  }
-  return {
-    ...item,
-    levelText: item.levelText || (Number(item.level) > 0 ? String(item.level) : "")
-  };
-}
-
-function hasMoreArchiveSnapshotParts() {
-  return archiveState.snapshotParts.some((part) => part?.path && !archiveState.snapshotLoadedPartPaths.has(part.path));
-}
-
-async function loadPreviousArchiveSnapshotPart() {
-  const nextPart = archiveState.snapshotParts.find((part) => {
-    if (!part?.path || archiveState.snapshotLoadedPartPaths.has(part.path)) {
-      return false;
-    }
-    if (canSkipArchiveSnapshotPart(part)) {
-      archiveState.snapshotLoadedPartPaths.add(part.path);
-      return false;
-    }
-    return true;
-  });
-  if (!nextPart) {
-    archiveState.remoteHasMore = hasMoreArchiveSnapshotParts();
-    return false;
-  }
-
-  const payload = await fetchArchiveSnapshotJson(nextPart.path);
-  archiveState.snapshotLoadedPartPaths.add(nextPart.path);
-  const items = Array.isArray(payload?.items)
-    ? filterArchiveSnapshotItems(payload.items.map(normalizeArchiveSnapshotItem).filter((item) => item.id))
-    : [];
-  mergeArchiveItems(items);
-  archiveState.remoteHasMore = hasMoreArchiveSnapshotParts();
-  return items.length > 0 || archiveState.remoteHasMore;
-}
-
-function canSkipArchiveSnapshotPart(part) {
-  const summary = part?.summary || null;
-  if (!summary) {
-    return false;
-  }
-  const selected = selectArchiveSnapshotSummary(summary, archiveState.filters || {});
-  return selected && normalizeMetricNumber(selected.count) === 0;
-}
-
-function buildArchiveSnapshotAggregateFromSummary(summary, filters = {}) {
-  const selected = selectArchiveSnapshotSummary(summary, filters);
-  if (!selected) {
-    return null;
-  }
-  return {
-    count: normalizeMetricNumber(selected.count),
-    totalLoot: normalizeMetricNumber(selected.totalLoot),
-    totalExp: normalizeMetricNumber(selected.totalExp),
-    exact: true,
-    readSource: "json"
-  };
-}
-
-function buildArchiveSnapshotLevelBoundsFromSummary(summary, filters = {}) {
-  const selected = selectArchiveSnapshotSummary(summary, filters);
-  if (!selected) {
-    return null;
-  }
-  return {
-    oldest: normalizeArchiveLevelBoundItem(selected.oldest),
-    newest: normalizeArchiveLevelBoundItem(selected.newest),
-    exact: true,
-    readSource: "json"
-  };
-}
-
-function selectArchiveSnapshotSummary(summary, filters = {}) {
-  if (!summary) {
-    return null;
-  }
-  const armyPowerText = normalizeDigits(filters.armyPowerText || "");
-  const armyPowerTextIn = Array.isArray(filters.armyPowerTextIn)
-    ? filters.armyPowerTextIn.map(normalizeDigits).filter(Boolean)
-    : [];
-  const hasTimeFilter = Boolean(filters.hours || (filters.datePreset && filters.datePreset !== "all"));
-  if (armyPowerText && !hasTimeFilter) {
-    return summary.byKat?.[armyPowerText] || createArchiveEmptySummary();
-  }
-  if (armyPowerTextIn.length > 0 && !hasTimeFilter) {
-    return armyPowerTextIn.reduce(
-      (combined, key) => mergeArchiveSummaries(combined, summary.byKat?.[key]),
-      createArchiveEmptySummary()
-    );
-  }
-  if (!armyPowerText && armyPowerTextIn.length === 0 && filters.hours) {
-    return selectArchiveHourSummary(summary, filters.hours);
-  }
-  if (!armyPowerText && armyPowerTextIn.length === 0 && filters.datePreset && filters.datePreset !== "all") {
-    return selectArchiveDaySummary(summary, filters.datePreset);
-  }
-  if (!armyPowerText && armyPowerTextIn.length === 0) {
-    return summary;
-  }
-  return null;
-}
-
-function createArchiveEmptySummary() {
-  return {
-    count: 0,
-    totalExp: 0,
-    totalLoot: 0,
-    oldest: null,
-    newest: null,
-    byKat: {},
-    byDay: {},
-    byHour: {}
-  };
-}
-
-function mergeArchiveSummaries(left = createArchiveEmptySummary(), right = null) {
-  if (!right) {
-    return left;
-  }
-  const result = {
-    ...createArchiveEmptySummary(),
-    count: normalizeMetricNumber(left.count) + normalizeMetricNumber(right.count),
-    totalExp: normalizeMetricNumber(left.totalExp) + normalizeMetricNumber(right.totalExp),
-    totalLoot: normalizeMetricNumber(left.totalLoot) + normalizeMetricNumber(right.totalLoot),
-    oldest: left.oldest || null,
-    newest: left.newest || null
-  };
-  [right.oldest, right.newest].filter(Boolean).forEach((item) => {
-    if (!result.oldest || String(item.savedAt || "") < String(result.oldest.savedAt || "")) {
-      result.oldest = item;
-    }
-    if (!result.newest || String(item.savedAt || "") > String(result.newest.savedAt || "")) {
-      result.newest = item;
-    }
-  });
-  return result;
-}
-
-function selectArchiveDaySummary(summary, datePreset) {
-  const range = buildArchiveSnapshotDateRange({ datePreset });
-  if (!range) {
-    return summary;
-  }
-  return Object.entries(summary.byDay || {}).reduce((combined, [day, value]) => {
-    const dayIso = `${day}T00:00:00.000Z`;
-    return dayIso >= range.startIso && dayIso < range.endIso
-      ? mergeArchiveSummaries(combined, value)
-      : combined;
-  }, createArchiveEmptySummary());
-}
-
-function selectArchiveHourSummary(summary, hours) {
-  const range = buildArchiveSnapshotDateRange({ hours });
-  if (!range) {
-    return summary;
-  }
-  return Object.entries(summary.byHour || {}).reduce((combined, [hour, value]) => {
-    const hourIso = `${hour}:00:00.000Z`;
-    return hourIso >= range.startIso && hourIso < range.endIso
-      ? mergeArchiveSummaries(combined, value)
-      : combined;
-  }, createArchiveEmptySummary());
-}
-
-function buildArchiveSnapshotAggregate(items, readSource) {
-  return {
-    count: Array.isArray(items) ? items.length : 0,
-    totalLoot: (items || []).reduce((sum, item) => sum + normalizeMetricNumber(item?.lootGoldValue), 0),
-    totalExp: (items || []).reduce((sum, item) => sum + normalizeMetricNumber(item?.expValue), 0),
-    exact: true,
-    readSource
-  };
-}
-
-function buildArchiveSnapshotLevelBounds(items) {
-  const sortedItems = [...(items || [])]
-    .filter((item) => getArchiveSnapshotLevelNumber(item) > 0)
-    .sort((left, right) => String(left?.savedAt || "").localeCompare(String(right?.savedAt || "")));
-  return {
-    oldest: sortedItems[0] || null,
-    newest: sortedItems[sortedItems.length - 1] || null,
-    exact: true,
-    readSource: "json"
-  };
-}
-
-function getArchiveSnapshotLevelNumber(item) {
-  const match = String(item?.levelText || "").match(/\d+/);
-  if (!match) {
-    return 0;
-  }
-  const numeric = Number.parseInt(match[0], 10);
-  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
-}
-
-function filterArchiveSnapshotItems(items, overrideFilters = null) {
-  const filters = overrideFilters || archiveState.filters || {};
-  const server = normalizeArchiveServerFilter(filters.server || "all");
-  const dateRange = buildArchiveSnapshotDateRange(filters);
-  const armyPowerText = normalizeDigits(filters.armyPowerText || "");
-  const armyPowerTextIn = Array.isArray(filters.armyPowerTextIn)
-    ? filters.armyPowerTextIn.map(normalizeDigits).filter(Boolean)
-    : [];
-  const sourceType = normalizeArchiveSourceTypeFilter(filters.sourceType || "");
-
-  return (items || []).filter((item) => {
-    const savedAt = String(item?.savedAt || "");
-    const itemArmyPowerText = extractArchiveSnapshotKatValue(item?.armyPowerText || "");
-    if (server !== "all" && extractArchiveSnapshotServerValue(item?.host || "") !== server) {
-      return false;
-    }
-    if (armyPowerText && itemArmyPowerText !== armyPowerText) {
-      return false;
-    }
-    if (armyPowerTextIn.length > 0 && !armyPowerTextIn.includes(itemArmyPowerText)) {
-      return false;
-    }
-    if (sourceType && normalizeArchiveSourceTypeFilter(item?.sourceType || "") !== sourceType) {
-      return false;
-    }
-    if (dateRange && !(savedAt >= dateRange.startIso && savedAt < dateRange.endIso)) {
-      return false;
-    }
-    return true;
-  });
-}
-
-function buildArchiveSnapshotDateRange(filters) {
-  const hours = filters?.hours ? Number.parseInt(filters.hours, 10) : null;
-  if (Number.isFinite(hours) && hours > 0) {
-    const now = new Date();
-    return {
-      startIso: new Date(now.getTime() - hours * 60 * 60 * 1000).toISOString(),
-      endIso: now.toISOString()
-    };
-  }
-
-  const preset = normalizeDatePreset(filters?.datePreset || "all");
-  if (preset === "all") {
-    return null;
-  }
-
-  const now = new Date();
-  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const end = new Date(dayStart);
-  end.setDate(end.getDate() + 1);
-
-  const start = new Date(dayStart);
-  if (preset === "7d") {
-    start.setDate(start.getDate() - 6);
-  } else if (preset === "30d") {
-    start.setDate(start.getDate() - 29);
-  }
-
-  return {
-    startIso: start.toISOString(),
-    endIso: end.toISOString()
-  };
-}
-
-function extractArchiveSnapshotKatValue(value) {
-  const text = String(value || "").trim();
-  if (!text || text === "-") {
-    return "";
-  }
-  const slashMatch = text.match(/^(\d+)\s*\/\s*(\d+)$/);
-  if (slashMatch) {
-    const total = Number.parseInt(slashMatch[2], 10);
-    return Number.isFinite(total) ? normalizeDigits(Math.max(0, Math.floor((total - 10) / 10))) : "";
-  }
-  return normalizeDigits(text);
-}
-
-function normalizeArchiveSourceTypeFilter(value) {
-  return value === "manual" || value === "fill" ? value : "";
-}
-
-function normalizeArchiveServerFilter(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  return /^s\d+$/.test(normalized) ? normalized : "all";
-}
-
-function extractArchiveSnapshotServerValue(host) {
-  const match = String(host || "").trim().toLowerCase().match(/^s(\d+)(?:-|\.|$)/);
-  return match ? `s${match[1]}` : "";
-}
-
 async function ensureArchiveItemsLoadedUntil(targetCount) {
   while (targetCount > archiveState.loadedItems.length && archiveState.remoteHasMore) {
-    if (archiveState.readSource === "json") {
-      const loaded = await loadPreviousArchiveSnapshotPart();
-      if (!loaded && !archiveState.remoteHasMore) {
-        break;
-      }
-    } else {
-      await loadArchivePage();
-    }
+    await loadArchivePage();
   }
   return archiveState.loadedItems.length > 0;
 }
@@ -1705,17 +1538,9 @@ async function ensureAllArchiveItemsLoaded() {
   while (archiveState.remoteHasMore && safety < 500) {
     const previousCount = archiveState.loadedItems.length;
     const previousCursorId = archiveState.remoteCursor?.id || "";
-    if (archiveState.readSource === "json") {
-      await loadPreviousArchiveSnapshotPart();
-    } else {
-      await loadArchivePage();
-    }
+    await loadArchivePage();
     safety += 1;
-    if (
-      archiveState.readSource !== "json" &&
-      archiveState.loadedItems.length === previousCount &&
-      (archiveState.remoteCursor?.id || "") === previousCursorId
-    ) {
+    if (archiveState.loadedItems.length === previousCount && (archiveState.remoteCursor?.id || "") === previousCursorId) {
       break;
     }
   }
@@ -1765,9 +1590,6 @@ function normalizeMetricNumber(value) {
 }
 
 function formatReadSourceLabel(value) {
-  if (value === "json") {
-    return "JSON";
-  }
   if (value === "server") {
     return "Canli";
   }
@@ -1868,4 +1690,12 @@ function escapeHtml(value) {
 
 function escapeAttribute(value) {
   return escapeHtml(value);
+}
+
+function buildArchiveRegressionFirstNScopeLabel(count) {
+  return `Ilk ${count} arsiv kaydi`;
+}
+
+function buildArchiveRegressionSelectedScopeLabel(count) {
+  return count === 1 ? "Secili 1 arsiv kaydi" : `Secili ${count} arsiv kaydi`;
 }

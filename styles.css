@@ -3669,6 +3669,25 @@ body[data-optimizer-variant="minimum"] .layout {
   font-weight: 800;
 }
 
+.archive-delete-selected-btn {
+  margin-left: auto;
+  color: #ffb4b4;
+  border-color: rgba(255, 122, 122, 0.32);
+  background: rgba(78, 24, 28, 0.3);
+}
+
+.archive-delete-selected-btn:hover:not(:disabled) {
+  background: #7a2227;
+  border-color: #ff7a7a;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 122, 122, 0.25);
+}
+
+.archive-delete-selected-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .archive-toolbar {
   display: grid;
   gap: 16px;
@@ -3980,7 +3999,8 @@ body[data-optimizer-variant="minimum"] .layout {
 
 .archive-table th:last-child,
 .archive-table td:last-child {
-  width: 116px;
+  width: 104px;
+  padding-right: 18px;
 }
 
 .archive-select-col,
@@ -4239,14 +4259,16 @@ body[data-optimizer-variant="minimum"] .layout {
   display: flex;
   align-items: center;
   gap: 8px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .archive-action-cell,
 .archive-actions-col {
   text-align: center;
-  padding-left: 10px !important;
-  padding-right: 18px !important;
+}
+
+.archive-action-cell .archive-action-group {
+  justify-content: flex-end;
 }
 
 .archive-card-head .archive-action-group {

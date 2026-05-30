@@ -29,7 +29,10 @@
       "Bash(powershell -Command ' *)",
       "Bash(ls -la firebase.json .firebaserc package.json netlify.toml vercel.json)",
       "Bash(cat firebase.json)",
-      "Bash(cat .firebaserc)"
+      "Bash(cat .firebaserc)",
+      "Bash(firebase firestore:indexes --project bt-analiz)",
+      "Bash(curl -s -I \"https://bt-analiz.web.app/archive.html\")",
+      "Bash(curl -s -I \"https://bt-analiz.web.app/archive.js\")"
     ]
   }
 }

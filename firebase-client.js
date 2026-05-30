@@ -16,6 +16,9 @@
   const FAVORITE_CACHE_KEY = "btAnalyssFavoriteStrategiesCache";
   const OVERVIEW_ARCHIVE_CACHE_KEY = "btAnalyssOverviewArchivesCache";
   const OVERVIEW_ARCHIVE_CACHE_META_KEY = "btAnalyssOverviewArchivesCacheMeta";
+  // Liste cache'ini en yeni N kayitla sinirla; aksi halde 900+ kayit localStorage kotasini doldurup
+  // yeni cekilen veriyi atilmaya zorluyordu. Ilk sayfa + cacheOnly icin bu fazlasiyla yeterli.
+  const OVERVIEW_ARCHIVE_CACHE_MAX_ITEMS = 400;
   const LEGACY_KEY = "btAnalyssApprovedStrategies";
   const MIGRATION_KEY = "btAnalyssApprovedStrategiesMigrated";
   const COLLECTION = "approvedStrategies";
@@ -74,7 +77,13 @@
   }
 
   function writeStorage(key, items) {
-    localStorage.setItem(key, JSON.stringify(items));
+    // Cache yazimi "best-effort"; kota dolarsa (QuotaExceededError) sessizce gec ki
+    // sunucudan gelen taze veri asla atilmasin. (Onceki davranis: throw -> veri kaybi.)
+    try {
+      localStorage.setItem(key, JSON.stringify(items));
+    } catch (error) {
+      console.warn(`localStorage yazilamadi (${key}), cache atlandi.`, error?.name || error);
+    }
   }
 
   function readObjectStorage(key) {
@@ -91,7 +100,11 @@
   }
 
   function writeObjectStorage(key, value) {
-    localStorage.setItem(key, JSON.stringify(value && typeof value === "object" ? value : {}));
+    try {
+      localStorage.setItem(key, JSON.stringify(value && typeof value === "object" ? value : {}));
+    } catch (error) {
+      console.warn(`localStorage yazilamadi (${key}), cache atlandi.`, error?.name || error);
+    }
   }
 
   function writeCache(items) {
@@ -211,7 +224,10 @@
   }
 
   function writeOverviewArchives(items) {
-    const merged = mergeOverviewArchives(items);
+    let merged = mergeOverviewArchives(items);
+    if (merged.length > OVERVIEW_ARCHIVE_CACHE_MAX_ITEMS) {
+      merged = sortByStringFieldDesc(merged, "savedAt").slice(0, OVERVIEW_ARCHIVE_CACHE_MAX_ITEMS);
+    }
     writeStorage(OVERVIEW_ARCHIVE_CACHE_KEY, merged);
     writeOverviewArchiveCacheMeta({
       itemCount: merged.length,
@@ -535,12 +551,13 @@
       dateRange,
       armyPowerText,
       armyPowerTextIn: armyPowerText ? [] : normalizeOverviewArchiveNumericFilterList(options.armyPowerTextIn),
-      sourceType: normalizeOverviewArchiveSourceType(options.sourceType)
+      sourceType: normalizeOverviewArchiveSourceType(options.sourceType),
+      host: typeof options.host === "string" ? options.host.trim() : ""
     };
   }
 
   function isOverviewArchiveFilterEmpty(filters) {
-    return !filters.armyPowerText && !filters.armyPowerTextIn.length && !filters.sourceType && !filters.dateRange;
+    return !filters.armyPowerText && !filters.armyPowerTextIn.length && !filters.sourceType && !filters.dateRange && !filters.host;
   }
 
   function filterOverviewArchiveItems(items, rawFilters = {}) {
@@ -549,6 +566,9 @@
       const savedAt = String(item?.savedAt || "");
       const armyPowerText = extractOverviewArchiveKatValue(item?.armyPowerText || "");
       const sourceType = normalizeOverviewArchiveSourceType(item?.sourceType);
+      if (filters.host && String(item?.host || "") !== filters.host) {
+        return false;
+      }
       if (filters.armyPowerText && armyPowerText !== filters.armyPowerText) {
         return false;
       }
@@ -568,6 +588,9 @@
   function applyOverviewArchiveFiltersToQuery(collectionRef, rawFilters = {}, options = {}) {
     const filters = normalizeOverviewArchiveFilters(rawFilters);
     let query = collectionRef;
+    if (filters.host) {
+      query = query.where("host", "==", filters.host);
+    }
     if (filters.armyPowerText) {
       query = query.where("armyPowerText", "in", buildOverviewArchiveKatStorageVariants(filters.armyPowerText));
     } else if (filters.armyPowerTextIn.length > 0) {
@@ -614,50 +637,100 @@
     return Number.isFinite(numeric) ? numeric : 0;
   }
 
+  // Filtrelerden Firestore REST structuredQuery "where" objesi kur.
+  function buildOverviewArchiveRestWhere(filters) {
+    const clauses = [];
+    if (filters.host) {
+      clauses.push({ fieldFilter: { field: { fieldPath: "host" }, op: "EQUAL", value: { stringValue: filters.host } } });
+    }
+    if (filters.armyPowerText) {
+      const variants = buildOverviewArchiveKatStorageVariants(filters.armyPowerText).slice(0, 30);
+      clauses.push({ fieldFilter: { field: { fieldPath: "armyPowerText" }, op: "IN", value: { arrayValue: { values: variants.map((v) => ({ stringValue: v })) } } } });
+    } else if (filters.armyPowerTextIn.length > 0) {
+      const variants = [];
+      filters.armyPowerTextIn.forEach((val) => variants.push(...buildOverviewArchiveKatStorageVariants(val)));
+      const unique = [...new Set(variants)].slice(0, 30);
+      clauses.push({ fieldFilter: { field: { fieldPath: "armyPowerText" }, op: "IN", value: { arrayValue: { values: unique.map((v) => ({ stringValue: v })) } } } });
+    }
+    if (filters.sourceType) {
+      clauses.push({ fieldFilter: { field: { fieldPath: "sourceType" }, op: "EQUAL", value: { stringValue: filters.sourceType } } });
+    }
+    if (filters.dateRange) {
+      clauses.push({ fieldFilter: { field: { fieldPath: "savedAt" }, op: "GREATER_THAN_OR_EQUAL", value: { stringValue: filters.dateRange.startIso } } });
+      clauses.push({ fieldFilter: { field: { fieldPath: "savedAt" }, op: "LESS_THAN", value: { stringValue: filters.dateRange.endIso } } });
+    }
+    if (clauses.length === 0) {
+      return null;
+    }
+    if (clauses.length === 1) {
+      return clauses[0];
+    }
+    return { compositeFilter: { op: "AND", filters: clauses } };
+  }
+
+  // count + sum(loot) + sum(exp) icin Firestore REST runAggregationQuery (1 okuma).
+  // Compat SDK'nin query.aggregate() destegi guvenilmez oldugu icin REST kullaniyoruz.
+  async function loadOverviewArchiveAggregateViaRest(filters) {
+    if (typeof globalScope.fetch !== "function") {
+      return null;
+    }
+    const where = buildOverviewArchiveRestWhere(filters);
+    const structuredQuery = { from: [{ collectionId: OVERVIEW_ARCHIVE_COLLECTION }] };
+    if (where) {
+      structuredQuery.where = where;
+    }
+    const body = {
+      structuredAggregationQuery: {
+        structuredQuery,
+        aggregations: [
+          { alias: "countOfDocs", count: {} },
+          { alias: "totalLoot", sum: { field: { fieldPath: "lootGoldValue" } } },
+          { alias: "totalExp", sum: { field: { fieldPath: "expValue" } } }
+        ]
+      }
+    };
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}:runAggregationQuery?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Aggregate REST HTTP ${response.status}: ${text.slice(0, 200)}`);
+    }
+    const json = await response.json();
+    const row = Array.isArray(json) ? json.find((entry) => entry?.result?.aggregateFields) : null;
+    if (!row) {
+      return { count: 0, totalLoot: 0, totalExp: 0, exact: true, readSource: "server-rest" };
+    }
+    const fields = row.result.aggregateFields || {};
+    const num = (f) => toAggregateNumber(f?.integerValue ?? f?.doubleValue ?? 0);
+    return {
+      count: num(fields.countOfDocs),
+      totalLoot: num(fields.totalLoot),
+      totalExp: num(fields.totalExp),
+      exact: true,
+      readSource: "server-rest"
+    };
+  }
+
   async function loadOverviewArchiveAggregate(options = {}) {
     const filters = normalizeOverviewArchiveFilters(options.filters || {});
     const localItems = filterOverviewArchiveItems(readOverviewArchives(), filters);
-    if (!db) {
-      return buildOverviewArchiveAggregateFromItems(localItems, {
-        exact: true,
-        readSource: "cache"
-      });
-    }
-
-    const aggregateField = globalScope.firebase?.firestore?.AggregateField;
-    const collection = db.collection(OVERVIEW_ARCHIVE_COLLECTION);
-    const query = applyOverviewArchiveFiltersToQuery(collection, filters, {
-      includeOrderBy: false
-    });
-
-    if (!aggregateField || typeof query?.aggregate !== "function") {
-      return buildOverviewArchiveAggregateFromItems(localItems, {
-        exact: false,
-        readSource: "cache-fallback"
-      });
-    }
 
     try {
-      const snapshot = await query.aggregate({
-        countOfDocs: aggregateField.count(),
-        totalLoot: aggregateField.sum("lootGoldValue"),
-        totalExp: aggregateField.sum("expValue")
-      }).get();
-      const data = typeof snapshot?.data === "function" ? snapshot.data() : {};
-      return {
-        count: toAggregateNumber(data?.countOfDocs),
-        totalLoot: toAggregateNumber(data?.totalLoot),
-        totalExp: toAggregateNumber(data?.totalExp),
-        exact: true,
-        readSource: "server"
-      };
+      const restAgg = await loadOverviewArchiveAggregateViaRest(filters);
+      if (restAgg) {
+        return restAgg;
+      }
     } catch (error) {
-      console.warn("Arsiv aggregate okunamadi, cache kullaniliyor.", error);
-      return buildOverviewArchiveAggregateFromItems(localItems, {
-        exact: false,
-        readSource: "cache-fallback"
-      });
+      console.warn("Arsiv REST aggregate okunamadi, cache'e dusuluyor.", error);
     }
+
+    // REST yoksa/basarisizsa yerel cache'ten yaklasik (archive.js capli tam-taramayi tetikler).
+    return buildOverviewArchiveAggregateFromItems(localItems, {
+      exact: false,
+      readSource: "cache-fallback"
+    });
   }
 
   function buildOverviewArchiveLevelBoundsFromItems(items, options = {}) {
@@ -699,13 +772,16 @@
       if (cursor) {
         query = query.startAfter(cursor);
       }
-      const snapshot = await query.limit(50).get();
+      // Cogu kayitta seviye dolu oldugu icin once tek kayit dene (1 okuma);
+      // sadece bastaki kayit(lar)da seviye yoksa daha genis sayfaya gec.
+      const pageLimit = safety === 0 ? 1 : 50;
+      const snapshot = await query.limit(pageLimit).get();
       const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
       const foundDoc = docs.find((doc) => getOverviewArchiveLevelNumber(doc?.data?.()) > 0);
       if (foundDoc) {
         return { ...foundDoc.data(), id: foundDoc.id };
       }
-      if (docs.length < 50) {
+      if (docs.length < pageLimit) {
         return null;
       }
       cursor = docs[docs.length - 1];
@@ -2099,6 +2175,7 @@
 
   async function loadOverviewArchivesPage(options = {}) {
     const filters = normalizeOverviewArchiveFilters(options.filters || {});
+    const sortDirection = normalizeSortDirection(options.sortDirection);
     return loadCollectionPage({
       collectionName: OVERVIEW_ARCHIVE_COLLECTION,
       orderField: "savedAt",
@@ -2107,17 +2184,43 @@
       writeLocal: writeOverviewArchives,
       pageSize: options.pageSize,
       cursor: options.cursor || null,
-      sortDirection: "desc",
+      sortDirection,
       filterLocalItems: (items) => filterOverviewArchiveItems(items, filters),
       buildRemoteQuery: (collection) => applyOverviewArchiveFiltersToQuery(collection, filters, {
         includeOrderBy: true,
-        sortDirection: "desc"
+        sortDirection
       }),
       allowLegacyFirstPageFallback: isOverviewArchiveFilterEmpty(filters),
       preferCache: Boolean(options.preferCache),
       cacheMaxAgeMs: options.cacheMaxAgeMs,
       readMeta: readOverviewArchiveCacheMeta
     });
+  }
+
+  // Tek okumayla "koleksiyonda bir sey degisti mi?" sinyali: en yeni updatedAt.
+  // create/loot-patch/edit hepsi updatedAt'i tazeler; degisim olmadiysa ayni doner.
+  async function loadOverviewArchiveChangeToken() {
+    if (!db) {
+      return null;
+    }
+    try {
+      const snapshot = await db.collection(OVERVIEW_ARCHIVE_COLLECTION)
+        .orderBy("updatedAt", "desc")
+        .limit(1)
+        .get();
+      const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+      if (docs.length === 0) {
+        return { newestUpdatedAt: "", empty: true };
+      }
+      const data = typeof docs[0]?.data === "function" ? docs[0].data() : {};
+      return {
+        newestUpdatedAt: String(data?.updatedAt || data?.savedAt || ""),
+        empty: false
+      };
+    } catch (error) {
+      console.warn("Arsiv degisim tokeni okunamadi.", error);
+      return null;
+    }
   }
 
   async function saveOverviewArchive(item) {
@@ -2202,6 +2305,43 @@
 
     await db.collection(OVERVIEW_ARCHIVE_COLLECTION).doc(docId).delete();
     writeOverviewArchives(nextLocal);
+  }
+
+  async function deleteOverviewArchives(ids) {
+    const docIds = [...new Set(
+      (Array.isArray(ids) ? ids : [])
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter(Boolean)
+    )];
+    if (docIds.length === 0) {
+      return { deleted: 0 };
+    }
+
+    const idSet = new Set(docIds);
+    const nextLocal = readOverviewArchives().filter((candidate) => !idSet.has(candidate.id));
+    if (!db) {
+      writeOverviewArchives(nextLocal);
+      return { deleted: docIds.length };
+    }
+
+    const currentUser = auth ? auth.currentUser : null;
+    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+      throw new Error("Arsiv silmek icin admin girisi zorunludur.");
+    }
+
+    // Firestore batch limiti 500; guvenli olmasi icin 400'luk parcalara bol.
+    const collection = db.collection(OVERVIEW_ARCHIVE_COLLECTION);
+    const chunkSize = 400;
+    for (let start = 0; start < docIds.length; start += chunkSize) {
+      const batch = db.batch();
+      docIds.slice(start, start + chunkSize).forEach((docId) => {
+        batch.delete(collection.doc(docId));
+      });
+      await batch.commit();
+    }
+
+    writeOverviewArchives(nextLocal);
+    return { deleted: docIds.length };
   }
 
   function getCurrentUser() {
@@ -2322,11 +2462,13 @@
     clearFavoriteStrategies,
     loadOverviewArchives,
     loadOverviewArchivesPage,
+    loadOverviewArchiveChangeToken,
     loadOverviewArchiveAggregate,
     loadOverviewArchiveLevelBounds,
     getOverviewArchiveCacheInfo,
     saveOverviewArchive,
     updateOverviewArchive,
-    deleteOverviewArchive
+    deleteOverviewArchive,
+    deleteOverviewArchives
   };
 })(window);

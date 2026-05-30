@@ -1,8 +1,0 @@
-[
-  {
-    "origin": ["https://bt-analiz.web.app", "https://bt-analiz.firebaseapp.com"],
-    "method": ["GET", "HEAD"],
-    "responseHeader": ["Content-Type"],
-    "maxAgeSeconds": 3600
-  }
-]

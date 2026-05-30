@@ -671,4 +671,3 @@ for i in range(bats_index, len(unit_desc)):
     capacity += unit_size_initial[i] * unit_desc[i][space_index]
 print("unit capacity: {0}".format(capacity))
 print("--------------------------------------------------")
-
