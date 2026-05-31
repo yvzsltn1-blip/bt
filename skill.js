@@ -32,8 +32,7 @@ const skillCalcElements = {
   targetSkillLabel: document.getElementById("targetSkillLabel"),
   currentSkillInput: document.getElementById("currentSkillInput"),
   targetSkillInput: document.getElementById("targetSkillInput"),
-  goldSkillInput: document.getElementById("goldSkillInput"),
-  goldSkillField: document.getElementById("goldSkillField"),
+  singleTotalCost: document.getElementById("singleTotalCost"),
   targetSkillField: document.getElementById("targetSkillField"),
   summaryPanel: document.getElementById("skillSummaryPanel"),
   equalStrategyBtn: document.getElementById("equalStrategyBtn"),
@@ -295,10 +294,11 @@ function skillCalcRenderSkillButtons(container, selectedKeys, isMultiMode) {
     button.addEventListener("click", () => {
       const skillKey = button.getAttribute("data-skill-key");
       if (isMultiMode) {
-        if (skillCalcState.selectedMultiSkills.has(skillKey)) {
-          skillCalcState.selectedMultiSkills.delete(skillKey);
+        const targetSet = (container.id === "plannerSkillGrid") ? skillCalcState.selectedPlannerSkills : skillCalcState.selectedMultiSkills;
+        if (targetSet.has(skillKey)) {
+          targetSet.delete(skillKey);
         } else {
-          skillCalcState.selectedMultiSkills.add(skillKey);
+          targetSet.add(skillKey);
         }
       } else {
         skillCalcState.selectedSkill = skillKey;
@@ -309,52 +309,33 @@ function skillCalcRenderSkillButtons(container, selectedKeys, isMultiMode) {
 }
 
 function skillCalcRenderSingleResults() {
-  const activeSkill = SKILL_CALC_SKILLS.find((skill) => skill.key === skillCalcState.selectedSkill);
   const currentLevel = skillCalcCleanNumber(skillCalcElements.currentSkillInput.value);
   const targetLevel = skillCalcCleanNumber(skillCalcElements.targetSkillInput.value);
-  const goldBudget = skillCalcCleanNumber(skillCalcElements.goldSkillInput.value);
 
-  skillCalcElements.currentSkillLabel.textContent = `Mevcut ${activeSkill.label}`;
-  skillCalcElements.targetSkillLabel.textContent = `Hedef ${activeSkill.label}`;
+  skillCalcElements.currentSkillLabel.textContent = "Mevcut Seviye";
+  skillCalcElements.targetSkillLabel.textContent = "Hedef Seviye";
 
-  if (skillCalcState.mode === "target") {
-    const totalCost = skillCalcTotalCost(currentLevel, targetLevel);
-    const undiscountedCost = skillCalcTotalCost(currentLevel, targetLevel, 1);
+  const totalCost = skillCalcTotalCost(currentLevel, targetLevel);
+  const undiscountedCost = skillCalcTotalCost(currentLevel, targetLevel, 1);
 
-    skillCalcElements.summaryPanel.innerHTML = `
-      <div class="skill-summary-grid">
-        ${skillCalcSummaryCard("Toplam Maliyet", `${skillCalcFormat(totalCost)} altin`, `${skillCalcFormat(currentLevel)} -> ${skillCalcFormat(Math.max(currentLevel, targetLevel))} ${activeSkill.label.toLowerCase()} gecisi`)}
-        ${skillCalcSummaryCard("Skill Artisi", `+${skillCalcFormat(Math.max(0, targetLevel - currentLevel))}`, "Bu mod sadece hedef seviye arasindaki farki hesaplar.")}
-        ${skillCalcSummaryCard("Indirim Kazanci", `${skillCalcFormat(Math.max(0, undiscountedCost - totalCost))} altin`, skillCalcState.activeDiscount === "none" ? "Indirim kapali, ek tasarruf yok." : `${skillCalcGetDiscountLabel()} secili oldugu icin toplam tasarruf.`)}
-      </div>
-      <section class="skill-breakdown-card">
-        <h3 class="skill-note-title">Hesap Ozeti</h3>
-        <div class="skill-breakdown-list">
-          ${skillCalcBreakdownRow("Aktif skill", activeSkill.label)}
-          ${skillCalcBreakdownRow("Baslangic seviyesi", `${skillCalcFormat(currentLevel)} skill`)}
-          ${skillCalcBreakdownRow("Hedef seviye", `${skillCalcFormat(Math.max(currentLevel, targetLevel))} skill`)}
-          ${skillCalcBreakdownRow("Maliyet modeli", skillCalcGetDiscountLabel())}
-        </div>
-      </section>
-    `;
-    return;
+  // Canli maliyet gostergesi (indirimli)
+  if (skillCalcElements.singleTotalCost) {
+    skillCalcElements.singleTotalCost.value = skillCalcFormat(totalCost);
   }
-
-  const budgetResult = skillCalcBuyWithBudget(currentLevel, goldBudget);
-  const stepsMarkup = budgetResult.steps.slice(0, 6).map((step) => (
-    skillCalcBreakdownRow(`${skillCalcFormat(step.from)} -> ${skillCalcFormat(step.to)}`, `${skillCalcFormat(step.cost)} altin`)
-  )).join("");
 
   skillCalcElements.summaryPanel.innerHTML = `
     <div class="skill-summary-grid">
-      ${skillCalcSummaryCard("Ulasilacak Seviye", `${skillCalcFormat(budgetResult.finalLevel)} ${activeSkill.label}`, `Toplam +${skillCalcFormat(budgetResult.gainedLevels)} skill puani`)}
-      ${skillCalcSummaryCard("Harcanan Altin", `${skillCalcFormat(budgetResult.spentGold)} altin`, `Kalan: ${skillCalcFormat(budgetResult.remainingGold)} altin`)}
-      ${skillCalcSummaryCard("Sonraki Basim", `${skillCalcFormat(skillCalcCost(budgetResult.finalLevel))} altin`, "Butce bittiginde siradaki tek basim maliyeti")}
+      ${skillCalcSummaryCard("Toplam Maliyet", `${skillCalcFormat(totalCost)} altin`, `${skillCalcFormat(currentLevel)} -> ${skillCalcFormat(Math.max(currentLevel, targetLevel))} seviye gecisi`)}
+      ${skillCalcSummaryCard("Skill Artisi", `+${skillCalcFormat(Math.max(0, targetLevel - currentLevel))}`, "Bu mod sadece hedef seviye arasindaki farki hesaplar.")}
+      ${skillCalcSummaryCard("Indirim Kazanci", `${skillCalcFormat(Math.max(0, undiscountedCost - totalCost))} altin`, skillCalcState.activeDiscount === "none" ? "Indirim kapali, ek tasarruf yok." : `${skillCalcGetDiscountLabel()} secili oldugu icin toplam tasarruf.`)}
     </div>
     <section class="skill-breakdown-card">
-      <h3 class="skill-note-title">Ilk Basimlar</h3>
+      <h3 class="skill-note-title">Hesap Ozeti</h3>
       <div class="skill-breakdown-list">
-        ${stepsMarkup || '<p class="skill-empty">Bu butce ile bir sonraki skill puani alinmiyor.</p>'}
+        ${skillCalcBreakdownRow("Hesap turu", "Tek skill")}
+        ${skillCalcBreakdownRow("Baslangic seviyesi", `${skillCalcFormat(currentLevel)} skill`)}
+        ${skillCalcBreakdownRow("Hedef seviye", `${skillCalcFormat(Math.max(currentLevel, targetLevel))} skill`)}
+        ${skillCalcBreakdownRow("Maliyet modeli", skillCalcGetDiscountLabel())}
       </div>
     </section>
   `;
@@ -471,16 +452,13 @@ function skillCalcRender() {
   skillCalcElements.discount30Toggle.setAttribute("aria-pressed", skillCalcState.activeDiscount === "30" ? "true" : "false");
   skillCalcElements.singleSkillSection.hidden = skillCalcState.mode === "multi";
   skillCalcElements.multiSkillSection.hidden = skillCalcState.mode !== "multi";
-  skillCalcElements.targetSkillField.hidden = skillCalcState.mode !== "target";
-  skillCalcElements.goldSkillField.hidden = skillCalcState.mode !== "budget";
   skillCalcElements.statusLabel.textContent = skillCalcState.mode === "target" ? "Hedef" : skillCalcState.mode === "budget" ? "Butce" : "Coklu";
   skillCalcElements.resultCaption.textContent = skillCalcState.mode === "target"
     ? "Tek skill hedef maliyeti gosteriliyor."
     : skillCalcState.mode === "budget"
-      ? "Belirli bir butceyle alinabilecek tek skill artisi gosteriliyor."
+      ? "Tek skill hedef maliyeti gosteriliyor (butce modu artik ayni)."
       : "Butceyi secili skilller arasinda dagitip toplu sonuc cikariliyor.";
 
-  skillCalcRenderSkillButtons(skillCalcElements.singleSkillGrid, skillCalcState.selectedSkill, false);
   skillCalcRenderSkillButtons(skillCalcElements.multiSkillGrid, skillCalcState.selectedMultiSkills, true);
   skillCalcRenderSkillButtons(skillCalcElements.plannerSkillGrid, skillCalcState.selectedPlannerSkills, true);
 
@@ -502,7 +480,6 @@ function skillCalcBindNumericInput(input) {
 [
   skillCalcElements.currentSkillInput,
   skillCalcElements.targetSkillInput,
-  skillCalcElements.goldSkillInput,
   skillCalcElements.multiStrengthInput,
   skillCalcElements.multiDefenseInput,
   skillCalcElements.multiDexterityInput,
@@ -564,8 +541,7 @@ skillCalcElements.plannerOptimalBtn.addEventListener("click", () => {
 
 skillCalcElements.resetSingleBtn.addEventListener("click", () => {
   skillCalcElements.currentSkillInput.value = "500";
-  skillCalcElements.targetSkillInput.value = "503";
-  skillCalcElements.goldSkillInput.value = "500000000";
+  skillCalcElements.targetSkillInput.value = "510";
   skillCalcState.selectedSkill = "strength";
   skillCalcState.mode = "target";
   skillCalcRender();
@@ -573,7 +549,7 @@ skillCalcElements.resetSingleBtn.addEventListener("click", () => {
 
 skillCalcElements.quickExampleBtn.addEventListener("click", () => {
   skillCalcElements.currentSkillInput.value = "500";
-  skillCalcElements.targetSkillInput.value = "503";
+  skillCalcElements.targetSkillInput.value = "510";
   skillCalcState.mode = "target";
   skillCalcRender();
 });

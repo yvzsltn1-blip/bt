@@ -70,7 +70,7 @@
         <section class="skill-breakdown-card skill-gold-planner-card">
           <div class="panel-head">
             <h2>Altin Planlayici</h2>
-            <p>Tek skill odagi veya coklu skill dagitimi icin eldeki altinla ulasilacak seviyeleri ayni kutuda gor.</p>
+            <p>Altin miktarini gir, istedigin skill butonlarini sec (tikla ac/kapa), dagitim planini gor.</p>
           </div>
 
           <div class="skill-input-grid">
@@ -121,7 +121,7 @@
           <div>
             <div class="panel-head">
               <h2>Plan Skillleri</h2>
-              <p>Tek skill secer ve tum altini oraya yuklersen odakli sonuc; birden fazla secersen dagitim plani olusur.</p>
+              <p>Tiklayarak sec/kaldir (sadece Guc + Savunma icin digerlerini kapat). Altin gir, Esit veya Optimum sec.</p>
             </div>
             <div id="plannerSkillGrid" class="skill-chip-grid" aria-label="Altin plani skill secimi"></div>
           </div>
@@ -140,12 +140,12 @@
           </div>
         </section>
 
+        <div class="panel-head skill-section-header"><h2 class="skill-section-title">Tek Skill Hesapları (Hedef maliyet veya bütçe ile kaç seviye alınır)</h2></div>
         <section id="singleSkillSection" class="skill-section skill-form-block">
-          <div id="singleSkillGrid" class="skill-chip-grid" aria-label="Skill secimi"></div>
 
           <div class="skill-input-grid">
             <label class="skill-field">
-              <span id="currentSkillLabel" class="skill-field-label">Mevcut Guc</span>
+              <span id="currentSkillLabel" class="skill-field-label">Mevcut Seviye</span>
               <span class="skill-input-shell">
                 <input id="currentSkillInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="500">
                 <span class="skill-input-unit">skill</span>
@@ -153,25 +153,26 @@
             </label>
 
             <label id="targetSkillField" class="skill-field">
-              <span id="targetSkillLabel" class="skill-field-label">Hedef Guc</span>
+              <span id="targetSkillLabel" class="skill-field-label">Hedef Seviye</span>
               <span class="skill-input-shell">
-                <input id="targetSkillInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="503">
+                <input id="targetSkillInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="510">
                 <span class="skill-input-unit">skill</span>
               </span>
             </label>
 
-            <label id="goldSkillField" class="skill-field" hidden>
-              <span class="skill-field-label">Harcanacak Altin</span>
+            <label class="skill-field">
+              <span class="skill-field-label">Toplam Maliyet</span>
               <span class="skill-input-shell">
-                <input id="goldSkillInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="500000000">
+                <input id="singleTotalCost" type="text" readonly value="0">
                 <span class="skill-input-unit">altin</span>
               </span>
             </label>
           </div>
+          <p class="skill-helper-text">Mevcut + Hedef girin. İndirim açıkşa maliyet düşük gösterilir. Sağda detaylı özet var.</p>
 
           <div class="actions">
-            <button id="skillResetSingleBtn" class="button button-secondary" type="button">Ornege Don</button>
-            <button id="skillQuickExampleBtn" class="button button-primary" type="button">500 -> 503</button>
+            <button id="skillResetSingleBtn" class="button button-secondary" type="button">Sifirla</button>
+            <button id="skillQuickExampleBtn" class="button button-primary" type="button">+10 Seviye Ornegi</button>
           </div>
         </section>
 
