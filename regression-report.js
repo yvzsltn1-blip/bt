@@ -239,8 +239,9 @@ async function runRegressionAudit() {
     }
   }
 
+  const archivePersistSummary = await persistArchiveMismatches(results);
   renderAuditResults(results);
-  reportProgress.textContent = `${currentPayload.items.length} / ${currentPayload.items.length}`;
+  reportProgress.textContent = buildAuditCompletedProgressText(currentPayload.items.length, archivePersistSummary);
   rerunReportBtn.disabled = false;
 }
 
@@ -1079,6 +1080,187 @@ function buildCompareRow(label, value) {
   `;
 }
 
+function buildAuditCompletedProgressText(totalCount, archivePersistSummary) {
+  const baseText = `${totalCount} / ${totalCount}`;
+  if (!archivePersistSummary || archivePersistSummary.attempted <= 0) {
+    return baseText;
+  }
+  const parts = [];
+  if (archivePersistSummary.saved > 0) {
+    parts.push(`${archivePersistSummary.saved} wrong'a kaydedildi`);
+  }
+  if (archivePersistSummary.skipped > 0) {
+    parts.push(`${archivePersistSummary.skipped} zaten vardi`);
+  }
+  if (archivePersistSummary.failed > 0) {
+    parts.push(`${archivePersistSummary.failed} hata`);
+  }
+  return parts.length ? `${baseText} | ${parts.join(", ")}` : baseText;
+}
+
+async function persistArchiveMismatches(results) {
+  if (currentPayload?.kind !== "archive") {
+    return null;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.saveWrongReport !== "function") {
+    return null;
+  }
+
+  const changedItems = (results || []).filter((item) =>
+    item?.status === "changed" &&
+    item?.source === "archive" &&
+    item?.simulationTarget &&
+    hasAnyPositiveCounts(item.simulationTarget.enemyCounts) &&
+    hasAnyPositiveCounts(item.simulationTarget.allyCounts)
+  );
+
+  if (!changedItems.length) {
+    return { attempted: 0, saved: 0, skipped: 0, failed: 0 };
+  }
+
+  const summary = {
+    attempted: changedItems.length,
+    saved: 0,
+    skipped: 0,
+    failed: 0
+  };
+
+  for (const item of changedItems) {
+    try {
+      const payload = buildArchiveWrongReportPayload(item);
+      const isDuplicate = await archiveWrongReportExists(payload);
+      if (isDuplicate) {
+        summary.skipped += 1;
+        continue;
+      }
+      await window.BTFirebase.saveWrongReport(payload);
+      summary.saved += 1;
+    } catch (error) {
+      console.warn("Arsiv eslesmeyen sonucu wrong listesine kaydetme hatasi.", error);
+      summary.failed += 1;
+    }
+  }
+
+  return summary;
+}
+
+async function archiveWrongReportExists(payload) {
+  if (!payload?.matchSignature || typeof window.BTFirebase?.findWrongReportsByMatchSignature !== "function") {
+    return false;
+  }
+  try {
+    const existingItems = await window.BTFirebase.findWrongReportsByMatchSignature("simulation", payload.matchSignature);
+    return (existingItems || []).some((item) =>
+      String(item?.summaryText || "") === String(payload.summaryText || "") &&
+      String(item?.actualSummaryText || "") === String(payload.actualSummaryText || "")
+    );
+  } catch (error) {
+    console.warn("Arsiv wrong kaydi icin tekrar kontrolu okunamadi.", error);
+    return false;
+  }
+}
+
+function buildArchiveWrongReportPayload(item) {
+  const sourceItem = item?.sourceItem || {};
+  const enemyCounts = cloneCountMap(item?.simulationTarget?.enemyCounts || sourceItem.enemyCounts || {}, ENEMY_UNITS);
+  const allyCounts = cloneCountMap(item?.simulationTarget?.allyCounts || sourceItem.allyCounts || {}, ALLY_UNITS);
+  const replay = rerunArchiveMismatchSimulation(item, enemyCounts, allyCounts);
+  const archiveSummaryText = buildArchiveFingerprintSummaryText(item?.expected, {
+    winnerOverride: sourceItem.expectedWinner,
+    title: "ARSIV GERCEK SONUCU",
+    capacity: sourceItem.expectedUsedCapacity
+  });
+  const archiveStamp = formatDate(sourceItem.savedAt || "");
+
+  return {
+    source: "simulation",
+    sourceLabel: "Arsiv Test",
+    reportedAt: new Date().toISOString(),
+    enemyCounts,
+    allyCounts,
+    matchSignature: buildMatchSignature("simulation", enemyCounts, allyCounts),
+    summaryText: replay.summaryText,
+    logText: replay.detailText,
+    usedCapacity: Number.isFinite(Number(replay.result?.usedCapacity)) ? Number(replay.result.usedCapacity) : 0,
+    actualSummaryText: archiveSummaryText,
+    actualNote: archiveStamp
+      ? `Arsiv toplu testinden otomatik kaydedildi. Arsiv tarihi: ${archiveStamp}`
+      : "Arsiv toplu testinden otomatik kaydedildi."
+  };
+}
+
+function rerunArchiveMismatchSimulation(item, enemyCounts, allyCounts) {
+  const seed = Number.isInteger(item?.simulationTarget?.seed) ? item.simulationTarget.seed : null;
+  const roundingMode = resolveAuditRoundingMode(item?.sourceItem || item);
+
+  try {
+    const result = simulateBattle(enemyCounts, allyCounts, {
+      seed,
+      collectLog: true,
+      roundingMode
+    });
+    return {
+      result,
+      ...buildSimulationTextsFromLog(result.logText || "", seed)
+    };
+  } catch (error) {
+    console.warn("Arsiv eslesmeyen sonuc icin loglu simulasyon tekrar uretilemedi.", error);
+    return {
+      result: {
+        winner: item?.actual?.winner || "unknown",
+        lostBloodTotal: Number(item?.actual?.lostBloodTotal || 0),
+        allyLosses: cloneCountMap(item?.actual?.allyLosses || {}, ALLY_UNITS),
+        usedCapacity: Number.isFinite(Number(item?.actual?.usedCapacity)) ? Number(item.actual.usedCapacity) : 0
+      },
+      summaryText: buildArchiveFingerprintSummaryText(item?.actual, {
+        title: "SIMULASYON SONUCU",
+        capacity: item?.actual?.usedCapacity
+      }),
+      detailText: [
+        "======================  TUR  TUR  ANALIZ  ======================",
+        `  seed: ${seed ?? "-"}`,
+        "  Bu kayit icin detayli savas gunlugu tekrar uretilemedi."
+      ].join("\n")
+    };
+  }
+}
+
+function buildArchiveFingerprintSummaryText(fingerprint, options = {}) {
+  const losses = cloneCountMap(fingerprint?.allyLosses || {}, ALLY_UNITS);
+  const unitLines = [];
+  let totalUnits = 0;
+  let totalBlood = 0;
+
+  ALLY_UNITS.forEach((unit) => {
+    const count = Number(losses?.[unit.key] || 0);
+    if (count <= 0) {
+      return;
+    }
+    const blood = count * Number(window.BattleCore?.BLOOD_BY_ALLY_KEY?.[unit.key] || 0);
+    totalUnits += count;
+    totalBlood += blood;
+    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
+  });
+
+  const winner = options.winnerOverride || fingerprint?.winner || "unknown";
+  const outcomeLine = winner === "enemy"
+    ? ">> Muttefikler yenildi"
+    : (winner === "ally" ? ">> Dusman yenildi" : ">> Sonuc belirsiz");
+  const capacityValue = Number.isFinite(Number(options.capacity)) ? Number(options.capacity) : null;
+
+  return [
+    `======================  ${String(options.title || "SAVAS SONUCU").padEnd(18)} ======================`,
+    outcomeLine,
+    "",
+    "Kayip Birlikler",
+    ...(unitLines.length ? unitLines : ["  (kayip yok)"]),
+    "",
+    `= ${String(totalUnits).padStart(3)} toplam ${"".padEnd(21)} (${totalBlood} kan)`,
+    "--------------------------------------------------",
+    `Toplam birlik kapasitesi: ${formatNullableNumber(capacityValue)}`
+  ].join("\n");
+}
+
 async function promoteMatchedWrongReports() {
   if (currentPayload?.kind !== "wrong") {
     return;
@@ -1411,6 +1593,20 @@ function buildMatchSignature(source, enemyCounts, allyCounts) {
 
 function buildEnemyTitle(enemyCounts) {
   return buildRosterLabel(enemyCounts, ENEMY_UNITS, 2) || "Versus";
+}
+
+function getSummaryUnitName(key) {
+  const names = {
+    bats: "Yarasa Surusu (T1)",
+    ghouls: "Gulyabani (T2)",
+    thralls: "Vampir Kole (T3)",
+    banshees: "Banshee (T4)",
+    necromancers: "Olu Cagirici (T5)",
+    gargoyles: "Gargoyle (T6)",
+    witches: "Kan Cadisi (T7)",
+    rotmaws: "Curuk Girtlak (T8)"
+  };
+  return names[key] || key;
 }
 
 function normalizeStoredRoundingMode(mode) {
