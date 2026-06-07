@@ -258,6 +258,29 @@ service cloud.firestore {
         && (!('pageTitle' in data) || isShortString(data.pageTitle, 160));
     }
 
+    function validGrotteArchive(data, documentId) {
+      return documentId.matches('^grotte_[0-9]+_[a-z0-9]+_[0-9]+$')
+        && data.keys().hasOnly([
+          'savedAt', 'sessionId', 'reportId', 'runIndex', 'difficulty',
+          'levelValue', 'lootGoldValue', 'expValue', 'host', 'pageUrl', 'pageTitle'
+        ])
+        && data.keys().hasAll([
+          'savedAt', 'sessionId', 'reportId', 'runIndex', 'difficulty',
+          'levelValue', 'lootGoldValue', 'expValue'
+        ])
+        && isShortString(data.savedAt, 40)
+        && isShortString(data.sessionId, 60)
+        && isShortString(data.reportId, 40)
+        && isWideInt(data.runIndex, 999999)
+        && data.difficulty in ['kolay', 'orta', 'zor']
+        && isWideInt(data.levelValue, 9999999)
+        && isWideInt(data.lootGoldValue, 9999999999999)
+        && isWideInt(data.expValue, 9999999999999)
+        && (!('host' in data) || isShortString(data.host, 120))
+        && (!('pageUrl' in data) || isShortString(data.pageUrl, 400))
+        && (!('pageTitle' in data) || isTextString(data.pageTitle, 160));
+    }
+
     match /approvedStrategies/{documentId} {
       allow read: if true;
       allow create, update: if validApprovedStrategy(request.resource.data, documentId);
@@ -280,6 +303,13 @@ service cloud.firestore {
       allow read: if true;
       allow create: if validOverviewArchive(request.resource.data, documentId);
       allow update: if isAdmin() || validOverviewArchive(request.resource.data, documentId);
+      allow delete: if isAdmin();
+    }
+
+    match /grotteArchives/{documentId} {
+      allow read: if true;
+      allow create: if validGrotteArchive(request.resource.data, documentId);
+      allow update: if isAdmin() || validGrotteArchive(request.resource.data, documentId);
       allow delete: if isAdmin();
     }
 
