@@ -7473,3 +7473,299 @@ body[data-optimizer-variant="quick"] .controls-panel {
 .skill-breakdown-list::-webkit-scrollbar-thumb:hover {
   background: rgba(255,255,255,0.2);
 }
+
+/* ==========================================================================
+   Premium Test Results Card Styling
+   ========================================================================== */
+.test-result-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(160, 185, 214, 0.12);
+  background: linear-gradient(145deg, rgba(20, 30, 45, 0.55) 0%, rgba(13, 18, 28, 0.8) 100%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-bottom: 12px;
+}
+
+.test-result-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(108, 182, 255, 0.3);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35), 0 0 15px rgba(108, 182, 255, 0.08);
+}
+
+.trc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid rgba(160, 185, 214, 0.08);
+  padding-bottom: 12px;
+}
+
+.trc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trc-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trc-stage-badge {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.trc-host-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(108, 182, 255, 0.15);
+  color: var(--accent-strong);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(108, 182, 255, 0.2);
+  letter-spacing: 0.02em;
+}
+
+.trc-date {
+  font-size: 0.76rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trc-date svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+.trc-status-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.test-result-card.pass .trc-status-badge {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.05);
+}
+
+.test-result-card.fail .trc-status-badge {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.05);
+}
+
+.test-result-card.skipped .trc-status-badge {
+  background: rgba(156, 163, 175, 0.12);
+  color: #cbd5e1;
+  border: 1px solid rgba(156, 163, 175, 0.25);
+}
+
+.trc-rosters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.trc-roster-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(160, 185, 214, 0.06);
+}
+
+.trc-roster-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trc-roster-label.ally {
+  color: var(--ally);
+}
+
+.trc-roster-label.enemy {
+  color: var(--enemy);
+}
+
+.trc-roster-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.trc-roster-label.ally .trc-roster-dot {
+  background-color: var(--ally);
+  box-shadow: 0 0 6px var(--ally);
+}
+
+.trc-roster-label.enemy .trc-roster-dot {
+  background-color: var(--enemy);
+  box-shadow: 0 0 6px var(--enemy);
+}
+
+.trc-roster-code {
+  font-family: "Consolas", "Courier New", Courier, monospace;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  word-break: break-all;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+}
+
+.trc-metrics-table {
+  background: rgba(10, 15, 24, 0.35);
+  border-radius: 12px;
+  border: 1px solid rgba(160, 185, 214, 0.08);
+  overflow: hidden;
+}
+
+.trc-grid-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 1fr;
+  border-bottom: 1px solid rgba(160, 185, 214, 0.05);
+}
+
+.trc-grid-row:last-child {
+  border-bottom: none;
+}
+
+.trc-grid-row.header {
+  background: rgba(108, 182, 255, 0.05);
+  font-weight: 700;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+  border-bottom: 1px solid rgba(108, 182, 255, 0.12);
+}
+
+.trc-cell {
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+}
+
+.trc-cell.metric-name {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.76rem;
+  border-right: 1px solid rgba(160, 185, 214, 0.05);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.trc-cell.val {
+  color: #edf2f7;
+}
+
+.trc-cell.val.expected {
+  border-right: 1px solid rgba(160, 185, 214, 0.05);
+}
+
+.trc-cell.status-match {
+  color: #4ade80 !important;
+}
+
+.trc-cell.status-mismatch {
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.05);
+  font-weight: 700;
+}
+
+.trc-winner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.trc-winner-badge.ally-win {
+  color: #4ade80;
+}
+
+.trc-winner-badge.enemy-win {
+  color: #f87171;
+}
+
+.trc-diff-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.trc-diff-banner svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.trc-note-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid rgba(108, 182, 255, 0.4);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  .trc-grid-row {
+    grid-template-columns: 100px 1fr 1fr;
+    font-size: 0.78rem;
+  }
+  .trc-cell {
+    padding: 8px 10px;
+  }
+  .trc-rosters {
+    grid-template-columns: 1fr;
+  }
+}

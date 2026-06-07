@@ -155,40 +155,119 @@ function renderTestsList(items) {
 
 function buildTestCard(item) {
   const card = document.createElement("article");
-  card.className = "report-insight-card";
-  card.style.marginBottom = "10px";
+  card.className = `test-result-card ${item?.result || "skipped"}`;
 
-  const stageLabel = Number.isInteger(item?.stage) ? `${item.stage}. Kademe` : "Arsiv Kaydi";
+  const stageLabel = Number.isInteger(item?.stage) ? `${item.stage}. Kat` : "Arsiv Kaydi";
   const hostLabel = shortHost(item?.host);
-  const resultBadge = item?.result === "pass" ? "DOGRU" : (item?.result === "fail" ? "YANLIS" : "ATLANDI");
-  const badgeColor = item?.result === "pass" ? "#22c55e" : (item?.result === "fail" ? "#ef4444" : "#9ca3af");
+  const resultBadgeText = item?.result === "pass" ? "DOGRU" : (item?.result === "fail" ? "YANLIS" : "ATLANDI");
 
-  const rows = [];
-  rows.push(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-    <strong>${escapeHtml(stageLabel)}${hostLabel ? ` / ${escapeHtml(hostLabel)}` : ""}</strong>
-    <span style="font-weight:700;color:${badgeColor};">${resultBadge}</span>
-  </div>`);
-  if (item?.archiveSavedAt) {
-    rows.push(`<small>Arsiv tarihi: ${escapeHtml(formatStamp(item.archiveSavedAt))}</small>`);
-  }
-  rows.push(`<div style="margin-top:6px;">Rakip: ${escapeHtml(item?.enemyRosterText || "-")}</div>`);
-  rows.push(`<div>Biz: ${escapeHtml(item?.allyRosterText || "-")}</div>`);
+  let headerHtml = `
+    <div class="trc-header">
+      <div class="trc-info">
+        <div class="trc-title-row">
+          <span class="trc-stage-badge">${escapeHtml(stageLabel)}</span>
+          ${hostLabel ? `<span class="trc-host-tag">${escapeHtml(hostLabel)}</span>` : ""}
+        </div>
+        ${item?.archiveSavedAt ? `
+          <span class="trc-date">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            Arsiv tarihi: ${escapeHtml(formatStamp(item.archiveSavedAt))}
+          </span>
+        ` : ""}
+      </div>
+      <span class="trc-status-badge">${resultBadgeText}</span>
+    </div>
+  `;
 
+  let rostersHtml = `
+    <div class="trc-rosters">
+      <div class="trc-roster-box">
+        <span class="trc-roster-label ally">
+          <span class="trc-roster-dot"></span> Biz
+        </span>
+        <code class="trc-roster-code">${escapeHtml(item?.allyRosterText || "-")}</code>
+      </div>
+      <div class="trc-roster-box">
+        <span class="trc-roster-label enemy">
+          <span class="trc-roster-dot"></span> Rakip
+        </span>
+        <code class="trc-roster-code">${escapeHtml(item?.enemyRosterText || "-")}</code>
+      </div>
+    </div>
+  `;
+
+  let comparisonHtml = "";
   if (item?.result !== "skipped") {
-    rows.push(`<div style="margin-top:6px;">Gerceklesen sonuc: ${escapeHtml(formatWinner(item?.expectedWinner))}</div>`);
-    rows.push(`<div>Simulator sonucu: ${escapeHtml(formatWinner(item?.actualWinner))}</div>`);
-    rows.push(`<div>Gerceklesen kayip: ${formatNumber(item?.expectedLostBlood)} ; Simulator sonucu: ${formatNumber(item?.actualLostBlood)}</div>`);
-    rows.push(`<div>Gerceklesen kayip birlik: ${escapeHtml(formatLosses(item?.expectedAllyLosses))}</div>`);
-    rows.push(`<div>Simulator kayip birlik: ${escapeHtml(formatLosses(item?.actualAllyLosses))}</div>`);
-  }
-  if (item?.differences) {
-    rows.push(`<div style="margin-top:6px;color:#f59e0b;">Farklar: ${escapeHtml(item.differences)}</div>`);
-  }
-  if (item?.note) {
-    rows.push(`<div style="margin-top:6px;"><small>${escapeHtml(item.note)}</small></div>`);
+    const expWinner = item?.expectedWinner;
+    const actWinner = item?.actualWinner;
+    const expWinnerStr = formatWinner(expWinner);
+    const actWinnerStr = formatWinner(actWinner);
+    
+    const expBlood = item?.expectedLostBlood;
+    const actBlood = item?.actualLostBlood;
+    const expBloodStr = formatNumber(expBlood);
+    const actBloodStr = formatNumber(actBlood);
+    
+    const expLossStr = formatLosses(item?.expectedAllyLosses);
+    const actLossStr = formatLosses(item?.actualAllyLosses);
+
+    const winnerClass = expWinner === actWinner ? "status-match" : "status-mismatch";
+    const bloodClass = expBlood === actBlood ? "status-match" : "status-mismatch";
+    const lossClass = expLossStr === actLossStr ? "status-match" : "status-mismatch";
+
+    const expWinnerBadgeClass = expWinner === "ally" ? "ally-win" : (expWinner === "enemy" ? "enemy-win" : "");
+    const actWinnerBadgeClass = actWinner === "ally" ? "ally-win" : (actWinner === "enemy" ? "enemy-win" : "");
+
+    comparisonHtml = `
+      <div class="trc-metrics-table">
+        <div class="trc-grid-row header">
+          <div class="trc-cell">Metrik</div>
+          <div class="trc-cell">Gerceklesen (Arsiv)</div>
+          <div class="trc-cell">Simulator</div>
+        </div>
+        <div class="trc-grid-row">
+          <div class="trc-cell metric-name">Sonuc</div>
+          <div class="trc-cell val expected ${winnerClass}">
+            <span class="trc-winner-badge ${expWinnerBadgeClass}">${escapeHtml(expWinnerStr)}</span>
+          </div>
+          <div class="trc-cell val actual ${winnerClass}">
+            <span class="trc-winner-badge ${actWinnerBadgeClass}">${escapeHtml(actWinnerStr)}</span>
+          </div>
+        </div>
+        <div class="trc-grid-row">
+          <div class="trc-cell metric-name">Kayip Saglik</div>
+          <div class="trc-cell val expected ${bloodClass}">${escapeHtml(expBloodStr)}</div>
+          <div class="trc-cell val actual ${bloodClass}">${escapeHtml(actBloodStr)}</div>
+        </div>
+        <div class="trc-grid-row">
+          <div class="trc-cell metric-name">Kayip Birlik</div>
+          <div class="trc-cell val expected ${lossClass}">${escapeHtml(expLossStr)}</div>
+          <div class="trc-cell val actual ${lossClass}">${escapeHtml(actLossStr)}</div>
+        </div>
+      </div>
+    `;
   }
 
-  card.innerHTML = rows.join("");
+  let differencesHtml = "";
+  if (item?.differences) {
+    differencesHtml = `
+      <div class="trc-diff-banner">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+        <div><strong>Farklar:</strong> ${escapeHtml(item.differences)}</div>
+      </div>
+    `;
+  }
+
+  let noteHtml = "";
+  if (item?.note) {
+    noteHtml = `
+      <div class="trc-note-box">
+        <strong>Not:</strong> ${escapeHtml(item.note)}
+      </div>
+    `;
+  }
+
+  card.innerHTML = [headerHtml, rostersHtml, comparisonHtml, differencesHtml, noteHtml].filter(Boolean).join("");
   return card;
 }
 
@@ -212,7 +291,7 @@ function downloadActiveTabTxt() {
     .slice()
     .sort((a, b) => String(b?.testedAt || "").localeCompare(String(a?.testedAt || "")))
     .forEach((item, index) => {
-      const stageLabel = Number.isInteger(item?.stage) ? `${item.stage}. Kademe` : "Arsiv Kaydi";
+      const stageLabel = Number.isInteger(item?.stage) ? `${item.stage}. Kat` : "Arsiv Kaydi";
       lines.push(`#${index + 1} ${stageLabel}${item?.host ? ` / ${shortHost(item.host)}` : ""}`);
       if (item?.archiveSavedAt) {
         lines.push(`Tarih: ${formatStamp(item.archiveSavedAt)}`);
