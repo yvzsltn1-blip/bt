@@ -258,6 +258,40 @@ service cloud.firestore {
         && (!('pageTitle' in data) || isShortString(data.pageTitle, 160));
     }
 
+    function validArchiveRegressionTest(data, documentId) {
+      return documentId.matches('^arctest_[0-9a-f]+$')
+        && data.keys().hasOnly([
+          'matchSignature', 'result', 'host', 'stage', 'testedAt',
+          'enemyCounts', 'allyCounts',
+          'expectedWinner', 'expectedLostBlood', 'expectedAllyLosses',
+          'actualWinner', 'actualLostBlood', 'actualAllyLosses',
+          'differences', 'note', 'archiveId', 'archiveSavedAt',
+          'enemyRosterText', 'allyRosterText'
+        ])
+        && data.keys().hasAll([
+          'matchSignature', 'result', 'testedAt', 'enemyCounts', 'allyCounts'
+        ])
+        && isShortString(data.matchSignature, 200)
+        && data.result in ['pass', 'fail', 'skipped']
+        && (!('host' in data) || isTextString(data.host, 120))
+        && (!('stage' in data) || data.stage == null || (data.stage is int && data.stage >= 0 && data.stage <= 9999))
+        && isShortString(data.testedAt, 40)
+        && data.enemyCounts is map
+        && data.allyCounts is map
+        && (!('expectedWinner' in data) || data.expectedWinner in ['ally', 'enemy', 'unknown'])
+        && (!('expectedLostBlood' in data) || data.expectedLostBlood == null || (data.expectedLostBlood is int && data.expectedLostBlood >= 0 && data.expectedLostBlood <= 999999))
+        && (!('expectedAllyLosses' in data) || data.expectedAllyLosses is map)
+        && (!('actualWinner' in data) || data.actualWinner in ['ally', 'enemy', 'unknown'])
+        && (!('actualLostBlood' in data) || data.actualLostBlood == null || (data.actualLostBlood is int && data.actualLostBlood >= 0 && data.actualLostBlood <= 999999))
+        && (!('actualAllyLosses' in data) || data.actualAllyLosses is map)
+        && (!('differences' in data) || isTextString(data.differences, 2000))
+        && (!('note' in data) || isTextString(data.note, 2000))
+        && (!('archiveId' in data) || isTextString(data.archiveId, 120))
+        && (!('archiveSavedAt' in data) || isTextString(data.archiveSavedAt, 40))
+        && (!('enemyRosterText' in data) || isTextString(data.enemyRosterText, 160))
+        && (!('allyRosterText' in data) || isTextString(data.allyRosterText, 160));
+    }
+
     function validGrotteArchive(data, documentId) {
       return documentId.matches('^grotte_[0-9]+_[a-z0-9]+_[0-9]+$')
         && data.keys().hasOnly([
@@ -303,6 +337,12 @@ service cloud.firestore {
       allow read: if true;
       allow create: if validOverviewArchive(request.resource.data, documentId);
       allow update: if isAdmin() || validOverviewArchive(request.resource.data, documentId);
+      allow delete: if isAdmin();
+    }
+
+    match /archiveRegressionTests/{documentId} {
+      allow read: if true;
+      allow create, update: if validArchiveRegressionTest(request.resource.data, documentId);
       allow delete: if isAdmin();
     }
 

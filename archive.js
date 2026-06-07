@@ -15,6 +15,7 @@ const archiveHoursFilterInput = document.querySelector("#archiveHoursFilterInput
 const archiveDatePresetSelect = document.querySelector("#archiveDatePresetSelect");
 const archiveHostFilterSelect = document.querySelector("#archiveHostFilterSelect");
 const archivePageSizeSelect = document.querySelector("#archivePageSizeSelect");
+const archiveTestStatusFilterSelect = document.querySelector("#archiveTestStatusFilterSelect");
 const archiveResetFiltersBtn = document.querySelector("#archiveResetFiltersBtn");
 const archiveRefreshBtn = document.querySelector("#archiveRefreshBtn");
 const archiveBulkRegressionBtn = document.querySelector("#archiveBulkRegressionBtn");
@@ -22,6 +23,8 @@ const archiveBulkRegressionModeSelect = document.querySelector("#archiveBulkRegr
 const archiveBulkRegressionLimitInput = document.querySelector("#archiveBulkRegressionLimitInput");
 const archiveFilteredCountValue = document.querySelector("#archiveFilteredCountValue");
 const archiveFilteredCountHint = document.querySelector("#archiveFilteredCountHint");
+const archiveTestedCountValue = document.querySelector("#archiveTestedCountValue");
+const archiveTestedCountHint = document.querySelector("#archiveTestedCountHint");
 const archiveFilteredExpValue = document.querySelector("#archiveFilteredExpValue");
 const archiveFilteredLootValue = document.querySelector("#archiveFilteredLootValue");
 const archiveTodayExpValue = document.querySelector("#archiveTodayExpValue");
@@ -70,6 +73,10 @@ const ARCHIVE_DEFAULT_HOST = "s66-tr.bitefight.gameforge.com";
 const ARCHIVE_HOST_OPTIONS = new Set(["", "s66-tr.bitefight.gameforge.com", "s62-tr.bitefight.gameforge.com"]);
 function normalizeArchiveHost(value) {
   return ARCHIVE_HOST_OPTIONS.has(value) ? value : ARCHIVE_DEFAULT_HOST;
+}
+const ARCHIVE_TEST_STATUS_OPTIONS = new Set(["all", "tested", "untested"]);
+function normalizeTestStatusFilter(value) {
+  return ARCHIVE_TEST_STATUS_OPTIONS.has(value) ? value : "all";
 }
 const ARCHIVE_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV5";
@@ -130,6 +137,9 @@ const archiveState = {
     host: ARCHIVE_DEFAULT_HOST
   },
   firstX: 10,
+  // Istemci tarafi gorunum filtresi: "all" | "tested" | "untested". Sunucu sorgusunu
+  // degistirmez, yalnizca yuklu kayitlari test durumuna gore eler.
+  testStatusFilter: "all",
   pageSize: DEFAULT_PAGE_SIZE,
   visibleLimit: DEFAULT_PAGE_SIZE,
   selectedIds: new Set(),
@@ -148,10 +158,13 @@ const archiveState = {
   levelBounds: buildEmptyLevelBounds()
 };
 
+let archiveTestResultsCache = [];
+
 bindArchiveControls();
 bindArchiveEditModal();
 void bindAdminAuth();
 void refreshArchiveView();
+void refreshArchiveTestedStats();
 
 archivePrevPageBtn?.addEventListener("click", () => {
   archiveState.tailMode = false;
@@ -324,6 +337,25 @@ function bindArchiveControls() {
     void refreshArchiveView();
   });
 
+  archiveTestStatusFilterSelect?.addEventListener("change", async () => {
+    archiveState.testStatusFilter = normalizeTestStatusFilter(archiveTestStatusFilterSelect.value);
+    // Filtrelenmis gorunum ilk sayfadan baslasin.
+    archiveState.visibleLimit = archiveState.pageSize;
+    if (archiveState.testStatusFilter !== "all") {
+      // Test durumuna gore eleme yapabilmek icin test sonuc cache'i dolu olmali.
+      if (!(archiveTestResultsCache && archiveTestResultsCache.length)) {
+        await refreshArchiveTestedStats();
+      }
+      // "Son 40" (tail) modundan cik; filtre tum arsivi kapsamali.
+      archiveState.tailMode = false;
+      archiveState.tailItems = [];
+      // Filtre tum arsivi tarayabilsin diye kalan tum kayitlari yukle.
+      archiveList.innerHTML = '<p class="summary-empty">Test durumuna gore tum arsiv taraniyor...</p>';
+      await ensureAllArchiveItemsLoaded();
+    }
+    renderArchivePage();
+  });
+
   archiveResetFiltersBtn?.addEventListener("click", () => {
     resetArchiveFilters();
     void refreshArchiveView();
@@ -331,6 +363,7 @@ function bindArchiveControls() {
 
   archiveRefreshBtn?.addEventListener("click", () => {
     void refreshArchiveView({ forceRemote: true });
+    void refreshArchiveTestedStats();
   });
 
   archiveBulkRegressionBtn?.addEventListener("click", async () => {
@@ -339,9 +372,11 @@ function bindArchiveControls() {
       return;
     }
 
-    const mode = archiveBulkRegressionModeSelect?.value === "selected" ? "selected" : "first_n";
+    const rawMode = archiveBulkRegressionModeSelect?.value;
+    const mode = ["selected", "all", "untested"].includes(rawMode) ? rawMode : "first_n";
     const limit = Math.max(1, Math.min(500, Number.parseInt(archiveBulkRegressionLimitInput?.value || String(archiveState.pageSize), 10) || archiveState.pageSize));
     let regressionItems = [];
+    let testedSignatures = new Set();
 
     archiveBulkRegressionBtn.disabled = true;
     try {
@@ -354,6 +389,18 @@ function bindArchiveControls() {
           }
         });
         regressionItems = [...selectionPool.values()].filter((item) => archiveState.selectedIds.has(item?.id));
+      } else if (mode === "all" || mode === "untested") {
+        // Tum host kayitlarini yukle (artimli test icin gerekli).
+        await ensureAllArchiveItemsLoaded();
+        regressionItems = archiveState.loadedItems.slice();
+        if (mode === "untested" && window.BTFirebase && typeof window.BTFirebase.loadArchiveRegressionTests === "function") {
+          try {
+            await window.BTFirebase.loadArchiveRegressionTests();
+            testedSignatures = window.BTFirebase.getArchiveRegressionTestedSignatures();
+          } catch (error) {
+            console.warn("Test edilmis kayitlar okunamadi.", error);
+          }
+        }
       } else {
         await ensureArchiveItemsLoadedUntil(limit);
         regressionItems = archiveState.loadedItems.slice(0, limit);
@@ -367,19 +414,43 @@ function bindArchiveControls() {
       return;
     }
 
+    // Hazirla, ayni savaslari (matchSignature) teklestir ve untested modunda zaten test
+    // edilmis benzersiz savaslari listeden cikar.
+    const rawPrepared = typeof window.BulkBattleRegression.prepareArchiveItems === "function"
+      ? window.BulkBattleRegression.prepareArchiveItems(regressionItems)
+      : regressionItems;
+    const seenSignatures = new Set();
+    const preparedItems = rawPrepared.filter((item) => {
+      const signature = item?.matchSignature || "";
+      if (signature && seenSignatures.has(signature)) {
+        return false;
+      }
+      if (signature) {
+        seenSignatures.add(signature);
+      }
+      if (mode === "untested" && signature && testedSignatures.has(signature)) {
+        return false;
+      }
+      return true;
+    });
+
+    if (!preparedItems.length) {
+      window.alert(mode === "untested"
+        ? "Test edilmeyen yeni kayit bulunamadi. Tum benzersiz savaslar zaten test edilmis."
+        : "Toplu test icin uygun kayit yok.");
+      return;
+    }
+
     window.BulkBattleRegression.openReportPage({
       kind: "archive",
       title: "Arsiv Toplu Test",
-      scopeLabel: mode === "selected"
-        ? buildArchiveRegressionSelectedScopeLabel(regressionItems.length)
-        : buildArchiveRegressionFirstNScopeLabel(regressionItems.length),
-      selectedCount: regressionItems.length,
-      totalCount: regressionItems.length,
+      scopeLabel: buildArchiveRegressionScopeLabelForMode(mode, preparedItems.length, regressionItems.length),
+      selectedCount: preparedItems.length,
+      totalCount: preparedItems.length,
+      persistResults: true,
       backHref: "archive.html",
       backLabel: "Arsiv",
-      items: typeof window.BulkBattleRegression.prepareArchiveItems === "function"
-        ? window.BulkBattleRegression.prepareArchiveItems(regressionItems)
-        : regressionItems
+      items: preparedItems
     });
   });
 
@@ -468,6 +539,16 @@ async function refreshArchiveView(options = {}) {
 
   archiveState.readSource = pageResult?.readSource || archiveState.readSource;
   renderArchiveHeader();
+
+  // Test durumu filtresi aktifse, filtre tum arsivi kapsasin diye kalan kayitlari yukle.
+  if ((archiveState.testStatusFilter || "all") !== "all") {
+    archiveState.visibleLimit = archiveState.pageSize;
+    await ensureAllArchiveItemsLoaded();
+    if (requestToken !== archiveRequestToken) {
+      return;
+    }
+  }
+
   renderArchivePage();
 }
 
@@ -723,6 +804,7 @@ function renderArchiveAggregates() {
 
   setText(archiveFilteredCountValue, formatNumber(getArchiveDisplayedTotalCount(filteredAggregate)));
   setText(archiveFilteredCountHint, filteredAggregate.exact ? "Tum filtreler icin toplam" : "Cache uzerinden yaklasik");
+  updateArchiveTestedCard();
   setText(archiveFilteredExpValue, formatNumber(filteredAggregate.totalExp));
   setText(archiveFilteredLootValue, formatNumber(filteredAggregate.totalLoot));
   setText(archiveTodayExpValue, `${formatNumber(todayAggregate.totalExp)} EXP`);
@@ -771,10 +853,57 @@ function updateLevelDifference() {
   }
 }
 
+function getArchiveTestedSignatureSet() {
+  const set = new Set();
+  (archiveTestResultsCache || []).forEach((item) => {
+    const signature = typeof item?.matchSignature === "string" ? item.matchSignature : "";
+    if (signature) {
+      set.add(signature);
+    }
+  });
+  return set;
+}
+
+// Arsiv kayitlarinda matchSignature saklanmaz; test sonuclariyla eslestirmek icin
+// toplu testin kullandigi ayni imzayi (buildArchiveBattleSignature) rosterlardan uretiriz.
+function getArchiveItemSignature(item) {
+  if (item?.matchSignature) {
+    return item.matchSignature;
+  }
+  const BBR = window.BulkBattleRegression;
+  if (!BBR || typeof BBR.buildArchiveBattleSignature !== "function") {
+    return "";
+  }
+  try {
+    const enemyCounts = BBR.parseArchiveEnemyCounts(item?.enemyRosterText || "");
+    const allyCounts = BBR.parseArchiveAllyCounts(item?.allyRosterText || "");
+    return BBR.buildArchiveBattleSignature(enemyCounts, allyCounts);
+  } catch {
+    return "";
+  }
+}
+
+// "Test yapilanlar" / "Test yapilmayanlar" gorunum filtresini yuklu kayitlara uygular.
+function applyArchiveTestStatusFilter(items) {
+  const mode = archiveState.testStatusFilter || "all";
+  if (mode === "all") {
+    return items;
+  }
+  const testedSignatures = getArchiveTestedSignatureSet();
+  return items.filter((item) => {
+    const signature = getArchiveItemSignature(item);
+    const isTested = Boolean(signature) && testedSignatures.has(signature);
+    return mode === "tested" ? isTested : !isTested;
+  });
+}
+
 function renderArchivePage() {
   if (!archiveList || !archivePagination || !archivePageInfo || !archivePrevPageBtn || !archiveNextPageBtn || !archivePageNumbers) {
     return;
   }
+
+  const testMode = archiveState.testStatusFilter || "all";
+  const testFilterActive = testMode !== "all";
 
   const hasAnyItems = archiveState.tailMode
     ? archiveState.tailItems.length > 0
@@ -786,9 +915,24 @@ function renderArchivePage() {
     return;
   }
 
+  // Test filtresi aktifken TUM yuklu kayitlar arasindan filtrele, sonra sayfa limitine kes.
+  // (Filtre degisiminde tum arsiv yuklendigi icin bu, arsivin tamamini kapsar.)
+  const filteredSource = archiveState.tailMode
+    ? applyArchiveTestStatusFilter(archiveState.tailItems)
+    : (testFilterActive ? applyArchiveTestStatusFilter(archiveState.loadedItems) : archiveState.loadedItems);
+
   const pageItems = archiveState.tailMode
-    ? archiveState.tailItems
-    : archiveState.loadedItems.slice(0, archiveState.visibleLimit);
+    ? filteredSource
+    : filteredSource.slice(0, archiveState.visibleLimit);
+
+  if (!pageItems.length) {
+    archiveList.innerHTML = `<p class="summary-empty">${testFilterActive
+      ? (testMode === "tested" ? "Test yapilan kayit bulunamadi." : "Test yapilmayan kayit bulunamadi.")
+      : "Bu filtrelerde kayit bulunamadi."}</p>`;
+    archivePagination.hidden = true;
+    renderArchiveSelectionSummary();
+    return;
+  }
   archiveList.innerHTML = `
     <div class="archive-table-wrap archive-table-desktop">
       <table class="archive-table">
@@ -814,14 +958,19 @@ function renderArchivePage() {
     </div>
   `;
 
-  const totalCount = getArchiveDisplayedTotalCount(archiveState.aggregates.filtered || buildEmptyAggregate());
+  const totalCount = testFilterActive
+    ? filteredSource.length
+    : getArchiveDisplayedTotalCount(archiveState.aggregates.filtered || buildEmptyAggregate());
 
   const hasMoreVisible = !archiveState.tailMode
-    && (pageItems.length < archiveState.loadedItems.length || archiveState.remoteHasMore);
-  // Birden fazla sayfa var mi? (Son 40 butonu icin)
-  const hasMultiplePages = archiveState.remoteHasMore
-    || archiveState.loadedItems.length > archiveState.pageSize
-    || totalCount > archiveState.pageSize;
+    && (testFilterActive
+      ? pageItems.length < filteredSource.length
+      : (pageItems.length < archiveState.loadedItems.length || archiveState.remoteHasMore));
+  // Birden fazla sayfa var mi? (Son 40 butonu icin) - test filtresinde gizli.
+  const hasMultiplePages = !testFilterActive
+    && (archiveState.remoteHasMore
+      || archiveState.loadedItems.length > archiveState.pageSize
+      || totalCount > archiveState.pageSize);
 
   archivePagination.hidden = !archiveState.tailMode && !hasMoreVisible && pageItems.length <= archiveState.pageSize;
   archivePageInfo.textContent = archiveState.tailMode
@@ -848,10 +997,15 @@ function renderArchivePage() {
 }
 
 function getVisibleArchiveItems() {
+  const testMode = archiveState.testStatusFilter || "all";
   if (archiveState.tailMode) {
-    return archiveState.tailItems;
+    return applyArchiveTestStatusFilter(archiveState.tailItems);
   }
-  return archiveState.loadedItems.slice(0, archiveState.visibleLimit);
+  if (testMode === "all") {
+    return archiveState.loadedItems.slice(0, archiveState.visibleLimit);
+  }
+  // Test filtresi: tum yuklu kayitlari filtrele, sonra gorunur sayfaya kes.
+  return applyArchiveTestStatusFilter(archiveState.loadedItems).slice(0, archiveState.visibleLimit);
 }
 
 function setVisibleArchiveSelection(selected) {
@@ -1432,6 +1586,10 @@ function resetArchiveFilters() {
     host: ARCHIVE_DEFAULT_HOST
   };
   archiveState.pageSize = DEFAULT_PAGE_SIZE;
+  archiveState.testStatusFilter = "all";
+  if (archiveTestStatusFilterSelect) {
+    archiveTestStatusFilterSelect.value = "all";
+  }
   if (archiveLevelFilterInput) {
     archiveLevelFilterInput.value = "";
   }
@@ -1698,4 +1856,45 @@ function buildArchiveRegressionFirstNScopeLabel(count) {
 
 function buildArchiveRegressionSelectedScopeLabel(count) {
   return count === 1 ? "Secili 1 arsiv kaydi" : `Secili ${count} arsiv kaydi`;
+}
+
+async function refreshArchiveTestedStats() {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadArchiveRegressionTests !== "function") {
+    return;
+  }
+  try {
+    archiveTestResultsCache = await window.BTFirebase.loadArchiveRegressionTests();
+  } catch (error) {
+    console.warn("Test sonuclari okunamadi.", error);
+  }
+  updateArchiveTestedCard();
+}
+
+function updateArchiveTestedCard() {
+  if (!archiveTestedCountValue) {
+    return;
+  }
+  const host = archiveState.filters?.host || "";
+  const relevant = (archiveTestResultsCache || []).filter((item) => !host || String(item?.host || "") === host);
+  const pass = relevant.filter((item) => item?.result === "pass").length;
+  const fail = relevant.filter((item) => item?.result === "fail").length;
+  const skipped = relevant.filter((item) => item?.result === "skipped").length;
+  setText(archiveTestedCountValue, formatNumber(relevant.length));
+  if (archiveTestedCountHint) {
+    archiveTestedCountHint.textContent =
+      `${formatNumber(pass)} dogru / ${formatNumber(fail)} yanlis${skipped ? ` / ${formatNumber(skipped)} atlandi` : ""}`;
+  }
+}
+
+function buildArchiveRegressionScopeLabelForMode(mode, uniqueCount, rawCount) {
+  if (mode === "selected") {
+    return buildArchiveRegressionSelectedScopeLabel(uniqueCount);
+  }
+  if (mode === "all") {
+    return `Tum arsiv (${uniqueCount} benzersiz savas / ${rawCount} kayit)`;
+  }
+  if (mode === "untested") {
+    return `Test edilmeyen ${uniqueCount} benzersiz savas`;
+  }
+  return buildArchiveRegressionFirstNScopeLabel(uniqueCount);
 }

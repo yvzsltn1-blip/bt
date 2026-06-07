@@ -239,7 +239,7 @@ async function runRegressionAudit() {
     }
   }
 
-  const archivePersistSummary = await persistArchiveMismatches(results);
+  const archivePersistSummary = await persistArchiveTestResults(results);
   renderAuditResults(results);
   reportProgress.textContent = buildAuditCompletedProgressText(currentPayload.items.length, archivePersistSummary);
   rerunReportBtn.disabled = false;
@@ -622,11 +622,13 @@ function buildComparedRecord(item, details) {
 function buildSkippedRecord(item, title, reason) {
   return {
     id: item.id || "",
+    source: item.source || "simulation",
     status: "skipped",
     title: buildRecordTitle(item),
     subtitle: buildRecordSubtitle(item),
     skipTitle: title,
     skipReason: reason,
+    sourceItem: item,
     versusLabel: buildRosterLabel(item.enemyCounts, ENEMY_UNITS, 2) || item.enemyTitle || "Versus"
   };
 }
@@ -728,12 +730,11 @@ function downloadChangedResultsTxt() {
     lines.push(`Kontrol: ${item.auditLabel}`);
     lines.push(`Rakip: ${item.versusLabel || "-"}`);
     lines.push(`Biz: ${item.allyLabel || "-"}`);
-    lines.push(`Beklenen sonuc: ${formatWinner(item.expected?.winner)}`);
-    lines.push(`Sim sonuc: ${formatWinner(item.actual?.winner)}`);
-    lines.push(`Beklenen kan: ${formatNumberValue(item.expected?.lostBloodTotal)}`);
-    lines.push(`Sim kan: ${formatNumberValue(item.actual?.lostBloodTotal)}`);
-    lines.push(`Beklenen kayip: ${formatLosses(item.expected?.allyLosses)}`);
-    lines.push(`Sim kayip: ${formatLosses(item.actual?.allyLosses)}`);
+    lines.push(`Gerceklesen sonuc: ${formatWinner(item.expected?.winner)}`);
+    lines.push(`Simulator sonucu: ${formatWinner(item.actual?.winner)}`);
+    lines.push(`Gerceklesen kayip: ${formatNumberValue(item.expected?.lostBloodTotal)} ; Simulator sonucu: ${formatNumberValue(item.actual?.lostBloodTotal)}`);
+    lines.push(`Gerceklesen kayip birlik: ${formatLosses(item.expected?.allyLosses)}`);
+    lines.push(`Simulator kayip birlik: ${formatLosses(item.actual?.allyLosses)}`);
     lines.push(`Farklar: ${(item.detailChips || item.differences || []).join(" | ") || "-"}`);
     if (item.samplingNote) {
       lines.push(`Not: ${item.samplingNote}`);
@@ -1087,10 +1088,16 @@ function buildAuditCompletedProgressText(totalCount, archivePersistSummary) {
   }
   const parts = [];
   if (archivePersistSummary.saved > 0) {
-    parts.push(`${archivePersistSummary.saved} wrong'a kaydedildi`);
+    parts.push(`${archivePersistSummary.saved} kaydedildi`);
+  }
+  if (archivePersistSummary.pass > 0) {
+    parts.push(`${archivePersistSummary.pass} dogru`);
+  }
+  if (archivePersistSummary.fail > 0) {
+    parts.push(`${archivePersistSummary.fail} yanlis`);
   }
   if (archivePersistSummary.skipped > 0) {
-    parts.push(`${archivePersistSummary.skipped} zaten vardi`);
+    parts.push(`${archivePersistSummary.skipped} atlandi`);
   }
   if (archivePersistSummary.failed > 0) {
     parts.push(`${archivePersistSummary.failed} hata`);
@@ -1098,45 +1105,48 @@ function buildAuditCompletedProgressText(totalCount, archivePersistSummary) {
   return parts.length ? `${baseText} | ${parts.join(", ")}` : baseText;
 }
 
-async function persistArchiveMismatches(results) {
-  if (currentPayload?.kind !== "archive") {
+async function persistArchiveTestResults(results) {
+  if (currentPayload?.kind !== "archive" || !currentPayload?.persistResults) {
     return null;
   }
-  if (!window.BTFirebase || typeof window.BTFirebase.saveWrongReport !== "function") {
+  if (!window.BTFirebase || typeof window.BTFirebase.saveArchiveRegressionTest !== "function") {
     return null;
   }
 
-  const changedItems = (results || []).filter((item) =>
-    item?.status === "changed" &&
-    item?.source === "archive" &&
-    item?.simulationTarget &&
-    hasAnyPositiveCounts(item.simulationTarget.enemyCounts) &&
-    hasAnyPositiveCounts(item.simulationTarget.allyCounts)
-  );
-
-  if (!changedItems.length) {
-    return { attempted: 0, saved: 0, skipped: 0, failed: 0 };
-  }
+  // Batch icindeki ayni savaslari (ayni matchSignature) teklestir.
+  const bySignature = new Map();
+  (results || []).forEach((result) => {
+    const payload = buildArchiveTestPayload(result);
+    if (!payload || !payload.matchSignature) {
+      return;
+    }
+    if (!bySignature.has(payload.matchSignature)) {
+      bySignature.set(payload.matchSignature, payload);
+    }
+  });
 
   const summary = {
-    attempted: changedItems.length,
+    attempted: bySignature.size,
     saved: 0,
-    skipped: 0,
-    failed: 0
+    failed: 0,
+    pass: 0,
+    fail: 0,
+    skipped: 0
   };
 
-  for (const item of changedItems) {
+  for (const payload of bySignature.values()) {
+    if (payload.result === "pass") {
+      summary.pass += 1;
+    } else if (payload.result === "fail") {
+      summary.fail += 1;
+    } else {
+      summary.skipped += 1;
+    }
     try {
-      const payload = buildArchiveWrongReportPayload(item);
-      const isDuplicate = await archiveWrongReportExists(payload);
-      if (isDuplicate) {
-        summary.skipped += 1;
-        continue;
-      }
-      await window.BTFirebase.saveWrongReport(payload);
+      await window.BTFirebase.saveArchiveRegressionTest(payload);
       summary.saved += 1;
     } catch (error) {
-      console.warn("Arsiv eslesmeyen sonucu wrong listesine kaydetme hatasi.", error);
+      console.warn("Arsiv test sonucu kaydedilemedi.", error);
       summary.failed += 1;
     }
   }
@@ -1144,121 +1154,38 @@ async function persistArchiveMismatches(results) {
   return summary;
 }
 
-async function archiveWrongReportExists(payload) {
-  if (!payload?.matchSignature || typeof window.BTFirebase?.findWrongReportsByMatchSignature !== "function") {
-    return false;
-  }
-  try {
-    const existingItems = await window.BTFirebase.findWrongReportsByMatchSignature("simulation", payload.matchSignature);
-    return (existingItems || []).some((item) =>
-      String(item?.summaryText || "") === String(payload.summaryText || "") &&
-      String(item?.actualSummaryText || "") === String(payload.actualSummaryText || "")
-    );
-  } catch (error) {
-    console.warn("Arsiv wrong kaydi icin tekrar kontrolu okunamadi.", error);
-    return false;
-  }
-}
-
-function buildArchiveWrongReportPayload(item) {
-  const sourceItem = item?.sourceItem || {};
-  const enemyCounts = cloneCountMap(item?.simulationTarget?.enemyCounts || sourceItem.enemyCounts || {}, ENEMY_UNITS);
-  const allyCounts = cloneCountMap(item?.simulationTarget?.allyCounts || sourceItem.allyCounts || {}, ALLY_UNITS);
-  const replay = rerunArchiveMismatchSimulation(item, enemyCounts, allyCounts);
-  const archiveSummaryText = buildArchiveFingerprintSummaryText(item?.expected, {
-    winnerOverride: sourceItem.expectedWinner,
-    title: "ARSIV GERCEK SONUCU",
-    capacity: sourceItem.expectedUsedCapacity
-  });
-  const archiveStamp = formatDate(sourceItem.savedAt || "");
+function buildArchiveTestPayload(result) {
+  const item = result?.sourceItem || {};
+  const enemyCounts = cloneCountMap(item.enemyCounts || {}, ENEMY_UNITS);
+  const allyCounts = cloneCountMap(item.allyCounts || {}, ALLY_UNITS);
+  const matchSignature = item.matchSignature || buildMatchSignature("archive", enemyCounts, allyCounts);
+  const resultCode = result?.status === "same"
+    ? "pass"
+    : (result?.status === "changed" ? "fail" : "skipped");
+  const expected = result?.expected || {};
+  const actual = result?.actual || {};
 
   return {
-    source: "simulation",
-    sourceLabel: "Arsiv Test",
-    reportedAt: new Date().toISOString(),
+    matchSignature,
+    result: resultCode,
+    host: String(item.host || ""),
+    stage: Number.isInteger(item.stage) ? item.stage : null,
+    testedAt: new Date().toISOString(),
     enemyCounts,
     allyCounts,
-    matchSignature: buildMatchSignature("simulation", enemyCounts, allyCounts),
-    summaryText: replay.summaryText,
-    logText: replay.detailText,
-    usedCapacity: Number.isFinite(Number(replay.result?.usedCapacity)) ? Number(replay.result.usedCapacity) : 0,
-    actualSummaryText: archiveSummaryText,
-    actualNote: archiveStamp
-      ? `Arsiv toplu testinden otomatik kaydedildi. Arsiv tarihi: ${archiveStamp}`
-      : "Arsiv toplu testinden otomatik kaydedildi."
+    expectedWinner: expected.winner === "ally" || expected.winner === "enemy" ? expected.winner : "unknown",
+    expectedLostBlood: Number.isFinite(Number(expected.lostBloodTotal)) ? Number(expected.lostBloodTotal) : null,
+    expectedAllyLosses: cloneCountMap(expected.allyLosses || {}, ALLY_UNITS),
+    actualWinner: actual.winner === "ally" || actual.winner === "enemy" ? actual.winner : "unknown",
+    actualLostBlood: Number.isFinite(Number(actual.lostBloodTotal)) ? Number(actual.lostBloodTotal) : null,
+    actualAllyLosses: cloneCountMap(actual.allyLosses || {}, ALLY_UNITS),
+    differences: (result?.detailChips || result?.differences || []).join(" | "),
+    note: String(result?.samplingNote || result?.skipReason || ""),
+    archiveId: String(item.id || ""),
+    archiveSavedAt: String(item.savedAt || ""),
+    enemyRosterText: String(item.enemyRosterText || ""),
+    allyRosterText: String(item.allyRosterText || "")
   };
-}
-
-function rerunArchiveMismatchSimulation(item, enemyCounts, allyCounts) {
-  const seed = Number.isInteger(item?.simulationTarget?.seed) ? item.simulationTarget.seed : null;
-  const roundingMode = resolveAuditRoundingMode(item?.sourceItem || item);
-
-  try {
-    const result = simulateBattle(enemyCounts, allyCounts, {
-      seed,
-      collectLog: true,
-      roundingMode
-    });
-    return {
-      result,
-      ...buildSimulationTextsFromLog(result.logText || "", seed)
-    };
-  } catch (error) {
-    console.warn("Arsiv eslesmeyen sonuc icin loglu simulasyon tekrar uretilemedi.", error);
-    return {
-      result: {
-        winner: item?.actual?.winner || "unknown",
-        lostBloodTotal: Number(item?.actual?.lostBloodTotal || 0),
-        allyLosses: cloneCountMap(item?.actual?.allyLosses || {}, ALLY_UNITS),
-        usedCapacity: Number.isFinite(Number(item?.actual?.usedCapacity)) ? Number(item.actual.usedCapacity) : 0
-      },
-      summaryText: buildArchiveFingerprintSummaryText(item?.actual, {
-        title: "SIMULASYON SONUCU",
-        capacity: item?.actual?.usedCapacity
-      }),
-      detailText: [
-        "======================  TUR  TUR  ANALIZ  ======================",
-        `  seed: ${seed ?? "-"}`,
-        "  Bu kayit icin detayli savas gunlugu tekrar uretilemedi."
-      ].join("\n")
-    };
-  }
-}
-
-function buildArchiveFingerprintSummaryText(fingerprint, options = {}) {
-  const losses = cloneCountMap(fingerprint?.allyLosses || {}, ALLY_UNITS);
-  const unitLines = [];
-  let totalUnits = 0;
-  let totalBlood = 0;
-
-  ALLY_UNITS.forEach((unit) => {
-    const count = Number(losses?.[unit.key] || 0);
-    if (count <= 0) {
-      return;
-    }
-    const blood = count * Number(window.BattleCore?.BLOOD_BY_ALLY_KEY?.[unit.key] || 0);
-    totalUnits += count;
-    totalBlood += blood;
-    unitLines.push(`- ${String(count).padStart(3)} ${getSummaryUnitName(unit.key).padEnd(28)} (${blood} kan)`);
-  });
-
-  const winner = options.winnerOverride || fingerprint?.winner || "unknown";
-  const outcomeLine = winner === "enemy"
-    ? ">> Muttefikler yenildi"
-    : (winner === "ally" ? ">> Dusman yenildi" : ">> Sonuc belirsiz");
-  const capacityValue = Number.isFinite(Number(options.capacity)) ? Number(options.capacity) : null;
-
-  return [
-    `======================  ${String(options.title || "SAVAS SONUCU").padEnd(18)} ======================`,
-    outcomeLine,
-    "",
-    "Kayip Birlikler",
-    ...(unitLines.length ? unitLines : ["  (kayip yok)"]),
-    "",
-    `= ${String(totalUnits).padStart(3)} toplam ${"".padEnd(21)} (${totalBlood} kan)`,
-    "--------------------------------------------------",
-    `Toplam birlik kapasitesi: ${formatNullableNumber(capacityValue)}`
-  ].join("\n");
 }
 
 async function promoteMatchedWrongReports() {

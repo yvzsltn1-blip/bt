@@ -15,6 +15,7 @@
   const WRONG_CACHE_KEY = "btAnalyssWrongReportsCache";
   const FAVORITE_CACHE_KEY = "btAnalyssFavoriteStrategiesCache";
   const OVERVIEW_ARCHIVE_CACHE_KEY = "btAnalyssOverviewArchivesCache";
+  const ARCHIVE_TEST_CACHE_KEY = "btAnalyssArchiveRegressionTestsCache";
   const OVERVIEW_ARCHIVE_CACHE_META_KEY = "btAnalyssOverviewArchivesCacheMeta";
   // Liste cache'ini en yeni N kayitla sinirla; aksi halde 900+ kayit localStorage kotasini doldurup
   // yeni cekilen veriyi atilmaya zorluyordu. Ilk sayfa + cacheOnly icin bu fazlasiyla yeterli.
@@ -25,6 +26,7 @@
   const WRONG_COLLECTION = "wrongReports";
   const FAVORITE_COLLECTION = "favoriteStrategies";
   const OVERVIEW_ARCHIVE_COLLECTION = "overviewArchives";
+  const ARCHIVE_TEST_COLLECTION = "archiveRegressionTests";
   const DEFAULT_PAGE_SIZE = 10;
   const ENEMY_COUNT_KEYS = [
     "skeletons", "zombies", "cultists", "bonewings", "corpses",
@@ -1023,6 +1025,43 @@
     };
   }
 
+  function normalizeWinnerValue(value) {
+    return value === "ally" || value === "enemy" ? value : "unknown";
+  }
+
+  function sanitizeArchiveRegressionTest(item) {
+    const result = item?.result === "fail" || item?.result === "skipped" ? item.result : "pass";
+    return {
+      matchSignature: trimText(item?.matchSignature || "-", 200),
+      result,
+      host: trimText(item?.host || "", 120),
+      stage: sanitizeOptionalInt(item?.stage, 9999),
+      testedAt: trimText(item?.testedAt || new Date().toISOString(), 40),
+      enemyCounts: sanitizeCountMap(item?.enemyCounts, ENEMY_COUNT_KEYS),
+      allyCounts: sanitizeCountMap(item?.allyCounts, ALLY_COUNT_KEYS),
+      expectedWinner: normalizeWinnerValue(item?.expectedWinner),
+      expectedLostBlood: sanitizeOptionalInt(item?.expectedLostBlood, 999999),
+      expectedAllyLosses: sanitizeCountMap(item?.expectedAllyLosses, ALLY_COUNT_KEYS),
+      actualWinner: normalizeWinnerValue(item?.actualWinner),
+      actualLostBlood: sanitizeOptionalInt(item?.actualLostBlood, 999999),
+      actualAllyLosses: sanitizeCountMap(item?.actualAllyLosses, ALLY_COUNT_KEYS),
+      differences: trimText(item?.differences || "", 2000),
+      note: trimText(item?.note || "", 2000),
+      archiveId: trimText(item?.archiveId || "", 120),
+      archiveSavedAt: trimText(item?.archiveSavedAt || "", 40),
+      enemyRosterText: trimText(item?.enemyRosterText || "", 160),
+      allyRosterText: trimText(item?.allyRosterText || "", 160)
+    };
+  }
+
+  function readArchiveRegressionTests() {
+    return readStorage(ARCHIVE_TEST_CACHE_KEY);
+  }
+
+  function writeArchiveRegressionTests(items) {
+    writeStorage(ARCHIVE_TEST_CACHE_KEY, Array.isArray(items) ? items : []);
+  }
+
   function isIntegerInRange(value, minValue, maxValue) {
     return Number.isInteger(value) && value >= minValue && value <= maxValue;
   }
@@ -1529,6 +1568,32 @@
       `${firestoreRestBaseUrl}/${OVERVIEW_ARCHIVE_COLLECTION}?documentId=${encodeURIComponent(docId)}&key=${encodeURIComponent(firebaseConfig.apiKey)}`,
       {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fields: toFirestoreRestFields(payload)
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new Error(`REST fallback basarisiz: HTTP ${response.status} ${response.statusText}\n${responseText}`);
+    }
+
+    return response.json().catch(() => null);
+  }
+
+  async function upsertArchiveRegressionTestViaRest(docId, payload) {
+    if (typeof globalScope.fetch !== "function") {
+      throw new Error("REST fallback icin fetch kullanilamiyor.");
+    }
+
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}/${ARCHIVE_TEST_COLLECTION}/${encodeURIComponent(docId)}?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json"
         },
@@ -2156,6 +2221,79 @@
     writeWrongReports([]);
   }
 
+  function buildArchiveRegressionTestDocId(matchSignature) {
+    return `arctest_${hashText(String(matchSignature || "-"))}`;
+  }
+
+  async function loadArchiveRegressionTests() {
+    if (!db) {
+      return readArchiveRegressionTests();
+    }
+
+    try {
+      const snapshot = await db.collection(ARCHIVE_TEST_COLLECTION).get();
+      const items = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      writeArchiveRegressionTests(items);
+      return items;
+    } catch (error) {
+      console.warn("Arsiv test sonuclari okunamadi, cache kullaniliyor.", error);
+      return readArchiveRegressionTests();
+    }
+  }
+
+  function getArchiveRegressionTestedSignatures() {
+    const set = new Set();
+    readArchiveRegressionTests().forEach((item) => {
+      const signature = typeof item?.matchSignature === "string" ? item.matchSignature : "";
+      if (signature) {
+        set.add(signature);
+      }
+    });
+    return set;
+  }
+
+  async function saveArchiveRegressionTest(item) {
+    const payload = sanitizeArchiveRegressionTest(item);
+    const docId = buildArchiveRegressionTestDocId(payload.matchSignature);
+
+    if (!db) {
+      const next = [{ ...payload, id: docId }, ...readArchiveRegressionTests().filter((candidate) => candidate.id !== docId)];
+      writeArchiveRegressionTests(next);
+      return { ...payload, id: docId };
+    }
+
+    try {
+      await db.collection(ARCHIVE_TEST_COLLECTION).doc(docId).set(payload, { merge: true });
+      const next = [{ ...payload, id: docId }, ...readArchiveRegressionTests().filter((candidate) => candidate.id !== docId)];
+      writeArchiveRegressionTests(next);
+      return { ...payload, id: docId };
+    } catch (error) {
+      if (error?.code === "permission-denied") {
+        await upsertArchiveRegressionTestViaRest(docId, payload);
+        const next = [{ ...payload, id: docId }, ...readArchiveRegressionTests().filter((candidate) => candidate.id !== docId)];
+        writeArchiveRegressionTests(next);
+        return { ...payload, id: docId, savedVia: "rest-fallback" };
+      }
+      throw error;
+    }
+  }
+
+  async function clearArchiveRegressionTests() {
+    if (!db) {
+      writeArchiveRegressionTests([]);
+      return;
+    }
+    const currentUser = auth ? auth.currentUser : null;
+    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+      throw new Error("Arsiv test sonuclarini silmek icin admin girisi zorunludur.");
+    }
+    const snapshot = await db.collection(ARCHIVE_TEST_COLLECTION).get();
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+    writeArchiveRegressionTests([]);
+  }
+
   async function loadOverviewArchives() {
     if (!db) {
       return readOverviewArchives();
@@ -2469,6 +2607,11 @@
     saveOverviewArchive,
     updateOverviewArchive,
     deleteOverviewArchive,
-    deleteOverviewArchives
+    deleteOverviewArchives,
+    loadArchiveRegressionTests,
+    saveArchiveRegressionTest,
+    getArchiveRegressionTestedSignatures,
+    buildArchiveRegressionTestDocId,
+    clearArchiveRegressionTests
   };
 })(window);

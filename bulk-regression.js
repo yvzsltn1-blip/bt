@@ -96,6 +96,12 @@
     );
   }
 
+  function buildArchiveBattleSignature(enemyCounts, allyCounts) {
+    const enemySignature = getEnemyUnits().map((unit) => Number(enemyCounts?.[unit.key] || 0)).join("|");
+    const allySignature = getAllyUnits().map((unit) => Number(allyCounts?.[unit.key] || 0)).join("|");
+    return `archive|${enemySignature}|${allySignature}`;
+  }
+
   function buildVariantSignature(result) {
     return JSON.stringify({
       winner: result?.winner || "unknown",
@@ -231,6 +237,7 @@
       return {
         id: String(item?.id || ""),
         source: "archive",
+        matchSignature: buildArchiveBattleSignature(enemyCounts, allyCounts),
         sourceType: item?.sourceType === "fill" ? "fill" : "manual",
         savedAt: String(item?.savedAt || ""),
         stage: parseArchiveStage(item?.armyPowerText || ""),
@@ -248,7 +255,8 @@
         expValue: Number(item?.expValue || 0),
         fallenUnitsText: String(item?.fallenUnitsText || ""),
         enemyRosterText: String(item?.enemyRosterText || ""),
-        allyRosterText: String(item?.allyRosterText || "")
+        allyRosterText: String(item?.allyRosterText || ""),
+        host: String(item?.host || "")
       };
     });
   }
@@ -398,6 +406,7 @@
     prepareApprovedItems,
     prepareWrongItems,
     prepareArchiveItems,
+    buildArchiveBattleSignature,
     parseArchiveEnemyCounts,
     parseArchiveAllyCounts,
     getWrongSimulationCounts,

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BT Analyss Test Sonuclari</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="styles.css?v=20260607-1">
+</head>
+<body class="site-gate-pending">
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy-block">
+        <div class="top-nav">
+          <a class="nav-link nav-sim" href="index.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="nav-link-label">Simulasyon</span></a>
+          <a class="nav-link nav-saved" href="saved.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.9"/></svg></span><span class="nav-link-label">Onaylananlar</span></a>
+          <a class="nav-link nav-archive" href="archive.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v5H4z"/><path d="M6 9v11h12V9"/><path d="M9 13h6"/></svg></span><span class="nav-link-label">Arsiv</span></a>
+          <a class="nav-link nav-tests active" href="test-sonuclari.html"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span><span class="nav-link-label">Test Sonuclari</span></a>
+        </div>
+        <p class="eyebrow">BT ANALYSS / TOPLU TEST SONUCLARI</p>
+        <h1>Test Sonuclari</h1>
+      </div>
+      <div class="hero-stat hero-stat-metric">
+        <span>Kayit</span>
+        <div class="hero-stat-value">
+          <strong id="testsCountLabel">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="single-layout">
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <h2>Arsiv Toplu Test Sonuclari</h2>
+          <div class="panel-head-tools">
+            <label class="select-wrap">
+              <span>Sunucu</span>
+              <select id="testsHostFilter" class="stage-select">
+                <option value="s66-tr.bitefight.gameforge.com" selected>s66</option>
+                <option value="s62-tr.bitefight.gameforge.com">s62</option>
+                <option value="">Tumu</option>
+              </select>
+            </label>
+            <button id="testsDownloadTxtBtn" class="button button-secondary" type="button">TXT Indir</button>
+            <button id="testsRefreshBtn" class="button button-ghost" type="button">Yenile</button>
+            <button id="testsClearBtn" class="button button-ghost" type="button" hidden>Tumunu Temizle</button>
+          </div>
+        </div>
+
+        <section class="report-summary-grid" id="testsTabBar">
+          <button class="report-summary-card is-clickable is-active" type="button" data-tab="pass">
+            <span class="report-summary-label">Dogrular</span>
+            <strong id="testsPassCount">0</strong>
+            <small>Simulator arsiv sonucuyla eslesti</small>
+          </button>
+          <button class="report-summary-card is-clickable" type="button" data-tab="fail">
+            <span class="report-summary-label">Yanlislar</span>
+            <strong id="testsFailCount">0</strong>
+            <small>Simulator arsiv sonucundan farkli</small>
+          </button>
+          <button class="report-summary-card is-clickable" type="button" data-tab="skipped">
+            <span class="report-summary-label">Atlananlar</span>
+            <strong id="testsSkippedCount">0</strong>
+            <small>Eksik veri nedeniyle test edilemedi</small>
+          </button>
+        </section>
+
+        <section id="testsList" class="saved-list">
+          <p class="summary-empty">Sonuclar yukleniyor...</p>
+        </section>
+
+        <section id="testsAdminPanel" class="admin-auth-panel admin-auth-panel-tight">
+          <div class="admin-auth-copy">
+            <strong>Admin Girisi</strong>
+            <span>Test sonuclarini temizlemek icin admin oturumu gerekli.</span>
+          </div>
+          <div class="admin-auth-controls">
+            <span id="testsAdminAuthStatus" class="admin-auth-status">Admin kapali</span>
+            <input id="testsAdminEmailInput" class="admin-auth-input" type="email" value="yavuz@gmail.com" autocomplete="username" spellcheck="false">
+            <input id="testsAdminPasswordInput" class="admin-auth-input" type="password" placeholder="Admin sifresi" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+            <button id="testsAdminLoginBtn" class="button button-secondary" type="button">Admin Giris</button>
+            <button id="testsAdminLogoutBtn" class="button button-ghost" type="button" hidden>Cikis</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
+  <script src="site-gate.js?v=20260529-16" defer></script>
+  <script src="firebase-client.js?v=20260607-1" defer></script>
+  <script src="admin-auth-ui.js?v=20260529-16" defer></script>
+  <script src="battle-core.js?v=20260529-16" defer></script>
+  <script src="test-sonuclari.js?v=20260607-2" defer></script>
+</body>
+</html>
