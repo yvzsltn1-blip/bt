@@ -33,7 +33,6 @@
       "Bash(firebase firestore:indexes --project bt-analiz)",
       "Bash(curl -s -I \"https://bt-analiz.web.app/archive.html\")",
       "Bash(curl -s -I \"https://bt-analiz.web.app/archive.js\")",
-      "Bash(curl -s \"https://firestore.googleapis.com/v1/projects/bt-analiz/databases/\\(default\\)/documents/archiveRegressionTests?key=AIzaSyB6_mwliHgUXjCSidzZIBiQj_8hLkYvZV4&pageSize=300\")",
       "Bash(curl *)"
     ]
   }
