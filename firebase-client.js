@@ -2439,6 +2439,67 @@
     }
   }
 
+  // Disa aktarim icin: tek bir tur (pass/fail/skipped) kayitlari sunucudan okur.
+  // stages bos -> tum katlar; tek sorgu (result, testedAt indeksi) + opsiyonel limit.
+  // stages dolu -> her kat icin esitlik sorgusu (result==, stage==, host==): bileşik
+  // index GEREKMEZ (Firestore zigzag-merge), maliyet eslesen dokuman sayisi kadardir.
+  async function loadArchiveRegressionTestsForExport(options = {}) {
+    const host = typeof options.host === "string" ? options.host : "";
+    const result = normalizeArchiveRegressionResult(options.result);
+    const rawLimit = Number(options.limit);
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.floor(rawLimit) : 0;
+    const stages = Array.isArray(options.stages)
+      ? [...new Set(options.stages.map((n) => Math.floor(Number(n))).filter((n) => Number.isInteger(n) && n >= 0))]
+      : [];
+    const sortDesc = (items) => items.slice().sort((a, b) => String(b?.testedAt || "").localeCompare(String(a?.testedAt || "")));
+    const localFallback = () => {
+      let items = readArchiveRegressionTests()
+        .filter((item) => (!host || String(item?.host || "") === host) && String(item?.result || "") === result);
+      if (stages.length) {
+        const set = new Set(stages);
+        items = items.filter((item) => Number.isInteger(item?.stage) && set.has(item.stage));
+      }
+      items = sortDesc(items);
+      return limit ? items.slice(0, limit) : items;
+    };
+    if (!result) {
+      return [];
+    }
+    if (!db) {
+      return localFallback();
+    }
+    try {
+      if (stages.length === 0) {
+        let query = db.collection(ARCHIVE_TEST_COLLECTION).where("result", "==", result);
+        if (host) {
+          query = query.where("host", "==", host);
+        }
+        query = query.orderBy("testedAt", "desc");
+        if (limit) {
+          query = query.limit(limit);
+        }
+        const snapshot = await query.get();
+        return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      }
+      const byId = new Map();
+      for (const stage of stages) {
+        let query = db.collection(ARCHIVE_TEST_COLLECTION)
+          .where("result", "==", result)
+          .where("stage", "==", stage);
+        if (host) {
+          query = query.where("host", "==", host);
+        }
+        const snapshot = await query.get();
+        snapshot.docs.forEach((doc) => byId.set(doc.id, { ...doc.data(), id: doc.id }));
+      }
+      const merged = sortDesc([...byId.values()]);
+      return limit ? merged.slice(0, limit) : merged;
+    } catch (error) {
+      console.warn("Test sonuclari (export) okunamadi, cache kullaniliyor.", error);
+      return localFallback();
+    }
+  }
+
   async function loadOverviewArchives() {
     if (!db) {
       return readOverviewArchives();
@@ -2757,6 +2818,7 @@
     loadArchiveRegressionTestsPage,
     countArchiveRegressionTests,
     loadAllArchiveRegressionTests,
+    loadArchiveRegressionTestsForExport,
     saveArchiveRegressionTest,
     getArchiveRegressionTestedSignatures,
     buildArchiveRegressionTestDocId,

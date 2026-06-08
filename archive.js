@@ -179,11 +179,21 @@ archiveNextPageBtn?.addEventListener("click", async () => {
     archiveState.tailItems = [];
   }
   const targetLimit = archiveState.visibleLimit + archiveState.pageSize;
-  const ready = await ensureArchiveItemsLoadedUntil(targetLimit);
-  if (!ready) {
-    return;
+  const testFilterActive = (archiveState.testStatusFilter || "all") !== "all";
+  if (testFilterActive) {
+    // Suzulmus kayitlardan bir sonraki sayfayi dolduracak kadar daha yukle.
+    const ready = await ensureArchiveFilteredItemsLoadedUntil(targetLimit);
+    if (!ready) {
+      return;
+    }
+    archiveState.visibleLimit = Math.min(targetLimit, applyArchiveTestStatusFilter(archiveState.loadedItems).length);
+  } else {
+    const ready = await ensureArchiveItemsLoadedUntil(targetLimit);
+    if (!ready) {
+      return;
+    }
+    archiveState.visibleLimit = Math.min(targetLimit, archiveState.loadedItems.length);
   }
-  archiveState.visibleLimit = Math.min(targetLimit, archiveState.loadedItems.length);
   renderArchivePage();
 });
 
@@ -342,16 +352,17 @@ function bindArchiveControls() {
     // Filtrelenmis gorunum ilk sayfadan baslasin.
     archiveState.visibleLimit = archiveState.pageSize;
     if (archiveState.testStatusFilter !== "all") {
-      // Test durumuna gore eleme yapabilmek icin test sonuc cache'i dolu olmali.
-      if (!(archiveTestResultsCache && archiveTestResultsCache.length)) {
-        await refreshArchiveTestedStats();
-      }
-      // "Son 40" (tail) modundan cik; filtre tum arsivi kapsamali.
+      // Test sonuc cache'ini her filtre uygulamasinda tazele ki baska pencerede
+      // az once test edilen kayitlar aninda "test edildi" sayilsin (bayat cache'e
+      // takilip "test edilmedi" gorunmesin). Sadece test koleksiyonu okunur, arsiv degil.
+      await refreshArchiveTestedStats();
+      // "Son 40" (tail) modundan cik.
       archiveState.tailMode = false;
       archiveState.tailItems = [];
-      // Filtre tum arsivi tarayabilsin diye kalan tum kayitlari yukle.
-      archiveList.innerHTML = '<p class="summary-empty">Test durumuna gore tum arsiv taraniyor...</p>';
-      await ensureAllArchiveItemsLoaded();
+      // Maliyet korumasi: tum arsivi tarama; sadece ilk sayfayi dolduracak kadar
+      // suzulmus kayit yukle (sayfa basina ~pageSize okuma).
+      archiveList.innerHTML = '<p class="summary-empty">Test durumuna gore suzuluyor...</p>';
+      await ensureArchiveFilteredItemsLoadedUntil(archiveState.pageSize);
     }
     renderArchivePage();
   });
@@ -540,10 +551,11 @@ async function refreshArchiveView(options = {}) {
   archiveState.readSource = pageResult?.readSource || archiveState.readSource;
   renderArchiveHeader();
 
-  // Test durumu filtresi aktifse, filtre tum arsivi kapsasin diye kalan kayitlari yukle.
+  // Test durumu filtresi aktifse: tum arsivi tarama; sadece ilk sayfayi dolduracak
+  // kadar suzulmus kayit yukle (maliyet korumasi).
   if ((archiveState.testStatusFilter || "all") !== "all") {
     archiveState.visibleLimit = archiveState.pageSize;
-    await ensureAllArchiveItemsLoaded();
+    await ensureArchiveFilteredItemsLoadedUntil(archiveState.pageSize);
     if (requestToken !== archiveRequestToken) {
       return;
     }
@@ -964,7 +976,7 @@ function renderArchivePage() {
 
   const hasMoreVisible = !archiveState.tailMode
     && (testFilterActive
-      ? pageItems.length < filteredSource.length
+      ? (pageItems.length < filteredSource.length || archiveState.remoteHasMore)
       : (pageItems.length < archiveState.loadedItems.length || archiveState.remoteHasMore));
   // Birden fazla sayfa var mi? (Son 40 butonu icin) - test filtresinde gizli.
   const hasMultiplePages = !testFilterActive
@@ -972,10 +984,15 @@ function renderArchivePage() {
       || archiveState.loadedItems.length > archiveState.pageSize
       || totalCount > archiveState.pageSize);
 
+  // Test filtresi aktifken arsivin tamami okunmaz; bu yuzden toplam kesin degil.
+  // Sunucuda daha fazla sayfa varsa "+" ile yaklasik oldugunu belirt.
+  const totalCountText = (testFilterActive && archiveState.remoteHasMore)
+    ? `${formatNumber(totalCount)}+`
+    : formatNumber(totalCount);
   archivePagination.hidden = !archiveState.tailMode && !hasMoreVisible && pageItems.length <= archiveState.pageSize;
   archivePageInfo.textContent = archiveState.tailMode
     ? `Son ${formatNumber(pageItems.length)} (en eski) / ${formatNumber(totalCount)}`
-    : `${formatNumber(pageItems.length)} / ${formatNumber(totalCount)} gosteriliyor`;
+    : `${formatNumber(pageItems.length)} / ${totalCountText} gosteriliyor`;
 
   const showFirstBtn = archiveState.tailMode || pageItems.length > archiveState.pageSize;
   archivePrevPageBtn.hidden = !showFirstBtn;
@@ -1702,6 +1719,27 @@ async function ensureAllArchiveItemsLoaded() {
       break;
     }
   }
+}
+
+// Test durumu filtresi aktifken tum arsivi taramak yerine, ekranda gosterilecek
+// kadar (targetFilteredCount) SUZULMUS kayit bulana dek sayfa sayfa yukler.
+// Boylece her sayfa ~pageSize okuma yapar; arsivin tamami okunmaz (maliyet korumasi).
+async function ensureArchiveFilteredItemsLoadedUntil(targetFilteredCount) {
+  let safety = 0;
+  while (
+    applyArchiveTestStatusFilter(archiveState.loadedItems).length < targetFilteredCount
+    && archiveState.remoteHasMore
+    && safety < 500
+  ) {
+    const previousCount = archiveState.loadedItems.length;
+    const previousCursorId = archiveState.remoteCursor?.id || "";
+    await loadArchivePage();
+    safety += 1;
+    if (archiveState.loadedItems.length === previousCount && (archiveState.remoteCursor?.id || "") === previousCursorId) {
+      break;
+    }
+  }
+  return archiveState.loadedItems.length > 0;
 }
 
 function normalizeDigits(value) {

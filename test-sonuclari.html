@@ -43,7 +43,23 @@
                 <option value="">Tumu</option>
               </select>
             </label>
-            <button id="testsDownloadTxtBtn" class="button button-secondary" type="button">Tumunu TXT Indir</button>
+            <label class="select-wrap">
+              <span>Indir Tur</span>
+              <select id="testsExportResultSelect" class="stage-select">
+                <option value="pass" selected>Dogrular</option>
+                <option value="fail">Yanlislar</option>
+                <option value="skipped">Atlananlar</option>
+              </select>
+            </label>
+            <label class="select-wrap">
+              <span>Kat</span>
+              <input id="testsExportStageInput" type="text" inputmode="numeric" placeholder="Tumu (1 veya 1-10)" style="width: 150px; height: 38px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: #fff; padding: 0 10px; font: inherit;">
+            </label>
+            <label class="select-wrap">
+              <span>Adet</span>
+              <input id="testsExportLimitInput" type="number" min="1" inputmode="numeric" placeholder="Tumu" style="width: 120px; height: 38px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: #fff; padding: 0 10px; font: inherit;">
+            </label>
+            <button id="testsExportBtn" class="button button-secondary" type="button">Indir (kat sirali)</button>
             <button id="testsRefreshBtn" class="button button-ghost" type="button">Yenile</button>
             <button id="testsClearBtn" class="button button-ghost" type="button" hidden>Tumunu Temizle</button>
           </div>
@@ -92,9 +108,9 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="site-gate.js?v=20260529-16" defer></script>
-  <script src="firebase-client.js?v=20260608-3" defer></script>
+  <script src="firebase-client.js?v=20260609-2" defer></script>
   <script src="admin-auth-ui.js?v=20260529-16" defer></script>
   <script src="battle-core.js?v=20260529-16" defer></script>
-  <script src="test-sonuclari.js?v=20260608-2" defer></script>
+  <script src="test-sonuclari.js?v=20260609-2" defer></script>
 </body>
 </html>

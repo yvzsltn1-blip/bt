@@ -7,7 +7,10 @@ const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 
 const testsCountLabel = document.querySelector("#testsCountLabel");
 const testsHostFilter = document.querySelector("#testsHostFilter");
-const testsDownloadTxtBtn = document.querySelector("#testsDownloadTxtBtn");
+const testsExportResultSelect = document.querySelector("#testsExportResultSelect");
+const testsExportStageInput = document.querySelector("#testsExportStageInput");
+const testsExportLimitInput = document.querySelector("#testsExportLimitInput");
+const testsExportBtn = document.querySelector("#testsExportBtn");
 const testsRefreshBtn = document.querySelector("#testsRefreshBtn");
 const testsTabBar = document.querySelector("#testsTabBar");
 const testsPassCount = document.querySelector("#testsPassCount");
@@ -54,8 +57,8 @@ function initTestsPage() {
   testsRefreshBtn?.addEventListener("click", () => {
     void refreshAll();
   });
-  testsDownloadTxtBtn?.addEventListener("click", () => {
-    void downloadAllTestsTxt();
+  testsExportBtn?.addEventListener("click", () => {
+    void downloadTestsByTypeTxt();
   });
   testsClearBtn?.addEventListener("click", () => {
     void clearAllTests();
@@ -422,35 +425,86 @@ function openSimulationForCounts(enemyCounts, allyCounts) {
   }
 }
 
-async function downloadAllTestsTxt() {
-  if (!window.BTFirebase || typeof window.BTFirebase.loadAllArchiveRegressionTests !== "function") {
+// "Kat" girisini ayristirir: "" -> [] (tum katlar), "5" -> [5], "1-10" -> [1..10].
+// Gecersiz format icin null doner (cagiran taraf uyari verir).
+function parseStageInput(raw) {
+  const text = String(raw || "").trim();
+  if (!text) {
+    return [];
+  }
+  const rangeMatch = text.match(/^(\d+)\s*-\s*(\d+)$/);
+  if (rangeMatch) {
+    let a = Number.parseInt(rangeMatch[1], 10);
+    let b = Number.parseInt(rangeMatch[2], 10);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) {
+      return null;
+    }
+    if (a > b) {
+      const tmp = a; a = b; b = tmp;
+    }
+    const out = [];
+    for (let s = a; s <= b; s += 1) {
+      out.push(s);
+    }
+    return out;
+  }
+  if (/^\d+$/.test(text)) {
+    return [Number.parseInt(text, 10)];
+  }
+  return null;
+}
+
+async function downloadTestsByTypeTxt() {
+  if (!window.BTFirebase || typeof window.BTFirebase.loadArchiveRegressionTestsForExport !== "function") {
     window.alert("Indirme servisi hazir degil.");
     return;
   }
 
   const host = getActiveHost();
-  const totalKnown = Number(counts?.total || 0);
-  if (totalKnown > 500 && !window.confirm(`${totalKnown} kayit indirilecek (tek seferlik okuma). Devam edilsin mi?`)) {
+  const result = ["pass", "fail", "skipped"].includes(testsExportResultSelect?.value)
+    ? testsExportResultSelect.value
+    : "pass";
+  const rawLimit = Number.parseInt(testsExportLimitInput?.value || "", 10);
+  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 0;
+  const typeLabel = TAB_LABELS[result] || "Dogrular";
+
+  const stages = parseStageInput(testsExportStageInput?.value || "");
+  if (stages === null) {
+    window.alert("Kat formati gecersiz. Ornek: 1  veya  1-10");
+    return;
+  }
+  if (stages.length > 300) {
+    window.alert("Kat araligi cok genis (en fazla 300 kat). Lutfen daralt.");
+    return;
+  }
+  const stageLabel = stages.length === 0
+    ? "Tum katlar"
+    : (stages.length === 1 ? `Kat ${stages[0]}` : `Kat ${Math.min(...stages)}-${Math.max(...stages)}`);
+
+  // Kat secilmemis + limit yok + o turde cok kayit varsa onay iste (tek seferlik okuma).
+  const knownForType = Number(counts?.[result] || 0);
+  if (!limit && stages.length === 0 && knownForType > 500
+    && !window.confirm(`${knownForType} ${typeLabel.toLowerCase()} kaydi indirilecek (tek seferlik okuma). Devam edilsin mi?`)) {
     return;
   }
 
-  const originalLabel = testsDownloadTxtBtn ? testsDownloadTxtBtn.textContent : "";
-  if (testsDownloadTxtBtn) {
-    testsDownloadTxtBtn.disabled = true;
-    testsDownloadTxtBtn.textContent = "Hazirlaniyor...";
+  const originalLabel = testsExportBtn ? testsExportBtn.textContent : "";
+  if (testsExportBtn) {
+    testsExportBtn.disabled = true;
+    testsExportBtn.textContent = "Hazirlaniyor...";
   }
 
   let filtered = [];
   try {
-    filtered = await window.BTFirebase.loadAllArchiveRegressionTests({ host });
+    filtered = await window.BTFirebase.loadArchiveRegressionTestsForExport({ host, result, limit, stages });
   } catch (error) {
-    console.warn("Tum kayitlar indirilemedi.", error);
+    console.warn("Kayitlar indirilemedi.", error);
     window.alert(`Indirme basarisiz: ${String(error?.message || error || "Bilinmeyen hata")}`);
     return;
   } finally {
-    if (testsDownloadTxtBtn) {
-      testsDownloadTxtBtn.disabled = false;
-      testsDownloadTxtBtn.textContent = originalLabel;
+    if (testsExportBtn) {
+      testsExportBtn.disabled = false;
+      testsExportBtn.textContent = originalLabel;
     }
   }
 
@@ -459,19 +513,25 @@ async function downloadAllTestsTxt() {
     return;
   }
 
-  const passCount = filtered.filter((item) => item?.result === "pass").length;
-  const failCount = filtered.filter((item) => item?.result === "fail").length;
-  const skippedCount = filtered.filter((item) => item?.result === "skipped").length;
+  const scopeText = limit ? `Son ${filtered.length}` : `Tumu (${filtered.length})`;
   const lines = [
     "Arsiv Toplu Test Sonuclari",
     `Sunucu: ${host ? shortHost(host) : "Tumu"}`,
-    `Toplam kayit: ${filtered.length} (Dogru: ${passCount}, Yanlis: ${failCount}, Atlanan: ${skippedCount})`,
+    `Tur: ${typeLabel} | Kat: ${stageLabel} | Kapsam: ${scopeText} | Siralama: Kat (kucukten buyuge)`,
     ""
   ];
 
+  // Secim en yeniye gore yapildi; cikti KAT artan, esitlikte en yeni ustte.
   filtered
     .slice()
-    .sort((a, b) => String(b?.testedAt || "").localeCompare(String(a?.testedAt || "")))
+    .sort((a, b) => {
+      const stageA = Number.isInteger(a?.stage) ? a.stage : Number.MAX_SAFE_INTEGER;
+      const stageB = Number.isInteger(b?.stage) ? b.stage : Number.MAX_SAFE_INTEGER;
+      if (stageA !== stageB) {
+        return stageA - stageB;
+      }
+      return String(b?.testedAt || "").localeCompare(String(a?.testedAt || ""));
+    })
     .forEach((item, index) => {
       const stageLabel = Number.isInteger(item?.stage) ? `${item.stage}. Kat` : "Arsiv Kaydi";
       const resultLabel = RESULT_LABELS[item?.result] || "ATLANDI";
@@ -497,7 +557,11 @@ async function downloadAllTestsTxt() {
       lines.push("");
     });
 
-  downloadTextFile(lines.join("\n"), `test-sonuclari-tum-${buildTimestampForFile()}.txt`);
+  const scopeSlug = limit ? `son${filtered.length}` : `tumu${filtered.length}`;
+  const stageSlug = stages.length === 0
+    ? "tumkat"
+    : (stages.length === 1 ? `kat${stages[0]}` : `kat${Math.min(...stages)}-${Math.max(...stages)}`);
+  downloadTextFile(lines.join("\n"), `test-sonuclari-${result}-${stageSlug}-${scopeSlug}-${buildTimestampForFile()}.txt`);
 }
 
 function formatWinner(winner) {
