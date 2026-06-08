@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ataların Yolu · Kademe Planlayıcı</title>
+<link rel="stylesheet" href="styles.css?v=20260608-1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#07080c; --bg1:#0c1019; --bg2:#10141f;
+    --card:#121723; --card2:#161c2a;
+    --line:rgba(201,162,55,.16);
+    --gold:#d8b44a; --gold-soft:#e6cd7e; --gold-dim:#9c8438;
+    --blood:#9b2222; --blood-soft:#c23636;
+    --ink:#e9e3d2; --muted:#8b93a6; --muted2:#5d6478;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg0);color:var(--ink);
+    font-family:'EB Garamond',Georgia,serif;-webkit-font-smoothing:antialiased}
+  body{
+    min-height:100vh;padding:26px 16px 60px;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #14192a 0%, transparent 55%),
+      radial-gradient(100% 60% at 50% 120%, #15110f 0%, transparent 60%),
+      linear-gradient(180deg,var(--bg0),var(--bg1) 40%,var(--bg0));
+  }
+  .wrap{max-width:760px;margin:0 auto}
+
+  /* ---- Header ---- */
+  header{text-align:center;margin-bottom:26px;position:relative}
+  .kicker{font-family:'Cinzel',serif;letter-spacing:.42em;font-size:11px;
+    color:var(--gold-dim);text-transform:uppercase;margin-bottom:10px;padding-left:.42em}
+  h1{font-family:'Cinzel Decorative',serif;font-weight:700;line-height:1.05;
+    font-size:clamp(28px,7vw,46px);
+    background:linear-gradient(180deg,#f3e6bd,var(--gold) 55%,#8c6f25);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 2px 30px rgba(216,180,74,.12)}
+  .rule{display:flex;align-items:center;gap:14px;justify-content:center;margin:16px auto 0;max-width:340px}
+  .rule::before,.rule::after{content:"";height:1px;flex:1;
+    background:linear-gradient(90deg,transparent,var(--gold-dim))}
+  .rule::after{background:linear-gradient(90deg,var(--gold-dim),transparent)}
+  .rule span{width:7px;height:7px;transform:rotate(45deg);
+    background:var(--gold);box-shadow:0 0 12px rgba(216,180,74,.6)}
+
+  /* ---- Cards ---- */
+  .card{background:linear-gradient(180deg,var(--card2),var(--card));
+    border:1px solid var(--line);border-radius:16px;padding:22px 20px;
+    box-shadow:0 24px 50px -28px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.03);
+    margin-bottom:20px}
+  .card-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--gold-soft);margin-bottom:18px;
+    display:flex;align-items:center;gap:9px}
+  .card-title .dot{width:6px;height:6px;transform:rotate(45deg);background:var(--blood-soft)}
+
+  /* ---- Inputs ---- */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field label{display:block;font-size:14px;color:var(--muted);margin-bottom:7px;
+    letter-spacing:.02em}
+  .field label b{color:var(--gold-soft);font-weight:600}
+  .field input{width:100%;background:#0a0d15;border:1px solid rgba(255,255,255,.07);
+    border-radius:10px;padding:13px 14px;color:var(--ink);font-size:18px;
+    font-family:'Cinzel',serif;letter-spacing:.02em;transition:.2s;outline:none}
+  .field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(216,180,74,.12)}
+  .hint{font-size:12.5px;color:var(--muted2);margin-top:6px;font-style:italic}
+  .full{grid-column:1/-1}
+
+  button.go{width:100%;margin-top:20px;padding:15px;border:none;border-radius:12px;
+    cursor:pointer;font-family:'Cinzel',serif;font-weight:600;font-size:16px;
+    letter-spacing:.14em;text-transform:uppercase;color:#1a1206;
+    background:linear-gradient(180deg,var(--gold-soft),var(--gold) 60%,var(--gold-dim));
+    box-shadow:0 12px 30px -10px rgba(216,180,74,.5), inset 0 1px 0 rgba(255,255,255,.4);
+    transition:.15s}
+  button.go:active{transform:translateY(1px);filter:brightness(1.08)}
+
+  /* ---- Warning ---- */
+  .warn{display:none;margin-top:14px;padding:11px 14px;border-radius:10px;
+    background:rgba(155,34,34,.12);border:1px solid rgba(194,54,54,.4);
+    color:#e8b4b4;font-size:13.5px;line-height:1.5}
+  .warn.show{display:block}
+
+  /* ---- Results ---- */
+  #out{display:none}
+  #out.show{display:block;animation:rise .5s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .summary{text-align:center;padding:6px 0 18px}
+  .summary .need{font-size:14px;color:var(--muted)}
+  .summary .need b{color:var(--gold-soft);font-family:'Cinzel',serif;font-weight:600}
+  .summary .path{margin-top:6px;font-size:14.5px;color:var(--ink)}
+  .summary .path b{color:var(--blood-soft);font-weight:600}
+
+  .strat{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+  @media(max-width:560px){.strat{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}}
+  .sbox{background:#0c111b;border:1px solid var(--line);border-radius:14px;
+    padding:18px 16px;position:relative;overflow:hidden}
+  .sbox::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5}
+  .sbox h3{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em;
+    color:var(--gold-soft);margin-bottom:3px}
+  .sbox .sub{font-size:12.5px;color:var(--muted2);font-style:italic;margin-bottom:14px;min-height:30px}
+  .big{font-family:'Cinzel',serif;font-weight:700;font-size:38px;line-height:1;
+    color:#fff;letter-spacing:.01em}
+  .big small{font-size:14px;color:var(--muted);font-weight:500;letter-spacing:.05em}
+  .stat{display:flex;justify-content:space-between;align-items:baseline;
+    padding:9px 0;border-top:1px solid rgba(255,255,255,.05);font-size:14px}
+  .stat:first-of-type{margin-top:14px}
+  .stat .k{color:var(--muted)}
+  .stat .v{font-family:'Cinzel',serif;font-weight:600;color:var(--ink)}
+  .stat .v.gold{color:var(--gold)}
+  .stat .v.time{color:var(--gold-soft);font-size:13px}
+
+  /* ---- Quick lookup ---- */
+  .qresult{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  .qbox{background:#0a0d15;border:1px solid var(--line);border-radius:12px;
+    padding:16px;text-align:center;position:relative;overflow:hidden;min-width:0}
+  .qbox::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.45}
+  .qlabel{display:block;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .qval{display:block;max-width:100%;font-family:'Cinzel',serif;font-weight:700;
+    font-size:30px;color:#fff;letter-spacing:0;line-height:1.08;white-space:nowrap;
+    overflow:hidden;text-overflow:clip;font-variant-numeric:tabular-nums}
+  .qval.fit-long{font-size:25px}
+  .qval.fit-xl{font-size:21px}
+  .qval.fit-xxl{font-size:18px}
+  .qval.gold{color:var(--gold)}
+  @media(max-width:560px){
+    .qresult{grid-template-columns:1fr}
+    .qbox{padding:15px 14px}
+    .qval{font-size:28px}
+    .qval.fit-long{font-size:24px}
+    .qval.fit-xl{font-size:20px}
+    .qval.fit-xxl{font-size:17px}
+  }
+
+  .cooldowns{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:18px;
+    padding-top:16px;border-top:1px solid var(--line)}
+  .cd-title{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);margin-right:4px}
+  .cd-pill{font-family:'Cinzel',serif;font-size:12px;color:var(--gold-soft);
+    background:rgba(216,180,74,.08);border:1px solid var(--line);
+    padding:5px 10px;border-radius:20px}
+
+  .foot{font-size:12.5px;color:var(--muted2);text-align:center;margin-top:20px;
+    line-height:1.65;font-style:italic}
+  .foot code{font-family:'Cinzel',serif;font-style:normal;color:var(--gold-dim);font-size:12px}
+
+  /* ---- Sample table ---- */
+  .reroll{background:rgba(155,34,34,.16);border:1px solid rgba(194,54,54,.4);
+    color:#e8b4b4;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;
+    padding:7px 12px;border-radius:8px;cursor:pointer;transition:.15s}
+  .reroll:active{transform:translateY(1px);background:rgba(155,34,34,.28)}
+  .sample-note{font-size:13px;color:var(--muted2);font-style:italic;margin-bottom:14px}
+  .stbl{width:100%;border-collapse:collapse;font-family:'Cinzel',serif}
+  .stbl th{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);text-align:right;padding:0 0 10px;font-weight:500;
+    border-bottom:1px solid var(--line)}
+  .stbl th:first-child,.stbl th:nth-child(2){text-align:left}
+  .stbl td{padding:11px 0;text-align:right;font-size:15px;
+    border-bottom:1px solid rgba(255,255,255,.045)}
+  .stbl td:first-child{text-align:left;color:var(--ink);font-weight:600}
+  .stbl td:nth-child(2){text-align:left;color:var(--blood-soft)}
+  .stbl td:nth-child(3){color:var(--gold)}
+  .stbl td:nth-child(4){color:var(--muted)}
+  .stbl tr:last-child td{border-bottom:none}
+  .stbl tbody tr{animation:fadein .35s ease both}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body class="site-gate-pending">
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy-block">
+        <div class="top-nav"></div>
+        <p class="eyebrow">BT ANALYSS / ATALARIN YOLU</p>
+        <h1>Kademe Seferi</h1>
+      </div>
+    </header>
+
+    <main class="single-layout">
+      <div class="wrap">
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Sefer Bilgileri</div>
+    <div class="grid">
+      <div class="field">
+        <label>Mevcut <b>Kademe</b></label>
+        <input id="cur" type="number" inputmode="numeric" value="1741" min="1">
+      </div>
+      <div class="field">
+        <label>Hedef <b>Kademe</b></label>
+        <input id="tgt" type="number" inputmode="numeric" value="1950" min="2">
+      </div>
+      <div class="field full">
+        <label>Kat <b>(x)</b></label>
+        <input id="kat" type="number" inputmode="numeric" value="3" min="1">
+        <div class="hint">Tek kat stratejisi → sadece bu katı yaparsın. İlk-x stratejisi → 1'den x'e kadar tüm katları sırayla yaparsın.</div>
+      </div>
+      <div class="field">
+        <label>Aralık <b>başı</b></label>
+        <input id="ra" type="number" inputmode="numeric" value="11" min="1">
+      </div>
+      <div class="field">
+        <label>Aralık <b>sonu</b></label>
+        <input id="rb" type="number" inputmode="numeric" value="20" min="1">
+      </div>
+      <div class="field full" style="margin-top:-4px">
+        <div class="hint">Aralık stratejisi → her turda yalnızca bu aralıktaki katları (örn. 11–20) yaparsın.</div>
+      </div>
+      <div class="field full">
+        <label>Şu anki toplam EXP <span style="color:var(--muted2)">(opsiyonel)</span></label>
+        <input id="curexp" type="number" inputmode="numeric" placeholder="boş = kademe başlangıcı">
+        <div class="hint">Kademe içinde ilerlemişsen yaz; boşsa kademenin tam başındasın varsayılır.</div>
+      </div>
+    </div>
+    <button class="go" onclick="hesapla()">⚔ Seferi Planla</button>
+    <div id="warn" class="warn"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Hızlı Hesap · Seviye + Kat</div>
+    <div class="grid">
+      <div class="field">
+        <label><b>Seviye</b> (kademe)</label>
+        <input id="qs" type="number" inputmode="numeric" value="1800" min="1" oninput="hizliHesap()">
+      </div>
+      <div class="field">
+        <label><b>Kat</b></label>
+        <input id="qk" type="number" inputmode="numeric" value="17" min="1" oninput="hizliHesap()">
+      </div>
+    </div>
+    <div class="qresult">
+      <div class="qbox">
+        <span class="qlabel">EXP</span>
+        <span class="qval gold" id="qexp">—</span>
+      </div>
+      <div class="qbox">
+        <span class="qlabel">Ganimet</span>
+        <span class="qval" id="qgan">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="out">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Sonuç</div>
+      <div class="summary">
+        <div class="need">Gereken toplam tecrübe: <b id="needexp">—</b> EXP</div>
+        <div class="path" id="pathtxt"></div>
+      </div>
+      <div class="strat">
+        <div class="sbox">
+          <h3 id="t1">Tek Kat</h3>
+          <div class="sub" id="s1"></div>
+          <div class="big" id="r1">—<small> kez</small></div>
+          <div class="stat"><span class="k">Toplam ganimet</span><span class="v gold" id="g1">—</span></div>
+          <div class="stat"><span class="k">Ort. EXP / sefer</span><span class="v" id="e1">—</span></div>
+          <div class="stat"><span class="k">Ulaşılan kademe</span><span class="v" id="f1">—</span></div>
+        </div>
+        <div class="sbox">
+          <h3 id="t2">İlk x Kat (tur)</h3>
+          <div class="sub" id="s2"></div>
+          <div class="big" id="r2">—<small> tur</small></div>
+          <div class="stat"><span class="k">Tekil sefer sayısı</span><span class="v" id="rr2">—</span></div>
+          <div class="stat"><span class="k">Toplam ganimet</span><span class="v gold" id="g2">—</span></div>
+          <div class="stat"><span class="k">Ulaşılan kademe</span><span class="v" id="f2">—</span></div>
+        </div>
+        <div class="sbox">
+          <h3 id="t3">Aralık Kat (tur)</h3>
+          <div class="sub" id="s3"></div>
+          <div class="big" id="r3">—<small> tur</small></div>
+          <div class="stat"><span class="k">Tekil sefer sayısı</span><span class="v" id="rr3">—</span></div>
+          <div class="stat"><span class="k">Toplam ganimet</span><span class="v gold" id="g3">—</span></div>
+          <div class="stat"><span class="k">Ulaşılan kademe</span><span class="v" id="f3">—</span></div>
+        </div>
+      </div>
+      <div class="foot">
+        Ödüller, doğrulanmış regresyon formülüyle hesaplanır (Kat 1-40 & Seviye 1576-1745 aralığında ±0,3 EXP / ±%0,01 sapma).<br>
+        Kademe eşiği: <code>toplam EXP = 5·K² + K − 1</code> &nbsp;·&nbsp; bir kademe için <code>10·K + 6</code> EXP.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:9px"><span class="dot"></span>Rastgele Örnekler</span>
+        <button class="reroll" onclick="ornekUret()">↻ Yeniden Üret</button>
+      </div>
+      <div class="sample-note" id="sampleNote"></div>
+      <table class="stbl">
+        <thead><tr><th>Kademe</th><th>Kat</th><th>EXP</th><th>Ganimet</th></tr></thead>
+        <tbody id="sampleBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// --- Doğrulanmış regresyon katsayıları ---
+const C = {
+  exp: {c0:1756.80,  cK:35.6417,    cS:0.3837,   cKS:0.007962},
+  gan: {c0:641193.97,cK:47726.2945, cS:249.9631, cKS:19.129108}
+};
+const EXP_ADJUST = 1999 / 2000;
+const GAN_ADJUST = 999500 / 1000000;
+const expRun = (k,s)=> (C.exp.c0 + C.exp.cK*k + C.exp.cS*s + C.exp.cKS*k*s) * EXP_ADJUST;
+const ganRun = (k,s)=> (C.gan.c0 + C.gan.cK*k + C.gan.cS*s + C.gan.cKS*k*s) * GAN_ADJUST;
+
+// Kademe K'ya ulaşmak için gereken toplam EXP
+const totalExp = K => 5*K*K + K - 1;
+// Toplam EXP'ten mevcut kademeyi bul
+const seviyeFromExp = E => Math.floor((-1 + Math.sqrt(1 + 20*(E+1)))/10);
+
+const fmt = n => Math.round(n).toLocaleString('tr-TR');
+const MAX_ITER = 3_000_000;
+
+function simTekKat(startE, targetE, x){
+  let totE=startE, runs=0, gan=0;
+  while(totE < targetE && runs < MAX_ITER){
+    const s = seviyeFromExp(totE);
+    totE += Math.round(expRun(x,s));
+    gan  += Math.round(ganRun(x,s));
+    runs++;
+  }
+  return {runs, gan, finalE:totE, hit:runs>=MAX_ITER};
+}
+
+function simRange(startE, targetE, a, b){
+  let totE=startE, runs=0, cycles=0, gan=0;
+  while(totE < targetE && runs < MAX_ITER){
+    cycles++;
+    for(let k=a;k<=b;k++){
+      if(totE >= targetE) break;
+      const s = seviyeFromExp(totE);
+      totE += Math.round(expRun(k,s));
+      gan  += Math.round(ganRun(k,s));
+      runs++;
+    }
+  }
+  return {cycles, runs, gan, finalE:totE, hit:runs>=MAX_ITER};
+}
+
+// --- Hızlı hesap: seviye + kat → EXP & Ganimet ---
+function hizliHesap(){
+  const s = parseInt(document.getElementById('qs').value);
+  const k = parseInt(document.getElementById('qk').value);
+  const ex = document.getElementById('qexp'), gn = document.getElementById('qgan');
+  if(!s||!k||s<1||k<1){ ex.textContent='—'; gn.textContent='—'; return; }
+  setFitValue(ex, fmt(expRun(k,s)));
+  setFitValue(gn, fmt(ganRun(k,s)));
+}
+
+function setFitValue(el, text){
+  el.textContent = text;
+  el.classList.remove('fit-long','fit-xl','fit-xxl');
+  const len = String(text).length;
+  if(len >= 16) el.classList.add('fit-xxl');
+  else if(len >= 13) el.classList.add('fit-xl');
+  else if(len >= 10) el.classList.add('fit-long');
+}
+
+function hesapla(){
+  const cur = parseInt(document.getElementById('cur').value);
+  const tgt = parseInt(document.getElementById('tgt').value);
+  const x   = parseInt(document.getElementById('kat').value);
+  let ra    = parseInt(document.getElementById('ra').value);
+  let rb    = parseInt(document.getElementById('rb').value);
+  const curexpRaw = document.getElementById('curexp').value.trim();
+  const warn = document.getElementById('warn');
+  warn.className='warn';
+
+  if(!cur||!tgt||!x||cur<1||x<1){ showWarn(warn,"Lütfen geçerli kademe ve kat değerleri gir."); return; }
+  if(tgt<=cur){ showWarn(warn,"Hedef kademe, mevcut kademeden büyük olmalı."); return; }
+  if(!ra||!rb||ra<1||rb<1){ showWarn(warn,"Lütfen geçerli bir kat aralığı gir."); return; }
+  if(ra>rb){ const t=ra; ra=rb; rb=t; }  // ters girilmişse düzelt
+
+  let startE = totalExp(cur);
+  if(curexpRaw!==''){
+    const ce = parseInt(curexpRaw);
+    if(!isNaN(ce) && ce>startE) startE = ce; // ilerlemiş durum
+  }
+  const targetE = totalExp(tgt);
+
+  // Ekstrapolasyon uyarısı
+  const msgs=[];
+  if(Math.max(x,rb)>80) msgs.push("Kat 80'in üstünde — arşiv verisi seyrek, tahmin sapabilir.");
+  if(Math.max(x,rb)>72 && Math.max(cur,tgt)<1500) msgs.push("Düşük seviyede Kat 72 üstü için yeterli arşiv verisi yok.");
+  if(msgs.length) showWarn(warn, "⚠ "+msgs.join(" "));
+
+  const A = simTekKat(startE, targetE, x);
+  const B = simRange(startE, targetE, 1, x);
+  const R = simRange(startE, targetE, ra, rb);
+
+  document.getElementById('needexp').textContent = fmt(targetE-startE);
+  document.getElementById('pathtxt').innerHTML =
+    `Kademe <b>${fmt(cur)}</b> → <b>${fmt(tgt)}</b>`;
+
+  // Tek kat
+  document.getElementById('t1').textContent = `Sadece Kat ${x}`;
+  document.getElementById('s1').textContent = `Sadece ${x}. katı tekrarla.`;
+  document.getElementById('r1').innerHTML = `${fmt(A.runs)}<small> kez</small>`;
+  document.getElementById('g1').textContent = fmt(A.gan);
+  document.getElementById('e1').textContent = fmt((A.finalE-startE)/Math.max(A.runs,1));
+  document.getElementById('f1').textContent = fmt(seviyeFromExp(A.finalE));
+
+  // İlk x kat
+  document.getElementById('t2').textContent = `İlk ${x} Kat (tur)`;
+  document.getElementById('s2').textContent = `Her turda 1'den ${x}'e kadar tüm katları yap.`;
+  document.getElementById('r2').innerHTML = `${fmt(B.cycles)}<small> tur</small>`;
+  document.getElementById('rr2').textContent = fmt(B.runs);
+  document.getElementById('g2').textContent = fmt(B.gan);
+  document.getElementById('f2').textContent = fmt(seviyeFromExp(B.finalE));
+
+  // Aralık kat
+  document.getElementById('t3').textContent = `Kat ${ra}–${rb} (tur)`;
+  document.getElementById('s3').textContent = `Her turda yalnızca ${ra}–${rb} katları yap.`;
+  document.getElementById('r3').innerHTML = `${fmt(R.cycles)}<small> tur</small>`;
+  document.getElementById('rr3').textContent = fmt(R.runs);
+  document.getElementById('g3').textContent = fmt(R.gan);
+  document.getElementById('f3').textContent = fmt(seviyeFromExp(R.finalE));
+
+  document.getElementById('out').className='show';
+  ornekUret();
+}
+
+function showWarn(el,msg){ el.textContent=msg; el.className='warn show'; }
+
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function ornekUret(){
+  const cur=parseInt(document.getElementById('cur').value);
+  const tgt=parseInt(document.getElementById('tgt').value);
+  const x=parseInt(document.getElementById('kat').value);
+  if(!cur||!tgt||!x||tgt<=cur) return;
+  document.getElementById('sampleNote').innerHTML =
+    `Kademe <b style="color:var(--gold-soft)">${fmt(cur)}–${fmt(tgt)}</b> arası, kat <b style="color:var(--blood-soft)">1–${x}</b> arasından rastgele 10 değer:`;
+  let rows='';
+  for(let i=0;i<10;i++){
+    const s=ri(cur,tgt), k=ri(1,x);
+    rows+=`<tr style="animation-delay:${i*0.03}s"><td>${fmt(s)}</td><td>${k}</td>`
+        + `<td>${fmt(expRun(k,s))}</td><td>${fmt(ganRun(k,s))}</td></tr>`;
+  }
+  document.getElementById('sampleBody').innerHTML=rows;
+}
+
+// İlk açılışta otomatik hesapla
+window.addEventListener('load', ()=>{ hesapla(); hizliHesap(); });
+</script>
+      </div>
+    </main>
+  </div>
+  <script src="site-gate.js?v=20260529-16" defer></script>
+</body>
+</html>

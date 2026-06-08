@@ -2294,6 +2294,151 @@
     writeArchiveRegressionTests([]);
   }
 
+  function normalizeArchiveRegressionResult(value) {
+    return value === "pass" || value === "fail" || value === "skipped" ? value : "";
+  }
+
+  function mergeArchiveRegressionTests(items) {
+    const seen = new Map();
+    (Array.isArray(items) ? items : []).forEach((item) => {
+      const id = item?.id;
+      if (!id) {
+        return;
+      }
+      seen.set(id, { ...seen.get(id), ...item });
+    });
+    return [...seen.values()];
+  }
+
+  function countLocalArchiveRegressionTests(host) {
+    const local = readArchiveRegressionTests().filter((item) => !host || String(item?.host || "") === host);
+    const counts = { pass: 0, fail: 0, skipped: 0, total: local.length };
+    local.forEach((item) => {
+      if (item?.result === "fail") {
+        counts.fail += 1;
+      } else if (item?.result === "skipped") {
+        counts.skipped += 1;
+      } else {
+        counts.pass += 1;
+      }
+    });
+    return counts;
+  }
+
+  // Sayfali okuma: sadece aktif sekme/sunucu icin 10'ar kayit okur (startAfter cursor ile).
+  // 100k kayitta bile sayfa acilisi yalnizca ilk 10 dokumani okur.
+  async function loadArchiveRegressionTestsPage(options = {}) {
+    const host = typeof options.host === "string" ? options.host : "";
+    const result = normalizeArchiveRegressionResult(options.result);
+    return loadCollectionPage({
+      collectionName: ARCHIVE_TEST_COLLECTION,
+      orderField: "testedAt",
+      mergeItems: mergeArchiveRegressionTests,
+      readLocal: readArchiveRegressionTests,
+      writeLocal: writeArchiveRegressionTests,
+      pageSize: options.pageSize || DEFAULT_PAGE_SIZE,
+      cursor: options.cursor || null,
+      sortDirection: "desc",
+      filterLocalItems: (items) => (Array.isArray(items) ? items : []).filter((item) => (
+        (!host || String(item?.host || "") === host)
+        && (!result || String(item?.result || "") === result)
+      )),
+      buildRemoteQuery: (collection) => {
+        let query = collection;
+        if (host) {
+          query = query.where("host", "==", host);
+        }
+        if (result) {
+          query = query.where("result", "==", result);
+        }
+        return query.orderBy("testedAt", "desc");
+      },
+      allowLegacyFirstPageFallback: false
+    });
+  }
+
+  // Tek bir sekme/sunucu icin count() degerini Firestore REST runAggregationQuery ile okur.
+  // Compat SDK'nin .count() destegi guvenilmez oldugu icin (bkz. loadOverviewArchiveAggregateViaRest) REST kullaniyoruz.
+  async function runArchiveRegressionCountRest(host, result) {
+    if (typeof globalScope.fetch !== "function") {
+      return null;
+    }
+    const clauses = [];
+    if (host) {
+      clauses.push({ fieldFilter: { field: { fieldPath: "host" }, op: "EQUAL", value: { stringValue: host } } });
+    }
+    if (result) {
+      clauses.push({ fieldFilter: { field: { fieldPath: "result" }, op: "EQUAL", value: { stringValue: result } } });
+    }
+    const structuredQuery = { from: [{ collectionId: ARCHIVE_TEST_COLLECTION }] };
+    if (clauses.length === 1) {
+      structuredQuery.where = clauses[0];
+    } else if (clauses.length > 1) {
+      structuredQuery.where = { compositeFilter: { op: "AND", filters: clauses } };
+    }
+    const body = {
+      structuredAggregationQuery: {
+        structuredQuery,
+        aggregations: [{ alias: "c", count: {} }]
+      }
+    };
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}:runAggregationQuery?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Count REST HTTP ${response.status}: ${text.slice(0, 200)}`);
+    }
+    const json = await response.json();
+    const row = Array.isArray(json) ? json.find((entry) => entry?.result?.aggregateFields) : null;
+    const field = row?.result?.aggregateFields?.c;
+    return toAggregateNumber(field?.integerValue ?? field?.doubleValue ?? 0);
+  }
+
+  // Sekme sayaclarini aggregation ile okur: 100k kayit ~ birkac okuma birimi, dokuman basina ucret yok.
+  async function countArchiveRegressionTests(options = {}) {
+    const host = typeof options.host === "string" ? options.host : "";
+    if (typeof globalScope.fetch !== "function") {
+      return countLocalArchiveRegressionTests(host);
+    }
+    try {
+      const [pass, fail, skipped] = await Promise.all([
+        runArchiveRegressionCountRest(host, "pass"),
+        runArchiveRegressionCountRest(host, "fail"),
+        runArchiveRegressionCountRest(host, "skipped")
+      ]);
+      if (pass === null || fail === null || skipped === null) {
+        return countLocalArchiveRegressionTests(host);
+      }
+      return { pass, fail, skipped, total: pass + fail + skipped };
+    } catch (error) {
+      console.warn("Arsiv test sayimlari okunamadi, cache kullaniliyor.", error);
+      return countLocalArchiveRegressionTests(host);
+    }
+  }
+
+  // TXT indir butonu icin: secili sunucudaki TUM kayitlari okur (kullanici tetikler, sayfa acilisinda degil).
+  async function loadAllArchiveRegressionTests(options = {}) {
+    const host = typeof options.host === "string" ? options.host : "";
+    if (!db) {
+      return readArchiveRegressionTests().filter((item) => !host || String(item?.host || "") === host);
+    }
+    try {
+      let query = db.collection(ARCHIVE_TEST_COLLECTION);
+      if (host) {
+        query = query.where("host", "==", host);
+      }
+      const snapshot = await query.get();
+      const items = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      writeArchiveRegressionTests(mergeArchiveRegressionTests([...readArchiveRegressionTests(), ...items]));
+      return items;
+    } catch (error) {
+      console.warn("Arsiv test sonuclari (tum) okunamadi, cache kullaniliyor.", error);
+      return readArchiveRegressionTests().filter((item) => !host || String(item?.host || "") === host);
+    }
+  }
+
   async function loadOverviewArchives() {
     if (!db) {
       return readOverviewArchives();
@@ -2609,6 +2754,9 @@
     deleteOverviewArchive,
     deleteOverviewArchives,
     loadArchiveRegressionTests,
+    loadArchiveRegressionTestsPage,
+    countArchiveRegressionTests,
+    loadAllArchiveRegressionTests,
     saveArchiveRegressionTest,
     getArchiveRegressionTestedSignatures,
     buildArchiveRegressionTestDocId,

@@ -288,6 +288,12 @@ body.site-gate-ready .page-shell {
   --nav-icon: #9ae7d1;
 }
 
+.nav-plan {
+  --nav-tone: linear-gradient(180deg, rgba(54, 42, 72, 0.94), rgba(28, 18, 42, 0.96));
+  --nav-border: rgba(160, 108, 255, 0.3);
+  --nav-icon: #cfa8ff;
+}
+
 .nav-link.active {
   color: var(--text);
   background: linear-gradient(180deg, rgba(108, 182, 255, 0.2), rgba(108, 182, 255, 0.12));
@@ -7555,6 +7561,13 @@ body[data-optimizer-variant="quick"] .controls-panel {
   flex-shrink: 0;
 }
 
+.trc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .trc-status-badge {
   font-size: 0.78rem;
   font-weight: 800;
@@ -7563,6 +7576,49 @@ body[data-optimizer-variant="quick"] .controls-panel {
   border-radius: 8px;
   text-transform: uppercase;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.trc-sim-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(108, 182, 255, 0.15);
+  color: var(--accent-strong);
+  border: 1px solid rgba(108, 182, 255, 0.3);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.trc-sim-btn:hover {
+  background: rgba(108, 182, 255, 0.28);
+}
+
+.trc-sim-btn:active {
+  transform: scale(0.94);
+}
+
+.trc-sim-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  stroke: none;
+}
+
+.tests-load-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 0 6px;
+}
+
+.tests-load-more-info {
+  font-size: 0.76rem;
+  color: var(--muted);
 }
 
 .test-result-card.pass .trc-status-badge {
@@ -7767,5 +7823,383 @@ body[data-optimizer-variant="quick"] .controls-panel {
   }
   .trc-rosters {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Navigation Dropdown Menu Styles
+   ========================================================================== */
+.nav-dropdown {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.nav-dropdown-toggle {
+  width: 100%;
+  height: 100%;
+  min-height: 48px;
+  border-radius: 18px;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: all 140ms ease;
+}
+
+.nav-dropdown-toggle:hover {
+  color: #c9d6ea;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-dropdown-toggle.active {
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(108, 182, 255, 0.2), rgba(108, 182, 255, 0.12));
+  box-shadow: inset 0 0 0 1px rgba(108, 182, 255, 0.24);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1000;
+  display: none;
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(160, 185, 214, 0.14);
+  background: rgba(13, 18, 28, 0.98);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+}
+
+.nav-dropdown-menu.show {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-dropdown-menu .nav-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-height: 40px !important;
+  padding: 8px 14px !important;
+  border-radius: 12px !important;
+  text-align: left !important;
+  width: 100% !important;
+  font-size: 0.76rem !important;
+}
+
+.nav-dropdown-menu .nav-link-label {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  font-size: 0.76rem !important;
+  font-weight: 600 !important;
+  color: inherit !important;
+  display: inline-block !important;
+}
+
+/* ==========================================================================
+   Premium Test Result Card Extensions
+   ========================================================================== */
+.test-result-card.pass {
+  border-left: 5px solid #10b981;
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.02) 0%, rgba(13, 18, 28, 0.8) 100%);
+}
+
+.test-result-card.fail {
+  border-left: 5px solid #ef4444;
+  background: linear-gradient(145deg, rgba(239, 68, 68, 0.02) 0%, rgba(13, 18, 28, 0.8) 100%);
+}
+
+.test-result-card.skipped {
+  border-left: 5px solid #6b7280;
+  background: linear-gradient(145deg, rgba(107, 114, 128, 0.02) 0%, rgba(13, 18, 28, 0.8) 100%);
+}
+
+.trc-match-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.trc-match-pill.match {
+  background: rgba(16, 185, 129, 0.08);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.trc-match-pill.mismatch {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.05);
+}
+
+.trc-match-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.trc-roster-box {
+  transition: all 0.2s ease;
+}
+
+.trc-roster-box:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(108, 182, 255, 0.15);
+}
+
+.trc-grid-row {
+  transition: background 0.15s ease;
+}
+
+.trc-grid-row:hover:not(.header) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.trc-diff-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.trc-diff-pills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trc-diff-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(245, 158, 11, 0.08);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+}
+
+.trc-diff-pill:hover {
+  background: rgba(245, 158, 11, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 720px) {
+  .test-results-page .hero {
+    gap: 8px;
+  }
+
+  .test-results-page .hero-stat {
+    min-height: 68px;
+  }
+
+  .test-results-page .panel-head {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .test-results-page .panel-head h2 {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .test-results-page .panel-head-tools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .test-results-page .panel-head-tools .select-wrap {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 10px;
+  }
+
+  .test-results-page .panel-head-tools .select-wrap span {
+    white-space: nowrap;
+  }
+
+  .test-results-page .panel-head-tools .stage-select {
+    min-width: 0;
+    min-height: 36px;
+    padding: 6px 10px;
+  }
+
+  .test-results-page .panel-head-tools .button {
+    min-height: 42px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .test-results-page #testsClearBtn {
+    grid-column: 1 / -1;
+  }
+
+  .test-results-page .report-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .test-results-page .report-summary-card {
+    min-height: 118px;
+    padding: 12px 10px;
+    border-radius: 14px;
+  }
+
+  .test-results-page .report-summary-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+  }
+
+  .test-results-page .report-summary-card strong {
+    margin-top: 7px;
+    font-size: 1.55rem;
+  }
+
+  .test-results-page .report-summary-card small {
+    margin-top: 7px;
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  .test-results-page .test-result-card {
+    gap: 12px;
+    padding: 14px;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    border-left-width: 4px;
+  }
+
+  .test-results-page .trc-header {
+    gap: 10px;
+    padding-bottom: 10px;
+  }
+
+  .test-results-page .trc-info {
+    min-width: 0;
+  }
+
+  .test-results-page .trc-title-row {
+    gap: 6px;
+  }
+
+  .test-results-page .trc-stage-badge {
+    font-size: 0.96rem;
+  }
+
+  .test-results-page .trc-status-badge {
+    flex: 0 0 auto;
+    padding: 5px 9px;
+    font-size: 0.68rem;
+  }
+
+  .test-results-page .trc-date {
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .test-results-page .trc-rosters {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .test-results-page .trc-roster-box {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .test-results-page .trc-roster-code {
+    font-size: 0.74rem;
+    line-height: 1.4;
+  }
+
+  .test-results-page .trc-metrics-table {
+    overflow-x: auto;
+    border-radius: 12px;
+  }
+
+  .test-results-page .trc-grid-row {
+    grid-template-columns: 92px minmax(116px, 1fr) minmax(116px, 1fr);
+    min-width: 324px;
+  }
+
+  .test-results-page .trc-grid-row.header {
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+  }
+
+  .test-results-page .trc-cell {
+    min-height: 34px;
+    padding: 8px;
+    font-size: 0.72rem;
+  }
+
+  .test-results-page .trc-cell.metric-name {
+    font-size: 0.68rem;
+  }
+
+  .test-results-page .trc-match-pill {
+    padding: 4px 7px;
+    font-size: 0.68rem;
+    line-height: 1.25;
+  }
+
+  .test-results-page .trc-diff-banner,
+  .test-results-page .trc-note-box {
+    padding: 10px;
+    font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .test-results-page .report-summary-card {
+    padding: 10px 8px;
+  }
+
+  .test-results-page .report-summary-label {
+    font-size: 0.6rem;
+  }
+
+  .test-results-page .report-summary-card strong {
+    font-size: 1.35rem;
+  }
+
+  .test-results-page .report-summary-card small {
+    font-size: 0.62rem;
   }
 }

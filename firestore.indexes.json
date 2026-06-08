@@ -202,6 +202,23 @@
         { "fieldPath": "expValue", "order": "ASCENDING" },
         { "fieldPath": "lootGoldValue", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "archiveRegressionTests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host", "order": "ASCENDING" },
+        { "fieldPath": "result", "order": "ASCENDING" },
+        { "fieldPath": "testedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "archiveRegressionTests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "result", "order": "ASCENDING" },
+        { "fieldPath": "testedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -33,7 +33,10 @@
       "Bash(firebase firestore:indexes --project bt-analiz)",
       "Bash(curl -s -I \"https://bt-analiz.web.app/archive.html\")",
       "Bash(curl -s -I \"https://bt-analiz.web.app/archive.js\")",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(firebase firestore:indexes)",
+      "Bash(gcloud firestore *)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }
