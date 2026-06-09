@@ -219,6 +219,23 @@
         { "fieldPath": "result", "order": "ASCENDING" },
         { "fieldPath": "testedAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "archiveRegressionTests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host", "order": "ASCENDING" },
+        { "fieldPath": "result", "order": "ASCENDING" },
+        { "fieldPath": "stage", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "archiveRegressionTests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "result", "order": "ASCENDING" },
+        { "fieldPath": "stage", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

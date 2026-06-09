@@ -567,6 +567,27 @@ function getRepresentativeSeed(source = null, fallbackResult = null) {
   return null;
 }
 
+function getRepresentativeBattle(result = null, source = null) {
+  const battle = result?.sampleBattle || source?.sampleBattle || null;
+  return battle && typeof battle === "object" ? battle : null;
+}
+
+function getDisplayedRepresentativeLossValue(source = null, result = null) {
+  const battle = getRepresentativeBattle(result, source);
+  if (Number.isFinite(Number(battle?.lostBloodTotal))) {
+    return Number(battle.lostBloodTotal);
+  }
+  return getDisplayedLossValue(source);
+}
+
+function getDisplayedRepresentativeLossBreakdown(source = null, result = null) {
+  const battle = getRepresentativeBattle(result, source);
+  if (battle?.allyLosses && typeof battle.allyLosses === "object") {
+    return battle.allyLosses;
+  }
+  return getDisplayedLossBreakdownSource(source);
+}
+
 function createOpenSimulationButton(enemyCounts, allyCounts, label = "Simule Et", seed = null, roundingMode = optimizerRoundingMode) {
   const button = document.createElement("button");
   button.type = "button";
@@ -3921,7 +3942,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       `>> ${stage}. kademede bu savas kazanilabilir.`,
       `- puan limiti: ${maxPoints}`,
       `- beklenen kazanma orani: %${Math.round(recommendation.winRate * 100)}`,
-      `- ${lossLabel}: ${Math.round(getDisplayedLossValue(recommendation))}`,
+      `- ${lossLabel}: ${Math.round(getDisplayedRepresentativeLossValue(recommendation, result))}`,
       `- kullanilan puan: ${Math.round(recommendation.avgUsedPoints)}`,
       ...(meta.stoneMode ? [`- ortalama tas ihtiyaci: ${formatMetricValue(getDisplayedStoneCount(source))}`] : []),
       ...progressLines
@@ -5579,7 +5600,7 @@ function renderRecommendationCards(result, maxPoints, meta) {
 
   const stats = [
     ["Kullanilan puan", `${Math.round(source.avgUsedPoints)} / ${maxPoints}`],
-    [getLossMetricLabel(meta.stoneMode), result.possible ? `${Math.round(getDisplayedLossValue(source))}` : "Kazanis yok"],
+    [getLossMetricLabel(meta.stoneMode), result.possible ? `${Math.round(getDisplayedRepresentativeLossValue(source, result))}` : "Kazanis yok"],
     ["Kazanma orani", `%${Math.round(source.winRate * 100)}`],
     ["Toplam tarama", `${meta.totalCandidates} aday`],
     ...(meta.stoneMode ? [["Ortalama tas", formatMetricValue(getDisplayedStoneCount(source))]] : [])
@@ -5614,7 +5635,7 @@ function renderRecommendationCards(result, maxPoints, meta) {
   ));
 
   const list = buildTopResultUnitList(source.counts, {
-    expectedLosses: getDisplayedLossBreakdownSource(source)
+    expectedLosses: getDisplayedRepresentativeLossBreakdown(source, result)
   });
 
   listCard.append(listTitle, listActions, list);
@@ -5729,12 +5750,12 @@ function showQuickPopup(result, maxPoints, meta) {
     titleEl.dataset.outcome = result.possible ? "win" : "lose";
   }
   if (winRateEl) winRateEl.textContent = `%${Math.round(source.winRate * 100)}`;
-  if (lossEl) lossEl.textContent = String(Math.round(getDisplayedLossValue(source)));
+  if (lossEl) lossEl.textContent = String(Math.round(getDisplayedRepresentativeLossValue(source, result)));
   if (pointsEl) pointsEl.textContent = `${Math.round(source.avgUsedPoints)} / ${maxPoints}`;
 
   if (unitListEl) {
     unitListEl.innerHTML = "";
-    const lossBreakdown = getDisplayedLossBreakdownSource(source);
+    const lossBreakdown = getDisplayedRepresentativeLossBreakdown(source, result);
     let shown = 0;
     ALLY_UNITS.forEach((unit) => {
       const count = source.counts?.[unit.key] || 0;
@@ -6138,7 +6159,7 @@ function createSavedEntry(candidate) {
     logText: battleView?.logText || "",
     usedCapacity: sampleBattle?.usedCapacity || 0,
     usedPoints: Math.round(recommendation.avgUsedPoints),
-    lostBlood: Math.round(getDisplayedLossValue(recommendation))
+    lostBlood: Math.round(getDisplayedRepresentativeLossValue(recommendation, candidate.result))
   };
 }
 
@@ -6183,7 +6204,7 @@ function createWrongReportEntry(result, stage, maxPoints, meta, summaryText, log
       : "",
     possible: result.possible,
     usedPoints: source ? Math.round(source.avgUsedPoints || 0) : 0,
-    lostBlood: source && Number.isFinite(getDisplayedLossValue(source)) ? Math.round(getDisplayedLossValue(source)) : null,
+    lostBlood: source && Number.isFinite(getDisplayedRepresentativeLossValue(source, result)) ? Math.round(getDisplayedRepresentativeLossValue(source, result)) : null,
     winRate: source ? Math.round((source.winRate || 0) * 100) : 0,
     pointLimit: maxPoints,
     usedCapacity: Math.round(source?.avgUsedCapacity || 0)

@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260608-2">
+  <link rel="stylesheet" href="styles.css?v=20260609-4">
 </head>
 <body class="site-gate-pending test-results-page">
   <div class="page-shell">
@@ -61,9 +61,40 @@
             </label>
             <button id="testsExportBtn" class="button button-secondary" type="button">Indir (kat sirali)</button>
             <button id="testsRefreshBtn" class="button button-ghost" type="button">Yenile</button>
+            <button id="testsDeleteSkippedBtn" class="button button-ghost" type="button" hidden>Atlananlari Sil</button>
             <button id="testsClearBtn" class="button button-ghost" type="button" hidden>Tumunu Temizle</button>
           </div>
         </div>
+
+        <section class="tests-retest-panel" aria-labelledby="testsRetestTitle">
+          <div class="tests-retest-copy">
+            <strong id="testsRetestTitle">Kat Sonuclarini Yeniden Test Et</strong>
+            <span>Kat bos ise secili turdeki tum kayitlar test edilir; tek kat icin 15, aralik icin 15-20 yaz.</span>
+          </div>
+          <div class="tests-retest-controls">
+            <label class="select-wrap">
+              <span>Test turu</span>
+              <select id="testsRetestResultSelect" class="stage-select">
+                <option value="both" selected>Dogrular + Yanlislar</option>
+                <option value="fail">Sadece Yanlislar</option>
+                <option value="pass">Sadece Dogrular</option>
+              </select>
+            </label>
+            <label class="select-wrap">
+              <span>Test edilecek kat</span>
+              <input id="testsRetestStageInput" class="tests-retest-stage-input" type="text" value="1" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="Tumu veya 15 veya 15-20">
+            </label>
+            <button id="testsRetestStageBtn" class="button button-secondary" type="button">Secili Kati Yeniden Test Et</button>
+          </div>
+          <div id="testsRetestStageCount" class="tests-retest-count" aria-live="polite">
+            <strong>1. Kat</strong>
+            <span>Kayit sayisi yukleniyor...</span>
+          </div>
+          <div class="tests-retest-progress" aria-live="polite">
+            <span id="testsRetestStatus">Yeniden siniflandirma icin admin girisi gerekli.</span>
+            <progress id="testsRetestProgress" value="0" max="1" hidden></progress>
+          </div>
+        </section>
 
         <section class="report-summary-grid" id="testsTabBar">
           <button class="report-summary-card is-clickable is-active" type="button" data-tab="pass">
@@ -90,7 +121,7 @@
         <section id="testsAdminPanel" class="admin-auth-panel admin-auth-panel-tight">
           <div class="admin-auth-copy">
             <strong>Admin Girisi</strong>
-            <span>Test sonuclarini temizlemek icin admin oturumu gerekli.</span>
+            <span>Yeniden siniflandirma ve temizleme islemleri icin admin oturumu gerekli.</span>
           </div>
           <div class="admin-auth-controls">
             <span id="testsAdminAuthStatus" class="admin-auth-status">Admin kapali</span>
@@ -108,9 +139,10 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="site-gate.js?v=20260529-16" defer></script>
-  <script src="firebase-client.js?v=20260609-2" defer></script>
+  <script src="firebase-client.js?v=20260609-6" defer></script>
   <script src="admin-auth-ui.js?v=20260529-16" defer></script>
-  <script src="battle-core.js?v=20260529-16" defer></script>
-  <script src="test-sonuclari.js?v=20260609-2" defer></script>
+  <script src="battle-core.js?v=20260609-3" defer></script>
+  <script src="archive-retest.js?v=20260609-1" defer></script>
+  <script src="test-sonuclari.js?v=20260609-7" defer></script>
 </body>
 </html>

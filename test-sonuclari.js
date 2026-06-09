@@ -18,6 +18,13 @@ const testsFailCount = document.querySelector("#testsFailCount");
 const testsSkippedCount = document.querySelector("#testsSkippedCount");
 const testsList = document.querySelector("#testsList");
 const testsClearBtn = document.querySelector("#testsClearBtn");
+const testsDeleteSkippedBtn = document.querySelector("#testsDeleteSkippedBtn");
+const testsRetestResultSelect = document.querySelector("#testsRetestResultSelect");
+const testsRetestStageInput = document.querySelector("#testsRetestStageInput");
+const testsRetestStageBtn = document.querySelector("#testsRetestStageBtn");
+const testsRetestStageCount = document.querySelector("#testsRetestStageCount");
+const testsRetestStatus = document.querySelector("#testsRetestStatus");
+const testsRetestProgress = document.querySelector("#testsRetestProgress");
 const testsAdminAuthStatus = document.querySelector("#testsAdminAuthStatus");
 const testsAdminEmailInput = document.querySelector("#testsAdminEmailInput");
 const testsAdminPasswordInput = document.querySelector("#testsAdminPasswordInput");
@@ -26,9 +33,13 @@ const testsAdminLogoutBtn = document.querySelector("#testsAdminLogoutBtn");
 
 const TAB_LABELS = { pass: "Dogrular", fail: "Yanlislar", skipped: "Atlananlar" };
 const RESULT_LABELS = { pass: "DOGRU", fail: "YANLIS", skipped: "ATLANDI" };
+const RETEST_RESULT_LABELS = { both: "dogru ve yanlis", pass: "dogru", fail: "yanlis" };
 
 let activeTab = "pass";
 let isAdminSession = false;
+let isRetestRunning = false;
+let stageCountTimer = null;
+let stageCountRequestId = 0;
 
 // Sunucu tarafli sayfalama durumu: yalnizca goruntulenen kayitlar bellekte tutulur.
 let loadedItems = [];
@@ -53,6 +64,7 @@ function initTestsPage() {
   });
   testsHostFilter?.addEventListener("change", () => {
     void refreshAll();
+    void refreshRetestStageCount();
   });
   testsRefreshBtn?.addEventListener("click", () => {
     void refreshAll();
@@ -63,8 +75,29 @@ function initTestsPage() {
   testsClearBtn?.addEventListener("click", () => {
     void clearAllTests();
   });
+  testsDeleteSkippedBtn?.addEventListener("click", () => {
+    void deleteSkippedTestsAndArchives();
+  });
+  testsRetestResultSelect?.addEventListener("change", () => {
+    syncRetestControls(true);
+    void refreshRetestStageCount();
+  });
+  testsRetestStageBtn?.addEventListener("click", () => {
+    void retestSelectedStage();
+  });
+  testsRetestStageInput?.addEventListener("input", () => {
+    syncRetestControls(true);
+    scheduleRetestStageCount();
+  });
+  testsRetestStageInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !testsRetestStageBtn?.disabled) {
+      event.preventDefault();
+      void retestSelectedStage();
+    }
+  });
   void bindAdminAuth();
   void refreshAll();
+  void refreshRetestStageCount();
 }
 
 function getActiveHost() {
@@ -229,8 +262,259 @@ async function bindAdminAuth() {
       if (testsClearBtn) {
         testsClearBtn.hidden = !isAdmin;
       }
+      if (testsDeleteSkippedBtn) {
+        testsDeleteSkippedBtn.hidden = !isAdmin;
+      }
+      syncRetestControls();
     }
   });
+}
+
+function getRetestStageSelection() {
+  const stages = parseStageInput(testsRetestStageInput?.value || "");
+  if (!Array.isArray(stages) || stages.length > 300) {
+    return null;
+  }
+  if (stages.some((stage) => !Number.isInteger(stage) || stage < 1 || stage > 9999)) {
+    return null;
+  }
+  if (stages.length === 0) {
+    return {
+      start: null,
+      end: null,
+      stages,
+      label: "Tum Katlar"
+    };
+  }
+  const start = Math.min(...stages);
+  const end = Math.max(...stages);
+  return {
+    start,
+    end,
+    stages,
+    label: start === end ? `${start}. Kat` : `${start}-${end}. Katlar`
+  };
+}
+
+function getRetestResultSelection() {
+  const value = testsRetestResultSelect?.value || "both";
+  return value === "pass" || value === "fail" ? value : "both";
+}
+
+function getRetestResultLabel(value = getRetestResultSelection()) {
+  return RETEST_RESULT_LABELS[value] || RETEST_RESULT_LABELS.both;
+}
+
+function scheduleRetestStageCount() {
+  if (stageCountTimer) {
+    window.clearTimeout(stageCountTimer);
+  }
+  stageCountTimer = window.setTimeout(() => {
+    stageCountTimer = null;
+    void refreshRetestStageCount();
+  }, 300);
+}
+
+async function refreshRetestStageCount() {
+  const selection = getRetestStageSelection();
+  const requestId = ++stageCountRequestId;
+  if (!testsRetestStageCount) {
+    return;
+  }
+  if (!selection) {
+    testsRetestStageCount.innerHTML = "<strong>Gecersiz kat veya aralik</strong><span>Ornek: 15 veya 15-20. En fazla 300 kat.</span>";
+    return;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.countArchiveRegressionTests !== "function") {
+    testsRetestStageCount.innerHTML = `<strong>${selection.label}</strong><span>Kayit sayma servisi hazir degil.</span>`;
+    return;
+  }
+
+  testsRetestStageCount.innerHTML = `<strong>${selection.label}</strong><span>Kayit sayisi yukleniyor...</span>`;
+  try {
+    const countOptions = { host: getActiveHost() };
+    if (Number.isInteger(selection.start)) {
+      countOptions.stageStart = selection.start;
+    }
+    if (Number.isInteger(selection.end)) {
+      countOptions.stageEnd = selection.end;
+    }
+    const stageCounts = await window.BTFirebase.countArchiveRegressionTests(countOptions);
+    if (requestId !== stageCountRequestId) {
+      return;
+    }
+    const retestResult = getRetestResultSelection();
+    const selectedCount = retestResult === "pass"
+      ? stageCounts.pass
+      : retestResult === "fail"
+        ? stageCounts.fail
+        : stageCounts.pass + stageCounts.fail;
+    testsRetestStageCount.innerHTML = `
+      <strong>${selection.label}: ${formatNumber(selectedCount)} ${getRetestResultLabel(retestResult)} kayit test edilecek</strong>
+      <span>${formatNumber(stageCounts.pass)} dogru / ${formatNumber(stageCounts.fail)} yanlis / ${formatNumber(stageCounts.skipped)} atlanan</span>
+    `;
+  } catch (error) {
+    console.warn("Kat kayit sayisi okunamadi.", error);
+    if (requestId === stageCountRequestId) {
+      testsRetestStageCount.innerHTML = `<strong>${selection.label}</strong><span>Kayit sayisi okunamadi.</span>`;
+    }
+  }
+}
+
+function syncRetestControls(preserveStatus = false) {
+  if (testsRetestStageBtn) {
+    testsRetestStageBtn.disabled = !isAdminSession || isRetestRunning || !getRetestStageSelection();
+  }
+  if (!preserveStatus && !isRetestRunning && testsRetestStatus) {
+    testsRetestStatus.textContent = isAdminSession
+      ? "Kat secip dogru ve yanlis kayitlari yeniden test edebilirsin."
+      : "Yeniden siniflandirma icin admin girisi gerekli.";
+  }
+}
+
+async function retestSelectedStage() {
+  if (!isAdminSession) {
+    window.alert("Bu islem icin admin oturumu gerekli.");
+    return;
+  }
+  if (isRetestRunning) {
+    return;
+  }
+  if (!window.ArchiveRegressionRetest || typeof window.ArchiveRegressionRetest.retestItem !== "function") {
+    window.alert("Yeniden test motoru hazir degil.");
+    return;
+  }
+  if (!window.BTFirebase
+    || typeof window.BTFirebase.loadArchiveRegressionTestsForExport !== "function"
+    || typeof window.BTFirebase.saveArchiveRegressionTest !== "function") {
+    window.alert("Test sonucu servisi hazir degil.");
+    return;
+  }
+
+  const selection = getRetestStageSelection();
+  if (!selection) {
+    window.alert("Gecerli bir kat veya aralik gir. Ornek: 15 veya 15-20.");
+    return;
+  }
+  const host = getActiveHost();
+  const hostLabel = host ? shortHost(host) : "tum sunucular";
+  const retestResult = getRetestResultSelection();
+  if (!window.confirm(
+    `${hostLabel} / ${selection.label} icindeki ${getRetestResultLabel(retestResult)} kayitlar yeni simulatorle tekrar test edilip siniflandirilacak. Devam edilsin mi?`
+  )) {
+    return;
+  }
+
+  isRetestRunning = true;
+  syncRetestControls();
+  if (testsRetestProgress) {
+    testsRetestProgress.hidden = false;
+    testsRetestProgress.value = 0;
+    testsRetestProgress.max = 1;
+  }
+  if (testsRetestStatus) {
+    testsRetestStatus.textContent = "Kat kayitlari yukleniyor...";
+  }
+
+  try {
+    const queryOptions = { host, limit: 0 };
+    if (Number.isInteger(selection.start)) {
+      queryOptions.stageStart = selection.start;
+    }
+    if (Number.isInteger(selection.end)) {
+      queryOptions.stageEnd = selection.end;
+    }
+    const loadJobs = [];
+    if (retestResult === "both" || retestResult === "pass") {
+      loadJobs.push(window.BTFirebase.loadArchiveRegressionTestsForExport({ ...queryOptions, result: "pass" }));
+    }
+    if (retestResult === "both" || retestResult === "fail") {
+      loadJobs.push(window.BTFirebase.loadArchiveRegressionTestsForExport({ ...queryOptions, result: "fail" }));
+    }
+    const loadedGroups = await Promise.all(loadJobs);
+    const byId = new Map();
+    loadedGroups.flat().forEach((item) => {
+      if (item?.id) {
+        byId.set(item.id, item);
+      }
+    });
+    const items = [...byId.values()];
+    if (!items.length) {
+      if (testsRetestStatus) {
+        testsRetestStatus.textContent = `${selection.label} icinde yeniden test edilecek ${getRetestResultLabel(retestResult)} kayit yok.`;
+      }
+      window.alert(`${selection.label} icinde yeniden test edilecek ${getRetestResultLabel(retestResult)} kayit yok.`);
+      return;
+    }
+
+    if (testsRetestProgress) {
+      testsRetestProgress.max = items.length;
+    }
+    const audits = [];
+    let saveFailures = 0;
+
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index];
+      if (testsRetestStatus) {
+        testsRetestStatus.textContent = `${selection.label} test ediliyor: ${index + 1} / ${items.length}`;
+      }
+      const audit = window.ArchiveRegressionRetest.retestItem(item, {
+        roundingMode: "legacy",
+        initialSeedCount: 64,
+        deepSeedCount: 1024
+      });
+      audits.push(audit);
+      try {
+        await window.BTFirebase.saveArchiveRegressionTest(
+          window.ArchiveRegressionRetest.buildUpdatedPayload(item, audit)
+        );
+      } catch (error) {
+        saveFailures += 1;
+        console.warn("Yeniden test sonucu kaydedilemedi.", error);
+      }
+      if (testsRetestProgress) {
+        testsRetestProgress.value = index + 1;
+      }
+      if ((index + 1) % 2 === 0) {
+        await waitForUi();
+      }
+    }
+
+    const summary = window.ArchiveRegressionRetest.summarize(audits);
+    const summaryParts = [
+      `${summary.unchangedPass} dogru ayni`,
+      `${summary.unchangedFail} yanlis ayni`,
+      `${summary.failToPass} yanlis -> dogru`,
+      `${summary.passToFail} dogru -> yanlis`
+    ];
+    if (summary.skipped) {
+      summaryParts.push(`${summary.skipped} atlandi`);
+    }
+    if (saveFailures) {
+      summaryParts.push(`${saveFailures} kayit yazilamadi`);
+    }
+    if (testsRetestStatus) {
+      testsRetestStatus.textContent = `${selection.label} tamamlandi: ${summaryParts.join(", ")}.`;
+    }
+    await refreshAll();
+    await refreshRetestStageCount();
+  } catch (error) {
+    console.warn("Kat yeniden testi basarisiz.", error);
+    if (testsRetestStatus) {
+      testsRetestStatus.textContent = `Yeniden test basarisiz: ${String(error?.message || error || "Bilinmeyen hata")}`;
+    }
+    window.alert(`Yeniden test basarisiz: ${String(error?.message || error || "Bilinmeyen hata")}`);
+  } finally {
+    isRetestRunning = false;
+    if (testsRetestProgress) {
+      testsRetestProgress.hidden = true;
+    }
+    syncRetestControls(true);
+  }
+}
+
+function waitForUi() {
+  return new Promise((resolve) => window.setTimeout(resolve, 0));
 }
 
 async function clearAllTests() {
@@ -255,6 +539,65 @@ async function clearAllTests() {
   } finally {
     testsClearBtn.disabled = false;
   }
+}
+
+async function deleteSkippedTestsAndArchives() {
+  if (!isAdminSession) {
+    window.alert("Bu islem icin admin oturumu gerekli.");
+    return;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.deleteSkippedArchiveRegressionTests !== "function") {
+    window.alert("Atlananlari silme servisi hazir degil.");
+    return;
+  }
+
+  const host = getActiveHost();
+  const hostLabel = host ? shortHost(host) : "tum sunucular";
+  const skippedCount = Number(counts?.skipped || 0);
+  const countLabel = skippedCount ? `${formatNumber(skippedCount)} ` : "";
+  if (!window.confirm(
+    `${hostLabel} icin ${countLabel}atlanan test sonucu ve bagli arsiv kayitlari kalici olarak silinecek. Devam edilsin mi?`
+  )) {
+    return;
+  }
+
+  if (testsDeleteSkippedBtn) {
+    testsDeleteSkippedBtn.disabled = true;
+  }
+  try {
+    const result = await window.BTFirebase.deleteSkippedArchiveRegressionTests({ host });
+    clearArchivePageCaches();
+    await refreshAll();
+    await refreshRetestStageCount();
+    if (activeTab === "skipped") {
+      await loadFirstPage();
+    }
+    window.alert(
+      `Silindi: ${formatNumber(result?.deletedTests || 0)} test sonucu, ${formatNumber(result?.deletedArchives || 0)} arsiv kaydi.`
+    );
+  } catch (error) {
+    console.warn("Atlanan kayitlar silinemedi.", error);
+    window.alert(`Atlananlari silme basarisiz: ${String(error?.message || error || "Bilinmeyen hata")}`);
+  } finally {
+    if (testsDeleteSkippedBtn) {
+      testsDeleteSkippedBtn.disabled = false;
+    }
+  }
+}
+
+function clearArchivePageCaches() {
+  [
+    "btAnalyssArchiveSummaryCacheV5",
+    "btAnalyssArchiveChangeTokenV1",
+    "btAnalyssOverviewArchivesCache",
+    "btAnalyssOverviewArchivesCacheMeta"
+  ].forEach((key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // cache temizligi best-effort
+    }
+  });
 }
 
 function buildTestCard(item) {
