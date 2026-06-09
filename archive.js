@@ -87,7 +87,7 @@ const ARCHIVE_FALLBACK_MAX_DOCS = 300;
 // gostermeli; cache yalnizca canli okuma hata verirse fallback olarak kullanilir.
 const ARCHIVE_CHANGE_TOKEN_KEY = "btAnalyssArchiveChangeTokenV1";
 const ARCHIVE_LIVE_REFRESH_VERSION_KEY = "btAnalyssArchiveLiveRefreshVersion";
-const ARCHIVE_LIVE_REFRESH_VERSION = "20260609-2";
+const ARCHIVE_LIVE_REFRESH_VERSION = "20260609-5";
 
 forceArchiveLiveRefresh();
 
@@ -707,8 +707,8 @@ async function loadArchiveAggregateWithCache(options) {
   const summaryCache = readArchiveSummaryCache();
   const cachedEntry = summaryCache[options.cacheKey];
   const cacheUsable = options.ignoreTtl
-    ? Boolean(cachedEntry?.data)
-    : (!options.forceRemote && isSummaryCacheFresh(cachedEntry));
+    ? Boolean(cachedEntry?.data?.exact === true)
+    : (!options.forceRemote && cachedEntry?.data?.exact === true && isSummaryCacheFresh(cachedEntry));
   if (cacheUsable) {
     return {
       ...buildEmptyAggregate(),
@@ -717,14 +717,32 @@ async function loadArchiveAggregateWithCache(options) {
     };
   }
 
-  const aggregate = await window.BTFirebase.loadOverviewArchiveAggregate({
-    filters: options.filters || {}
-  });
+  let aggregate = null;
+  try {
+    aggregate = await window.BTFirebase.loadOverviewArchiveAggregate({
+      filters: options.filters || {}
+    });
+  } catch (error) {
+    console.warn("Arsiv aggregate okunamadi, sayfali fallback deneniyor.", error);
+  }
 
   let finalAgg = aggregate;
-  const isWeak = !aggregate || aggregate.exact === false || (aggregate.readSource || "").includes("cache");
+  // Kesin sayiyi (count) REST aggregate, SDK count() veya REST count'tan elde ettiysek
+  // pahali tam-taramayi (300 okuma) tetiklemeyiz; yalnizca veri tamamen yerel cache'ten
+  // geldiyse tarama yapariz. Boylece adblock REST'i engellese bile sayi 1 okumada dogru kalir.
+  const aggSource = aggregate?.readSource || "";
+  const hasReliableCount = Boolean(aggregate)
+    && Number.isFinite(Number(aggregate.count))
+    && (aggregate.exact === true || aggSource === "sdk-count" || aggSource === "server-rest-count");
+  const isWeak = !aggregate
+    || (!hasReliableCount && (aggregate.exact === false || aggSource.includes("cache")));
   if (isWeak) {
-    finalAgg = await computeArchiveAggregateFromFullPages(options.filters || {});
+    try {
+      finalAgg = await computeArchiveAggregateFromFullPages(options.filters || {});
+    } catch (error) {
+      console.warn("Arsiv sayfali aggregate fallback'i basarisiz.", error);
+      finalAgg = aggregate || buildEmptyAggregate();
+    }
   }
 
   summaryCache[options.cacheKey] = {
@@ -1696,8 +1714,8 @@ function buildEmptyAggregate() {
     count: 0,
     totalLoot: 0,
     totalExp: 0,
-    exact: true,
-    readSource: "cache"
+    exact: false,
+    readSource: "idle"
   };
 }
 

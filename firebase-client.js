@@ -702,7 +702,10 @@
     const json = await response.json();
     const row = Array.isArray(json) ? json.find((entry) => entry?.result?.aggregateFields) : null;
     if (!row) {
-      return { count: 0, totalLoot: 0, totalExp: 0, exact: true, readSource: "server-rest" };
+      // Bos/degistirilmis yanit: reklam/gizlilik uzantilari REST :runAggregationQuery
+      // istegini cogu zaman 200 + bos govde ile engeller. Bunu "0 kayit kesin toplam"
+      // sanmak yerine hata firlat ki cagiran taraf SDK count() fallback'ine dussun.
+      throw new Error(`Aggregate REST yaniti beklenmedik bicimde: ${JSON.stringify(json).slice(0, 200)}`);
     }
     const fields = row.result.aggregateFields || {};
     const num = (f) => toAggregateNumber(f?.integerValue ?? f?.doubleValue ?? 0);
@@ -715,20 +718,108 @@
     };
   }
 
+  async function loadOverviewArchiveCountViaRest(filters) {
+    if (typeof globalScope.fetch !== "function") {
+      return null;
+    }
+    const where = buildOverviewArchiveRestWhere(filters);
+    const structuredQuery = { from: [{ collectionId: OVERVIEW_ARCHIVE_COLLECTION }] };
+    if (where) {
+      structuredQuery.where = where;
+    }
+    const body = {
+      structuredAggregationQuery: {
+        structuredQuery,
+        aggregations: [{ alias: "countOfDocs", count: {} }]
+      }
+    };
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}:runAggregationQuery?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Count REST HTTP ${response.status}: ${text.slice(0, 200)}`);
+    }
+    const json = await response.json();
+    const row = Array.isArray(json) ? json.find((entry) => entry?.result?.aggregateFields) : null;
+    if (!row) {
+      // Bkz. loadOverviewArchiveAggregateViaRest: bos/engellenmis yaniti "0" sanma.
+      throw new Error(`Count REST yaniti beklenmedik bicimde: ${JSON.stringify(json).slice(0, 200)}`);
+    }
+    const field = row.result.aggregateFields?.countOfDocs;
+    return toAggregateNumber(field?.integerValue ?? field?.doubleValue ?? 0);
+  }
+
+  // SDK count() aggregate'i Firestore WebChannel uzerinden gider; REST :runAggregationQuery
+  // URL'sini hedefleyen reklam/gizlilik uzantilari bunu engellemez. Bu yuzden REST bloklu
+  // oldugunda gercek toplami tek okumayla almamizi saglar.
+  async function loadOverviewArchiveCountViaSdk(filters) {
+    if (!db) {
+      return null;
+    }
+    let query = applyOverviewArchiveFiltersToQuery(
+      db.collection(OVERVIEW_ARCHIVE_COLLECTION),
+      filters,
+      { includeOrderBy: false }
+    );
+    if (typeof query.count !== "function") {
+      return null;
+    }
+    const snapshot = await query.count().get();
+    const data = typeof snapshot?.data === "function" ? snapshot.data() : null;
+    const value = Number(data?.count);
+    return Number.isFinite(value) ? value : null;
+  }
+
   async function loadOverviewArchiveAggregate(options = {}) {
     const filters = normalizeOverviewArchiveFilters(options.filters || {});
     const localItems = filterOverviewArchiveItems(readOverviewArchives(), filters);
 
+    // 1) REST aggregate: count + sum(loot) + sum(exp) tek okumada (uzanti engellemiyorsa).
     try {
       const restAgg = await loadOverviewArchiveAggregateViaRest(filters);
       if (restAgg) {
         return restAgg;
       }
     } catch (error) {
-      console.warn("Arsiv REST aggregate okunamadi, cache'e dusuluyor.", error);
+      console.warn("Arsiv REST aggregate okunamadi, SDK count'a dusuluyor.", error);
     }
 
-    // REST yoksa/basarisizsa yerel cache'ten yaklasik (archive.js capli tam-taramayi tetikler).
+    // 2) REST bloklu/basarisizsa: SDK count() (WebChannel) ile gercek toplam (1 okuma).
+    //    Sayi (count) kesindir; toplamlar (loot/exp) yerel cache'ten yaklasik gelir.
+    try {
+      const sdkCount = await loadOverviewArchiveCountViaSdk(filters);
+      if (sdkCount !== null) {
+        return {
+          count: sdkCount,
+          totalLoot: sumOverviewArchiveField(localItems, "lootGoldValue"),
+          totalExp: sumOverviewArchiveField(localItems, "expValue"),
+          exact: false,
+          readSource: "sdk-count"
+        };
+      }
+    } catch (sdkError) {
+      console.warn("Arsiv SDK count fallback okunamadi, REST count deneniyor.", sdkError);
+    }
+
+    // 3) Son care REST count (genelde REST ile birlikte bloklu olur ama ucuz dene).
+    try {
+      const count = await loadOverviewArchiveCountViaRest(filters);
+      if (count !== null) {
+        return {
+          count,
+          totalLoot: sumOverviewArchiveField(localItems, "lootGoldValue"),
+          totalExp: sumOverviewArchiveField(localItems, "expValue"),
+          exact: false,
+          readSource: "server-rest-count"
+        };
+      }
+    } catch (countError) {
+      console.warn("Arsiv REST count fallback okunamadi, cache'e dusuluyor.", countError);
+    }
+
+    // 4) Hicbiri olmazsa yerel cache'ten yaklasik (archive.js capli tam-taramayi tetikler).
     return buildOverviewArchiveAggregateFromItems(localItems, {
       exact: false,
       readSource: "cache-fallback"
@@ -2294,6 +2385,67 @@
     writeArchiveRegressionTests([]);
   }
 
+  async function deleteSkippedArchiveRegressionTests(options = {}) {
+    const host = typeof options.host === "string" ? options.host : "";
+    const isSkippedForHost = (item) => (
+      String(item?.result || "") === "skipped"
+      && (!host || String(item?.host || "") === host)
+    );
+    const getTestDocId = (item) => {
+      const explicitId = typeof item?.id === "string" ? item.id.trim() : "";
+      if (explicitId) {
+        return explicitId;
+      }
+      return item?.matchSignature ? buildArchiveRegressionTestDocId(item.matchSignature) : "";
+    };
+    const getArchiveDocId = (item) => (typeof item?.archiveId === "string" ? item.archiveId.trim() : "");
+
+    if (!db) {
+      const skippedItems = readArchiveRegressionTests().filter(isSkippedForHost);
+      const archiveIds = new Set(skippedItems.map(getArchiveDocId).filter(Boolean));
+      writeArchiveRegressionTests(readArchiveRegressionTests().filter((item) => !isSkippedForHost(item)));
+      writeOverviewArchives(readOverviewArchives().filter((item) => !archiveIds.has(item?.id)));
+      return {
+        deletedTests: skippedItems.map(getTestDocId).filter(Boolean).length,
+        deletedArchives: archiveIds.size
+      };
+    }
+
+    const currentUser = auth ? auth.currentUser : null;
+    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+      throw new Error("Atlanan kayitlari silmek icin admin girisi zorunludur.");
+    }
+
+    let query = db.collection(ARCHIVE_TEST_COLLECTION).where("result", "==", "skipped");
+    if (host) {
+      query = query.where("host", "==", host);
+    }
+    const snapshot = await query.get();
+    const skippedItems = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+    const testDocIds = [...new Set(snapshot.docs.map((doc) => doc.id).filter(Boolean))];
+    const archiveDocIds = [...new Set(skippedItems.map(getArchiveDocId).filter(Boolean))];
+
+    const refs = [
+      ...testDocIds.map((docId) => db.collection(ARCHIVE_TEST_COLLECTION).doc(docId)),
+      ...archiveDocIds.map((docId) => db.collection(OVERVIEW_ARCHIVE_COLLECTION).doc(docId))
+    ];
+    const chunkSize = 400;
+    for (let start = 0; start < refs.length; start += chunkSize) {
+      const batch = db.batch();
+      refs.slice(start, start + chunkSize).forEach((ref) => batch.delete(ref));
+      await batch.commit();
+    }
+
+    const testIdSet = new Set(testDocIds);
+    const archiveIdSet = new Set(archiveDocIds);
+    writeArchiveRegressionTests(readArchiveRegressionTests().filter((item) => !testIdSet.has(getTestDocId(item))));
+    writeOverviewArchives(readOverviewArchives().filter((item) => !archiveIdSet.has(item?.id)));
+    return {
+      deletedTests: testDocIds.length,
+      deletedArchives: archiveDocIds.length
+    };
+  }
+
   function normalizeArchiveRegressionResult(value) {
     return value === "pass" || value === "fail" || value === "skipped" ? value : "";
   }
@@ -2310,8 +2462,12 @@
     return [...seen.values()];
   }
 
-  function countLocalArchiveRegressionTests(host) {
-    const local = readArchiveRegressionTests().filter((item) => !host || String(item?.host || "") === host);
+  function countLocalArchiveRegressionTests(host, stageStart = null, stageEnd = null) {
+    const local = readArchiveRegressionTests().filter((item) => (
+      (!host || String(item?.host || "") === host)
+      && (!Number.isInteger(stageStart) || Number(item?.stage) >= stageStart)
+      && (!Number.isInteger(stageEnd) || Number(item?.stage) <= stageEnd)
+    ));
     const counts = { pass: 0, fail: 0, skipped: 0, total: local.length };
     local.forEach((item) => {
       if (item?.result === "fail") {
@@ -2359,7 +2515,7 @@
 
   // Tek bir sekme/sunucu icin count() degerini Firestore REST runAggregationQuery ile okur.
   // Compat SDK'nin .count() destegi guvenilmez oldugu icin (bkz. loadOverviewArchiveAggregateViaRest) REST kullaniyoruz.
-  async function runArchiveRegressionCountRest(host, result) {
+  async function runArchiveRegressionCountRest(host, result, stageStart = null, stageEnd = null) {
     if (typeof globalScope.fetch !== "function") {
       return null;
     }
@@ -2369,6 +2525,16 @@
     }
     if (result) {
       clauses.push({ fieldFilter: { field: { fieldPath: "result" }, op: "EQUAL", value: { stringValue: result } } });
+    }
+    if (Number.isInteger(stageStart) && stageStart === stageEnd) {
+      clauses.push({ fieldFilter: { field: { fieldPath: "stage" }, op: "EQUAL", value: { integerValue: String(stageStart) } } });
+    } else {
+      if (Number.isInteger(stageStart)) {
+        clauses.push({ fieldFilter: { field: { fieldPath: "stage" }, op: "GREATER_THAN_OR_EQUAL", value: { integerValue: String(stageStart) } } });
+      }
+      if (Number.isInteger(stageEnd)) {
+        clauses.push({ fieldFilter: { field: { fieldPath: "stage" }, op: "LESS_THAN_OR_EQUAL", value: { integerValue: String(stageEnd) } } });
+      }
     }
     const structuredQuery = { from: [{ collectionId: ARCHIVE_TEST_COLLECTION }] };
     if (clauses.length === 1) {
@@ -2399,22 +2565,58 @@
   // Sekme sayaclarini aggregation ile okur: 100k kayit ~ birkac okuma birimi, dokuman basina ucret yok.
   async function countArchiveRegressionTests(options = {}) {
     const host = typeof options.host === "string" ? options.host : "";
+    const stageValue = Number(options.stage);
+    const startValue = Number(options.stageStart);
+    const endValue = Number(options.stageEnd);
+    const singleStage = Number.isInteger(stageValue) && stageValue >= 0 ? stageValue : null;
+    const stageStart = Number.isInteger(startValue) && startValue >= 0 ? startValue : singleStage;
+    const stageEnd = Number.isInteger(endValue) && endValue >= 0 ? endValue : singleStage;
     if (typeof globalScope.fetch !== "function") {
-      return countLocalArchiveRegressionTests(host);
+      return countLocalArchiveRegressionTests(host, stageStart, stageEnd);
     }
     try {
       const [pass, fail, skipped] = await Promise.all([
-        runArchiveRegressionCountRest(host, "pass"),
-        runArchiveRegressionCountRest(host, "fail"),
-        runArchiveRegressionCountRest(host, "skipped")
+        runArchiveRegressionCountRest(host, "pass", stageStart, stageEnd),
+        runArchiveRegressionCountRest(host, "fail", stageStart, stageEnd),
+        runArchiveRegressionCountRest(host, "skipped", stageStart, stageEnd)
       ]);
       if (pass === null || fail === null || skipped === null) {
-        return countLocalArchiveRegressionTests(host);
+        return countLocalArchiveRegressionTests(host, stageStart, stageEnd);
       }
       return { pass, fail, skipped, total: pass + fail + skipped };
     } catch (error) {
-      console.warn("Arsiv test sayimlari okunamadi, cache kullaniliyor.", error);
-      return countLocalArchiveRegressionTests(host);
+      const canUseStageFallback = Number.isInteger(stageStart)
+        && Number.isInteger(stageEnd)
+        && stageStart < stageEnd
+        && stageEnd - stageStart < 300;
+      if (canUseStageFallback) {
+        try {
+          const totals = { pass: 0, fail: 0, skipped: 0, total: 0 };
+          const stageNumbers = Array.from({ length: stageEnd - stageStart + 1 }, (_, index) => stageStart + index);
+          for (let offset = 0; offset < stageNumbers.length; offset += 10) {
+            const rows = await Promise.all(stageNumbers.slice(offset, offset + 10).map(async (stage) => {
+              const [pass, fail, skipped] = await Promise.all([
+                runArchiveRegressionCountRest(host, "pass", stage, stage),
+                runArchiveRegressionCountRest(host, "fail", stage, stage),
+                runArchiveRegressionCountRest(host, "skipped", stage, stage)
+              ]);
+              return { pass, fail, skipped };
+            }));
+            rows.forEach((row) => {
+              totals.pass += row.pass;
+              totals.fail += row.fail;
+              totals.skipped += row.skipped;
+            });
+          }
+          totals.total = totals.pass + totals.fail + totals.skipped;
+          return totals;
+        } catch (fallbackError) {
+          console.warn("Arsiv test aralik sayimlari okunamadi, cache kullaniliyor.", fallbackError);
+        }
+      } else {
+        console.warn("Arsiv test sayimlari okunamadi, cache kullaniliyor.", error);
+      }
+      return countLocalArchiveRegressionTests(host, stageStart, stageEnd);
     }
   }
 
@@ -2451,6 +2653,10 @@
     const stages = Array.isArray(options.stages)
       ? [...new Set(options.stages.map((n) => Math.floor(Number(n))).filter((n) => Number.isInteger(n) && n >= 0))]
       : [];
+    const stageStartValue = Number(options.stageStart);
+    const stageEndValue = Number(options.stageEnd);
+    const stageStart = Number.isInteger(stageStartValue) && stageStartValue >= 0 ? stageStartValue : null;
+    const stageEnd = Number.isInteger(stageEndValue) && stageEndValue >= 0 ? stageEndValue : null;
     const sortDesc = (items) => items.slice().sort((a, b) => String(b?.testedAt || "").localeCompare(String(a?.testedAt || "")));
     const localFallback = () => {
       let items = readArchiveRegressionTests()
@@ -2458,6 +2664,12 @@
       if (stages.length) {
         const set = new Set(stages);
         items = items.filter((item) => Number.isInteger(item?.stage) && set.has(item.stage));
+      } else if (stageStart !== null || stageEnd !== null) {
+        items = items.filter((item) => (
+          Number.isInteger(item?.stage)
+          && (stageStart === null || item.stage >= stageStart)
+          && (stageEnd === null || item.stage <= stageEnd)
+        ));
       }
       items = sortDesc(items);
       return limit ? items.slice(0, limit) : items;
@@ -2469,6 +2681,21 @@
       return localFallback();
     }
     try {
+      if (stages.length === 0 && (stageStart !== null || stageEnd !== null)) {
+        let query = db.collection(ARCHIVE_TEST_COLLECTION).where("result", "==", result);
+        if (host) {
+          query = query.where("host", "==", host);
+        }
+        if (stageStart !== null) {
+          query = query.where("stage", ">=", stageStart);
+        }
+        if (stageEnd !== null) {
+          query = query.where("stage", "<=", stageEnd);
+        }
+        const snapshot = await query.get();
+        const items = sortDesc(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+        return limit ? items.slice(0, limit) : items;
+      }
       if (stages.length === 0) {
         let query = db.collection(ARCHIVE_TEST_COLLECTION).where("result", "==", result);
         if (host) {
@@ -2495,7 +2722,32 @@
       const merged = sortDesc([...byId.values()]);
       return limit ? merged.slice(0, limit) : merged;
     } catch (error) {
-      console.warn("Test sonuclari (export) okunamadi, cache kullaniliyor.", error);
+      const canUseStageFallback = stages.length === 0
+        && stageStart !== null
+        && stageEnd !== null
+        && stageStart <= stageEnd
+        && stageEnd - stageStart < 300;
+      if (canUseStageFallback) {
+        try {
+          const byId = new Map();
+          for (let stage = stageStart; stage <= stageEnd; stage += 1) {
+            let query = db.collection(ARCHIVE_TEST_COLLECTION)
+              .where("result", "==", result)
+              .where("stage", "==", stage);
+            if (host) {
+              query = query.where("host", "==", host);
+            }
+            const snapshot = await query.get();
+            snapshot.docs.forEach((doc) => byId.set(doc.id, { ...doc.data(), id: doc.id }));
+          }
+          const items = sortDesc([...byId.values()]);
+          return limit ? items.slice(0, limit) : items;
+        } catch (fallbackError) {
+          console.warn("Test sonuclari kat bazinda okunamadi, cache kullaniliyor.", fallbackError);
+        }
+      } else {
+        console.warn("Test sonuclari (export) okunamadi, cache kullaniliyor.", error);
+      }
       return localFallback();
     }
   }
@@ -2822,6 +3074,7 @@
     saveArchiveRegressionTest,
     getArchiveRegressionTestedSignatures,
     buildArchiveRegressionTestDocId,
+    deleteSkippedArchiveRegressionTests,
     clearArchiveRegressionTests
   };
 })(window);
