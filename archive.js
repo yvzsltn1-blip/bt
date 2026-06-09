@@ -83,8 +83,13 @@ const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV5";
 const ARCHIVE_SUMMARY_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 // Sunucu aggregate'i calismazsa tam-tarama fallback'inde okunacak azami kayit (maliyet korumasi).
 const ARCHIVE_FALLBACK_MAX_DOCS = 300;
-// Degisim-token'i: koleksiyon degismediyse tum sayfayi cache'ten gosterip 1 okumaya iniyoruz.
+// Degisim-token'i sadece bilgi olarak saklanir. Arsiv ekrani acilista canli toplamlari
+// gostermeli; cache yalnizca canli okuma hata verirse fallback olarak kullanilir.
 const ARCHIVE_CHANGE_TOKEN_KEY = "btAnalyssArchiveChangeTokenV1";
+const ARCHIVE_LIVE_REFRESH_VERSION_KEY = "btAnalyssArchiveLiveRefreshVersion";
+const ARCHIVE_LIVE_REFRESH_VERSION = "20260609-2";
+
+forceArchiveLiveRefresh();
 
 function readArchiveChangeToken() {
   try {
@@ -96,6 +101,23 @@ function readArchiveChangeToken() {
     return parsed && typeof parsed === "object" ? parsed : null;
   } catch {
     return null;
+  }
+}
+
+function forceArchiveLiveRefresh() {
+  try {
+    if (localStorage.getItem(ARCHIVE_LIVE_REFRESH_VERSION_KEY) === ARCHIVE_LIVE_REFRESH_VERSION) {
+      return;
+    }
+    [
+      ARCHIVE_SUMMARY_CACHE_KEY,
+      ARCHIVE_CHANGE_TOKEN_KEY,
+      "btAnalyssOverviewArchivesCache",
+      "btAnalyssOverviewArchivesCacheMeta"
+    ].forEach((key) => localStorage.removeItem(key));
+    localStorage.setItem(ARCHIVE_LIVE_REFRESH_VERSION_KEY, ARCHIVE_LIVE_REFRESH_VERSION);
+  } catch {
+    // cache temizligi best-effort
   }
 }
 
@@ -505,36 +527,24 @@ async function refreshArchiveView(options = {}) {
   renderArchiveSelectionSummary();
   renderArchiveLoadingState();
 
-  // Degisim-token kontrolu: koleksiyon son senkrondan beri degismediyse her seyi
-  // cache'ten goster (toplam 1 okuma). forceRemote ("Yenile") her zaman canli okur.
+  // Acilista canli veri oku. Eski cacheOnly yolu hosted/local localStorage farklari yuzunden
+  // 40/908 gibi eksik toplamlar gosterebiliyordu.
   let liveToken = null;
-  let cacheOnly = false;
-  let shouldBypassFreshCache = false;
   if (typeof window.BTFirebase?.loadOverviewArchiveChangeToken === "function") {
     liveToken = await window.BTFirebase.loadOverviewArchiveChangeToken();
     if (requestToken !== archiveRequestToken) {
       return;
-    }
-    if (!options.forceRemote && liveToken) {
-      const cachedToken = readArchiveChangeToken();
-      if (archiveChangeTokensEqual(liveToken, cachedToken)) {
-        cacheOnly = true;
-      } else {
-        shouldBypassFreshCache = true;
-      }
     }
   }
 
   const [pageResult] = await Promise.all([
     loadArchivePage({
       reset: true,
-      forceRemote: Boolean(options.forceRemote || shouldBypassFreshCache),
-      cacheOnly,
+      forceRemote: true,
       requestToken
     }),
     refreshArchiveAggregates({
-      forceRemote: Boolean(options.forceRemote || shouldBypassFreshCache),
-      cacheOnly,
+      forceRemote: true,
       requestToken
     })
   ]);
@@ -543,8 +553,7 @@ async function refreshArchiveView(options = {}) {
     return;
   }
 
-  // Canli okuma yaptiysak (cache-only degilsek) yeni token'i sakla.
-  if (!cacheOnly && liveToken) {
+  if (liveToken) {
     writeArchiveChangeToken(liveToken);
   }
 

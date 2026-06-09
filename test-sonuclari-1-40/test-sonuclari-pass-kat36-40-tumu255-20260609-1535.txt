@@ -1,0 +1,2808 @@
+Arsiv Toplu Test Sonuclari
+Sunucu: s66
+Tur: Dogrular | Kat: Kat 36-40 | Kapsam: Tumu (255) | Siralama: Kat (kucukten buyuge)
+
+#1 [DOGRU] 36. Kat / s66
+Tarih: 09.06.2026 11:49:23
+Rakip: Rakip : [R1:15-R2:35-R3:23-R4:18-R5:16-R6:3]
+Biz: Biz : [T1:30-T2:2-T3:1-T4:16-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#2 [DOGRU] 36. Kat / s66
+Tarih: 09.06.2026 08:53:08
+Rakip: Rakip : [R1:15-R2:34-R3:25-R4:14-R5:12-R6:7]
+Biz: Biz : [T1:22-T2:0-T3:1-T4:12-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#3 [DOGRU] 36. Kat / s66
+Tarih: 09.06.2026 14:22:15
+Rakip: Rakip : [R1:20-R2:31-R3:24-R4:18-R5:11-R6:6]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:16-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#4 [DOGRU] 36. Kat / s66
+Tarih: 29.05.2026 11:10:23
+Rakip: Rakip : [R1:27-R2:21-R3:17-R4:22-R5:15-R6:5]
+Biz: Biz : [T1:28-T2:3-T3:1-T4:19-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#5 [DOGRU] 36. Kat / s66
+Tarih: 28.05.2026 16:41:36
+Rakip: Rakip : [R1:24-R2:36-R3:17-R4:21-R5:13-R6:4]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:4-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#6 [DOGRU] 36. Kat / s66
+Tarih: 29.05.2026 03:11:11
+Rakip: Rakip : [R1:16-R2:24-R3:16-R4:20-R5:18-R6:5]
+Biz: Biz : [T1:34-T2:4-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#7 [DOGRU] 36. Kat / s66
+Tarih: 28.05.2026 19:52:52
+Rakip: Rakip : [R1:15-R2:21-R3:18-R4:21-R5:14-R6:7]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:17-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#8 [DOGRU] 36. Kat / s66
+Tarih: 29.05.2026 00:05:33
+Rakip: Rakip : [R1:20-R2:25-R3:30-R4:16-R5:15-R6:4]
+Biz: Biz : [T1:28-T2:4-T3:1-T4:14-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 70 ; Simulator sonucu: 70
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#9 [DOGRU] 36. Kat / s66
+Tarih: 29.05.2026 14:04:49
+Rakip: Rakip : [R1:13-R2:21-R3:16-R4:19-R5:17-R6:7]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:16-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#10 [DOGRU] 36. Kat / s66
+Tarih: 29.05.2026 21:36:32
+Rakip: Rakip : [R1:13-R2:39-R3:17-R4:22-R5:13-R6:4]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:5-T5:1-T6:13-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 160 ; Simulator sonucu: 160
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#11 [DOGRU] 36. Kat / s66
+Tarih: 30.05.2026 08:47:45
+Rakip: Rakip : [R1:18-R2:20-R3:25-R4:19-R5:17-R6:4]
+Biz: Biz : [T1:2-T2:3-T3:12-T4:17-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 140 ; Simulator sonucu: 140
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#12 [DOGRU] 36. Kat / s66
+Tarih: 30.05.2026 00:16:27
+Rakip: Rakip : [R1:21-R2:26-R3:22-R4:17-R5:16-R6:5]
+Biz: Biz : [T1:30-T2:3-T3:1-T4:15-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#13 [DOGRU] 36. Kat / s66
+Tarih: 29.05.2026 16:43:02
+Rakip: Rakip : [R1:18-R2:37-R3:15-R4:13-R5:18-R6:6]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:11-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#14 [DOGRU] 36. Kat / s66
+Tarih: 30.05.2026 02:49:54
+Rakip: Rakip : [R1:24-R2:37-R3:18-R4:14-R5:18-R6:4]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:13-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#15 [DOGRU] 36. Kat / s66
+Tarih: 30.05.2026 18:57:46
+Rakip: Rakip : [R1:26-R2:23-R3:22-R4:16-R5:17-R6:5]
+Biz: Biz : [T1:6-T2:0-T3:10-T4:14-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 290
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#16 [DOGRU] 36. Kat / s66
+Tarih: 31.05.2026 01:20:48
+Rakip: Rakip : [R1:20-R2:23-R3:15-R4:21-R5:14-R6:7]
+Biz: Biz : [T1:26-T2:14-T3:1-T4:18-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#17 [DOGRU] 36. Kat / s66
+Tarih: 31.05.2026 19:45:41
+Rakip: Rakip : [R1:14-R2:41-R3:20-R4:16-R5:14-R6:5]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:14-T5:1-T6:3-T7:2-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#18 [DOGRU] 36. Kat / s66
+Tarih: 31.05.2026 13:55:28
+Rakip: Rakip : [R1:16-R2:21-R3:26-R4:20-R5:14-R6:5]
+Biz: Biz : [T1:26-T2:3-T3:1-T4:18-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#19 [DOGRU] 36. Kat / s66
+Tarih: 31.05.2026 23:12:39
+Rakip: Rakip : [R1:8-R2:20-R3:19-R4:21-R5:20-R6:4]
+Biz: Biz : [T1:10-T2:0-T3:11-T4:18-T5:1-T6:2-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 140 ; Simulator sonucu: 140
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#20 [DOGRU] 36. Kat / s66
+Tarih: 31.05.2026 16:44:13
+Rakip: Rakip : [R1:30-R2:23-R3:17-R4:19-R5:13-R6:7]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#21 [DOGRU] 36. Kat / s66
+Tarih: 31.05.2026 11:24:06
+Rakip: Rakip : [R1:11-R2:19-R3:16-R4:19-R5:18-R6:7]
+Biz: Biz : [T1:19-T2:1-T3:5-T4:21-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 215 ; Simulator sonucu: 215
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#22 [DOGRU] 36. Kat / s66
+Tarih: 01.06.2026 08:25:34
+Rakip: Rakip : [R1:24-R2:21-R3:17-R4:21-R5:18-R6:4]
+Biz: Biz : [T1:34-T2:3-T3:1-T4:18-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#23 [DOGRU] 36. Kat / s66
+Tarih: 01.06.2026 01:43:39
+Rakip: Rakip : [R1:28-R2:31-R3:13-R4:17-R5:16-R6:6]
+Biz: Biz : [T1:30-T2:3-T3:1-T4:15-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#24 [DOGRU] 36. Kat / s66
+Tarih: 08.06.2026 20:33:57
+Rakip: Rakip : [R1:24-R2:34-R3:28-R4:14-R5:14-R6:4]
+Biz: Biz : [T1:26-T2:0-T3:1-T4:12-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#25 [DOGRU] 36. Kat / s66
+Tarih: 02.06.2026 03:59:04
+Rakip: Rakip : [R1:20-R2:23-R3:27-R4:13-R5:18-R6:5]
+Biz: Biz : [T1:34-T2:2-T3:1-T4:11-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#26 [DOGRU] 36. Kat / s66
+Tarih: 02.06.2026 14:55:00
+Rakip: Rakip : [R1:28-R2:34-R3:24-R4:18-R5:12-R6:4]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:16-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#27 [DOGRU] 36. Kat / s66
+Tarih: 01.06.2026 16:19:18
+Rakip: Rakip : [R1:25-R2:19-R3:28-R4:13-R5:13-R6:8]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:11-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#28 [DOGRU] 36. Kat / s66
+Tarih: 02.06.2026 12:07:34
+Rakip: Rakip : [R1:20-R2:25-R3:20-R4:14-R5:15-R6:8]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:11-T5:1-T6:8-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#29 [DOGRU] 36. Kat / s66
+Tarih: 01.06.2026 19:14:36
+Rakip: Rakip : [R1:11-R2:19-R3:25-R4:18-R5:16-R6:6]
+Biz: Biz : [T1:30-T2:2-T3:1-T4:15-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#30 [DOGRU] 36. Kat / s66
+Tarih: 02.06.2026 00:30:48
+Rakip: Rakip : [R1:23-R2:20-R3:25-R4:18-R5:17-R6:4]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:16-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#31 [DOGRU] 36. Kat / s66
+Tarih: 01.06.2026 12:53:52
+Rakip: Rakip : [R1:22-R2:22-R3:20-R4:22-R5:14-R6:5]
+Biz: Biz : [T1:26-T2:3-T3:1-T4:18-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#32 [DOGRU] 36. Kat / s66
+Tarih: 04.06.2026 01:01:50
+Rakip: Rakip : [R1:12-R2:22-R3:17-R4:21-R5:13-R6:8]
+Biz: Biz : [T1:24-T2:0-T3:1-T4:18-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#33 [DOGRU] 36. Kat / s66
+Tarih: 02.06.2026 23:41:25
+Rakip: Rakip : [R1:21-R2:24-R3:16-R4:21-R5:18-R6:4]
+Biz: Biz : [T1:34-T2:6-T3:1-T4:5-T5:1-T6:9-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 160 ; Simulator sonucu: 160
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#34 [DOGRU] 36. Kat / s66
+Tarih: 03.06.2026 03:20:21
+Rakip: Rakip : [R1:20-R2:42-R3:19-R4:15-R5:14-R6:5]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#35 [DOGRU] 36. Kat / s66
+Tarih: 02.06.2026 19:02:36
+Rakip: Rakip : [R1:23-R2:19-R3:24-R4:13-R5:17-R6:7]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:11-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#36 [DOGRU] 36. Kat / s66
+Tarih: 04.06.2026 10:43:15
+Rakip: Rakip : [R1:25-R2:20-R3:19-R4:14-R5:18-R6:7]
+Biz: Biz : [T1:34-T2:0-T3:1-T4:12-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#37 [DOGRU] 36. Kat / s66
+Tarih: 05.06.2026 23:34:49
+Rakip: Rakip : [R1:24-R2:34-R3:18-R4:14-R5:19-R6:4]
+Biz: Biz : [T1:15-T2:0-T3:9-T4:12-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 290
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#38 [DOGRU] 36. Kat / s66
+Tarih: 04.06.2026 22:46:48
+Rakip: Rakip : [R1:24-R2:33-R3:16-R4:18-R5:12-R6:7]
+Biz: Biz : [T1:22-T2:2-T3:1-T4:15-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 255 ; Simulator sonucu: 255
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#39 [DOGRU] 36. Kat / s66
+Tarih: 04.06.2026 07:42:46
+Rakip: Rakip : [R1:16-R2:18-R3:25-R4:19-R5:13-R6:7]
+Biz: Biz : [T1:24-T2:2-T3:1-T4:17-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#40 [DOGRU] 36. Kat / s66
+Tarih: 05.06.2026 09:11:42
+Rakip: Rakip : [R1:20-R2:35-R3:17-R4:13-R5:14-R6:8]
+Biz: Biz : [T1:23-T2:1-T3:13-T4:11-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 295 ; Simulator sonucu: 295
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x4, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x4, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#41 [DOGRU] 36. Kat / s66
+Tarih: 05.06.2026 20:30:55
+Rakip: Rakip : [R1:20-R2:30-R3:23-R4:11-R5:16-R6:7]
+Biz: Biz : [T1:30-T2:0-T3:1-T4:10-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#42 [DOGRU] 36. Kat / s66
+Tarih: 08.06.2026 11:30:40
+Rakip: Rakip : [R1:24-R2:32-R3:25-R4:13-R5:12-R6:7]
+Biz: Biz : [T1:22-T2:0-T3:1-T4:11-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#43 [DOGRU] 36. Kat / s66
+Tarih: 08.06.2026 15:07:16
+Rakip: Rakip : [R1:24-R2:33-R3:23-R4:17-R5:11-R6:6]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:15-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#44 [DOGRU] 36. Kat / s66
+Tarih: 06.06.2026 07:27:27
+Rakip: Rakip : [R1:9-R2:39-R3:19-R4:16-R5:16-R6:5]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:18-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#45 [DOGRU] 36. Kat / s66
+Tarih: 06.06.2026 02:06:50
+Rakip: Rakip : [R1:14-R2:22-R3:16-R4:22-R5:19-R6:4]
+Biz: Biz : [T1:10-T2:0-T3:10-T4:19-T5:1-T6:4-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 140 ; Simulator sonucu: 140
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#46 [DOGRU] 36. Kat / s66
+Tarih: 06.06.2026 11:07:32
+Rakip: Rakip : [R1:9-R2:30-R3:25-R4:18-R5:16-R6:4]
+Biz: Biz : [T1:12-T2:4-T3:8-T4:16-T5:1-T6:4-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 140 ; Simulator sonucu: 140
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#47 [DOGRU] 36. Kat / s66
+Tarih: 06.06.2026 15:42:16
+Rakip: Rakip : [R1:8-R2:37-R3:25-R4:19-R5:13-R6:4]
+Biz: Biz : [T1:24-T2:2-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#48 [DOGRU] 36. Kat / s66
+Tarih: 07.06.2026 09:25:30
+Rakip: Rakip : [R1:18-R2:34-R3:17-R4:21-R5:13-R6:5]
+Biz: Biz : [T1:25-T2:1-T3:1-T4:17-T5:1-T6:3-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#49 [DOGRU] 36. Kat / s66
+Tarih: 07.06.2026 12:17:34
+Rakip: Rakip : [R1:25-R2:23-R3:20-R4:21-R5:14-R6:5]
+Biz: Biz : [T1:26-T2:2-T3:1-T4:18-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#50 [DOGRU] 36. Kat / s66
+Tarih: 07.06.2026 15:06:16
+Rakip: Rakip : [R1:21-R2:18-R3:17-R4:18-R5:17-R6:7]
+Biz: Biz : [T1:32-T2:2-T3:1-T4:16-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#51 [DOGRU] 36. Kat / s66
+Tarih: 07.06.2026 23:25:51
+Rakip: Rakip : [R1:22-R2:31-R3:15-R4:17-R5:16-R6:6]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:15-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#52 [DOGRU] 37. Kat / s66
+Tarih: 09.06.2026 11:50:04
+Rakip: Rakip : [R1:13-R2:40-R3:21-R4:16-R5:14-R6:6]
+Biz: Biz : [T1:27-T2:1-T3:1-T4:13-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#53 [DOGRU] 37. Kat / s66
+Tarih: 09.06.2026 14:22:44
+Rakip: Rakip : [R1:28-R2:18-R3:16-R4:20-R5:13-R6:9]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#54 [DOGRU] 37. Kat / s66
+Tarih: 09.06.2026 08:53:42
+Rakip: Rakip : [R1:11-R2:37-R3:17-R4:14-R5:19-R6:6]
+Biz: Biz : [T1:36-T2:1-T3:1-T4:13-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#55 [DOGRU] 37. Kat / s66
+Tarih: 28.05.2026 16:42:49
+Rakip: Rakip : [R1:26-R2:39-R3:17-R4:15-R5:15-R6:6]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:5-T5:1-T6:13-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 310 ; Simulator sonucu: 310
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#56 [DOGRU] 37. Kat / s66
+Tarih: 29.05.2026 03:11:46
+Rakip: Rakip : [R1:10-R2:35-R3:24-R4:14-R5:13-R6:8]
+Biz: Biz : [T1:24-T2:0-T3:1-T4:12-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#57 [DOGRU] 37. Kat / s66
+Tarih: 29.05.2026 11:11:01
+Rakip: Rakip : [R1:25-R2:37-R3:18-R4:13-R5:17-R6:6]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:12-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#58 [DOGRU] 37. Kat / s66
+Tarih: 29.05.2026 14:05:29
+Rakip: Rakip : [R1:28-R2:20-R3:31-R4:15-R5:14-R6:6]
+Biz: Biz : [T1:27-T2:2-T3:1-T4:13-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#59 [DOGRU] 37. Kat / s66
+Tarih: 28.05.2026 19:53:33
+Rakip: Rakip : [R1:6-R2:23-R3:28-R4:14-R5:19-R6:6]
+Biz: Biz : [T1:36-T2:6-T3:1-T4:8-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 70 ; Simulator sonucu: 70
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#60 [DOGRU] 37. Kat / s66
+Tarih: 29.05.2026 00:06:07
+Rakip: Rakip : [R1:21-R2:35-R3:27-R4:14-R5:13-R6:6]
+Biz: Biz : [T1:24-T2:0-T3:1-T4:12-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#61 [DOGRU] 37. Kat / s66
+Tarih: 30.05.2026 08:48:18
+Rakip: Rakip : [R1:18-R2:32-R3:17-R4:19-R5:12-R6:8]
+Biz: Biz : [T1:22-T2:0-T3:1-T4:17-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#62 [DOGRU] 37. Kat / s66
+Tarih: 30.05.2026 02:50:24
+Rakip: Rakip : [R1:13-R2:32-R3:25-R4:20-R5:13-R6:5]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:20-T5:1-T6:1-T7:2-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#63 [DOGRU] 37. Kat / s66
+Tarih: 29.05.2026 16:43:35
+Rakip: Rakip : [R1:23-R2:31-R3:15-R4:18-R5:15-R6:7]
+Biz: Biz : [T1:28-T2:3-T3:1-T4:16-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#64 [DOGRU] 37. Kat / s66
+Tarih: 29.05.2026 21:37:04
+Rakip: Rakip : [R1:23-R2:20-R3:27-R4:12-R5:16-R6:8]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:11-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#65 [DOGRU] 37. Kat / s66
+Tarih: 30.05.2026 00:17:08
+Rakip: Rakip : [R1:26-R2:17-R3:16-R4:18-R5:17-R6:8]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:16-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#66 [DOGRU] 37. Kat / s66
+Tarih: 30.05.2026 21:50:46
+Rakip: Rakip : [R1:11-R2:27-R3:20-R4:19-R5:15-R6:7]
+Biz: Biz : [T1:28-T2:3-T3:1-T4:16-T5:1-T6:8-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#67 [DOGRU] 37. Kat / s66
+Tarih: 30.05.2026 18:58:15
+Rakip: Rakip : [R1:20-R2:22-R3:20-R4:18-R5:16-R6:7]
+Biz: Biz : [T1:11-T2:0-T3:7-T4:16-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 290
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#68 [DOGRU] 37. Kat / s66
+Tarih: 31.05.2026 01:21:19
+Rakip: Rakip : [R1:20-R2:36-R3:28-R4:14-R5:14-R6:5]
+Biz: Biz : [T1:26-T2:0-T3:1-T4:12-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#69 [DOGRU] 37. Kat / s66
+Tarih: 31.05.2026 11:24:52
+Rakip: Rakip : [R1:24-R2:32-R3:25-R4:13-R5:12-R6:8]
+Biz: Biz : [T1:1-T2:1-T3:8-T4:11-T5:1-T6:12-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#70 [DOGRU] 37. Kat / s66
+Tarih: 31.05.2026 16:44:48
+Rakip: Rakip : [R1:10-R2:35-R3:19-R4:21-R5:13-R6:6]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:23-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#71 [DOGRU] 37. Kat / s66
+Tarih: 31.05.2026 13:55:58
+Rakip: Rakip : [R1:17-R2:19-R3:20-R4:15-R5:15-R6:10]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:12-T5:1-T6:7-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#72 [DOGRU] 37. Kat / s66
+Tarih: 31.05.2026 19:46:26
+Rakip: Rakip : [R1:24-R2:30-R3:25-R4:17-R5:11-R6:7]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:15-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#73 [DOGRU] 37. Kat / s66
+Tarih: 31.05.2026 23:13:10
+Rakip: Rakip : [R1:13-R2:21-R3:18-R4:23-R5:16-R6:6]
+Biz: Biz : [T1:30-T2:3-T3:1-T4:20-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#74 [DOGRU] 37. Kat / s66
+Tarih: 01.06.2026 01:44:14
+Rakip: Rakip : [R1:26-R2:21-R3:18-R4:14-R5:18-R6:8]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:12-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#75 [DOGRU] 37. Kat / s66
+Tarih: 01.06.2026 08:26:07
+Rakip: Rakip : [R1:16-R2:32-R3:26-R4:20-R5:12-R6:5]
+Biz: Biz : [T1:18-T2:0-T3:12-T4:17-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 280 ; Simulator sonucu: 280
+Gerceklesen kayip birlik: Vampir Kole (T3) x4, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x4, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#76 [DOGRU] 37. Kat / s66
+Tarih: 08.06.2026 20:34:24
+Rakip: Rakip : [R1:24-R2:18-R3:24-R4:18-R5:13-R6:8]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:16-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#77 [DOGRU] 37. Kat / s66
+Tarih: 01.06.2026 16:20:33
+Rakip: Rakip : [R1:24-R2:32-R3:15-R4:13-R5:17-R6:8]
+Biz: Biz : [T1:11-T2:1-T3:8-T4:11-T5:1-T6:11-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#78 [DOGRU] 37. Kat / s66
+Tarih: 01.06.2026 19:15:04
+Rakip: Rakip : [R1:18-R2:20-R3:25-R4:13-R5:17-R6:8]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:12-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#79 [DOGRU] 37. Kat / s66
+Tarih: 02.06.2026 00:31:17
+Rakip: Rakip : [R1:20-R2:27-R3:22-R4:16-R5:15-R6:7]
+Biz: Biz : [T1:28-T2:3-T3:1-T4:13-T5:1-T6:8-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#80 [DOGRU] 37. Kat / s66
+Tarih: 02.06.2026 14:55:42
+Rakip: Rakip : [R1:26-R2:38-R3:18-R4:16-R5:14-R6:6]
+Biz: Biz : [T1:26-T2:0-T3:1-T4:5-T5:1-T6:13-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 310 ; Simulator sonucu: 310
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#81 [DOGRU] 37. Kat / s66
+Tarih: 02.06.2026 04:02:31
+Rakip: Rakip : [R1:23-R2:20-R3:17-R4:16-R5:21-R6:6]
+Biz: Biz : [T1:40-T2:1-T3:1-T4:14-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#82 [DOGRU] 37. Kat / s66
+Tarih: 02.06.2026 12:08:04
+Rakip: Rakip : [R1:19-R2:15-R3:25-R4:18-R5:16-R6:7]
+Biz: Biz : [T1:30-T2:3-T3:1-T4:16-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#83 [DOGRU] 37. Kat / s66
+Tarih: 01.06.2026 12:54:25
+Rakip: Rakip : [R1:20-R2:30-R3:23-R4:17-R5:11-R6:8]
+Biz: Biz : [T1:20-T2:7-T3:1-T4:14-T5:1-T6:9-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#84 [DOGRU] 37. Kat / s66
+Tarih: 03.06.2026 03:20:53
+Rakip: Rakip : [R1:38-R2:18-R3:16-R4:20-R5:18-R6:5]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#85 [DOGRU] 37. Kat / s66
+Tarih: 02.06.2026 23:41:56
+Rakip: Rakip : [R1:26-R2:30-R3:23-R4:17-R5:15-R6:5]
+Biz: Biz : [T1:28-T2:0-T3:1-T4:15-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#86 [DOGRU] 37. Kat / s66
+Tarih: 02.06.2026 19:03:03
+Rakip: Rakip : [R1:10-R2:20-R3:16-R4:20-R5:17-R6:8]
+Biz: Biz : [T1:20-T2:1-T3:5-T4:17-T5:1-T6:3-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 290
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#87 [DOGRU] 37. Kat / s66
+Tarih: 04.06.2026 01:02:23
+Rakip: Rakip : [R1:20-R2:24-R3:17-R4:15-R5:21-R6:6]
+Biz: Biz : [T1:40-T2:4-T3:1-T4:13-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#88 [DOGRU] 37. Kat / s66
+Tarih: 05.06.2026 09:12:16
+Rakip: Rakip : [R1:21-R2:35-R3:15-R4:14-R5:19-R6:6]
+Biz: Biz : [T1:36-T2:1-T3:1-T4:12-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#89 [DOGRU] 37. Kat / s66
+Tarih: 04.06.2026 22:47:15
+Rakip: Rakip : [R1:33-R2:37-R3:27-R4:14-R5:12-R6:5]
+Biz: Biz : [T1:22-T2:0-T3:1-T4:12-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#90 [DOGRU] 37. Kat / s66
+Tarih: 05.06.2026 23:35:35
+Rakip: Rakip : [R1:13-R2:33-R3:26-R4:13-R5:13-R6:8]
+Biz: Biz : [T1:15-T2:0-T3:9-T4:12-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 675 ; Simulator sonucu: 675
+Gerceklesen kayip birlik: Vampir Kole (T3) x5, Olu Cagirici (T5) x1, Gargoyle (T6) x5, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x5, Olu Cagirici (T5) x1, Gargoyle (T6) x5, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#91 [DOGRU] 37. Kat / s66
+Tarih: 04.06.2026 10:43:44
+Rakip: Rakip : [R1:18-R2:18-R3:29-R4:13-R5:19-R6:6]
+Biz: Biz : [T1:37-T2:0-T3:1-T4:11-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#92 [DOGRU] 37. Kat / s66
+Tarih: 05.06.2026 20:31:27
+Rakip: Rakip : [R1:21-R2:18-R3:28-R4:15-R5:14-R6:8]
+Biz: Biz : [T1:26-T2:4-T3:1-T4:13-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#93 [DOGRU] 37. Kat / s66
+Tarih: 08.06.2026 15:07:41
+Rakip: Rakip : [R1:25-R2:35-R3:19-R4:14-R5:18-R6:5]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:11-T5:1-T6:7-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#94 [DOGRU] 37. Kat / s66
+Tarih: 08.06.2026 11:31:55
+Rakip: Rakip : [R1:25-R2:37-R3:16-R4:13-R5:18-R6:6]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:11-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#95 [DOGRU] 37. Kat / s66
+Tarih: 06.06.2026 11:08:11
+Rakip: Rakip : [R1:16-R2:30-R3:26-R4:12-R5:16-R6:7]
+Biz: Biz : [T1:30-T2:0-T3:1-T4:11-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#96 [DOGRU] 37. Kat / s66
+Tarih: 06.06.2026 07:27:56
+Rakip: Rakip : [R1:23-R2:30-R3:22-R4:13-R5:16-R6:7]
+Biz: Biz : [T1:30-T2:0-T3:1-T4:11-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#97 [DOGRU] 37. Kat / s66
+Tarih: 06.06.2026 02:07:26
+Rakip: Rakip : [R1:26-R2:31-R3:15-R4:19-R5:17-R6:5]
+Biz: Biz : [T1:11-T2:2-T3:8-T4:17-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 290
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#98 [DOGRU] 37. Kat / s66
+Tarih: 06.06.2026 15:42:56
+Rakip: Rakip : [R1:20-R2:34-R3:25-R4:13-R5:17-R6:5]
+Biz: Biz : [T1:32-T2:4-T3:1-T4:11-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#99 [DOGRU] 37. Kat / s66
+Tarih: 07.06.2026 12:18:17
+Rakip: Rakip : [R1:12-R2:22-R3:17-R4:15-R5:18-R6:9]
+Biz: Biz : [T1:34-T2:0-T3:1-T4:13-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#100 [DOGRU] 37. Kat / s66
+Tarih: 07.06.2026 09:25:59
+Rakip: Rakip : [R1:25-R2:19-R3:26-R4:13-R5:14-R6:9]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:11-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#101 [DOGRU] 37. Kat / s66
+Tarih: 07.06.2026 15:06:44
+Rakip: Rakip : [R1:20-R2:34-R3:15-R4:13-R5:17-R6:8]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:11-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#102 [DOGRU] 37. Kat / s66
+Tarih: 07.06.2026 23:27:08
+Rakip: Rakip : [R1:21-R2:32-R3:26-R4:13-R5:12-R6:8]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:11-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#103 [DOGRU] 38. Kat / s66
+Tarih: 09.06.2026 08:54:13
+Rakip: Rakip : [R1:18-R2:17-R3:25-R4:13-R5:18-R6:9]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:11-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#104 [DOGRU] 38. Kat / s66
+Tarih: 09.06.2026 11:52:08
+Rakip: Rakip : [R1:22-R2:31-R3:22-R4:18-R5:15-R6:6]
+Biz: Biz : [T1:28-T2:0-T3:1-T4:15-T5:1-T6:10-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#105 [DOGRU] 38. Kat / s66
+Tarih: 09.06.2026 14:23:12
+Rakip: Rakip : [R1:22-R2:17-R3:17-R4:21-R5:18-R6:7]
+Biz: Biz : [T1:34-T2:0-T3:1-T4:18-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#106 [DOGRU] 38. Kat / s66
+Tarih: 29.05.2026 14:06:05
+Rakip: Rakip : [R1:20-R2:19-R3:28-R4:20-R5:13-R6:7]
+Biz: Biz : [T1:24-T2:0-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#107 [DOGRU] 38. Kat / s66
+Tarih: 28.05.2026 16:43:27
+Rakip: Rakip : [R1:13-R2:16-R3:17-R4:22-R5:19-R6:7]
+Biz: Biz : [T1:28-T2:0-T3:4-T4:19-T5:1-T6:2-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 290
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#108 [DOGRU] 38. Kat / s66
+Tarih: 29.05.2026 00:06:42
+Rakip: Rakip : [R1:24-R2:36-R3:27-R4:13-R5:13-R6:7]
+Biz: Biz : [T1:24-T2:3-T3:1-T4:11-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#109 [DOGRU] 38. Kat / s66
+Tarih: 28.05.2026 19:54:12
+Rakip: Rakip : [R1:14-R2:28-R3:25-R4:19-R5:15-R6:6]
+Biz: Biz : [T1:28-T2:2-T3:1-T4:17-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#110 [DOGRU] 38. Kat / s66
+Tarih: 29.05.2026 03:12:15
+Rakip: Rakip : [R1:26-R2:20-R3:29-R4:13-R5:12-R6:10]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:12-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#111 [DOGRU] 38. Kat / s66
+Tarih: 29.05.2026 11:11:51
+Rakip: Rakip : [R1:11-R2:34-R3:26-R4:13-R5:18-R6:6]
+Biz: Biz : [T1:34-T2:4-T3:1-T4:11-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#112 [DOGRU] 38. Kat / s66
+Tarih: 30.05.2026 02:51:06
+Rakip: Rakip : [R1:16-R2:32-R3:26-R4:12-R5:12-R6:10]
+Biz: Biz : [T1:1-T2:1-T3:8-T4:11-T5:1-T6:12-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#113 [DOGRU] 38. Kat / s66
+Tarih: 30.05.2026 08:49:04
+Rakip: Rakip : [R1:19-R2:16-R3:15-R4:14-R5:19-R6:11]
+Biz: Biz : [T1:11-T2:1-T3:11-T4:13-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#114 [DOGRU] 38. Kat / s66
+Tarih: 30.05.2026 00:17:45
+Rakip: Rakip : [R1:22-R2:21-R3:19-R4:15-R5:19-R6:8]
+Biz: Biz : [T1:36-T2:7-T3:1-T4:12-T5:1-T6:8-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#115 [DOGRU] 38. Kat / s66
+Tarih: 29.05.2026 16:44:10
+Rakip: Rakip : [R1:30-R2:29-R3:15-R4:19-R5:17-R6:6]
+Biz: Biz : [T1:32-T2:3-T3:1-T4:17-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#116 [DOGRU] 38. Kat / s66
+Tarih: 29.05.2026 21:37:35
+Rakip: Rakip : [R1:12-R2:30-R3:24-R4:18-R5:11-R6:9]
+Biz: Biz : [T1:20-T2:6-T3:1-T4:16-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#117 [DOGRU] 38. Kat / s66
+Tarih: 31.05.2026 01:21:48
+Rakip: Rakip : [R1:21-R2:16-R3:25-R4:18-R5:12-R6:10]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:15-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#118 [DOGRU] 38. Kat / s66
+Tarih: 30.05.2026 21:51:18
+Rakip: Rakip : [R1:26-R2:18-R3:27-R4:21-R5:12-R6:7]
+Biz: Biz : [T1:22-T2:0-T3:1-T4:17-T5:1-T6:6-T7:2-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#119 [DOGRU] 38. Kat / s66
+Tarih: 30.05.2026 18:58:47
+Rakip: Rakip : [R1:19-R2:28-R3:13-R4:18-R5:16-R6:9]
+Biz: Biz : [T1:11-T2:3-T3:7-T4:16-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 335 ; Simulator sonucu: 335
+Gerceklesen kayip birlik: Gulyabani (T2) x3, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x3, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#120 [DOGRU] 38. Kat / s66
+Tarih: 31.05.2026 19:47:17
+Rakip: Rakip : [R1:20-R2:31-R3:24-R4:18-R5:16-R6:5]
+Biz: Biz : [T1:30-T2:3-T3:1-T4:16-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#121 [DOGRU] 38. Kat / s66
+Tarih: 31.05.2026 16:45:19
+Rakip: Rakip : [R1:24-R2:28-R3:23-R4:17-R5:11-R6:9]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:15-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#122 [DOGRU] 38. Kat / s66
+Tarih: 31.05.2026 13:56:30
+Rakip: Rakip : [R1:23-R2:29-R3:16-R4:17-R5:16-R6:8]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:14-T5:1-T6:11-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#123 [DOGRU] 38. Kat / s66
+Tarih: 31.05.2026 11:25:22
+Rakip: Rakip : [R1:8-R2:16-R3:26-R4:20-R5:12-R6:10]
+Biz: Biz : [T1:22-T2:4-T3:1-T4:19-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#124 [DOGRU] 38. Kat / s66
+Tarih: 01.06.2026 01:58:47
+Rakip: Rakip : [R1:12-R2:30-R3:24-R4:18-R5:16-R6:6]
+Biz: Biz : [T1:30-T2:6-T3:1-T4:16-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#125 [DOGRU] 38. Kat / s66
+Tarih: 31.05.2026 23:13:51
+Rakip: Rakip : [R1:28-R2:30-R3:17-R4:19-R5:11-R6:9]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:17-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#126 [DOGRU] 38. Kat / s66
+Tarih: 01.06.2026 08:26:37
+Rakip: Rakip : [R1:27-R2:24-R3:22-R4:17-R5:14-R6:8]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:14-T5:1-T6:9-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#127 [DOGRU] 38. Kat / s66
+Tarih: 08.06.2026 20:35:09
+Rakip: Rakip : [R1:25-R2:19-R3:19-R4:22-R5:15-R6:7]
+Biz: Biz : [T1:28-T2:4-T3:1-T4:19-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#128 [DOGRU] 38. Kat / s66
+Tarih: 02.06.2026 12:08:42
+Rakip: Rakip : [R1:18-R2:20-R3:28-R4:20-R5:13-R6:7]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#129 [DOGRU] 38. Kat / s66
+Tarih: 01.06.2026 12:54:56
+Rakip: Rakip : [R1:26-R2:20-R3:20-R4:14-R5:19-R6:8]
+Biz: Biz : [T1:36-T2:1-T3:1-T4:12-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#130 [DOGRU] 38. Kat / s66
+Tarih: 02.06.2026 04:02:58
+Rakip: Rakip : [R1:27-R2:18-R3:30-R4:21-R5:12-R6:6]
+Biz: Biz : [T1:22-T2:0-T3:1-T4:17-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#131 [DOGRU] 38. Kat / s66
+Tarih: 01.06.2026 19:15:30
+Rakip: Rakip : [R1:25-R2:21-R3:20-R4:15-R5:13-R6:11]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:12-T5:1-T6:8-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#132 [DOGRU] 38. Kat / s66
+Tarih: 01.06.2026 16:21:03
+Rakip: Rakip : [R1:25-R2:31-R3:27-R4:12-R5:12-R6:9]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:10-T5:1-T6:12-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#133 [DOGRU] 38. Kat / s66
+Tarih: 02.06.2026 14:56:22
+Rakip: Rakip : [R1:20-R2:37-R3:18-R4:20-R5:12-R6:7]
+Biz: Biz : [T1:1-T2:1-T3:8-T4:17-T5:1-T6:11-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#134 [DOGRU] 38. Kat / s66
+Tarih: 02.06.2026 00:32:02
+Rakip: Rakip : [R1:23-R2:32-R3:17-R4:20-R5:12-R6:8]
+Biz: Biz : [T1:22-T2:2-T3:1-T4:5-T5:1-T6:13-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 340 ; Simulator sonucu: 340
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#135 [DOGRU] 38. Kat / s66
+Tarih: 02.06.2026 23:42:23
+Rakip: Rakip : [R1:23-R2:33-R3:25-R4:20-R5:11-R6:6]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:17-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#136 [DOGRU] 38. Kat / s66
+Tarih: 04.06.2026 01:03:03
+Rakip: Rakip : [R1:19-R2:39-R3:18-R4:15-R5:14-R6:8]
+Biz: Biz : [T1:26-T2:4-T3:1-T4:12-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 255 ; Simulator sonucu: 255
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#137 [DOGRU] 38. Kat / s66
+Tarih: 02.06.2026 19:03:32
+Rakip: Rakip : [R1:24-R2:20-R3:28-R4:20-R5:12-R6:7]
+Biz: Biz : [T1:1-T2:2-T3:8-T4:17-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 290
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#138 [DOGRU] 38. Kat / s66
+Tarih: 03.06.2026 03:21:24
+Rakip: Rakip : [R1:26-R2:18-R3:18-R4:22-R5:14-R6:8]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:19-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#139 [DOGRU] 38. Kat / s66
+Tarih: 04.06.2026 07:43:51
+Rakip: Rakip : [R1:23-R2:30-R3:15-R4:20-R5:17-R6:6]
+Biz: Biz : [T1:32-T2:6-T3:1-T4:17-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#140 [DOGRU] 38. Kat / s66
+Tarih: 05.06.2026 20:32:08
+Rakip: Rakip : [R1:23-R2:30-R3:12-R4:17-R5:16-R6:9]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:14-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 270 ; Simulator sonucu: 270
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#141 [DOGRU] 38. Kat / s66
+Tarih: 05.06.2026 23:36:17
+Rakip: Rakip : [R1:27-R2:35-R3:17-R4:20-R5:12-R6:7]
+Biz: Biz : [T1:22-T2:2-T3:1-T4:5-T5:1-T6:14-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 340 ; Simulator sonucu: 340
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#142 [DOGRU] 38. Kat / s66
+Tarih: 05.06.2026 09:12:49
+Rakip: Rakip : [R1:22-R2:37-R3:15-R4:13-R5:19-R6:7]
+Biz: Biz : [T1:36-T2:0-T3:1-T4:11-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#143 [DOGRU] 38. Kat / s66
+Tarih: 04.06.2026 10:44:14
+Rakip: Rakip : [R1:22-R2:14-R3:26-R4:12-R5:17-R6:10]
+Biz: Biz : [T1:33-T2:1-T3:1-T4:13-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#144 [DOGRU] 38. Kat / s66
+Tarih: 04.06.2026 22:47:43
+Rakip: Rakip : [R1:27-R2:28-R3:24-R4:11-R5:15-R6:9]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:10-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#145 [DOGRU] 38. Kat / s66
+Tarih: 08.06.2026 11:32:35
+Rakip: Rakip : [R1:20-R2:21-R3:18-R4:16-R5:14-R6:11]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:8-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#146 [DOGRU] 38. Kat / s66
+Tarih: 08.06.2026 15:08:09
+Rakip: Rakip : [R1:22-R2:16-R3:16-R4:20-R5:13-R6:11]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#147 [DOGRU] 38. Kat / s66
+Tarih: 06.06.2026 11:09:07
+Rakip: Rakip : [R1:24-R2:13-R3:23-R4:17-R5:16-R6:9]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:15-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#148 [DOGRU] 38. Kat / s66
+Tarih: 06.06.2026 07:28:28
+Rakip: Rakip : [R1:27-R2:15-R3:18-R4:21-R5:19-R6:6]
+Biz: Biz : [T1:36-T2:0-T3:1-T4:18-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#149 [DOGRU] 38. Kat / s66
+Tarih: 06.06.2026 02:08:02
+Rakip: Rakip : [R1:18-R2:15-R3:25-R4:19-R5:12-R6:10]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#150 [DOGRU] 38. Kat / s66
+Tarih: 06.06.2026 15:43:31
+Rakip: Rakip : [R1:27-R2:17-R3:30-R4:15-R5:14-R6:8]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#151 [DOGRU] 38. Kat / s66
+Tarih: 07.06.2026 09:26:37
+Rakip: Rakip : [R1:35-R2:32-R3:25-R4:12-R5:16-R6:6]
+Biz: Biz : [T1:30-T2:2-T3:1-T4:11-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 250 ; Simulator sonucu: 250
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#152 [DOGRU] 38. Kat / s66
+Tarih: 07.06.2026 12:18:38
+Rakip: Rakip : [R1:26-R2:31-R3:25-R4:13-R5:17-R6:6]
+Biz: Biz : [T1:34-T2:0-T3:1-T4:13-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 820 ; Simulator sonucu: 820
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x17, Olu Cagirici (T5) x1, Gargoyle (T6) x6, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Yarasa Surusu (T1) x17, Olu Cagirici (T5) x1, Gargoyle (T6) x6, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#153 [DOGRU] 38. Kat / s66
+Tarih: 07.06.2026 15:07:33
+Rakip: Rakip : [R1:7-R2:19-R3:19-R4:22-R5:18-R6:7]
+Biz: Biz : [T1:6-T2:6-T3:11-T4:6-T5:1-T6:8-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 140 ; Simulator sonucu: 140
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1, Kan Cadisi (T7) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#154 [DOGRU] 38. Kat / s66
+Tarih: 07.06.2026 23:27:36
+Rakip: Rakip : [R1:11-R2:19-R3:19-R4:14-R5:19-R6:10]
+Biz: Biz : [T1:36-T2:4-T3:1-T4:12-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#155 [DOGRU] 39. Kat / s66
+Tarih: 09.06.2026 14:23:56
+Rakip: Rakip : [R1:23-R2:14-R3:15-R4:22-R5:19-R6:8]
+Biz: Biz : [T1:36-T2:1-T3:1-T4:19-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#156 [DOGRU] 39. Kat / s66
+Tarih: 09.06.2026 11:52:39
+Rakip: Rakip : [R1:21-R2:27-R3:25-R4:12-R5:15-R6:10]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:11-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#157 [DOGRU] 39. Kat / s66
+Tarih: 09.06.2026 08:54:44
+Rakip: Rakip : [R1:26-R2:18-R3:17-R4:19-R5:12-R6:12]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#158 [DOGRU] 39. Kat / s66
+Tarih: 28.05.2026 16:44:26
+Rakip: Rakip : [R1:32-R2:38-R3:18-R4:14-R5:13-R6:9]
+Biz: Biz : [T1:24-T2:2-T3:1-T4:11-T5:1-T6:15-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 285 ; Simulator sonucu: 285
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#159 [DOGRU] 39. Kat / s66
+Tarih: 29.05.2026 00:07:17
+Rakip: Rakip : [R1:24-R2:28-R3:23-R4:17-R5:11-R6:10]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:15-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#160 [DOGRU] 39. Kat / s66
+Tarih: 28.05.2026 19:55:15
+Rakip: Rakip : [R1:22-R2:32-R3:24-R4:12-R5:12-R6:11]
+Biz: Biz : [T1:1-T2:1-T3:8-T4:11-T5:1-T6:12-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#161 [DOGRU] 39. Kat / s66
+Tarih: 29.05.2026 03:12:48
+Rakip: Rakip : [R1:24-R2:18-R3:16-R4:20-R5:12-R6:12]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#162 [DOGRU] 39. Kat / s66
+Tarih: 29.05.2026 11:12:23
+Rakip: Rakip : [R1:26-R2:26-R3:14-R4:18-R5:15-R6:10]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:15-T5:1-T6:10-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#163 [DOGRU] 39. Kat / s66
+Tarih: 29.05.2026 14:06:43
+Rakip: Rakip : [R1:15-R2:19-R3:33-R4:16-R5:13-R6:9]
+Biz: Biz : [T1:24-T2:2-T3:1-T4:16-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#164 [DOGRU] 39. Kat / s66
+Tarih: 29.05.2026 21:38:19
+Rakip: Rakip : [R1:19-R2:35-R3:17-R4:16-R5:15-R6:9]
+Biz: Biz : [T1:28-T2:2-T3:1-T4:5-T5:1-T6:14-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 340 ; Simulator sonucu: 340
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#165 [DOGRU] 39. Kat / s66
+Tarih: 30.05.2026 08:49:39
+Rakip: Rakip : [R1:15-R2:19-R3:18-R4:21-R5:13-R6:11]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:7-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#166 [DOGRU] 39. Kat / s66
+Tarih: 30.05.2026 02:51:32
+Rakip: Rakip : [R1:21-R2:30-R3:14-R4:13-R5:17-R6:11]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:11-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#167 [DOGRU] 39. Kat / s66
+Tarih: 30.05.2026 00:18:34
+Rakip: Rakip : [R1:15-R2:12-R3:25-R4:18-R5:16-R6:10]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:17-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#168 [DOGRU] 39. Kat / s66
+Tarih: 29.05.2026 16:44:43
+Rakip: Rakip : [R1:13-R2:17-R3:30-R4:21-R5:13-R6:8]
+Biz: Biz : [T1:24-T2:0-T3:1-T4:19-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#169 [DOGRU] 39. Kat / s66
+Tarih: 31.05.2026 01:22:24
+Rakip: Rakip : [R1:16-R2:16-R3:22-R4:18-R5:16-R6:10]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:15-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#170 [DOGRU] 39. Kat / s66
+Tarih: 30.05.2026 18:59:16
+Rakip: Rakip : [R1:8-R2:14-R3:26-R4:18-R5:16-R6:10]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:16-T5:1-T6:3-T7:2-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#171 [DOGRU] 39. Kat / s66
+Tarih: 30.05.2026 21:51:51
+Rakip: Rakip : [R1:11-R2:38-R3:20-R4:17-R5:13-R6:9]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:15-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#172 [DOGRU] 39. Kat / s66
+Tarih: 31.05.2026 11:25:53
+Rakip: Rakip : [R1:20-R2:15-R3:26-R4:18-R5:12-R6:11]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#173 [DOGRU] 39. Kat / s66
+Tarih: 31.05.2026 13:57:02
+Rakip: Rakip : [R1:7-R2:21-R3:17-R4:22-R5:15-R6:10]
+Biz: Biz : [T1:28-T2:0-T3:1-T4:18-T5:1-T6:5-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#174 [DOGRU] 39. Kat / s66
+Tarih: 31.05.2026 16:45:46
+Rakip: Rakip : [R1:27-R2:20-R3:28-R4:15-R5:14-R6:9]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:8-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#175 [DOGRU] 39. Kat / s66
+Tarih: 31.05.2026 19:48:22
+Rakip: Rakip : [R1:26-R2:29-R3:22-R4:12-R5:15-R6:10]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:10-T5:1-T6:11-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#176 [DOGRU] 39. Kat / s66
+Tarih: 31.05.2026 23:18:46
+Rakip: Rakip : [R1:28-R2:30-R3:15-R4:13-R5:17-R6:10]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:11-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#177 [DOGRU] 39. Kat / s66
+Tarih: 01.06.2026 08:27:18
+Rakip: Rakip : [R1:22-R2:29-R3:14-R4:18-R5:18-R6:8]
+Biz: Biz : [T1:16-T2:1-T3:8-T4:17-T5:1-T6:4-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#178 [DOGRU] 39. Kat / s66
+Tarih: 01.06.2026 01:59:18
+Rakip: Rakip : [R1:26-R2:29-R3:25-R4:13-R5:11-R6:11]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:11-T5:1-T6:11-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#179 [DOGRU] 39. Kat / s66
+Tarih: 08.06.2026 20:36:01
+Rakip: Rakip : [R1:23-R2:33-R3:16-R4:15-R5:18-R6:8]
+Biz: Biz : [T1:12-T2:3-T3:9-T4:13-T5:1-T6:7-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 335 ; Simulator sonucu: 335
+Gerceklesen kayip birlik: Gulyabani (T2) x3, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x3, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#180 [DOGRU] 39. Kat / s66
+Tarih: 01.06.2026 12:55:24
+Rakip: Rakip : [R1:14-R2:15-R3:18-R4:22-R5:17-R6:9]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:19-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#181 [DOGRU] 39. Kat / s66
+Tarih: 01.06.2026 16:21:42
+Rakip: Rakip : [R1:19-R2:28-R3:25-R4:18-R5:15-R6:7]
+Biz: Biz : [T1:28-T2:2-T3:1-T4:16-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#182 [DOGRU] 39. Kat / s66
+Tarih: 01.06.2026 19:15:59
+Rakip: Rakip : [R1:16-R2:32-R3:19-R4:21-R5:13-R6:8]
+Biz: Biz : [T1:24-T2:0-T3:1-T4:18-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#183 [DOGRU] 39. Kat / s66
+Tarih: 02.06.2026 12:09:27
+Rakip: Rakip : [R1:30-R2:34-R3:17-R4:21-R5:11-R6:8]
+Biz: Biz : [T1:8-T2:2-T3:12-T4:17-T5:1-T6:9-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 290
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x3, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x3, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#184 [DOGRU] 39. Kat / s66
+Tarih: 02.06.2026 04:03:31
+Rakip: Rakip : [R1:25-R2:34-R3:25-R4:14-R5:12-R6:9]
+Biz: Biz : [T1:22-T2:2-T3:1-T4:11-T5:1-T6:13-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 250 ; Simulator sonucu: 250
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#185 [DOGRU] 39. Kat / s66
+Tarih: 02.06.2026 14:57:16
+Rakip: Rakip : [R1:25-R2:19-R3:16-R4:15-R5:14-R6:13]
+Biz: Biz : [T1:26-T2:9-T3:1-T4:12-T5:1-T6:7-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 355 ; Simulator sonucu: 355
+Gerceklesen kayip birlik: Gulyabani (T2) x9, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x9, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#186 [DOGRU] 39. Kat / s66
+Tarih: 02.06.2026 23:43:01
+Rakip: Rakip : [R1:20-R2:36-R3:17-R4:13-R5:17-R6:9]
+Biz: Biz : [T1:32-T2:2-T3:1-T4:6-T5:1-T6:14-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 340 ; Simulator sonucu: 340
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#187 [DOGRU] 39. Kat / s66
+Tarih: 04.06.2026 01:03:39
+Rakip: Rakip : [R1:13-R2:31-R3:25-R4:18-R5:15-R6:7]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:17-T5:1-T6:4-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#188 [DOGRU] 39. Kat / s66
+Tarih: 02.06.2026 19:04:04
+Rakip: Rakip : [R1:27-R2:30-R3:14-R4:19-R5:11-R6:11]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:17-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#189 [DOGRU] 39. Kat / s66
+Tarih: 04.06.2026 07:44:27
+Rakip: Rakip : [R1:16-R2:30-R3:16-R4:20-R5:16-R6:8]
+Biz: Biz : [T1:30-T2:0-T3:1-T4:17-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#190 [DOGRU] 39. Kat / s66
+Tarih: 05.06.2026 09:13:30
+Rakip: Rakip : [R1:23-R2:35-R3:15-R4:14-R5:17-R6:9]
+Biz: Biz : [T1:9-T2:2-T3:9-T4:12-T5:1-T6:10-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 320 ; Simulator sonucu: 320
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#191 [DOGRU] 39. Kat / s66
+Tarih: 05.06.2026 20:32:46
+Rakip: Rakip : [R1:18-R2:39-R3:17-R4:15-R5:13-R6:10]
+Biz: Biz : [T1:12-T2:3-T3:14-T4:12-T5:1-T6:9-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 325 ; Simulator sonucu: 325
+Gerceklesen kayip birlik: Gulyabani (T2) x3, Vampir Kole (T3) x4, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x3, Vampir Kole (T3) x4, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#192 [DOGRU] 39. Kat / s66
+Tarih: 04.06.2026 22:48:10
+Rakip: Rakip : [R1:25-R2:31-R3:14-R4:19-R5:11-R6:11]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:16-T5:1-T6:12-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#193 [DOGRU] 39. Kat / s66
+Tarih: 04.06.2026 10:44:43
+Rakip: Rakip : [R1:18-R2:29-R3:14-R4:20-R5:12-R6:11]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#194 [DOGRU] 39. Kat / s66
+Tarih: 05.06.2026 23:36:49
+Rakip: Rakip : [R1:14-R2:35-R3:17-R4:17-R5:15-R6:9]
+Biz: Biz : [T1:28-T2:0-T3:1-T4:15-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#195 [DOGRU] 39. Kat / s66
+Tarih: 08.06.2026 11:33:18
+Rakip: Rakip : [R1:26-R2:14-R3:18-R4:20-R5:17-R6:9]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#196 [DOGRU] 39. Kat / s66
+Tarih: 08.06.2026 15:08:37
+Rakip: Rakip : [R1:20-R2:17-R3:16-R4:22-R5:18-R6:8]
+Biz: Biz : [T1:34-T2:3-T3:1-T4:19-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#197 [DOGRU] 39. Kat / s66
+Tarih: 06.06.2026 07:29:01
+Rakip: Rakip : [R1:26-R2:26-R3:24-R4:18-R5:15-R6:7]
+Biz: Biz : [T1:28-T2:0-T3:1-T4:16-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#198 [DOGRU] 39. Kat / s66
+Tarih: 06.06.2026 11:09:46
+Rakip: Rakip : [R1:27-R2:15-R3:15-R4:20-R5:18-R6:9]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#199 [DOGRU] 39. Kat / s66
+Tarih: 06.06.2026 02:08:40
+Rakip: Rakip : [R1:26-R2:14-R3:29-R4:13-R5:19-R6:8]
+Biz: Biz : [T1:36-T2:1-T3:1-T4:13-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#200 [DOGRU] 39. Kat / s66
+Tarih: 06.06.2026 15:44:10
+Rakip: Rakip : [R1:28-R2:29-R3:14-R4:18-R5:17-R6:8]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:15-T5:1-T6:11-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#201 [DOGRU] 39. Kat / s66
+Tarih: 07.06.2026 12:19:22
+Rakip: Rakip : [R1:28-R2:25-R3:21-R4:17-R5:14-R6:9]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:15-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#202 [DOGRU] 39. Kat / s66
+Tarih: 07.06.2026 09:27:08
+Rakip: Rakip : [R1:20-R2:33-R3:17-R4:15-R5:18-R6:8]
+Biz: Biz : [T1:34-T2:4-T3:1-T4:13-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#203 [DOGRU] 39. Kat / s66
+Tarih: 07.06.2026 15:08:17
+Rakip: Rakip : [R1:25-R2:29-R3:15-R4:18-R5:17-R6:8]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:15-T5:1-T6:11-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#204 [DOGRU] 39. Kat / s66
+Tarih: 07.06.2026 23:28:08
+Rakip: Rakip : [R1:21-R2:26-R3:21-R4:16-R5:14-R6:10]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:10-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#205 [DOGRU] 40. Kat / s66
+Tarih: 09.06.2026 14:24:31
+Rakip: Rakip : [R1:17-R2:29-R3:25-R4:18-R5:15-R6:8]
+Biz: Biz : [T1:28-T2:4-T3:1-T4:16-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#206 [DOGRU] 40. Kat / s66
+Tarih: 09.06.2026 08:55:52
+Rakip: Rakip : [R1:22-R2:32-R3:16-R4:18-R5:11-R6:12]
+Biz: Biz : [T1:3-T2:1-T3:11-T4:16-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 275 ; Simulator sonucu: 275
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x3, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x3, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#207 [DOGRU] 40. Kat / s66
+Tarih: 09.06.2026 11:53:05
+Rakip: Rakip : [R1:15-R2:17-R3:30-R4:21-R5:11-R6:10]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:18-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#208 [DOGRU] 40. Kat / s66
+Tarih: 29.05.2026 14:07:14
+Rakip: Rakip : [R1:15-R2:18-R3:17-R4:22-R5:18-R6:9]
+Biz: Biz : [T1:34-T2:0-T3:1-T4:19-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#209 [DOGRU] 40. Kat / s66
+Tarih: 29.05.2026 00:07:47
+Rakip: Rakip : [R1:25-R2:14-R3:31-R4:16-R5:14-R6:10]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#210 [DOGRU] 40. Kat / s66
+Tarih: 28.05.2026 16:45:17
+Rakip: Rakip : [R1:19-R2:36-R3:17-R4:16-R5:13-R6:11]
+Biz: Biz : [T1:2-T2:1-T3:9-T4:14-T5:1-T6:13-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#211 [DOGRU] 40. Kat / s66
+Tarih: 28.05.2026 19:55:48
+Rakip: Rakip : [R1:17-R2:30-R3:24-R4:11-R5:16-R6:11]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:10-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#212 [DOGRU] 40. Kat / s66
+Tarih: 29.05.2026 03:13:22
+Rakip: Rakip : [R1:13-R2:27-R3:21-R4:16-R5:15-R6:11]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:14-T5:1-T6:11-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#213 [DOGRU] 40. Kat / s66
+Tarih: 29.05.2026 11:13:15
+Rakip: Rakip : [R1:28-R2:38-R3:16-R4:14-R5:13-R6:11]
+Biz: Biz : [T1:24-T2:2-T3:1-T4:12-T5:1-T6:15-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 250 ; Simulator sonucu: 250
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#214 [DOGRU] 40. Kat / s66
+Tarih: 30.05.2026 08:50:17
+Rakip: Rakip : [R1:18-R2:30-R3:24-R4:18-R5:15-R6:8]
+Biz: Biz : [T1:28-T2:6-T3:1-T4:16-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#215 [DOGRU] 40. Kat / s66
+Tarih: 29.05.2026 16:45:39
+Rakip: Rakip : [R1:24-R2:34-R3:17-R4:13-R5:17-R6:10]
+Biz: Biz : [T1:32-T2:2-T3:1-T4:11-T5:1-T6:14-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 250 ; Simulator sonucu: 250
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#216 [DOGRU] 40. Kat / s66
+Tarih: 30.05.2026 00:19:17
+Rakip: Rakip : [R1:26-R2:33-R3:20-R4:14-R5:13-R6:11]
+Biz: Biz : [T1:24-T2:2-T3:1-T4:12-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 250 ; Simulator sonucu: 250
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#217 [DOGRU] 40. Kat / s66
+Tarih: 29.05.2026 21:39:06
+Rakip: Rakip : [R1:23-R2:14-R3:24-R4:19-R5:17-R6:9]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#218 [DOGRU] 40. Kat / s66
+Tarih: 30.05.2026 02:52:03
+Rakip: Rakip : [R1:22-R2:17-R3:26-R4:22-R5:11-R6:10]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:19-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#219 [DOGRU] 40. Kat / s66
+Tarih: 31.05.2026 01:23:25
+Rakip: Rakip : [R1:29-R2:17-R3:15-R4:20-R5:12-R6:13]
+Biz: Biz : [T1:22-T2:10-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 370 ; Simulator sonucu: 370
+Gerceklesen kayip birlik: Gulyabani (T2) x10, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x10, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#220 [DOGRU] 40. Kat / s66
+Tarih: 30.05.2026 21:52:55
+Rakip: Rakip : [R1:20-R2:13-R3:24-R4:12-R5:17-R6:13]
+Biz: Biz : [T1:34-T2:1-T3:23-T4:10-T5:1-T6:5-T7:2-T8:0]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x17, Gulyabani (T2) x1, Olu Cagirici (T5) x1
+Simulator kayip birlik: Yarasa Surusu (T1) x17, Gulyabani (T2) x1, Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#221 [DOGRU] 40. Kat / s66
+Tarih: 30.05.2026 19:00:24
+Rakip: Rakip : [R1:28-R2:16-R3:17-R4:15-R5:14-R6:14]
+Biz: Biz : [T1:26-T2:9-T3:1-T4:13-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 355 ; Simulator sonucu: 355
+Gerceklesen kayip birlik: Gulyabani (T2) x9, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x9, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#222 [DOGRU] 40. Kat / s66
+Tarih: 31.05.2026 16:46:15
+Rakip: Rakip : [R1:26-R2:13-R3:15-R4:21-R5:18-R6:10]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:18-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#223 [DOGRU] 40. Kat / s66
+Tarih: 31.05.2026 13:57:36
+Rakip: Rakip : [R1:21-R2:15-R3:26-R4:13-R5:16-R6:12]
+Biz: Biz : [T1:31-T2:1-T3:1-T4:13-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#224 [DOGRU] 40. Kat / s66
+Tarih: 31.05.2026 11:26:25
+Rakip: Rakip : [R1:24-R2:16-R3:16-R4:18-R5:16-R6:12]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:15-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#225 [DOGRU] 40. Kat / s66
+Tarih: 31.05.2026 19:49:04
+Rakip: Rakip : [R1:22-R2:12-R3:14-R4:20-R5:17-R6:12]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:18-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#226 [DOGRU] 40. Kat / s66
+Tarih: 31.05.2026 23:19:39
+Rakip: Rakip : [R1:23-R2:31-R3:18-R4:15-R5:11-R6:13]
+Biz: Biz : [T1:12-T2:10-T3:11-T4:12-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 410 ; Simulator sonucu: 410
+Gerceklesen kayip birlik: Gulyabani (T2) x10, Vampir Kole (T3) x3, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x10, Vampir Kole (T3) x3, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#227 [DOGRU] 40. Kat / s66
+Tarih: 01.06.2026 02:02:16
+Rakip: Rakip : [R1:28-R2:25-R3:24-R4:18-R5:10-R6:11]
+Biz: Biz : [T1:18-T2:1-T3:1-T4:16-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#228 [DOGRU] 40. Kat / s66
+Tarih: 08.06.2026 20:36:32
+Rakip: Rakip : [R1:23-R2:16-R3:29-R4:14-R5:13-R6:12]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:15-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#229 [DOGRU] 40. Kat / s66
+Tarih: 01.06.2026 12:55:55
+Rakip: Rakip : [R1:19-R2:31-R3:26-R4:13-R5:11-R6:12]
+Biz: Biz : [T1:20-T2:1-T3:1-T4:11-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#230 [DOGRU] 40. Kat / s66
+Tarih: 02.06.2026 00:33:12
+Rakip: Rakip : [R1:22-R2:11-R3:24-R4:18-R5:14-R6:12]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#231 [DOGRU] 40. Kat / s66
+Tarih: 02.06.2026 14:57:56
+Rakip: Rakip : [R1:21-R2:27-R3:25-R4:12-R5:15-R6:11]
+Biz: Biz : [T1:3-T2:1-T3:10-T4:11-T5:1-T6:9-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 305 ; Simulator sonucu: 305
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#232 [DOGRU] 40. Kat / s66
+Tarih: 02.06.2026 04:04:01
+Rakip: Rakip : [R1:27-R2:14-R3:19-R4:16-R5:18-R6:11]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:15-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#233 [DOGRU] 40. Kat / s66
+Tarih: 01.06.2026 08:27:53
+Rakip: Rakip : [R1:24-R2:15-R3:20-R4:16-R5:16-R6:12]
+Biz: Biz : [T1:31-T2:1-T3:1-T4:13-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#234 [DOGRU] 40. Kat / s66
+Tarih: 02.06.2026 12:10:26
+Rakip: Rakip : [R1:15-R2:30-R3:18-R4:15-R5:11-R6:14]
+Biz: Biz : [T1:1-T2:15-T3:11-T4:12-T5:1-T6:11-T7:1-T8:0]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 335 ; Simulator sonucu: 335
+Gerceklesen kayip birlik: Gulyabani (T2) x15, Vampir Kole (T3) x3, Olu Cagirici (T5) x1
+Simulator kayip birlik: Gulyabani (T2) x15, Vampir Kole (T3) x3, Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#235 [DOGRU] 40. Kat / s66
+Tarih: 01.06.2026 19:16:24
+Rakip: Rakip : [R1:15-R2:29-R3:25-R4:20-R5:12-R6:9]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 220
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#236 [DOGRU] 40. Kat / s66
+Tarih: 01.06.2026 16:22:35
+Rakip: Rakip : [R1:20-R2:16-R3:14-R4:20-R5:16-R6:12]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#237 [DOGRU] 40. Kat / s66
+Tarih: 02.06.2026 19:04:33
+Rakip: Rakip : [R1:27-R2:12-R3:17-R4:22-R5:18-R6:9]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:19-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#238 [DOGRU] 40. Kat / s66
+Tarih: 04.06.2026 01:04:15
+Rakip: Rakip : [R1:20-R2:14-R3:18-R4:16-R5:13-R6:15]
+Biz: Biz : [T1:24-T2:7-T3:1-T4:15-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 325 ; Simulator sonucu: 325
+Gerceklesen kayip birlik: Gulyabani (T2) x7, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x7, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#239 [DOGRU] 40. Kat / s66
+Tarih: 02.06.2026 23:43:37
+Rakip: Rakip : [R1:26-R2:14-R3:28-R4:14-R5:12-R6:13]
+Biz: Biz : [T1:13-T2:1-T3:5-T4:11-T5:1-T6:1-T7:14-T8:0]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 240 ; Simulator sonucu: 240
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x5, Olu Cagirici (T5) x1, Gargoyle (T6) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x5, Olu Cagirici (T5) x1, Gargoyle (T6) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#240 [DOGRU] 40. Kat / s66
+Tarih: 05.06.2026 23:37:27
+Rakip: Rakip : [R1:25-R2:19-R3:16-R4:15-R5:14-R6:14]
+Biz: Biz : [T1:1-T2:8-T3:10-T4:13-T5:1-T6:7-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 410 ; Simulator sonucu: 410
+Gerceklesen kayip birlik: Gulyabani (T2) x8, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x8, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#241 [DOGRU] 40. Kat / s66
+Tarih: 04.06.2026 22:48:38
+Rakip: Rakip : [R1:27-R2:23-R3:21-R4:16-R5:14-R6:11]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:14-T5:1-T6:9-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#242 [DOGRU] 40. Kat / s66
+Tarih: 04.06.2026 10:45:11
+Rakip: Rakip : [R1:16-R2:30-R3:23-R4:17-R5:10-R6:12]
+Biz: Biz : [T1:18-T2:1-T3:1-T4:15-T5:1-T6:12-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#243 [DOGRU] 40. Kat / s66
+Tarih: 04.06.2026 07:44:56
+Rakip: Rakip : [R1:25-R2:27-R3:24-R4:11-R5:14-R6:12]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:7-T5:1-T6:11-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 310 ; Simulator sonucu: 310
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#244 [DOGRU] 40. Kat / s66
+Tarih: 05.06.2026 09:14:04
+Rakip: Rakip : [R1:28-R2:15-R3:25-R4:19-R5:17-R6:8]
+Biz: Biz : [T1:32-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#245 [DOGRU] 40. Kat / s66
+Tarih: 05.06.2026 20:33:20
+Rakip: Rakip : [R1:28-R2:31-R3:13-R4:13-R5:16-R6:12]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:11-T5:1-T6:13-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#246 [DOGRU] 40. Kat / s66
+Tarih: 08.06.2026 15:09:06
+Rakip: Rakip : [R1:27-R2:35-R3:18-R4:15-R5:14-R6:10]
+Biz: Biz : [T1:26-T2:2-T3:1-T4:13-T5:1-T6:14-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 250 ; Simulator sonucu: 250
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#247 [DOGRU] 40. Kat / s66
+Tarih: 08.06.2026 11:34:29
+Rakip: Rakip : [R1:27-R2:17-R3:14-R4:21-R5:12-R6:13]
+Biz: Biz : [T1:22-T2:9-T3:1-T4:18-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 355 ; Simulator sonucu: 355
+Gerceklesen kayip birlik: Gulyabani (T2) x9, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x9, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#248 [DOGRU] 40. Kat / s66
+Tarih: 06.06.2026 02:09:15
+Rakip: Rakip : [R1:27-R2:12-R3:29-R4:20-R5:12-R6:10]
+Biz: Biz : [T1:23-T2:1-T3:1-T4:20-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#249 [DOGRU] 40. Kat / s66
+Tarih: 06.06.2026 07:29:29
+Rakip: Rakip : [R1:30-R2:16-R3:24-R4:12-R5:16-R6:12]
+Biz: Biz : [T1:31-T2:1-T3:1-T4:13-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#250 [DOGRU] 40. Kat / s66
+Tarih: 06.06.2026 11:10:22
+Rakip: Rakip : [R1:17-R2:14-R3:28-R4:19-R5:11-R6:12]
+Biz: Biz : [T1:21-T2:1-T3:1-T4:16-T5:1-T6:6-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#251 [DOGRU] 40. Kat / s66
+Tarih: 06.06.2026 15:45:11
+Rakip: Rakip : [R1:28-R2:13-R3:15-R4:21-R5:11-R6:14]
+Biz: Biz : [T1:22-T2:1-T3:23-T4:8-T5:1-T6:7-T7:2-T8:0]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 175 ; Simulator sonucu: 175
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x11, Gulyabani (T2) x1, Olu Cagirici (T5) x1
+Simulator kayip birlik: Yarasa Surusu (T1) x11, Gulyabani (T2) x1, Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#252 [DOGRU] 40. Kat / s66
+Tarih: 07.06.2026 09:27:41
+Rakip: Rakip : [R1:14-R2:17-R3:33-R4:15-R5:13-R6:11]
+Biz: Biz : [T1:24-T2:1-T3:1-T4:13-T5:1-T6:7-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#253 [DOGRU] 40. Kat / s66
+Tarih: 07.06.2026 12:20:22
+Rakip: Rakip : [R1:23-R2:17-R3:17-R4:14-R5:17-R6:13]
+Biz: Biz : [T1:32-T2:8-T3:1-T4:12-T5:1-T6:7-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 340 ; Simulator sonucu: 340
+Gerceklesen kayip birlik: Gulyabani (T2) x8, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x8, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#254 [DOGRU] 40. Kat / s66
+Tarih: 07.06.2026 15:09:13
+Rakip: Rakip : [R1:13-R2:13-R3:28-R4:15-R5:12-R6:14]
+Biz: Biz : [T1:22-T2:5-T3:1-T4:13-T5:1-T6:4-T7:3-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 295 ; Simulator sonucu: 295
+Gerceklesen kayip birlik: Gulyabani (T2) x5, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x5, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#255 [DOGRU] 40. Kat / s66
+Tarih: 07.06.2026 23:28:45
+Rakip: Rakip : [R1:28-R2:25-R3:12-R4:18-R5:16-R6:11]
+Biz: Biz : [T1:30-T2:1-T3:1-T4:16-T5:1-T6:10-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 235 ; Simulator sonucu: 235
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.

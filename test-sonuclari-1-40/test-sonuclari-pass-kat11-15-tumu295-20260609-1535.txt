@@ -1,0 +1,3248 @@
+Arsiv Toplu Test Sonuclari
+Sunucu: s66
+Tur: Dogrular | Kat: Kat 11-15 | Kapsam: Tumu (295) | Siralama: Kat (kucukten buyuge)
+
+#1 [DOGRU] 11. Kat / s66
+Tarih: 09.06.2026 14:15:10
+Rakip: Rakip : [R1:10-R2:38-R3:8-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#2 [DOGRU] 11. Kat / s66
+Tarih: 09.06.2026 12:03:18
+Rakip: Rakip : [R1:9-R2:37-R3:9-R4:2]
+Biz: Biz : [T1:5-T2:0-T3:1-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#3 [DOGRU] 11. Kat / s66
+Tarih: 29.05.2026 16:35:17
+Rakip: Rakip : [R1:9-R2:38-R3:10-R4:1]
+Biz: Biz : [T1:6-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#4 [DOGRU] 11. Kat / s66
+Tarih: 28.05.2026 17:57:00
+Rakip: Rakip : [R1:2-R2:44-R3:10]
+Biz: Biz : [T1:0-T2:1-T3:0-T4:6-T5:0-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#5 [DOGRU] 11. Kat / s66
+Tarih: 30.05.2026 01:15:07
+Rakip: Rakip : [R1:13-R2:36-R3:10-R4:1]
+Biz: Biz : [T1:9-T2:1-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#6 [DOGRU] 11. Kat / s66
+Tarih: 29.05.2026 22:59:53
+Rakip: Rakip : [R1:4-R2:39-R3:11-R4:1]
+Biz: Biz : [T1:3-T2:0-T3:0-T4:3-T5:0-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#7 [DOGRU] 11. Kat / s66
+Tarih: 29.05.2026 21:19:08
+Rakip: Rakip : [R1:2-R2:37-R3:13-R4:1]
+Biz: Biz : [T1:2-T2:1-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#8 [DOGRU] 11. Kat / s66
+Tarih: 30.05.2026 02:52:27
+Rakip: Rakip : [R1:4-R2:39-R3:11-R4:1]
+Biz: Biz : [T1:3-T2:1-T3:3-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#9 [DOGRU] 11. Kat / s66
+Tarih: 29.05.2026 18:33:46
+Rakip: Rakip : [R1:3-R2:44-R3:8-R4:1]
+Biz: Biz : [T1:5-T2:0-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#10 [DOGRU] 11. Kat / s66
+Tarih: 31.05.2026 02:29:00
+Rakip: Rakip : [R1:10-R2:42-R3:7-R4:1]
+Biz: Biz : [T1:10-T2:0-T3:2-T4:2-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#11 [DOGRU] 11. Kat / s66
+Tarih: 31.05.2026 16:46:50
+Rakip: Rakip : [R1:3-R2:41-R3:10-R4:1]
+Biz: Biz : [T1:3-T2:0-T3:0-T4:3-T5:0-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#12 [DOGRU] 11. Kat / s66
+Tarih: 01.06.2026 08:13:49
+Rakip: Rakip : [R1:4-R2:43-R3:10]
+Biz: Biz : [T1:1-T2:1-T3:1-T4:3-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#13 [DOGRU] 11. Kat / s66
+Tarih: 01.06.2026 02:04:50
+Rakip: Rakip : [R1:1-R2:39-R3:12-R4:1]
+Biz: Biz : [T1:1-T2:0-T3:3-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#14 [DOGRU] 11. Kat / s66
+Tarih: 01.06.2026 00:27:56
+Rakip: Rakip : [R1:4-R2:36-R3:13-R4:1]
+Biz: Biz : [T1:2-T2:2-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#15 [DOGRU] 11. Kat / s66
+Tarih: 08.06.2026 22:30:17
+Rakip: Rakip : [R2:38-R3:13-R4:1]
+Biz: Biz : [T1:0-T2:1-T3:1-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#16 [DOGRU] 11. Kat / s66
+Tarih: 02.06.2026 00:18:42
+Rakip: Rakip : [R2:44-R3:9-R4:1]
+Biz: Biz : [T1:2-T2:2-T3:1-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#17 [DOGRU] 11. Kat / s66
+Tarih: 02.06.2026 14:58:33
+Rakip: Rakip : [R1:9-R2:40-R3:7-R4:2]
+Biz: Biz : [T1:10-T2:0-T3:4-T4:2-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#18 [DOGRU] 11. Kat / s66
+Tarih: 01.06.2026 21:02:22
+Rakip: Rakip : [R1:6-R2:40-R3:8-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#19 [DOGRU] 11. Kat / s66
+Tarih: 01.06.2026 12:40:09
+Rakip: Rakip : [R1:14-R2:40-R3:7-R4:1]
+Biz: Biz : [T1:12-T2:0-T3:1-T4:2-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#20 [DOGRU] 11. Kat / s66
+Tarih: 02.06.2026 03:31:06
+Rakip: Rakip : [R1:4-R2:42-R3:9-R4:1]
+Biz: Biz : [T1:4-T2:3-T3:1-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#21 [DOGRU] 11. Kat / s66
+Tarih: 02.06.2026 06:08:43
+Rakip: Rakip : [R1:1-R2:42-R3:10-R4:1]
+Biz: Biz : [T1:3-T2:0-T3:2-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#22 [DOGRU] 11. Kat / s66
+Tarih: 04.06.2026 07:31:18
+Rakip: Rakip : [R1:3-R2:38-R3:12-R4:1]
+Biz: Biz : [T1:3-T2:0-T3:2-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#23 [DOGRU] 11. Kat / s66
+Tarih: 03.06.2026 10:36:48
+Rakip: Rakip : [R1:5-R2:43-R3:8-R4:1]
+Biz: Biz : [T1:6-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#24 [DOGRU] 11. Kat / s66
+Tarih: 02.06.2026 20:31:00
+Rakip: Rakip : [R1:8-R2:39-R3:8-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#25 [DOGRU] 11. Kat / s66
+Tarih: 05.06.2026 15:33:18
+Rakip: Rakip : [R1:13-R2:39-R3:8-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#26 [DOGRU] 11. Kat / s66
+Tarih: 06.06.2026 01:41:01
+Rakip: Rakip : [R1:3-R2:45-R3:9]
+Biz: Biz : [T1:1-T2:0-T3:0-T4:4-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#27 [DOGRU] 11. Kat / s66
+Tarih: 04.06.2026 22:34:10
+Rakip: Rakip : [R1:4-R2:40-R3:12]
+Biz: Biz : [T1:0-T2:1-T3:0-T4:6-T5:0-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#28 [DOGRU] 11. Kat / s66
+Tarih: 05.06.2026 11:17:49
+Rakip: Rakip : [R1:3-R2:40-R3:9-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#29 [DOGRU] 11. Kat / s66
+Tarih: 04.06.2026 12:10:38
+Rakip: Rakip : [R1:2-R2:40-R3:11-R4:1]
+Biz: Biz : [T1:2-T2:2-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#30 [DOGRU] 11. Kat / s66
+Tarih: 04.06.2026 14:42:23
+Rakip: Rakip : [R1:5-R2:40-R3:10-R4:1]
+Biz: Biz : [T1:4-T2:3-T3:1-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#31 [DOGRU] 11. Kat / s66
+Tarih: 08.06.2026 11:04:35
+Rakip: Rakip : [R1:9-R2:34-R3:11-R4:2]
+Biz: Biz : [T1:2-T2:2-T3:1-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#32 [DOGRU] 11. Kat / s66
+Tarih: 05.06.2026 23:15:55
+Rakip: Rakip : [R1:5-R2:37-R3:12-R4:1]
+Biz: Biz : [T1:3-T2:0-T3:2-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#33 [DOGRU] 11. Kat / s66
+Tarih: 05.06.2026 18:53:31
+Rakip: Rakip : [R1:8-R2:40-R3:9-R4:1]
+Biz: Biz : [T1:5-T2:1-T3:2-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#34 [DOGRU] 11. Kat / s66
+Tarih: 08.06.2026 15:46:56
+Rakip: Rakip : [R1:7-R2:36-R3:12-R4:1]
+Biz: Biz : [T1:4-T2:2-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#35 [DOGRU] 11. Kat / s66
+Tarih: 06.06.2026 07:16:03
+Rakip: Rakip : [R1:7-R2:38-R3:9-R4:2]
+Biz: Biz : [T1:3-T2:0-T3:2-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#36 [DOGRU] 11. Kat / s66
+Tarih: 06.06.2026 13:48:56
+Rakip: Rakip : [R1:10-R2:39-R3:9-R4:1]
+Biz: Biz : [T1:9-T2:1-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#37 [DOGRU] 11. Kat / s66
+Tarih: 06.06.2026 09:40:39
+Rakip: Rakip : [R1:9-R2:38-R3:10-R4:1]
+Biz: Biz : [T1:7-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#38 [DOGRU] 11. Kat / s66
+Tarih: 06.06.2026 16:57:38
+Rakip: Rakip : [R1:10-R2:36-R3:11-R4:1]
+Biz: Biz : [T1:7-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#39 [DOGRU] 11. Kat / s66
+Tarih: 07.06.2026 01:12:17
+Rakip: Rakip : [R1:7-R2:42-R3:8-R4:1]
+Biz: Biz : [T1:6-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#40 [DOGRU] 11. Kat / s66
+Tarih: 07.06.2026 11:00:32
+Rakip: Rakip : [R1:9-R2:41-R3:8-R4:1]
+Biz: Biz : [T1:9-T2:1-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#41 [DOGRU] 11. Kat / s66
+Tarih: 07.06.2026 09:14:40
+Rakip: Rakip : [R1:6-R2:41-R3:9-R4:1]
+Biz: Biz : [T1:5-T2:1-T3:2-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#42 [DOGRU] 11. Kat / s66
+Tarih: 07.06.2026 12:53:40
+Rakip: Rakip : [R1:8-R2:37-R3:11-R4:1]
+Biz: Biz : [T1:5-T2:0-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#43 [DOGRU] 11. Kat / s66
+Tarih: 07.06.2026 14:28:34
+Rakip: Rakip : [R1:2-R2:37-R3:13-R4:1]
+Biz: Biz : [T1:0-T2:2-T3:2-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#44 [DOGRU] 11. Kat / s66
+Tarih: 08.06.2026 02:40:13
+Rakip: Rakip : [R1:9-R2:35-R3:12-R4:1]
+Biz: Biz : [T1:5-T2:0-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#45 [DOGRU] 11. Kat / s66
+Tarih: 07.06.2026 16:02:29
+Rakip: Rakip : [R1:6-R2:38-R3:11-R4:1]
+Biz: Biz : [T1:3-T2:0-T3:0-T4:3-T5:0-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#46 [DOGRU] 11. Kat / s66
+Tarih: 07.06.2026 23:12:54
+Rakip: Rakip : [R1:10-R2:36-R3:11-R4:1]
+Biz: Biz : [T1:6-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#47 [DOGRU] 12. Kat / s66
+Tarih: 09.06.2026 10:19:35
+Rakip: Rakip : [R1:11-R2:38-R3:11-R4:2]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#48 [DOGRU] 12. Kat / s66
+Tarih: 28.05.2026 16:23:09
+Rakip: Rakip : [R1:8-R2:42-R3:11-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#49 [DOGRU] 12. Kat / s66
+Tarih: 28.05.2026 21:58:12
+Rakip: Rakip : [R1:9-R2:36-R3:13-R4:2]
+Biz: Biz : [T1:5-T2:4-T3:2-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#50 [DOGRU] 12. Kat / s66
+Tarih: 28.05.2026 23:37:04
+Rakip: Rakip : [R1:7-R2:42-R3:8-R4:3]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#51 [DOGRU] 12. Kat / s66
+Tarih: 29.05.2026 02:58:38
+Rakip: Rakip : [R1:5-R2:39-R3:14-R4:1]
+Biz: Biz : [T1:4-T2:1-T3:1-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#52 [DOGRU] 12. Kat / s66
+Tarih: 29.05.2026 10:54:59
+Rakip: Rakip : [R1:10-R2:40-R3:10-R4:2]
+Biz: Biz : [T1:11-T2:1-T3:3-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#53 [DOGRU] 12. Kat / s66
+Tarih: 30.05.2026 01:16:02
+Rakip: Rakip : [R1:4-R2:42-R3:14]
+Biz: Biz : [T1:0-T2:10-T3:0-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#54 [DOGRU] 12. Kat / s66
+Tarih: 29.05.2026 18:34:10
+Rakip: Rakip : [R1:12-R2:36-R3:12-R4:2]
+Biz: Biz : [T1:13-T2:0-T3:1-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#55 [DOGRU] 12. Kat / s66
+Tarih: 30.05.2026 16:32:49
+Rakip: Rakip : [R1:8-R2:38-R3:12-R4:2]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#56 [DOGRU] 12. Kat / s66
+Tarih: 29.05.2026 21:19:29
+Rakip: Rakip : [R1:11-R2:38-R3:11-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#57 [DOGRU] 12. Kat / s66
+Tarih: 30.05.2026 20:18:14
+Rakip: Rakip : [R1:7-R2:39-R3:10-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#58 [DOGRU] 12. Kat / s66
+Tarih: 31.05.2026 11:01:27
+Rakip: Rakip : [R1:6-R2:37-R3:15-R4:1]
+Biz: Biz : [T1:4-T2:1-T3:1-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#59 [DOGRU] 12. Kat / s66
+Tarih: 31.05.2026 00:53:38
+Rakip: Rakip : [R1:9-R2:43-R3:10-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#60 [DOGRU] 12. Kat / s66
+Tarih: 31.05.2026 02:29:20
+Rakip: Rakip : [R1:4-R2:43-R3:10-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#61 [DOGRU] 12. Kat / s66
+Tarih: 31.05.2026 18:33:45
+Rakip: Rakip : [R1:12-R2:40-R3:11-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#62 [DOGRU] 12. Kat / s66
+Tarih: 31.05.2026 16:47:10
+Rakip: Rakip : [R1:8-R2:34-R3:13-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#63 [DOGRU] 12. Kat / s66
+Tarih: 31.05.2026 22:42:23
+Rakip: Rakip : [R1:11-R2:40-R3:8-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#64 [DOGRU] 12. Kat / s66
+Tarih: 31.05.2026 15:13:23
+Rakip: Rakip : [R1:3-R2:46-R3:10-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#65 [DOGRU] 12. Kat / s66
+Tarih: 01.06.2026 00:28:16
+Rakip: Rakip : [R1:11-R2:41-R3:9-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#66 [DOGRU] 12. Kat / s66
+Tarih: 01.06.2026 02:05:12
+Rakip: Rakip : [R1:11-R2:36-R3:14-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#67 [DOGRU] 12. Kat / s66
+Tarih: 08.06.2026 22:30:40
+Rakip: Rakip : [R1:9-R2:38-R3:10-R4:3]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#68 [DOGRU] 12. Kat / s66
+Tarih: 01.06.2026 19:04:47
+Rakip: Rakip : [R1:11-R2:37-R3:10-R4:3]
+Biz: Biz : [T1:13-T2:1-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#69 [DOGRU] 12. Kat / s66
+Tarih: 02.06.2026 00:19:03
+Rakip: Rakip : [R1:10-R2:41-R3:11-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#70 [DOGRU] 12. Kat / s66
+Tarih: 02.06.2026 14:59:05
+Rakip: Rakip : [R1:7-R2:44-R3:10-R4:1]
+Biz: Biz : [T1:11-T2:1-T3:1-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#71 [DOGRU] 12. Kat / s66
+Tarih: 02.06.2026 18:52:20
+Rakip: Rakip : [R1:8-R2:39-R3:13-R4:1]
+Biz: Biz : [T1:6-T2:1-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#72 [DOGRU] 12. Kat / s66
+Tarih: 02.06.2026 12:51:18
+Rakip: Rakip : [R1:12-R2:42-R3:8-R4:2]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#73 [DOGRU] 12. Kat / s66
+Tarih: 02.06.2026 06:09:05
+Rakip: Rakip : [R1:6-R2:41-R3:9-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#74 [DOGRU] 12. Kat / s66
+Tarih: 03.06.2026 09:01:42
+Rakip: Rakip : [R1:9-R2:37-R3:14-R4:1]
+Biz: Biz : [T1:6-T2:1-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#75 [DOGRU] 12. Kat / s66
+Tarih: 03.06.2026 17:52:42
+Rakip: Rakip : [R1:7-R2:43-R3:9-R4:2]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#76 [DOGRU] 12. Kat / s66
+Tarih: 02.06.2026 20:31:23
+Rakip: Rakip : [R1:6-R2:39-R3:12-R4:2]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#77 [DOGRU] 12. Kat / s66
+Tarih: 04.06.2026 00:34:29
+Rakip: Rakip : [R1:12-R2:43-R3:9-R4:1]
+Biz: Biz : [T1:11-T2:1-T3:1-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#78 [DOGRU] 12. Kat / s66
+Tarih: 03.06.2026 10:37:20
+Rakip: Rakip : [R1:5-R2:44-R3:9-R4:2]
+Biz: Biz : [T1:31-T2:0-T3:2-T4:0-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 30 ; Simulator sonucu: 30
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x3
+Simulator kayip birlik: Yarasa Surusu (T1) x3
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#79 [DOGRU] 12. Kat / s66
+Tarih: 05.06.2026 08:57:46
+Rakip: Rakip : [R1:11-R2:41-R3:9-R4:2]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#80 [DOGRU] 12. Kat / s66
+Tarih: 04.06.2026 22:34:31
+Rakip: Rakip : [R1:10-R2:40-R3:10-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#81 [DOGRU] 12. Kat / s66
+Tarih: 05.06.2026 20:34:07
+Rakip: Rakip : [R1:10-R2:44-R3:9-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#82 [DOGRU] 12. Kat / s66
+Tarih: 04.06.2026 12:10:59
+Rakip: Rakip : [R1:8-R2:41-R3:10-R4:2]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#83 [DOGRU] 12. Kat / s66
+Tarih: 05.06.2026 15:33:38
+Rakip: Rakip : [R1:5-R2:40-R3:10-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#84 [DOGRU] 12. Kat / s66
+Tarih: 04.06.2026 14:42:44
+Rakip: Rakip : [R1:14-R2:38-R3:10-R4:2]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#85 [DOGRU] 12. Kat / s66
+Tarih: 04.06.2026 10:32:38
+Rakip: Rakip : [R1:7-R2:42-R3:8-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#86 [DOGRU] 12. Kat / s66
+Tarih: 05.06.2026 11:18:10
+Rakip: Rakip : [R1:10-R2:33-R3:13-R4:3]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#87 [DOGRU] 12. Kat / s66
+Tarih: 05.06.2026 18:53:54
+Rakip: Rakip : [R1:7-R2:41-R3:12-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#88 [DOGRU] 12. Kat / s66
+Tarih: 05.06.2026 23:16:14
+Rakip: Rakip : [R1:15-R2:33-R3:13-R4:2]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#89 [DOGRU] 12. Kat / s66
+Tarih: 04.06.2026 18:54:45
+Rakip: Rakip : [R1:10-R2:37-R3:12-R4:2]
+Biz: Biz : [T1:6-T2:1-T3:0-T4:4-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#90 [DOGRU] 12. Kat / s66
+Tarih: 08.06.2026 15:47:20
+Rakip: Rakip : [R1:13-R2:40-R3:9-R4:2]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#91 [DOGRU] 12. Kat / s66
+Tarih: 08.06.2026 13:45:48
+Rakip: Rakip : [R1:9-R2:37-R3:14-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#92 [DOGRU] 12. Kat / s66
+Tarih: 06.06.2026 11:12:18
+Rakip: Rakip : [R1:8-R2:35-R3:14-R4:2]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#93 [DOGRU] 12. Kat / s66
+Tarih: 06.06.2026 13:54:31
+Rakip: Rakip : [R1:11-R2:42-R3:10-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#94 [DOGRU] 12. Kat / s66
+Tarih: 06.06.2026 09:41:23
+Rakip: Rakip : [R1:8-R2:45-R3:9-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#95 [DOGRU] 12. Kat / s66
+Tarih: 06.06.2026 07:16:25
+Rakip: Rakip : [R1:7-R2:43-R3:9-R4:2]
+Biz: Biz : [T1:11-T2:1-T3:3-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#96 [DOGRU] 12. Kat / s66
+Tarih: 06.06.2026 16:57:58
+Rakip: Rakip : [R1:2-R2:45-R3:11-R4:1]
+Biz: Biz : [T1:2-T2:2-T3:1-T4:3-T5:0-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#97 [DOGRU] 12. Kat / s66
+Tarih: 06.06.2026 15:26:41
+Rakip: Rakip : [R1:13-R2:41-R3:10-R4:1]
+Biz: Biz : [T1:13-T2:1-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#98 [DOGRU] 12. Kat / s66
+Tarih: 06.06.2026 20:35:56
+Rakip: Rakip : [R1:4-R2:41-R3:13-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#99 [DOGRU] 12. Kat / s66
+Tarih: 07.06.2026 01:12:39
+Rakip: Rakip : [R1:7-R2:43-R3:9-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:2-T4:3-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#100 [DOGRU] 12. Kat / s66
+Tarih: 07.06.2026 11:01:04
+Rakip: Rakip : [R1:8-R2:40-R3:9-R4:3]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#101 [DOGRU] 12. Kat / s66
+Tarih: 07.06.2026 12:53:59
+Rakip: Rakip : [R1:10-R2:38-R3:13-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#102 [DOGRU] 12. Kat / s66
+Tarih: 07.06.2026 09:15:01
+Rakip: Rakip : [R1:10-R2:41-R3:11-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#103 [DOGRU] 12. Kat / s66
+Tarih: 07.06.2026 14:28:54
+Rakip: Rakip : [R1:8-R2:42-R3:11-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#104 [DOGRU] 12. Kat / s66
+Tarih: 07.06.2026 23:13:17
+Rakip: Rakip : [R1:13-R2:38-R3:12-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#105 [DOGRU] 12. Kat / s66
+Tarih: 07.06.2026 16:02:48
+Rakip: Rakip : [R1:8-R2:39-R3:13-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#106 [DOGRU] 12. Kat / s66
+Tarih: 08.06.2026 02:40:49
+Rakip: Rakip : [R1:10-R2:37-R3:12-R4:2]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#107 [DOGRU] 13. Kat / s66
+Tarih: 09.06.2026 12:04:56
+Rakip: Rakip : [R1:9-R2:43-R3:10-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#108 [DOGRU] 13. Kat / s66
+Tarih: 28.05.2026 19:40:22
+Rakip: Rakip : [R1:9-R2:37-R3:14-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#109 [DOGRU] 13. Kat / s66
+Tarih: 28.05.2026 23:37:31
+Rakip: Rakip : [R1:10-R2:40-R3:10-R4:4]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#110 [DOGRU] 13. Kat / s66
+Tarih: 29.05.2026 10:55:25
+Rakip: Rakip : [R1:10-R2:34-R3:14-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#111 [DOGRU] 13. Kat / s66
+Tarih: 29.05.2026 02:59:04
+Rakip: Rakip : [R1:11-R2:42-R3:10-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#112 [DOGRU] 13. Kat / s66
+Tarih: 29.05.2026 16:36:01
+Rakip: Rakip : [R1:9-R2:45-R3:12-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#113 [DOGRU] 13. Kat / s66
+Tarih: 29.05.2026 21:19:54
+Rakip: Rakip : [R1:3-R2:45-R3:14-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#114 [DOGRU] 13. Kat / s66
+Tarih: 30.05.2026 02:53:15
+Rakip: Rakip : [R1:12-R2:37-R3:13-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#115 [DOGRU] 13. Kat / s66
+Tarih: 30.05.2026 20:18:38
+Rakip: Rakip : [R1:10-R2:41-R3:11-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#116 [DOGRU] 13. Kat / s66
+Tarih: 30.05.2026 18:27:35
+Rakip: Rakip : [R1:5-R2:47-R3:12-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#117 [DOGRU] 13. Kat / s66
+Tarih: 31.05.2026 20:08:17
+Rakip: Rakip : [R1:10-R2:38-R3:13-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#118 [DOGRU] 13. Kat / s66
+Tarih: 31.05.2026 15:13:42
+Rakip: Rakip : [R1:10-R2:46-R3:11-R4:1]
+Biz: Biz : [T1:11-T2:2-T3:2-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#119 [DOGRU] 13. Kat / s66
+Tarih: 31.05.2026 22:42:46
+Rakip: Rakip : [R1:8-R2:42-R3:11-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#120 [DOGRU] 13. Kat / s66
+Tarih: 31.05.2026 13:38:03
+Rakip: Rakip : [R1:2-R2:47-R3:13-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#121 [DOGRU] 13. Kat / s66
+Tarih: 01.06.2026 00:28:37
+Rakip: Rakip : [R1:7-R2:40-R3:16-R4:1]
+Biz: Biz : [T1:5-T2:0-T3:3-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#122 [DOGRU] 13. Kat / s66
+Tarih: 01.06.2026 02:05:31
+Rakip: Rakip : [R1:7-R2:44-R3:10-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#123 [DOGRU] 13. Kat / s66
+Tarih: 08.06.2026 22:31:01
+Rakip: Rakip : [R1:5-R2:41-R3:16-R4:1]
+Biz: Biz : [T1:6-T2:1-T3:0-T4:6-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#124 [DOGRU] 13. Kat / s66
+Tarih: 02.06.2026 14:59:28
+Rakip: Rakip : [R1:10-R2:40-R3:10-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#125 [DOGRU] 13. Kat / s66
+Tarih: 02.06.2026 00:19:23
+Rakip: Rakip : [R1:11-R2:38-R3:16-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#126 [DOGRU] 13. Kat / s66
+Tarih: 02.06.2026 06:09:28
+Rakip: Rakip : [R1:10-R2:34-R3:14-R4:4]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#127 [DOGRU] 13. Kat / s66
+Tarih: 02.06.2026 03:31:49
+Rakip: Rakip : [R1:10-R2:40-R3:10-R4:4]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#128 [DOGRU] 13. Kat / s66
+Tarih: 01.06.2026 21:03:15
+Rakip: Rakip : [R1:9-R2:39-R3:16-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#129 [DOGRU] 13. Kat / s66
+Tarih: 03.06.2026 10:37:40
+Rakip: Rakip : [R1:11-R2:41-R3:14-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#130 [DOGRU] 13. Kat / s66
+Tarih: 02.06.2026 23:31:05
+Rakip: Rakip : [R1:6-R2:45-R3:13-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#131 [DOGRU] 13. Kat / s66
+Tarih: 04.06.2026 07:32:03
+Rakip: Rakip : [R1:7-R2:43-R3:14-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#132 [DOGRU] 13. Kat / s66
+Tarih: 04.06.2026 00:34:50
+Rakip: Rakip : [R1:7-R2:40-R3:11-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#133 [DOGRU] 13. Kat / s66
+Tarih: 03.06.2026 17:53:03
+Rakip: Rakip : [R1:13-R2:41-R3:10-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:3-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#134 [DOGRU] 13. Kat / s66
+Tarih: 04.06.2026 18:55:08
+Rakip: Rakip : [R1:5-R2:41-R3:11-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#135 [DOGRU] 13. Kat / s66
+Tarih: 04.06.2026 10:33:01
+Rakip: Rakip : [R1:11-R2:36-R3:14-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#136 [DOGRU] 13. Kat / s66
+Tarih: 04.06.2026 12:11:21
+Rakip: Rakip : [R1:7-R2:38-R3:14-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#137 [DOGRU] 13. Kat / s66
+Tarih: 04.06.2026 22:34:54
+Rakip: Rakip : [R1:13-R2:40-R3:14-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#138 [DOGRU] 13. Kat / s66
+Tarih: 05.06.2026 08:58:09
+Rakip: Rakip : [R1:11-R2:41-R3:9-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#139 [DOGRU] 13. Kat / s66
+Tarih: 05.06.2026 15:33:59
+Rakip: Rakip : [R1:12-R2:39-R3:10-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#140 [DOGRU] 13. Kat / s66
+Tarih: 08.06.2026 11:05:19
+Rakip: Rakip : [R1:12-R2:39-R3:10-R4:4]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#141 [DOGRU] 13. Kat / s66
+Tarih: 04.06.2026 14:43:06
+Rakip: Rakip : [R1:8-R2:40-R3:14-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#142 [DOGRU] 13. Kat / s66
+Tarih: 05.06.2026 11:18:42
+Rakip: Rakip : [R1:13-R2:37-R3:11-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#143 [DOGRU] 13. Kat / s66
+Tarih: 06.06.2026 01:41:40
+Rakip: Rakip : [R1:5-R2:44-R3:14-R4:1]
+Biz: Biz : [T1:11-T2:1-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#144 [DOGRU] 13. Kat / s66
+Tarih: 05.06.2026 18:54:12
+Rakip: Rakip : [R1:8-R2:42-R3:11-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#145 [DOGRU] 13. Kat / s66
+Tarih: 05.06.2026 23:16:37
+Rakip: Rakip : [R1:11-R2:41-R3:14-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#146 [DOGRU] 13. Kat / s66
+Tarih: 05.06.2026 20:34:30
+Rakip: Rakip : [R1:7-R2:40-R3:16-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#147 [DOGRU] 13. Kat / s66
+Tarih: 08.06.2026 13:46:22
+Rakip: Rakip : [R1:9-R2:42-R3:9-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#148 [DOGRU] 13. Kat / s66
+Tarih: 08.06.2026 19:25:12
+Rakip: Rakip : [R1:9-R2:42-R3:14-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#149 [DOGRU] 13. Kat / s66
+Tarih: 06.06.2026 07:16:50
+Rakip: Rakip : [R1:6-R2:40-R3:13-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#150 [DOGRU] 13. Kat / s66
+Tarih: 06.06.2026 09:43:32
+Rakip: Rakip : [R1:12-R2:33-R3:14-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#151 [DOGRU] 13. Kat / s66
+Tarih: 06.06.2026 13:55:22
+Rakip: Rakip : [R1:9-R2:43-R3:10-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#152 [DOGRU] 13. Kat / s66
+Tarih: 06.06.2026 11:13:53
+Rakip: Rakip : [R1:8-R2:41-R3:10-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#153 [DOGRU] 13. Kat / s66
+Tarih: 06.06.2026 16:58:20
+Rakip: Rakip : [R1:9-R2:45-R3:12-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#154 [DOGRU] 13. Kat / s66
+Tarih: 06.06.2026 18:51:39
+Rakip: Rakip : [R1:2-R2:44-R3:15-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#155 [DOGRU] 13. Kat / s66
+Tarih: 07.06.2026 01:13:05
+Rakip: Rakip : [R1:6-R2:43-R3:11-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:0-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#156 [DOGRU] 13. Kat / s66
+Tarih: 06.06.2026 20:36:19
+Rakip: Rakip : [R1:12-R2:39-R3:15-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#157 [DOGRU] 13. Kat / s66
+Tarih: 07.06.2026 12:54:18
+Rakip: Rakip : [R1:9-R2:48-R3:10-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#158 [DOGRU] 13. Kat / s66
+Tarih: 07.06.2026 11:01:26
+Rakip: Rakip : [R1:9-R2:42-R3:14-R4:1]
+Biz: Biz : [T1:11-T2:1-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#159 [DOGRU] 13. Kat / s66
+Tarih: 08.06.2026 02:41:35
+Rakip: Rakip : [R1:12-R2:45-R3:11-R4:1]
+Biz: Biz : [T1:11-T2:2-T3:2-T4:3-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#160 [DOGRU] 13. Kat / s66
+Tarih: 07.06.2026 14:29:15
+Rakip: Rakip : [R1:7-R2:44-R3:10-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#161 [DOGRU] 13. Kat / s66
+Tarih: 07.06.2026 23:14:02
+Rakip: Rakip : [R1:3-R2:48-R3:12-R4:1]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#162 [DOGRU] 14. Kat / s66
+Tarih: 09.06.2026 10:20:23
+Rakip: Rakip : [R1:11-R2:39-R3:17-R4:2]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#163 [DOGRU] 14. Kat / s66
+Tarih: 09.06.2026 12:06:49
+Rakip: Rakip : [R1:10-R2:37-R3:17-R4:3]
+Biz: Biz : [T1:12-T2:2-T3:2-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#164 [DOGRU] 14. Kat / s66
+Tarih: 29.05.2026 13:10:52
+Rakip: Rakip : [R1:6-R2:44-R3:12-R4:4]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#165 [DOGRU] 14. Kat / s66
+Tarih: 29.05.2026 02:59:28
+Rakip: Rakip : [R1:9-R2:50-R3:12-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:2-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#166 [DOGRU] 14. Kat / s66
+Tarih: 29.05.2026 16:36:22
+Rakip: Rakip : [R1:8-R2:49-R3:13-R4:1]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#167 [DOGRU] 14. Kat / s66
+Tarih: 28.05.2026 17:58:08
+Rakip: Rakip : [R1:11-R2:40-R3:18-R4:1]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#168 [DOGRU] 14. Kat / s66
+Tarih: 28.05.2026 23:37:58
+Rakip: Rakip : [R1:10-R2:35-R3:15-R4:5]
+Biz: Biz : [T1:2-T2:0-T3:1-T4:5-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#169 [DOGRU] 14. Kat / s66
+Tarih: 28.05.2026 21:59:02
+Rakip: Rakip : [R1:13-R2:48-R3:12-R4:1]
+Biz: Biz : [T1:14-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#170 [DOGRU] 14. Kat / s66
+Tarih: 29.05.2026 10:55:57
+Rakip: Rakip : [R1:8-R2:48-R3:12-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#171 [DOGRU] 14. Kat / s66
+Tarih: 29.05.2026 23:01:10
+Rakip: Rakip : [R1:9-R2:44-R3:11-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:2-T4:3-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#172 [DOGRU] 14. Kat / s66
+Tarih: 30.05.2026 02:53:41
+Rakip: Rakip : [R1:11-R2:49-R3:12-R4:1]
+Biz: Biz : [T1:13-T2:1-T3:2-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#173 [DOGRU] 14. Kat / s66
+Tarih: 29.05.2026 21:20:17
+Rakip: Rakip : [R1:12-R2:44-R3:10-R4:4]
+Biz: Biz : [T1:11-T2:4-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#174 [DOGRU] 14. Kat / s66
+Tarih: 29.05.2026 18:35:07
+Rakip: Rakip : [R1:5-R2:36-R3:16-R4:5]
+Biz: Biz : [T1:26-T2:2-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 35 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#175 [DOGRU] 14. Kat / s66
+Tarih: 30.05.2026 18:27:58
+Rakip: Rakip : [R1:12-R2:38-R3:14-R4:4]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#176 [DOGRU] 14. Kat / s66
+Tarih: 30.05.2026 16:33:41
+Rakip: Rakip : [R1:10-R2:35-R3:15-R4:5]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#177 [DOGRU] 14. Kat / s66
+Tarih: 31.05.2026 02:30:07
+Rakip: Rakip : [R1:13-R2:38-R3:17-R4:2]
+Biz: Biz : [T1:11-T2:0-T3:4-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#178 [DOGRU] 14. Kat / s66
+Tarih: 30.05.2026 20:19:04
+Rakip: Rakip : [R1:10-R2:38-R3:13-R4:5]
+Biz: Biz : [T1:11-T2:3-T3:0-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#179 [DOGRU] 14. Kat / s66
+Tarih: 31.05.2026 18:34:31
+Rakip: Rakip : [R1:17-R2:36-R3:17-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:2-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#180 [DOGRU] 14. Kat / s66
+Tarih: 31.05.2026 22:43:10
+Rakip: Rakip : [R1:8-R2:39-R3:18-R4:2]
+Biz: Biz : [T1:10-T2:2-T3:3-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#181 [DOGRU] 14. Kat / s66
+Tarih: 31.05.2026 15:14:06
+Rakip: Rakip : [R1:8-R2:39-R3:18-R4:2]
+Biz: Biz : [T1:12-T2:2-T3:2-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#182 [DOGRU] 14. Kat / s66
+Tarih: 31.05.2026 20:08:43
+Rakip: Rakip : [R1:6-R2:46-R3:14-R4:2]
+Biz: Biz : [T1:11-T2:0-T3:4-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#183 [DOGRU] 14. Kat / s66
+Tarih: 01.06.2026 08:14:51
+Rakip: Rakip : [R1:14-R2:37-R3:14-R4:4]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:4-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#184 [DOGRU] 14. Kat / s66
+Tarih: 08.06.2026 22:31:23
+Rakip: Rakip : [R1:13-R2:36-R3:15-R4:4]
+Biz: Biz : [T1:10-T2:1-T3:2-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#185 [DOGRU] 14. Kat / s66
+Tarih: 01.06.2026 16:06:14
+Rakip: Rakip : [R1:13-R2:39-R3:18-R4:1]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#186 [DOGRU] 14. Kat / s66
+Tarih: 02.06.2026 18:53:03
+Rakip: Rakip : [R1:16-R2:38-R3:16-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#187 [DOGRU] 14. Kat / s66
+Tarih: 01.06.2026 19:05:31
+Rakip: Rakip : [R1:12-R2:37-R3:18-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:2-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#188 [DOGRU] 14. Kat / s66
+Tarih: 02.06.2026 12:52:08
+Rakip: Rakip : [R1:10-R2:44-R3:14-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:1-T4:4-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#189 [DOGRU] 14. Kat / s66
+Tarih: 02.06.2026 03:32:15
+Rakip: Rakip : [R1:13-R2:42-R3:11-R4:4]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#190 [DOGRU] 14. Kat / s66
+Tarih: 01.06.2026 21:03:39
+Rakip: Rakip : [R1:7-R2:39-R3:15-R4:4]
+Biz: Biz : [T1:12-T2:0-T3:0-T4:7-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#191 [DOGRU] 14. Kat / s66
+Tarih: 02.06.2026 00:19:42
+Rakip: Rakip : [R1:11-R2:33-R3:16-R4:5]
+Biz: Biz : [T1:2-T2:0-T3:1-T4:5-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#192 [DOGRU] 14. Kat / s66
+Tarih: 04.06.2026 00:35:13
+Rakip: Rakip : [R1:10-R2:42-R3:17-R4:1]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#193 [DOGRU] 14. Kat / s66
+Tarih: 02.06.2026 20:39:17
+Rakip: Rakip : [R1:13-R2:38-R3:12-R4:5]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#194 [DOGRU] 14. Kat / s66
+Tarih: 04.06.2026 07:32:22
+Rakip: Rakip : [R1:12-R2:36-R3:17-R4:3]
+Biz: Biz : [T1:12-T2:0-T3:0-T4:7-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#195 [DOGRU] 14. Kat / s66
+Tarih: 02.06.2026 23:31:26
+Rakip: Rakip : [R1:10-R2:41-R3:11-R4:5]
+Biz: Biz : [T1:10-T2:1-T3:1-T4:4-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#196 [DOGRU] 14. Kat / s66
+Tarih: 03.06.2026 10:38:09
+Rakip: Rakip : [R1:4-R2:44-R3:16-R4:2]
+Biz: Biz : [T1:31-T2:3-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 35 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#197 [DOGRU] 14. Kat / s66
+Tarih: 06.06.2026 01:42:00
+Rakip: Rakip : [R1:4-R2:44-R3:11-R4:5]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#198 [DOGRU] 14. Kat / s66
+Tarih: 04.06.2026 22:35:16
+Rakip: Rakip : [R1:11-R2:42-R3:15-R4:2]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#199 [DOGRU] 14. Kat / s66
+Tarih: 04.06.2026 14:43:29
+Rakip: Rakip : [R1:11-R2:42-R3:15-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:2-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#200 [DOGRU] 14. Kat / s66
+Tarih: 05.06.2026 15:34:24
+Rakip: Rakip : [R1:12-R2:38-R3:14-R4:4]
+Biz: Biz : [T1:12-T2:1-T3:0-T4:4-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#201 [DOGRU] 14. Kat / s66
+Tarih: 05.06.2026 18:54:36
+Rakip: Rakip : [R1:12-R2:40-R3:16-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#202 [DOGRU] 14. Kat / s66
+Tarih: 05.06.2026 08:58:31
+Rakip: Rakip : [R1:14-R2:42-R3:14-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#203 [DOGRU] 14. Kat / s66
+Tarih: 05.06.2026 23:16:58
+Rakip: Rakip : [R1:12-R2:34-R3:15-R4:5]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#204 [DOGRU] 14. Kat / s66
+Tarih: 04.06.2026 12:11:43
+Rakip: Rakip : [R1:6-R2:49-R3:12-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:2-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#205 [DOGRU] 14. Kat / s66
+Tarih: 08.06.2026 11:05:43
+Rakip: Rakip : [R1:12-R2:40-R3:11-R4:5]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#206 [DOGRU] 14. Kat / s66
+Tarih: 04.06.2026 10:33:23
+Rakip: Rakip : [R1:11-R2:39-R3:17-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#207 [DOGRU] 14. Kat / s66
+Tarih: 04.06.2026 18:55:32
+Rakip: Rakip : [R1:10-R2:47-R3:12-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#208 [DOGRU] 14. Kat / s66
+Tarih: 08.06.2026 13:47:04
+Rakip: Rakip : [R1:12-R2:46-R3:12-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#209 [DOGRU] 14. Kat / s66
+Tarih: 08.06.2026 19:26:00
+Rakip: Rakip : [R1:13-R2:42-R3:16-R4:1]
+Biz: Biz : [T1:11-T2:0-T3:2-T4:5-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 0 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: -
+Simulator kayip birlik: -
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#210 [DOGRU] 14. Kat / s66
+Tarih: 06.06.2026 07:17:14
+Rakip: Rakip : [R1:11-R2:38-R3:11-R4:6]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#211 [DOGRU] 14. Kat / s66
+Tarih: 06.06.2026 09:43:53
+Rakip: Rakip : [R1:6-R2:45-R3:13-R4:3]
+Biz: Biz : [T1:10-T2:1-T3:1-T4:4-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#212 [DOGRU] 14. Kat / s66
+Tarih: 06.06.2026 13:55:43
+Rakip: Rakip : [R1:7-R2:44-R3:15-R4:2]
+Biz: Biz : [T1:11-T2:0-T3:4-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#213 [DOGRU] 14. Kat / s66
+Tarih: 06.06.2026 16:58:42
+Rakip: Rakip : [R1:12-R2:35-R3:16-R4:4]
+Biz: Biz : [T1:11-T2:3-T3:0-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#214 [DOGRU] 14. Kat / s66
+Tarih: 06.06.2026 15:27:26
+Rakip: Rakip : [R1:8-R2:48-R3:12-R4:2]
+Biz: Biz : [T1:11-T2:4-T3:1-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#215 [DOGRU] 14. Kat / s66
+Tarih: 06.06.2026 18:52:00
+Rakip: Rakip : [R1:9-R2:42-R3:14-R4:3]
+Biz: Biz : [T1:11-T2:3-T3:0-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#216 [DOGRU] 14. Kat / s66
+Tarih: 07.06.2026 01:13:28
+Rakip: Rakip : [R1:11-R2:37-R3:15-R4:4]
+Biz: Biz : [T1:11-T2:3-T3:0-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#217 [DOGRU] 14. Kat / s66
+Tarih: 06.06.2026 20:37:08
+Rakip: Rakip : [R1:10-R2:41-R3:11-R4:5]
+Biz: Biz : [T1:11-T2:3-T3:0-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#218 [DOGRU] 14. Kat / s66
+Tarih: 07.06.2026 12:54:38
+Rakip: Rakip : [R1:14-R2:42-R3:14-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 240 ; Simulator sonucu: 240
+Gerceklesen kayip birlik: Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Kan Cadisi (T7) x1, Curuk Girtlak (T8) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#219 [DOGRU] 14. Kat / s66
+Tarih: 07.06.2026 11:01:49
+Rakip: Rakip : [R1:13-R2:44-R3:13-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#220 [DOGRU] 14. Kat / s66
+Tarih: 07.06.2026 09:15:46
+Rakip: Rakip : [R1:8-R2:45-R3:14-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:1-T4:4-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#221 [DOGRU] 14. Kat / s66
+Tarih: 07.06.2026 16:03:25
+Rakip: Rakip : [R1:10-R2:38-R3:18-R4:2]
+Biz: Biz : [T1:12-T2:2-T3:2-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#222 [DOGRU] 14. Kat / s66
+Tarih: 08.06.2026 02:42:12
+Rakip: Rakip : [R1:12-R2:43-R3:14-R4:2]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#223 [DOGRU] 14. Kat / s66
+Tarih: 07.06.2026 14:29:36
+Rakip: Rakip : [R1:7-R2:41-R3:12-R4:5]
+Biz: Biz : [T1:2-T2:0-T3:1-T4:5-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#224 [DOGRU] 14. Kat / s66
+Tarih: 07.06.2026 23:14:37
+Rakip: Rakip : [R1:5-R2:42-R3:12-R4:5]
+Biz: Biz : [T1:1-T2:2-T3:0-T4:5-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#225 [DOGRU] 15. Kat / s66
+Tarih: 09.06.2026 12:07:43
+Rakip: Rakip : [R1:12-R2:37-R3:18-R4:4]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#226 [DOGRU] 15. Kat / s66
+Tarih: 09.06.2026 14:16:48
+Rakip: Rakip : [R1:10-R2:45-R3:15-R4:3]
+Biz: Biz : [T1:10-T2:1-T3:2-T4:7-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#227 [DOGRU] 15. Kat / s66
+Tarih: 28.05.2026 16:24:19
+Rakip: Rakip : [R1:15-R2:41-R3:16-R4:3]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#228 [DOGRU] 15. Kat / s66
+Tarih: 28.05.2026 21:59:28
+Rakip: Rakip : [R1:10-R2:39-R3:19-R4:3]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#229 [DOGRU] 15. Kat / s66
+Tarih: 28.05.2026 17:58:34
+Rakip: Rakip : [R1:14-R2:43-R3:15-R4:3]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#230 [DOGRU] 15. Kat / s66
+Tarih: 29.05.2026 13:11:18
+Rakip: Rakip : [R1:3-R2:40-R3:14-R4:7]
+Biz: Biz : [T1:28-T2:1-T3:1-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 35 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#231 [DOGRU] 15. Kat / s66
+Tarih: 28.05.2026 19:41:12
+Rakip: Rakip : [R1:10-R2:43-R3:13-R4:5]
+Biz: Biz : [T1:10-T2:2-T3:3-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#232 [DOGRU] 15. Kat / s66
+Tarih: 29.05.2026 15:05:20
+Rakip: Rakip : [R1:10-R2:42-R3:17-R4:3]
+Biz: Biz : [T1:11-T2:0-T3:4-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#233 [DOGRU] 15. Kat / s66
+Tarih: 29.05.2026 02:59:51
+Rakip: Rakip : [R1:1-R2:41-R3:14-R4:7]
+Biz: Biz : [T1:29-T2:2-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 35 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#234 [DOGRU] 15. Kat / s66
+Tarih: 28.05.2026 23:38:26
+Rakip: Rakip : [R1:13-R2:42-R3:11-R4:6]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#235 [DOGRU] 15. Kat / s66
+Tarih: 29.05.2026 10:56:26
+Rakip: Rakip : [R1:9-R2:44-R3:16-R4:3]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#236 [DOGRU] 15. Kat / s66
+Tarih: 29.05.2026 16:36:44
+Rakip: Rakip : [R1:2-R2:45-R3:16-R4:4]
+Biz: Biz : [T1:32-T2:3-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 35 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#237 [DOGRU] 15. Kat / s66
+Tarih: 29.05.2026 21:20:42
+Rakip: Rakip : [R1:13-R2:38-R3:12-R4:7]
+Biz: Biz : [T1:10-T2:1-T3:1-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#238 [DOGRU] 15. Kat / s66
+Tarih: 29.05.2026 18:35:30
+Rakip: Rakip : [R1:11-R2:38-R3:16-R4:5]
+Biz: Biz : [T1:12-T2:1-T3:0-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#239 [DOGRU] 15. Kat / s66
+Tarih: 29.05.2026 23:01:41
+Rakip: Rakip : [R1:13-R2:43-R3:17-R4:2]
+Biz: Biz : [T1:10-T2:3-T3:4-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#240 [DOGRU] 15. Kat / s66
+Tarih: 30.05.2026 18:28:30
+Rakip: Rakip : [R1:6-R2:44-R3:12-R4:6]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#241 [DOGRU] 15. Kat / s66
+Tarih: 30.05.2026 16:34:14
+Rakip: Rakip : [R1:7-R2:36-R3:17-R4:6]
+Biz: Biz : [T1:3-T2:1-T3:2-T4:9-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#242 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 00:54:50
+Rakip: Rakip : [R1:5-R2:40-R3:15-R4:6]
+Biz: Biz : [T1:11-T2:1-T3:5-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#243 [DOGRU] 15. Kat / s66
+Tarih: 30.05.2026 21:56:11
+Rakip: Rakip : [R1:12-R2:41-R3:17-R4:3]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#244 [DOGRU] 15. Kat / s66
+Tarih: 30.05.2026 20:19:30
+Rakip: Rakip : [R1:14-R2:45-R3:12-R4:4]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#245 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 11:02:39
+Rakip: Rakip : [R1:13-R2:36-R3:15-R4:6]
+Biz: Biz : [T1:10-T2:1-T3:1-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#246 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 02:30:30
+Rakip: Rakip : [R1:9-R2:43-R3:15-R4:4]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:6-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#247 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 15:14:30
+Rakip: Rakip : [R1:5-R2:41-R3:16-R4:5]
+Biz: Biz : [T1:0-T2:10-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#248 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 22:43:35
+Rakip: Rakip : [R1:8-R2:39-R3:13-R4:7]
+Biz: Biz : [T1:12-T2:1-T3:0-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#249 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 13:38:46
+Rakip: Rakip : [R1:12-R2:38-R3:14-R4:6]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#250 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 16:48:23
+Rakip: Rakip : [R1:13-R2:42-R3:16-R4:3]
+Biz: Biz : [T1:12-T2:3-T3:3-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#251 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 20:09:06
+Rakip: Rakip : [R1:9-R2:35-R3:17-R4:6]
+Biz: Biz : [T1:11-T2:0-T3:4-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#252 [DOGRU] 15. Kat / s66
+Tarih: 31.05.2026 18:35:03
+Rakip: Rakip : [R1:10-R2:42-R3:12-R4:6]
+Biz: Biz : [T1:11-T2:0-T3:2-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#253 [DOGRU] 15. Kat / s66
+Tarih: 01.06.2026 02:06:16
+Rakip: Rakip : [R1:8-R2:49-R3:13-R4:3]
+Biz: Biz : [T1:12-T2:3-T3:3-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#254 [DOGRU] 15. Kat / s66
+Tarih: 01.06.2026 00:30:27
+Rakip: Rakip : [R1:8-R2:43-R3:12-R4:6]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:6-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#255 [DOGRU] 15. Kat / s66
+Tarih: 08.06.2026 22:31:47
+Rakip: Rakip : [R1:14-R2:40-R3:12-R4:6]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#256 [DOGRU] 15. Kat / s66
+Tarih: 02.06.2026 10:48:13
+Rakip: Rakip : [R1:12-R2:42-R3:13-R4:5]
+Biz: Biz : [T1:10-T2:1-T3:1-T4:5-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#257 [DOGRU] 15. Kat / s66
+Tarih: 02.06.2026 00:20:05
+Rakip: Rakip : [R1:3-R2:44-R3:13-R4:6]
+Biz: Biz : [T1:31-T2:3-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 35 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#258 [DOGRU] 15. Kat / s66
+Tarih: 02.06.2026 06:10:19
+Rakip: Rakip : [R1:7-R2:44-R3:15-R4:4]
+Biz: Biz : [T1:11-T2:0-T3:2-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#259 [DOGRU] 15. Kat / s66
+Tarih: 02.06.2026 12:52:32
+Rakip: Rakip : [R1:8-R2:43-R3:12-R4:6]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#260 [DOGRU] 15. Kat / s66
+Tarih: 01.06.2026 19:05:58
+Rakip: Rakip : [R1:11-R2:43-R3:16-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:4-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#261 [DOGRU] 15. Kat / s66
+Tarih: 01.06.2026 12:41:36
+Rakip: Rakip : [R1:15-R2:41-R3:11-R4:6]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#262 [DOGRU] 15. Kat / s66
+Tarih: 01.06.2026 16:06:36
+Rakip: Rakip : [R1:11-R2:37-R3:15-R4:6]
+Biz: Biz : [T1:10-T2:2-T3:1-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#263 [DOGRU] 15. Kat / s66
+Tarih: 02.06.2026 18:53:26
+Rakip: Rakip : [R1:11-R2:42-R3:15-R4:4]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:6-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#264 [DOGRU] 15. Kat / s66
+Tarih: 03.06.2026 17:53:55
+Rakip: Rakip : [R1:10-R2:39-R3:19-R4:3]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:6-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#265 [DOGRU] 15. Kat / s66
+Tarih: 04.06.2026 07:32:43
+Rakip: Rakip : [R1:10-R2:37-R3:17-R4:5]
+Biz: Biz : [T1:11-T2:1-T3:5-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#266 [DOGRU] 15. Kat / s66
+Tarih: 03.06.2026 10:38:40
+Rakip: Rakip : [R1:12-R2:38-R3:19-R4:3]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:6-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#267 [DOGRU] 15. Kat / s66
+Tarih: 03.06.2026 09:04:49
+Rakip: Rakip : [R1:7-R2:48-R3:14-R4:3]
+Biz: Biz : [T1:12-T2:3-T3:3-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#268 [DOGRU] 15. Kat / s66
+Tarih: 04.06.2026 00:35:33
+Rakip: Rakip : [R1:13-R2:45-R3:14-R4:3]
+Biz: Biz : [T1:12-T2:3-T3:3-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#269 [DOGRU] 15. Kat / s66
+Tarih: 08.06.2026 11:06:14
+Rakip: Rakip : [R1:13-R2:39-R3:13-R4:6]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#270 [DOGRU] 15. Kat / s66
+Tarih: 05.06.2026 15:34:51
+Rakip: Rakip : [R1:6-R2:35-R3:18-R4:6]
+Biz: Biz : [T1:0-T2:4-T3:0-T4:5-T5:1-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#271 [DOGRU] 15. Kat / s66
+Tarih: 05.06.2026 23:17:23
+Rakip: Rakip : [R1:13-R2:39-R3:18-R4:3]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#272 [DOGRU] 15. Kat / s66
+Tarih: 05.06.2026 08:58:55
+Rakip: Rakip : [R1:15-R2:40-R3:15-R4:4]
+Biz: Biz : [T1:11-T2:4-T3:1-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#273 [DOGRU] 15. Kat / s66
+Tarih: 05.06.2026 18:55:21
+Rakip: Rakip : [R1:10-R2:39-R3:14-R4:6]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#274 [DOGRU] 15. Kat / s66
+Tarih: 04.06.2026 12:12:07
+Rakip: Rakip : [R1:17-R2:37-R3:18-R4:3]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#275 [DOGRU] 15. Kat / s66
+Tarih: 04.06.2026 22:35:39
+Rakip: Rakip : [R1:11-R2:37-R3:15-R4:6]
+Biz: Biz : [T1:11-T2:1-T3:5-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#276 [DOGRU] 15. Kat / s66
+Tarih: 04.06.2026 14:43:52
+Rakip: Rakip : [R1:12-R2:41-R3:12-R4:6]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#277 [DOGRU] 15. Kat / s66
+Tarih: 04.06.2026 18:55:56
+Rakip: Rakip : [R1:13-R2:42-R3:11-R4:6]
+Biz: Biz : [T1:17-T2:0-T3:1-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#278 [DOGRU] 15. Kat / s66
+Tarih: 04.06.2026 10:33:45
+Rakip: Rakip : [R1:14-R2:40-R3:17-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:4-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#279 [DOGRU] 15. Kat / s66
+Tarih: 08.06.2026 13:47:30
+Rakip: Rakip : [R1:3-R2:41-R3:20-R4:3]
+Biz: Biz : [T1:1-T2:2-T3:0-T4:6-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#280 [DOGRU] 15. Kat / s66
+Tarih: 08.06.2026 15:48:43
+Rakip: Rakip : [R1:15-R2:38-R3:18-R4:3]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#281 [DOGRU] 15. Kat / s66
+Tarih: 08.06.2026 19:26:25
+Rakip: Rakip : [R1:7-R2:39-R3:15-R4:6]
+Biz: Biz : [T1:11-T2:1-T3:5-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#282 [DOGRU] 15. Kat / s66
+Tarih: 06.06.2026 07:17:37
+Rakip: Rakip : [R1:9-R2:44-R3:11-R4:6]
+Biz: Biz : [T1:10-T2:3-T3:4-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#283 [DOGRU] 15. Kat / s66
+Tarih: 06.06.2026 13:56:06
+Rakip: Rakip : [R1:11-R2:40-R3:18-R4:3]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:6-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#284 [DOGRU] 15. Kat / s66
+Tarih: 06.06.2026 11:14:50
+Rakip: Rakip : [R1:15-R2:38-R3:13-R4:6]
+Biz: Biz : [T1:17-T2:0-T3:1-T4:6-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#285 [DOGRU] 15. Kat / s66
+Tarih: 06.06.2026 15:28:03
+Rakip: Rakip : [R1:12-R2:41-R3:17-R4:3]
+Biz: Biz : [T1:10-T2:3-T3:4-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#286 [DOGRU] 15. Kat / s66
+Tarih: 06.06.2026 18:52:24
+Rakip: Rakip : [R1:5-R2:37-R3:17-R4:6]
+Biz: Biz : [T1:3-T2:1-T3:2-T4:9-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#287 [DOGRU] 15. Kat / s66
+Tarih: 07.06.2026 01:13:54
+Rakip: Rakip : [R1:12-R2:41-R3:12-R4:6]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#288 [DOGRU] 15. Kat / s66
+Tarih: 06.06.2026 20:38:03
+Rakip: Rakip : [R1:13-R2:41-R3:15-R4:4]
+Biz: Biz : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#289 [DOGRU] 15. Kat / s66
+Tarih: 07.06.2026 09:16:08
+Rakip: Rakip : [R1:6-R2:41-R3:19-R4:3]
+Biz: Biz : [T1:10-T2:0-T3:0-T4:6-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#290 [DOGRU] 15. Kat / s66
+Tarih: 07.06.2026 12:56:13
+Rakip: Rakip : [R1:8-R2:40-R3:19-R4:3]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#291 [DOGRU] 15. Kat / s66
+Tarih: 07.06.2026 11:02:13
+Rakip: Rakip : [R1:12-R2:35-R3:16-R4:6]
+Biz: Biz : [T1:25-T2:12-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 35 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#292 [DOGRU] 15. Kat / s66
+Tarih: 07.06.2026 16:03:48
+Rakip: Rakip : [R1:6-R2:44-R3:17-R4:3]
+Biz: Biz : [T1:10-T2:1-T3:0-T4:6-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#293 [DOGRU] 15. Kat / s66
+Tarih: 08.06.2026 02:42:56
+Rakip: Rakip : [R1:14-R2:46-R3:13-R4:3]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:4-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#294 [DOGRU] 15. Kat / s66
+Tarih: 07.06.2026 14:29:58
+Rakip: Rakip : [R1:8-R2:43-R3:12-R4:6]
+Biz: Biz : [T1:4-T2:1-T3:1-T4:5-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.
+
+#295 [DOGRU] 15. Kat / s66
+Tarih: 07.06.2026 23:15:04
+Rakip: Rakip : [R1:13-R2:33-R3:17-R4:6]
+Biz: Biz : [T1:11-T2:0-T3:2-T4:5-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 50 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Not: Seed yoktu; 64 sabit rastgele seed tarandi ve beklenen sonuc 64 kez bulundu.

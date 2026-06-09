@@ -830,6 +830,7 @@
             attackerIndex,
             unitNumbers,
             unitHealth,
+            unitSpeed,
             defenderOrderFrontFirst,
             defenderOrderRearFirst,
             roundCount

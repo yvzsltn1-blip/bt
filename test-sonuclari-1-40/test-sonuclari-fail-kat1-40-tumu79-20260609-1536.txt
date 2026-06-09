@@ -1,0 +1,951 @@
+Arsiv Toplu Test Sonuclari
+Sunucu: s66
+Tur: Yanlislar | Kat: Kat 1-40 | Kapsam: Tumu (79) | Siralama: Kat (kucukten buyuge)
+
+#1 [YANLIS] 7. Kat / s66
+Tarih: 04.06.2026 12:09:17
+Rakip: Rakip : [R1:4-R2:26-R3:8]
+Biz: Biz : [T1:0-T2:2-T3:0-T4:2-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 165 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: -
+Farklar: Kan kaybi: -165 | Toplam kayip: -2 birlik | Kayip farki: T2 -1, T8 -1
+
+
+#2 [YANLIS] 8. Kat / s66
+Tarih: 06.06.2026 17:42:58
+Rakip: Rakip : [R1:4-R2:34-R3:6]
+Biz: Biz : [T1:0-T2:0-T3:0-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: -
+Farklar: Kan kaybi: -200 | Toplam kayip: -2 birlik | Kayip farki: T5 -1, T8 -1
+
+
+#3 [YANLIS] 10. Kat / s66
+Tarih: 08.06.2026 11:01:23
+Rakip: Rakip : [R1:8-R2:33-R3:12]
+Biz: Biz : [T1:1-T2:2-T3:0-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 180 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Curuk Girtlak (T8) x1
+Simulator kayip birlik: -
+Farklar: Kan kaybi: -180 | Toplam kayip: -3 birlik | Kayip farki: T2 -2, T8 -1
+
+
+#4 [YANLIS] 12. Kat / s66
+Tarih: 09.06.2026 12:04:30
+Rakip: Rakip : [R1:6-R2:36-R3:14-R4:2]
+Biz: Biz : [T1:26-T2:0-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 65 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x3, Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -30 | Toplam kayip: -3 birlik | Kayip farki: T1 -3
+
+
+#5 [YANLIS] 13. Kat / s66
+Tarih: 08.06.2026 15:47:50
+Rakip: Rakip : [R1:8-R2:36-R3:15-R4:3]
+Biz: Biz : [T1:26-T2:4-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 75 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x4, Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -40 | Toplam kayip: -4 birlik | Kayip farki: T1 -4
+
+
+#6 [YANLIS] 13. Kat / s66
+Tarih: 07.06.2026 09:15:21
+Rakip: Rakip : [R1:6-R2:37-R3:15-R4:3]
+Biz: Biz : [T1:26-T2:1-T3:1-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 85 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x5, Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -50 | Toplam kayip: -5 birlik | Kayip farki: T1 -5
+
+
+#7 [YANLIS] 14. Kat / s66
+Tarih: 01.06.2026 00:30:04
+Rakip: Rakip : [R1:5-R2:45-R3:15-R4:2]
+Biz: Biz : [T1:32-T2:3-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 65 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x3, Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -30 | Toplam kayip: -3 birlik | Kayip farki: T1 -3
+
+
+#8 [YANLIS] 14. Kat / s66
+Tarih: 03.06.2026 17:53:26
+Rakip: Rakip : [R1:6-R2:40-R3:18-R4:2]
+Biz: Biz : [T1:28-T2:6-T3:1-T4:1-T5:0-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 215 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x3, Banshee (T4) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -180 | Toplam kayip: -4 birlik | Kayip farki: T1 -3, T8 -1
+
+
+#9 [YANLIS] 14. Kat / s66
+Tarih: 05.06.2026 20:34:50
+Rakip: Rakip : [R1:6-R2:43-R3:16-R4:2]
+Biz: Biz : [T1:31-T2:1-T3:1-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 65 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x3, Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -30 | Toplam kayip: -3 birlik | Kayip farki: T1 -3
+
+
+#10 [YANLIS] 15. Kat / s66
+Tarih: 02.06.2026 23:31:52
+Rakip: Rakip : [R1:6-R2:44-R3:17-R4:3]
+Biz: Biz : [T1:31-T2:1-T3:2-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 85 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x5, Banshee (T4) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -50 | Toplam kayip: -5 birlik | Kayip farki: T1 -5
+
+
+#11 [YANLIS] 15. Kat / s66
+Tarih: 06.06.2026 09:44:27
+Rakip: Rakip : [R1:11-R2:36-R3:19-R4:4]
+Biz: Biz : [T1:26-T2:7-T3:0-T4:2-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 270 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Banshee (T4) x2, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -220 | Toplam kayip: -3 birlik | Kayip farki: T4 -2, T8 -1
+
+
+#12 [YANLIS] 17. Kat / s66
+Tarih: 06.06.2026 09:45:20
+Rakip: Rakip : [R1:14-R2:33-R3:20-R4:8]
+Biz: Biz : [T1:10-T2:0-T3:2-T4:7-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#13 [YANLIS] 19. Kat / s66
+Tarih: 09.06.2026 10:22:28
+Rakip: Rakip : [R1:16-R2:29-R3:22-R4:12]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:10-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#14 [YANLIS] 19. Kat / s66
+Tarih: 08.06.2026 22:33:19
+Rakip: Rakip : [R1:17-R2:30-R3:21-R4:12]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:10-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#15 [YANLIS] 19. Kat / s66
+Tarih: 02.06.2026 10:49:52
+Rakip: Rakip : [R1:9-R2:41-R3:23-R4:8]
+Biz: Biz : [T1:12-T2:2-T3:4-T4:7-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 375 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x4, Banshee (T4) x4, Olu Cagirici (T5) x1, Gargoyle (T6) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -325 | Toplam kayip: -11 birlik | Kayip farki: T2 -2, T3 -4, T4 -4, T6 -1
+
+
+#16 [YANLIS] 19. Kat / s66
+Tarih: 08.06.2026 13:52:11
+Rakip: Rakip : [R1:17-R2:33-R3:19-R4:12]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:10-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#17 [YANLIS] 20. Kat / s66
+Tarih: 31.05.2026 02:32:39
+Rakip: Rakip : [R1:19-R2:36-R3:23-R4:10]
+Biz: Biz : [T1:10-T2:0-T3:6-T4:8-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#18 [YANLIS] 20. Kat / s66
+Tarih: 31.05.2026 13:40:43
+Rakip: Rakip : [R1:18-R2:29-R3:23-R4:13]
+Biz: Biz : [T1:21-T2:1-T3:8-T4:1-T5:0-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 375 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x19, Banshee (T4) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -340 | Toplam kayip: -20 birlik | Kayip farki: T1 -19, T8 -1
+
+
+#19 [YANLIS] 20. Kat / s66
+Tarih: 06.06.2026 15:30:12
+Rakip: Rakip : [R1:20-R2:35-R3:20-R4:12]
+Biz: Biz : [T1:11-T2:0-T3:2-T4:10-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#20 [YANLIS] 20. Kat / s66
+Tarih: 06.06.2026 17:01:22
+Rakip: Rakip : [R1:16-R2:31-R3:19-R4:15]
+Biz: Biz : [T1:22-T2:0-T3:8-T4:1-T5:0-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 405 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x22, Banshee (T4) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -370 | Toplam kayip: -23 birlik | Kayip farki: T1 -22, T8 -1
+
+
+#21 [YANLIS] 22. Kat / s66
+Tarih: 28.05.2026 23:43:22
+Rakip: Rakip : [R1:6-R2:37-R3:19-R4:15-R5:3]
+Biz: Biz : [T1:0-T2:3-T3:1-T4:15-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 245 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x3, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -195 | Toplam kayip: -4 birlik | Kayip farki: T2 -3, T8 -1
+
+
+#22 [YANLIS] 24. Kat / s66
+Tarih: 29.05.2026 15:50:59
+Rakip: Rakip : [R1:8-R2:32-R3:19-R4:17-R5:6]
+Biz: Biz : [T1:5-T2:6-T3:2-T4:16-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#23 [YANLIS] 24. Kat / s66
+Tarih: 05.06.2026 15:38:22
+Rakip: Rakip : [R1:8-R2:32-R3:19-R4:17-R5:6]
+Biz: Biz : [T1:1-T2:5-T3:2-T4:15-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 230 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -180 | Toplam kayip: -3 birlik | Kayip farki: T2 -2, T8 -1
+
+
+#24 [YANLIS] 24. Kat / s66
+Tarih: 05.06.2026 23:25:20
+Rakip: Rakip : [R1:8-R2:29-R3:21-R4:17-R5:6]
+Biz: Biz : [T1:0-T2:3-T3:3-T4:16-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#25 [YANLIS] 25. Kat / s66
+Tarih: 29.05.2026 15:51:28
+Rakip: Rakip : [R1:8-R2:30-R3:28-R4:12-R5:8]
+Biz: Biz : [T1:0-T2:11-T3:1-T4:10-T5:1-T6:2-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#26 [YANLIS] 25. Kat / s66
+Tarih: 31.05.2026 01:05:26
+Rakip: Rakip : [R1:6-R2:39-R3:18-R4:16-R5:7]
+Biz: Biz : [T1:4-T2:0-T3:1-T4:14-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#27 [YANLIS] 26. Kat / s66
+Tarih: 28.05.2026 19:46:39
+Rakip: Rakip : [R1:11-R2:28-R3:25-R4:16-R5:8]
+Biz: Biz : [T1:11-T2:7-T3:0-T4:15-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#28 [YANLIS] 26. Kat / s66
+Tarih: 30.05.2026 23:00:17
+Rakip: Rakip : [R1:7-R2:37-R3:24-R4:15-R5:7]
+Biz: Biz : [T1:9-T2:6-T3:0-T4:16-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 230 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -180 | Toplam kayip: -3 birlik | Kayip farki: T2 -2, T8 -1
+
+
+#29 [YANLIS] 26. Kat / s66
+Tarih: 02.06.2026 00:24:42
+Rakip: Rakip : [R1:15-R2:28-R3:20-R4:17-R5:9]
+Biz: Biz : [T1:10-T2:9-T3:0-T4:15-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 230 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -180 | Toplam kayip: -3 birlik | Kayip farki: T2 -2, T8 -1
+
+
+#30 [YANLIS] 26. Kat / s66
+Tarih: 04.06.2026 07:37:55
+Rakip: Rakip : [R1:13-R2:27-R3:25-R4:16-R5:8]
+Biz: Biz : [T1:13-T2:1-T3:0-T4:17-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#31 [YANLIS] 26. Kat / s66
+Tarih: 08.06.2026 14:47:51
+Rakip: Rakip : [R1:11-R2:31-R3:26-R4:13-R5:9]
+Biz: Biz : [T1:10-T2:5-T3:0-T4:14-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#32 [YANLIS] 26. Kat / s66
+Tarih: 07.06.2026 01:29:36
+Rakip: Rakip : [R1:7-R2:32-R3:31-R4:14-R5:6]
+Biz: Biz : [T1:2-T2:1-T3:1-T4:17-T5:1-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#33 [YANLIS] 27. Kat / s66
+Tarih: 29.05.2026 15:52:36
+Rakip: Rakip : [R1:11-R2:32-R3:21-R4:14-R5:12]
+Biz: Biz : [T1:17-T2:4-T3:1-T4:15-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 230 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -180 | Toplam kayip: -3 birlik | Kayip farki: T2 -2, T8 -1
+
+
+#34 [YANLIS] 27. Kat / s66
+Tarih: 29.05.2026 03:06:04
+Rakip: Rakip : [R1:12-R2:32-R3:21-R4:15-R5:11]
+Biz: Biz : [T1:12-T2:0-T3:0-T4:13-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#35 [YANLIS] 27. Kat / s66
+Tarih: 30.05.2026 20:39:55
+Rakip: Rakip : [R1:8-R2:37-R3:26-R4:12-R5:10]
+Biz: Biz : [T1:18-T2:5-T3:0-T4:17-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 230 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -180 | Toplam kayip: -3 birlik | Kayip farki: T2 -2, T8 -1
+
+
+#36 [YANLIS] 27. Kat / s66
+Tarih: 08.06.2026 22:36:50
+Rakip: Rakip : [R1:11-R2:27-R3:25-R4:16-R5:10]
+Biz: Biz : [T1:11-T2:2-T3:0-T4:16-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#37 [YANLIS] 27. Kat / s66
+Tarih: 01.06.2026 16:12:16
+Rakip: Rakip : [R1:11-R2:28-R3:19-R4:18-R5:11]
+Biz: Biz : [T1:11-T2:0-T3:0-T4:16-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#38 [YANLIS] 27. Kat / s66
+Tarih: 04.06.2026 07:38:22
+Rakip: Rakip : [R1:8-R2:36-R3:25-R4:13-R5:10]
+Biz: Biz : [T1:10-T2:12-T3:0-T4:12-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#39 [YANLIS] 27. Kat / s66
+Tarih: 06.06.2026 20:43:26
+Rakip: Rakip : [R1:17-R2:24-R3:25-R4:16-R5:10]
+Biz: Biz : [T1:14-T2:10-T3:0-T4:14-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 260 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x4, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -210 | Toplam kayip: -5 birlik | Kayip farki: T2 -4, T8 -1
+
+
+#40 [YANLIS] 27. Kat / s66
+Tarih: 07.06.2026 23:20:35
+Rakip: Rakip : [R1:11-R2:26-R3:24-R4:17-R5:10]
+Biz: Biz : [T1:18-T2:5-T3:0-T4:17-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#41 [YANLIS] 28. Kat / s66
+Tarih: 30.05.2026 20:40:25
+Rakip: Rakip : [R1:11-R2:27-R3:27-R4:18-R5:9]
+Biz: Biz : [T1:12-T2:2-T3:2-T4:20-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#42 [YANLIS] 28. Kat / s66
+Tarih: 01.06.2026 19:11:02
+Rakip: Rakip : [R1:7-R2:38-R3:25-R4:12-R5:12]
+Biz: Biz : [T1:17-T2:0-T3:0-T4:16-T5:1-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#43 [YANLIS] 28. Kat / s66
+Tarih: 04.06.2026 00:56:00
+Rakip: Rakip : [R1:3-R2:42-R3:20-R4:19-R5:8]
+Biz: Biz : [T1:8-T2:0-T3:0-T4:17-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#44 [YANLIS] 28. Kat / s66
+Tarih: 08.06.2026 11:15:44
+Rakip: Rakip : [R1:7-R2:29-R3:27-R4:18-R5:9]
+Biz: Biz : [T1:1-T2:0-T3:3-T4:17-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#45 [YANLIS] 28. Kat / s66
+Tarih: 05.06.2026 15:40:08
+Rakip: Rakip : [R1:8-R2:31-R3:30-R4:14-R5:10]
+Biz: Biz : [T1:11-T2:11-T3:0-T4:15-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#46 [YANLIS] 28. Kat / s66
+Tarih: 06.06.2026 07:23:30
+Rakip: Rakip : [R1:10-R2:35-R3:23-R4:15-R5:11]
+Biz: Biz : [T1:16-T2:2-T3:0-T4:16-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#47 [YANLIS] 28. Kat / s66
+Tarih: 07.06.2026 14:15:06
+Rakip: Rakip : [R1:9-R2:28-R3:27-R4:18-R5:9]
+Biz: Biz : [T1:13-T2:11-T3:0-T4:17-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#48 [YANLIS] 28. Kat / s66
+Tarih: 07.06.2026 11:30:04
+Rakip: Rakip : [R1:9-R2:36-R3:24-R4:13-R5:12]
+Biz: Biz : [T1:21-T2:1-T3:0-T4:17-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 215 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -165 | Toplam kayip: -2 birlik | Kayip farki: T2 -1, T8 -1
+
+
+#49 [YANLIS] 29. Kat / s66
+Tarih: 29.05.2026 13:22:46
+Rakip: Rakip : [R1:6-R2:40-R3:28-R4:14-R5:10]
+Biz: Biz : [T1:13-T2:13-T3:0-T4:15-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#50 [YANLIS] 29. Kat / s66
+Tarih: 31.05.2026 22:49:31
+Rakip: Rakip : [R1:7-R2:36-R3:23-R4:16-R5:12]
+Biz: Biz : [T1:12-T2:5-T3:3-T4:17-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#51 [YANLIS] 29. Kat / s66
+Tarih: 02.06.2026 06:17:41
+Rakip: Rakip : [R1:7-R2:37-R3:17-R4:18-R5:13]
+Biz: Biz : [T1:20-T2:1-T3:0-T4:16-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#52 [YANLIS] 29. Kat / s66
+Tarih: 04.06.2026 14:50:04
+Rakip: Rakip : [R1:5-R2:36-R3:18-R4:17-R5:14]
+Biz: Biz : [T1:11-T2:4-T3:4-T4:15-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#53 [YANLIS] 29. Kat / s66
+Tarih: 05.06.2026 15:40:38
+Rakip: Rakip : [R1:6-R2:28-R3:26-R4:14-R5:15]
+Biz: Biz : [T1:1-T2:14-T3:6-T4:12-T5:1-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#54 [YANLIS] 29. Kat / s66
+Tarih: 04.06.2026 22:42:08
+Rakip: Rakip : [R1:25-R2:41-R3:19-R4:14-R5:11]
+Biz: Biz : [T1:10-T2:13-T3:3-T4:12-T5:1-T6:0-T7:0-T8:2]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 350 ; Simulator sonucu: 200
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x2
+Simulator kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#55 [YANLIS] 29. Kat / s66
+Tarih: 04.06.2026 10:39:43
+Rakip: Rakip : [R1:15-R2:25-R3:24-R4:17-R5:13]
+Biz: Biz : [T1:9-T2:6-T3:2-T4:15-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#56 [YANLIS] 29. Kat / s66
+Tarih: 06.06.2026 15:35:07
+Rakip: Rakip : [R1:10-R2:29-R3:26-R4:14-R5:14]
+Biz: Biz : [T1:10-T2:7-T3:1-T4:11-T5:1-T6:3-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#57 [YANLIS] 30. Kat / s66
+Tarih: 28.05.2026 16:37:58
+Rakip: Rakip : [R1:8-R2:38-R3:17-R4:17-R5:15]
+Biz: Biz : [T1:14-T2:4-T3:1-T4:15-T5:1-T6:5-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#58 [YANLIS] 30. Kat / s66
+Tarih: 30.05.2026 18:35:45
+Rakip: Rakip : [R1:7-R2:28-R3:21-R4:14-R5:19]
+Biz: Biz : [T1:11-T2:5-T3:4-T4:11-T5:1-T6:3-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#59 [YANLIS] 30. Kat / s66
+Tarih: 31.05.2026 01:08:35
+Rakip: Rakip : [R1:9-R2:34-R3:21-R4:16-R5:15]
+Biz: Biz : [T1:19-T2:4-T3:0-T4:14-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#60 [YANLIS] 30. Kat / s66
+Tarih: 31.05.2026 20:18:18
+Rakip: Rakip : [R1:8-R2:37-R3:16-R4:18-R5:15]
+Biz: Biz : [T1:13-T2:0-T3:1-T4:16-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#61 [YANLIS] 30. Kat / s66
+Tarih: 01.06.2026 12:47:42
+Rakip: Rakip : [R1:11-R2:28-R3:28-R4:15-R5:14]
+Biz: Biz : [T1:12-T2:5-T3:3-T4:16-T5:1-T6:1-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 215 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -165 | Toplam kayip: -2 birlik | Kayip farki: T2 -1, T8 -1
+
+
+#62 [YANLIS] 30. Kat / s66
+Tarih: 02.06.2026 23:38:22
+Rakip: Rakip : [R1:10-R2:28-R3:26-R4:14-R5:16]
+Biz: Biz : [T1:11-T2:15-T3:5-T4:13-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#63 [YANLIS] 30. Kat / s66
+Tarih: 03.06.2026 18:16:24
+Rakip: Rakip : [R1:9-R2:29-R3:17-R4:18-R5:17]
+Biz: Biz : [T1:19-T2:0-T3:1-T4:15-T5:1-T6:2-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 350 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Gargoyle (T6) x2, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -300 | Toplam kayip: -3 birlik | Kayip farki: T6 -2, T8 -1
+
+
+#64 [YANLIS] 30. Kat / s66
+Tarih: 04.06.2026 14:50:32
+Rakip: Rakip : [R1:17-R2:33-R3:23-R4:16-R5:13]
+Biz: Biz : [T1:24-T2:0-T3:1-T4:15-T5:1-T6:0-T7:2-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 220 ; Simulator sonucu: 70
+Gerceklesen kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Vampir Kole (T3) x1, Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#65 [YANLIS] 30. Kat / s66
+Tarih: 08.06.2026 03:32:26
+Rakip: Rakip : [R1:8-R2:36-R3:25-R4:13-R5:15]
+Biz: Biz : [T1:16-T2:13-T3:0-T4:11-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#66 [YANLIS] 30. Kat / s66
+Tarih: 05.06.2026 11:27:31
+Rakip: Rakip : [R1:14-R2:28-R3:29-R4:15-R5:13]
+Biz: Biz : [T1:19-T2:8-T3:0-T4:17-T5:1-T6:0-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 275 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x5, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -225 | Toplam kayip: -6 birlik | Kayip farki: T2 -5, T8 -1
+
+
+#67 [YANLIS] 30. Kat / s66
+Tarih: 06.06.2026 02:03:24
+Rakip: Rakip : [R1:10-R2:31-R3:18-R4:20-R5:14]
+Biz: Biz : [T1:14-T2:5-T3:4-T4:17-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 215 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -165 | Toplam kayip: -2 birlik | Kayip farki: T2 -1, T8 -1
+
+
+#68 [YANLIS] 30. Kat / s66
+Tarih: 07.06.2026 09:22:19
+Rakip: Rakip : [R1:10-R2:35-R3:22-R4:16-R5:14]
+Biz: Biz : [T1:19-T2:4-T3:0-T4:14-T5:1-T6:3-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 260 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x4, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -210 | Toplam kayip: -5 birlik | Kayip farki: T2 -4, T8 -1
+
+
+#69 [YANLIS] 31. Kat / s66
+Tarih: 29.05.2026 03:08:09
+Rakip: Rakip : [R1:3-R2:33-R3:20-R4:17-R5:16-R6:1]
+Biz: Biz : [T1:18-T2:1-T3:0-T4:14-T5:1-T6:3-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#70 [YANLIS] 31. Kat / s66
+Tarih: 30.05.2026 02:46:59
+Rakip: Rakip : [R1:22-R2:25-R3:26-R4:14-R5:15-R6:1]
+Biz: Biz : [T1:22-T2:1-T3:1-T4:21-T5:1-T6:1-T7:1-T8:0]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 460 ; Simulator sonucu: 285
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Banshee (T4) x6, Olu Cagirici (T5) x1, Gargoyle (T6) x1, Kan Cadisi (T7) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Vampir Kole (T3) x1, Banshee (T4) x1, Olu Cagirici (T5) x1, Gargoyle (T6) x1, Kan Cadisi (T7) x1
+Farklar: Kan kaybi: -175 | Toplam kayip: -5 birlik | Kayip farki: T4 -5
+
+
+#71 [YANLIS] 31. Kat / s66
+Tarih: 31.05.2026 19:39:15
+Rakip: Rakip : [R1:4-R2:31-R3:19-R4:17-R5:17-R6:1]
+Biz: Biz : [T1:16-T2:2-T3:5-T4:16-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 230 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -180 | Toplam kayip: -3 birlik | Kayip farki: T2 -2, T8 -1
+
+
+#72 [YANLIS] 31. Kat / s66
+Tarih: 01.06.2026 16:16:27
+Rakip: Rakip : [R1:6-R2:28-R3:25-R4:13-R5:18-R6:1]
+Biz: Biz : [T1:17-T2:5-T3:6-T4:16-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#73 [YANLIS] 31. Kat / s66
+Tarih: 04.06.2026 00:59:16
+Rakip: Rakip : [R1:5-R2:28-R3:17-R4:18-R5:18-R6:1]
+Biz: Biz : [T1:16-T2:2-T3:5-T4:16-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#74 [YANLIS] 31. Kat / s66
+Tarih: 04.06.2026 10:40:43
+Rakip: Rakip : [R1:3-R2:35-R3:15-R4:18-R5:17-R6:1]
+Biz: Biz : [T1:17-T2:0-T3:0-T4:16-T5:1-T6:6-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 350 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Gargoyle (T6) x2, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -300 | Toplam kayip: -3 birlik | Kayip farki: T6 -2, T8 -1
+
+
+#75 [YANLIS] 33. Kat / s66
+Tarih: 08.06.2026 11:28:42
+Rakip: Rakip : [R1:5-R2:30-R3:18-R4:23-R5:16-R6:1]
+Biz: Biz : [T1:14-T2:0-T3:1-T4:19-T5:1-T6:4-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#76 [YANLIS] 33. Kat / s66
+Tarih: 08.06.2026 15:05:55
+Rakip: Rakip : [R1:21-R2:35-R3:24-R4:13-R5:17-R6:1]
+Biz: Biz : [T1:22-T2:1-T3:0-T4:15-T5:1-T6:3-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 365 ; Simulator sonucu: 215
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Gargoyle (T6) x2, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -2 birlik | Kayip farki: T6 -2
+
+
+#77 [YANLIS] 35. Kat / s66
+Tarih: 04.06.2026 22:45:58
+Rakip: Rakip : [R1:23-R2:22-R3:25-R4:18-R5:13-R6:5]
+Biz: Biz : [T1:10-T2:0-T3:3-T4:15-T5:1-T6:1-T7:1-T8:3]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 350 ; Simulator sonucu: 200
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x2
+Simulator kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Farklar: Kan kaybi: -150 | Toplam kayip: -1 birlik | Kayip farki: T8 -1
+
+
+#78 [YANLIS] 37. Kat / s66
+Tarih: 04.06.2026 07:43:17
+Rakip: Rakip : [R1:13-R2:22-R3:19-R4:16-R5:21-R6:6]
+Biz: Biz : [T1:17-T2:1-T3:5-T4:18-T5:1-T6:3-T7:1-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 290 ; Simulator sonucu: 215
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Gargoyle (T6) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Gulyabani (T2) x1, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Farklar: Kan kaybi: -75 | Toplam kayip: -1 birlik | Kayip farki: T6 -1
+
+
+#79 [YANLIS] 39. Kat / s66
+Tarih: 02.06.2026 00:32:33
+Rakip: Rakip : [R1:32-R2:15-R3:15-R4:21-R5:18-R6:8]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:18-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Maglubiyet (muttefikler yenildi)
+Gerceklesen kayip: 1.505 ; Simulator sonucu: 1.505
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x34, Gulyabani (T2) x1, Vampir Kole (T3) x1, Banshee (T4) x18, Olu Cagirici (T5) x1, Gargoyle (T6) x4, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Yarasa Surusu (T1) x34, Gulyabani (T2) x1, Vampir Kole (T3) x1, Banshee (T4) x18, Olu Cagirici (T5) x1, Gargoyle (T6) x4, Curuk Girtlak (T8) x1
+Farklar: Sonuc: Zafer -> Maglubiyet
+
