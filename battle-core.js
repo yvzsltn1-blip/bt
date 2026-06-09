@@ -771,11 +771,13 @@
         }
 
         if (defenderIndex === REVIVED_INDEX) {
-          if (unitHealth[defenderIndex] > 0) {
+          if (unitHealth[defenderIndex] <= 0) {
+            unitNumbers[defenderIndex] = 0;
+          } else if (attackerDamage > 0) {
+            // Sifir hasarli vurus (cadi cift raund) dirilen sayimini yeniden hesaplatmaz;
+            // aksi halde 1 canlik dirilenler hasarsiz sekilde 7 canlik kovalara dusuyor.
             const baseHp = UNIT_DESC[ZOMBIES_INDEX][HEALTH_INDEX];
             unitNumbers[defenderIndex] = Math.ceil(unitHealth[defenderIndex] / baseHp);
-          } else {
-            unitNumbers[defenderIndex] = 0;
           }
         } else {
           unitNumbers[defenderIndex] = Math.ceil(unitHealth[defenderIndex] / UNIT_DESC[defenderIndex][HEALTH_INDEX]);
