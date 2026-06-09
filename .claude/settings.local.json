@@ -37,7 +37,9 @@
       "Bash(firebase firestore:indexes)",
       "Bash(gcloud firestore *)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Read(//tmp/**)",
+      "Bash(git -c core.whitespace=cr-at-eol diff --check -- battle-core.js)"
     ]
   }
 }
