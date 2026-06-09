@@ -16,6 +16,10 @@
   const FAVORITE_CACHE_KEY = "btAnalyssFavoriteStrategiesCache";
   const OVERVIEW_ARCHIVE_CACHE_KEY = "btAnalyssOverviewArchivesCache";
   const ARCHIVE_TEST_CACHE_KEY = "btAnalyssArchiveRegressionTestsCache";
+  const ARCHIVE_TEST_CACHE_META_KEY = "btAnalyssArchiveRegressionTestsCacheMeta";
+  // Test sonuc cache'ini sinirla; binlerce kayit localStorage kotasini (~5MB) doldurup
+  // diger cache yazimlarini (ozet/aggregate) cokertiyordu.
+  const ARCHIVE_TEST_CACHE_MAX_ITEMS = 6000;
   const OVERVIEW_ARCHIVE_CACHE_META_KEY = "btAnalyssOverviewArchivesCacheMeta";
   // Liste cache'ini en yeni N kayitla sinirla; aksi halde 900+ kayit localStorage kotasini doldurup
   // yeni cekilen veriyi atilmaya zorluyordu. Ilk sayfa + cacheOnly icin bu fazlasiyla yeterli.
@@ -772,9 +776,19 @@
     return Number.isFinite(value) ? value : null;
   }
 
+  function isResourceExhaustedError(error) {
+    if (error?.code === "resource-exhausted") {
+      return true;
+    }
+    const message = String(error?.message || error || "");
+    return /\b429\b|RESOURCE_EXHAUSTED|Quota exceeded/i.test(message);
+  }
+
   async function loadOverviewArchiveAggregate(options = {}) {
     const filters = normalizeOverviewArchiveFilters(options.filters || {});
     const localItems = filterOverviewArchiveItems(readOverviewArchives(), filters);
+
+    let resourceExhausted = false;
 
     // 1) REST aggregate: count + sum(loot) + sum(exp) tek okumada (uzanti engellemiyorsa).
     try {
@@ -784,10 +798,14 @@
       }
     } catch (error) {
       console.warn("Arsiv REST aggregate okunamadi, SDK count'a dusuluyor.", error);
+      // REST kimliksiz (?key=) gider; kotasi SDK'nin kimlikli WebChannel'indan AYRI
+      // olabilir. Bu yuzden 429'da bile once SDK count'u dene; sadece o da reddederse
+      // gercekten tukenmis say.
+      resourceExhausted = isResourceExhaustedError(error);
     }
 
-    // 2) REST bloklu/basarisizsa: SDK count() (WebChannel) ile gercek toplam (1 okuma).
-    //    Sayi (count) kesindir; toplamlar (loot/exp) yerel cache'ten yaklasik gelir.
+    // 2) SDK count() (WebChannel) ile gercek toplam (1 okuma). REST API-key kotasi
+    //    tukenmis olsa bile bu calisabilir. Sayi kesin; toplamlar yerel cache'ten yaklasik.
     try {
       const sdkCount = await loadOverviewArchiveCountViaSdk(filters);
       if (sdkCount !== null) {
@@ -800,7 +818,19 @@
         };
       }
     } catch (sdkError) {
-      console.warn("Arsiv SDK count fallback okunamadi, REST count deneniyor.", sdkError);
+      console.warn("Arsiv SDK count fallback okunamadi.", sdkError);
+      if (isResourceExhaustedError(sdkError)) {
+        resourceExhausted = true;
+      }
+    }
+
+    // Hem REST hem SDK kota nedeniyle reddettiyse: proje geneli tukenmis. Ek REST count
+    // cagrisi da reddedilir ve hiz limitini kotulestirir; dogrudan cache'e dus.
+    if (resourceExhausted) {
+      return buildOverviewArchiveAggregateFromItems(localItems, {
+        exact: false,
+        readSource: "quota-exhausted"
+      });
     }
 
     // 3) Son care REST count (genelde REST ile birlikte bloklu olur ama ucuz dene).
@@ -1150,7 +1180,21 @@
   }
 
   function writeArchiveRegressionTests(items) {
-    writeStorage(ARCHIVE_TEST_CACHE_KEY, Array.isArray(items) ? items : []);
+    const list = Array.isArray(items) ? items : [];
+    // localStorage 5MB sinirina takilmamak icin yalnizca arsiv ekraninin fallback'te
+    // ihtiyac duydugu alanlari (kart sayaclari + untested filtre imzalari) ve sinirli
+    // sayida kaydi sakla. Tam dokumanlar zaten bellekte/online okumada kullaniliyor.
+    const slim = list.slice(0, ARCHIVE_TEST_CACHE_MAX_ITEMS).map((item) => ({
+      id: typeof item?.id === "string" ? item.id : "",
+      matchSignature: typeof item?.matchSignature === "string" ? item.matchSignature : "",
+      result: item?.result === "fail" || item?.result === "skipped" ? item.result : "pass",
+      host: typeof item?.host === "string" ? item.host : ""
+    }));
+    writeStorage(ARCHIVE_TEST_CACHE_KEY, slim);
+    writeObjectStorage(ARCHIVE_TEST_CACHE_META_KEY, {
+      itemCount: slim.length,
+      lastSyncedAt: new Date().toISOString()
+    });
   }
 
   function isIntegerInRange(value, minValue, maxValue) {
@@ -2316,9 +2360,22 @@
     return `arctest_${hashText(String(matchSignature || "-"))}`;
   }
 
-  async function loadArchiveRegressionTests() {
+  async function loadArchiveRegressionTests(options = {}) {
     if (!db) {
       return readArchiveRegressionTests();
+    }
+
+    // Maliyet korumasi: bu okuma TUM test koleksiyonunu ceker (binlerce okuma). Cache
+    // yeterince taze ise (maxAgeMs) tekrar okumadan cache'i don. Boylece her arsiv sayfa
+    // acilisi koleksiyonun tamamini okuyup Firestore kotasini (429) tuketmez.
+    const maxAgeMs = Number(options.maxAgeMs);
+    if (Number.isFinite(maxAgeMs) && maxAgeMs > 0) {
+      const cached = readArchiveRegressionTests();
+      const meta = readObjectStorage(ARCHIVE_TEST_CACHE_META_KEY);
+      const lastSync = Date.parse(meta?.lastSyncedAt || "");
+      if (cached.length > 0 && Number.isFinite(lastSync) && (Date.now() - lastSync) <= maxAgeMs) {
+        return cached;
+      }
     }
 
     try {

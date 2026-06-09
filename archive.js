@@ -79,6 +79,10 @@ function normalizeTestStatusFilter(value) {
   return ARCHIVE_TEST_STATUS_OPTIONS.has(value) ? value : "all";
 }
 const ARCHIVE_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
+// Test sonuc kartini her sayfa acilisinda tum koleksiyonu okuyarak yenilemeyiz; bu
+// surede cache yeterince taze sayilir (maliyet/429 korumasi). Yenile ve untested filtre
+// guncel veriyi forceFresh ile zorlar.
+const ARCHIVE_TESTED_STATS_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 const ARCHIVE_SUMMARY_CACHE_KEY = "btAnalyssArchiveSummaryCacheV5";
 const ARCHIVE_SUMMARY_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 // Sunucu aggregate'i calismazsa tam-tarama fallback'inde okunacak azami kayit (maliyet korumasi).
@@ -87,7 +91,7 @@ const ARCHIVE_FALLBACK_MAX_DOCS = 300;
 // gostermeli; cache yalnizca canli okuma hata verirse fallback olarak kullanilir.
 const ARCHIVE_CHANGE_TOKEN_KEY = "btAnalyssArchiveChangeTokenV1";
 const ARCHIVE_LIVE_REFRESH_VERSION_KEY = "btAnalyssArchiveLiveRefreshVersion";
-const ARCHIVE_LIVE_REFRESH_VERSION = "20260609-5";
+const ARCHIVE_LIVE_REFRESH_VERSION = "20260609-6";
 
 forceArchiveLiveRefresh();
 
@@ -113,7 +117,10 @@ function forceArchiveLiveRefresh() {
       ARCHIVE_SUMMARY_CACHE_KEY,
       ARCHIVE_CHANGE_TOKEN_KEY,
       "btAnalyssOverviewArchivesCache",
-      "btAnalyssOverviewArchivesCacheMeta"
+      "btAnalyssOverviewArchivesCacheMeta",
+      // Eski (kirpilmamis) sismis test cache'ini bir kez temizle ki localStorage kotasi acilsin.
+      "btAnalyssArchiveRegressionTestsCache",
+      "btAnalyssArchiveRegressionTestsCacheMeta"
     ].forEach((key) => localStorage.removeItem(key));
     localStorage.setItem(ARCHIVE_LIVE_REFRESH_VERSION_KEY, ARCHIVE_LIVE_REFRESH_VERSION);
   } catch {
@@ -377,7 +384,7 @@ function bindArchiveControls() {
       // Test sonuc cache'ini her filtre uygulamasinda tazele ki baska pencerede
       // az once test edilen kayitlar aninda "test edildi" sayilsin (bayat cache'e
       // takilip "test edilmedi" gorunmesin). Sadece test koleksiyonu okunur, arsiv degil.
-      await refreshArchiveTestedStats();
+      await refreshArchiveTestedStats({ forceFresh: true });
       // "Son 40" (tail) modundan cik.
       archiveState.tailMode = false;
       archiveState.tailItems = [];
@@ -396,7 +403,7 @@ function bindArchiveControls() {
 
   archiveRefreshBtn?.addEventListener("click", () => {
     void refreshArchiveView({ forceRemote: true });
-    void refreshArchiveTestedStats();
+    void refreshArchiveTestedStats({ forceFresh: true });
   });
 
   archiveBulkRegressionBtn?.addEventListener("click", async () => {
@@ -734,8 +741,11 @@ async function loadArchiveAggregateWithCache(options) {
   const hasReliableCount = Boolean(aggregate)
     && Number.isFinite(Number(aggregate.count))
     && (aggregate.exact === true || aggSource === "sdk-count" || aggSource === "server-rest-count");
+  // Kota tukenmis (429) ise tam-tarama da reddedilir; ekstra okuma yapma, eldeki
+  // (cache) degeri kullan. Aksi halde kesin sayi yoksa tam-taramayla dogrula.
+  const isRateLimited = aggSource === "quota-exhausted";
   const isWeak = !aggregate
-    || (!hasReliableCount && (aggregate.exact === false || aggSource.includes("cache")));
+    || (!hasReliableCount && !isRateLimited && (aggregate.exact === false || aggSource.includes("cache")));
   if (isWeak) {
     try {
       finalAgg = await computeArchiveAggregateFromFullPages(options.filters || {});
@@ -1877,7 +1887,25 @@ function readArchiveSummaryCache() {
 }
 
 function writeArchiveSummaryCache(value) {
-  localStorage.setItem(ARCHIVE_SUMMARY_CACHE_KEY, JSON.stringify(value && typeof value === "object" ? value : {}));
+  const payload = JSON.stringify(value && typeof value === "object" ? value : {});
+  try {
+    localStorage.setItem(ARCHIVE_SUMMARY_CACHE_KEY, payload);
+  } catch (error) {
+    // localStorage dolu (QuotaExceededError): bu yazimi yutmazsak aggregate yenileme
+    // zinciri (Promise.all) cokup rozet/sayilar guncellenmeden 40'ta kalir. Once yer
+    // acmak icin buyuk ve yeniden uretilebilir cache'leri temizleyip bir kez daha dene.
+    try {
+      [
+        "btAnalyssArchiveRegressionTestsCache",
+        "btAnalyssArchiveRegressionTestsCacheMeta",
+        "btAnalyssOverviewArchivesCache",
+        "btAnalyssOverviewArchivesCacheMeta"
+      ].forEach((key) => localStorage.removeItem(key));
+      localStorage.setItem(ARCHIVE_SUMMARY_CACHE_KEY, payload);
+    } catch (retryError) {
+      console.warn("Arsiv ozet cache yazilamadi (localStorage dolu), atlandi.", retryError?.name || retryError);
+    }
+  }
 }
 
 function clearArchiveSummaryCache() {
@@ -1923,12 +1951,15 @@ function buildArchiveRegressionSelectedScopeLabel(count) {
   return count === 1 ? "Secili 1 arsiv kaydi" : `Secili ${count} arsiv kaydi`;
 }
 
-async function refreshArchiveTestedStats() {
+async function refreshArchiveTestedStats(options = {}) {
   if (!window.BTFirebase || typeof window.BTFirebase.loadArchiveRegressionTests !== "function") {
     return;
   }
   try {
-    archiveTestResultsCache = await window.BTFirebase.loadArchiveRegressionTests();
+    // Sayfa acilisinda taze cache'i tekrar okumadan kullan (tum koleksiyonu okumak
+    // binlerce okuma + localStorage doldurma demek). forceFresh guncel veriyi zorlar.
+    const maxAgeMs = options.forceFresh ? 0 : ARCHIVE_TESTED_STATS_CACHE_MAX_AGE_MS;
+    archiveTestResultsCache = await window.BTFirebase.loadArchiveRegressionTests({ maxAgeMs });
   } catch (error) {
     console.warn("Test sonuclari okunamadi.", error);
   }
