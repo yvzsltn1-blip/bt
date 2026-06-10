@@ -1507,6 +1507,8 @@ async function runOptimizerSearch(batchRuns) {
         tekilV2Mode: optimizerTekilV2Mode,
         exploratoryCandidateCount: lastRunConfig.exploratoryCandidateCount,
         exhaustiveCandidateLimit: lastRunConfig.exhaustiveCandidateLimit,
+        timeBudgetMs: lastRunConfig.timeBudgetMs,
+        alternateBaseSeeds: lastRunConfig.alternateBaseSeeds,
         diversityCandidateCount: lastRunConfig.diversityCandidateCount,
         tekilCandidateCount: lastRunConfig.tekilCandidateCount,
         knownSignatures: [...uniqueSignatures],
@@ -2717,8 +2719,32 @@ function getRunConfig(stage, runIndex, mode, diversityMode = false, tekilMode = 
       exploratoryMultiplier: 16,
       exhaustiveLimit: 20000,
       seedOffset: 5209
+    },
+    ultra: {
+      trialStart: 12,
+      trialStep: 4,
+      trialMax: 36,
+      fullStart: 20,
+      fullStep: 8,
+      fullMax: 60,
+      beamStart: 18,
+      beamStep: 5,
+      beamMax: 44,
+      iterStart: 6,
+      iterStep: 1,
+      iterMax: 12,
+      eliteCount: 10,
+      stabilityMultiplier: 5,
+      exploratoryMultiplier: 22,
+      exhaustiveLimit: 40000,
+      seedOffset: 9203
     }
   };
+
+  // Mod basina hedef sure (ms). Arama, ana akisi erken bitirirse kalan sureyi
+  // ek kesif turlariyla doldurur; asarsa erken keser. Boylece sureler makineden
+  // bagimsiz olarak asagi yukari sabit kalir.
+  const timeBudgets = { fast: 3500, balanced: 7500, deep: 11000, ultra: 20000 };
 
   const preset = presets[mode] || presets.balanced;
   const tekilSearchMode = tekilMode && !tekilV2Mode;
@@ -2748,7 +2774,13 @@ function getRunConfig(stage, runIndex, mode, diversityMode = false, tekilMode = 
         240
       )
       : 0,
-    baseSeed: 41017 + stage * 31 + runIndex * 7919 + preset.seedOffset + (diversityMode ? 170003 : 0) + (tekilSearchMode ? 290009 : 0)
+    baseSeed: 41017 + stage * 31 + runIndex * 7919 + preset.seedOffset + (diversityMode ? 170003 : 0) + (tekilSearchMode ? 290009 : 0),
+    timeBudgetMs: timeBudgets[mode] || timeBudgets.balanced,
+    // Diger modlarin seed aileleri: uzatma fazindaki kesif uretiminde kullanilir,
+    // modlar arasi tutarliligi artirir (or. Derin, Hizli'nin kesif adaylarini da gorur).
+    alternateBaseSeeds: Object.entries(presets)
+      .filter(([presetMode]) => presetMode !== mode)
+      .map(([, alt]) => 41017 + stage * 31 + runIndex * 7919 + alt.seedOffset + (diversityMode ? 170003 : 0) + (tekilSearchMode ? 290009 : 0))
   };
 }
 
@@ -6064,6 +6096,9 @@ function getSearchModeLabel(mode) {
   }
   if (mode === "deep") {
     return "Derin";
+  }
+  if (mode === "ultra") {
+    return "Ultra";
   }
   return "Dengeli";
 }

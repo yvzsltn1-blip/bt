@@ -2248,6 +2248,12 @@
     const tekilPriorityMode = tekilMode || tekilV2Mode;
     const knownSignatures = new Set(options.knownSignatures || []);
     const seedCandidates = Array.isArray(options.seedCandidates) ? options.seedCandidates : [];
+    // Diger modlarin baseSeed'leri: uzatma fazinda keşif uretimi bu seed
+    // aileleriyle de kosturulur; boylece (or.) Derin mod, Hizli modun gordugu
+    // keşif adaylarinin ust kumesini de tarar ve mod-arasi tutarlilik artar.
+    const alternateBaseSeeds = Array.isArray(options.alternateBaseSeeds)
+      ? options.alternateBaseSeeds.filter((value) => Number.isFinite(value))
+      : [];
     const diversityCandidateCount = diversityMode
       ? Math.max(18, options.diversityCandidateCount || beamWidth * 3)
       : 0;
@@ -2256,7 +2262,16 @@
       : 0;
     const exploratoryCandidateCount = Math.max(60, options.exploratoryCandidateCount || beamWidth * 8);
     const exhaustiveCandidateLimit = Math.max(0, options.exhaustiveCandidateLimit || 0);
+    // Zaman butcesi: verilirse arama, butceyi asana kadar ek kesif turlari yapar
+    // (seed cesitlendirmeli yeniden baslatma). Butce asilirsa ana dongu erken kesilir.
+    const searchStartTime = Date.now();
+    const timeBudgetMs = Math.max(0, Number(options.timeBudgetMs) || 0);
+    const searchDeadline = timeBudgetMs > 0 ? searchStartTime + timeBudgetMs : null;
+    const hardDeadline = searchDeadline ? searchDeadline + Math.max(400, Math.round(timeBudgetMs * 0.12)) : null;
+    const isPastDeadline = () => searchDeadline !== null && Date.now() > searchDeadline;
+    const isPastHardDeadline = () => hardDeadline !== null && Date.now() > hardDeadline;
     const evaluations = new Map();
+    const evalAccumulators = new Map();
     const uniqueSignatures = new Set();
     let simulationRuns = 0;
     const initialCandidates = [];
@@ -2401,38 +2416,53 @@
       }));
     }
 
+    function createEvalAccumulator() {
+      return {
+        trials: 0,
+        wins: 0,
+        totalLostBloodSum: 0,
+        totalLostUnitsSum: 0,
+        winLostBloodSum: 0,
+        winLostUnitsSum: 0,
+        totalStoneAdjustedLostBloodSum: 0,
+        totalStoneAdjustedLostUnitsSum: 0,
+        totalStoneCountSum: 0,
+        stoneAdjustedLostBloodSum: 0,
+        stoneAdjustedLostUnitsSum: 0,
+        stoneCountSum: 0,
+        usedCapacitySum: 0,
+        usedPointsSum: 0,
+        enemyRemainingHealthSum: 0,
+        enemyRemainingUnitsSum: 0,
+        totalAllyLossesSum: Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0])),
+        totalStoneAdjustedAllyLossesSum: Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0])),
+        allyLossesSum: Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0])),
+        stoneAdjustedAllyLossesSum: Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0])),
+        winningSeeds: []
+      };
+    }
+
+    // Artimli degerlendirme: ayni adayin onceki denemeleri akumulatorde saklanir;
+    // daha yuksek trial istenince sadece eksik denemeler kosturulur (CRN seed'leri
+    // trial-indeksli oldugundan sonuc, bastan kosturmayla birebir ayni olur).
     function evaluateCandidate(counts, localTrialCount = trialCount, candidateRoundingMode = roundingMode) {
       const normalizedCandidateRoundingMode = normalizeRoundingMode(candidateRoundingMode);
       const effectiveCounts = toEffectiveCounts(counts);
       const signature = getCountSignature(effectiveCounts, ALLY_UNITS);
       uniqueSignatures.add(signature);
-      const evaluationKey = `${signature}:${localTrialCount}:${normalizedCandidateRoundingMode}`;
-      if (evaluations.has(evaluationKey)) {
+      const accumulatorKey = `${signature}:${normalizedCandidateRoundingMode}`;
+      let acc = evalAccumulators.get(accumulatorKey);
+      if (!acc) {
+        acc = createEvalAccumulator();
+        evalAccumulators.set(accumulatorKey, acc);
+      }
+      const targetTrials = Math.max(localTrialCount, acc.trials);
+      const evaluationKey = `${signature}:${targetTrials}:${normalizedCandidateRoundingMode}`;
+      if (acc.trials >= targetTrials && evaluations.has(evaluationKey)) {
         return evaluations.get(evaluationKey);
       }
 
-      let wins = 0;
-      let totalLostBloodSum = 0;
-      let totalLostUnitsSum = 0;
-      let winLostBloodSum = 0;
-      let winLostUnitsSum = 0;
-      let totalStoneAdjustedLostBloodSum = 0;
-      let totalStoneAdjustedLostUnitsSum = 0;
-      let totalStoneCountSum = 0;
-      let stoneAdjustedLostBloodSum = 0;
-      let stoneAdjustedLostUnitsSum = 0;
-      let stoneCountSum = 0;
-      let usedCapacitySum = 0;
-      let usedPointsSum = 0;
-      let enemyRemainingHealthSum = 0;
-      let enemyRemainingUnitsSum = 0;
-      const totalAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
-      const totalStoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
-      const allyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
-      const stoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
-      const winningSeeds = [];
-
-      for (let trial = 0; trial < localTrialCount; trial += 1) {
+      for (let trial = acc.trials; trial < targetTrials; trial += 1) {
         simulationRuns += 1;
         const seed = baseSeed + trial * 977;
         const result = simulateBattle(enemyCounts, effectiveCounts, {
@@ -2440,70 +2470,72 @@
           collectLog: false,
           roundingMode: normalizedCandidateRoundingMode
         });
-        usedCapacitySum += result.usedCapacity;
-        usedPointsSum += result.usedPoints;
-        enemyRemainingHealthSum += result.enemyRemainingHealth;
-        enemyRemainingUnitsSum += result.enemyRemainingUnits;
-        totalLostBloodSum += result.lostBloodTotal;
-        totalLostUnitsSum += result.lostUnitsTotal;
+        acc.usedCapacitySum += result.usedCapacity;
+        acc.usedPointsSum += result.usedPoints;
+        acc.enemyRemainingHealthSum += result.enemyRemainingHealth;
+        acc.enemyRemainingUnitsSum += result.enemyRemainingUnits;
+        acc.totalLostBloodSum += result.lostBloodTotal;
+        acc.totalLostUnitsSum += result.lostUnitsTotal;
         const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
-        totalStoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
-        totalStoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
-        totalStoneCountSum += stoneProfile.stoneCount;
+        acc.totalStoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
+        acc.totalStoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
+        acc.totalStoneCountSum += stoneProfile.stoneCount;
         ALLY_UNITS.forEach((unit) => {
-          totalAllyLossesSum[unit.key] += result.allyLosses?.[unit.key] || 0;
-          totalStoneAdjustedAllyLossesSum[unit.key] += stoneProfile.permanentLossesByKey[unit.key] || 0;
+          acc.totalAllyLossesSum[unit.key] += result.allyLosses?.[unit.key] || 0;
+          acc.totalStoneAdjustedAllyLossesSum[unit.key] += stoneProfile.permanentLossesByKey[unit.key] || 0;
         });
         if (result.winner === "ally") {
-          wins += 1;
-          winLostBloodSum += result.lostBloodTotal;
-          winLostUnitsSum += result.lostUnitsTotal;
-          stoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
-          stoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
-          stoneCountSum += stoneProfile.stoneCount;
+          acc.wins += 1;
+          acc.winLostBloodSum += result.lostBloodTotal;
+          acc.winLostUnitsSum += result.lostUnitsTotal;
+          acc.stoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
+          acc.stoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
+          acc.stoneCountSum += stoneProfile.stoneCount;
           ALLY_UNITS.forEach((unit) => {
-            allyLossesSum[unit.key] += result.allyLosses?.[unit.key] || 0;
-            stoneAdjustedAllyLossesSum[unit.key] += stoneProfile.permanentLossesByKey[unit.key] || 0;
+            acc.allyLossesSum[unit.key] += result.allyLosses?.[unit.key] || 0;
+            acc.stoneAdjustedAllyLossesSum[unit.key] += stoneProfile.permanentLossesByKey[unit.key] || 0;
           });
-          winningSeeds.push(seed);
+          acc.winningSeeds.push(seed);
         }
       }
+      acc.trials = targetTrials;
 
-      const winRate = wins / localTrialCount;
+      const wins = acc.wins;
+      const winRate = wins / targetTrials;
       const expectedAllyLosses = Object.fromEntries(
-        ALLY_UNITS.map((unit) => [unit.key, totalAllyLossesSum[unit.key] / localTrialCount])
+        ALLY_UNITS.map((unit) => [unit.key, acc.totalAllyLossesSum[unit.key] / targetTrials])
       );
       const expectedStoneAdjustedAllyLosses = Object.fromEntries(
-        ALLY_UNITS.map((unit) => [unit.key, totalStoneAdjustedAllyLossesSum[unit.key] / localTrialCount])
+        ALLY_UNITS.map((unit) => [unit.key, acc.totalStoneAdjustedAllyLossesSum[unit.key] / targetTrials])
       );
       const avgAllyLosses = Object.fromEntries(
-        ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? allyLossesSum[unit.key] / wins : 0])
+        ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? acc.allyLossesSum[unit.key] / wins : 0])
       );
       const avgStoneAdjustedAllyLosses = Object.fromEntries(
-        ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? stoneAdjustedAllyLossesSum[unit.key] / wins : 0])
+        ALLY_UNITS.map((unit) => [unit.key, wins > 0 ? acc.stoneAdjustedAllyLossesSum[unit.key] / wins : 0])
       );
       const evaluation = {
         searchCounts: cloneCounts(counts, ALLY_UNITS),
         counts: cloneCounts(effectiveCounts, ALLY_UNITS),
         signature,
-        trials: localTrialCount,
+        trials: targetTrials,
         wins,
         winRate,
         feasible: false,
-        expectedLostBlood: totalLostBloodSum / localTrialCount,
-        expectedLostUnits: totalLostUnitsSum / localTrialCount,
-        avgLostBlood: wins > 0 ? winLostBloodSum / wins : Number.POSITIVE_INFINITY,
-        avgLostUnits: wins > 0 ? winLostUnitsSum / wins : Number.POSITIVE_INFINITY,
-        expectedStoneAdjustedLostBlood: totalStoneAdjustedLostBloodSum / localTrialCount,
-        expectedStoneAdjustedLostUnits: totalStoneAdjustedLostUnitsSum / localTrialCount,
-        avgStoneAdjustedLostBlood: wins > 0 ? stoneAdjustedLostBloodSum / wins : Number.POSITIVE_INFINITY,
-        avgStoneAdjustedLostUnits: wins > 0 ? stoneAdjustedLostUnitsSum / wins : Number.POSITIVE_INFINITY,
-        expectedStoneCount: totalStoneCountSum / localTrialCount,
-        avgStoneCount: wins > 0 ? stoneCountSum / wins : 0,
-        avgUsedCapacity: usedCapacitySum / localTrialCount,
-        avgUsedPoints: usedPointsSum / localTrialCount,
-        avgEnemyRemainingHealth: enemyRemainingHealthSum / localTrialCount,
-        avgEnemyRemainingUnits: enemyRemainingUnitsSum / localTrialCount,
+        expectedLostBlood: acc.totalLostBloodSum / targetTrials,
+        expectedLostUnits: acc.totalLostUnitsSum / targetTrials,
+        avgLostBlood: wins > 0 ? acc.winLostBloodSum / wins : Number.POSITIVE_INFINITY,
+        avgLostUnits: wins > 0 ? acc.winLostUnitsSum / wins : Number.POSITIVE_INFINITY,
+        expectedStoneAdjustedLostBlood: acc.totalStoneAdjustedLostBloodSum / targetTrials,
+        expectedStoneAdjustedLostUnits: acc.totalStoneAdjustedLostUnitsSum / targetTrials,
+        avgStoneAdjustedLostBlood: wins > 0 ? acc.stoneAdjustedLostBloodSum / wins : Number.POSITIVE_INFINITY,
+        avgStoneAdjustedLostUnits: wins > 0 ? acc.stoneAdjustedLostUnitsSum / wins : Number.POSITIVE_INFINITY,
+        expectedStoneCount: acc.totalStoneCountSum / targetTrials,
+        avgStoneCount: wins > 0 ? acc.stoneCountSum / wins : 0,
+        avgUsedCapacity: acc.usedCapacitySum / targetTrials,
+        avgUsedPoints: acc.usedPointsSum / targetTrials,
+        avgEnemyRemainingHealth: acc.enemyRemainingHealthSum / targetTrials,
+        avgEnemyRemainingUnits: acc.enemyRemainingUnitsSum / targetTrials,
         expectedAllyLosses,
         expectedStoneAdjustedAllyLosses,
         avgAllyLosses,
@@ -2513,7 +2545,7 @@
         tekilV2Mode,
         stoneMode,
         roundingMode: normalizedCandidateRoundingMode,
-        winningSeeds
+        winningSeeds: [...acc.winningSeeds]
       };
       evaluation.meetsRequiredLosses = evaluationMeetsRequiredLosses(evaluation);
       evaluation.feasible = winRate >= minWinRate && evaluation.meetsRequiredLosses;
@@ -2546,13 +2578,13 @@
 
     // Successive halving: ucuz tier ile tara, en iyi yuzdeyi bir sonraki tiere
     // tasi. Net etki: ayni butce ile cok daha fazla aday taranir.
-    function successiveHalvingEvaluation(candidateList) {
+    function successiveHalvingEvaluation(candidateList, finalTrialsOverride = 0) {
       const unique = dedupeCandidates(candidateList);
       if (unique.length === 0) {
         return [];
       }
 
-      const finalTrials = trialCount;
+      const finalTrials = finalTrialsOverride > 0 ? finalTrialsOverride : trialCount;
       const cheapTrials = Math.max(2, Math.min(3, finalTrials));
       const midTrials = Math.max(cheapTrials + 1, Math.min(Math.ceil(finalTrials / 2), finalTrials));
 
@@ -2794,14 +2826,66 @@
         .map(sanitizeEvaluation);
     }
 
+    // Arketip anahtari: puan agirligina gore ilk 2 birim. Beam'in tek bir
+    // bolgedeki benzer adaylarla dolmasini onlemek icin kullanilir.
+    function getArchetypeKey(entry) {
+      const counts = entry?.searchCounts || entry?.counts || {};
+      return ALLY_UNITS
+        .map((unit) => ({ key: unit.key, points: (counts[unit.key] || 0) * (POINTS_BY_ALLY_KEY[unit.key] || 1) }))
+        .sort((left, right) => right.points - left.points)
+        .slice(0, 2)
+        .filter((item) => item.points > 0)
+        .map((item) => item.key)
+        .sort()
+        .join("+") || "none";
+    }
+
+    // Cesitlilik koruyan beam secimi: siralamada ustte olsa bile ayni
+    // arketipten en fazla 3 aday alinir; boylece farkli bolgelerin mutasyon
+    // yollari beam disina itilmez. Kota dolarsa kalan slotlar en iyilerle dolar.
+    function selectDiverseBeam(entries, width) {
+      const sorted = [...entries].filter(Boolean).sort(compareEntries);
+      const perArchetype = new Map();
+      const selected = [];
+      const skipped = [];
+      const seen = new Set();
+      for (const entry of sorted) {
+        if (selected.length >= width) {
+          break;
+        }
+        if (seen.has(entry.signature)) {
+          continue;
+        }
+        seen.add(entry.signature);
+        const archetype = getArchetypeKey(entry);
+        const used = perArchetype.get(archetype) || 0;
+        if (used >= 3) {
+          skipped.push(entry);
+          continue;
+        }
+        perArchetype.set(archetype, used + 1);
+        selected.push(entry);
+      }
+      for (const entry of skipped) {
+        if (selected.length >= width) {
+          break;
+        }
+        selected.push(entry);
+      }
+      return selected;
+    }
+
     // Baslangic adaylarini successive halving ile tara: cok daha fazla aday
     // gorulebilir cunku zayif olanlar erken elenir.
     let ranked = successiveHalvingEvaluation(initialCandidates);
     let best = ranked[0];
-    let beam = ranked.slice(0, beamWidth);
+    let beam = selectDiverseBeam(ranked, beamWidth);
     const elitePool = [...beam];
 
     for (let iteration = 0; iteration < maxIterations; iteration += 1) {
+      if (isPastDeadline()) {
+        break;
+      }
       const mutated = [];
       beam.forEach((entry) => {
         mutated.push(...getNeighborCandidates(entry.searchCounts, availableAllyCounts, maxPoints));
@@ -2839,7 +2923,7 @@
         best = candidateBest;
       }
 
-      beam = [...beam, ...ranked].sort(compareEntries).slice(0, beamWidth);
+      beam = selectDiverseBeam([...beam, ...ranked], beamWidth);
       elitePool.push(...beam);
     }
 
@@ -2854,6 +2938,9 @@
       let improved = true;
 
       while (improved) {
+        if (isPastHardDeadline()) {
+          return refined;
+        }
         improved = false;
 
         // 1. Asama: tek birimi azaltarak gelisme ara
@@ -2945,6 +3032,10 @@
         }
       }
 
+      if (isPastHardDeadline()) {
+        return refined;
+      }
+
       const localNeighbors = collectTopEvaluations(
         [
           ...getNeighborCandidates(refined.searchCounts, availableAllyCounts, maxPoints),
@@ -2960,17 +3051,21 @@
     }
 
     const refinedElite = eliteCandidates
-      .map((entry) => entry.feasible ? refineEvaluation(entry) : entry)
+      .map((entry) => (entry.feasible && !isPastHardDeadline()) ? refineEvaluation(entry) : entry)
       .sort(compareEntries);
 
     if (refinedElite.length > 0 && compareEntries(refinedElite[0], best) < 0) {
       best = refinedElite[0];
     }
 
+    // Genis stabilite seti: dusuk-trial tahminlerle siralanan adaylarda sansli
+    // tahminler gercek kazanani ilk siralarin disina itebiliyor (winner's curse).
+    // Artimli degerlendirme onbellegi sayesinde daha fazla adayi tam trial ile
+    // dogrulamak ucuz; bu yuzden dogrulama seti genis tutulur.
     const stabilityCandidates = [...beam, ...ranked, ...refinedElite, best]
       .filter(Boolean)
       .sort(compareEntries)
-      .slice(0, Math.max(eliteCount, 6));
+      .slice(0, Math.max(eliteCount * 2, beamWidth, 12));
 
     const stableRanked = collectTopEvaluations(
       stabilityCandidates.map((entry) => entry.searchCounts || toSearchCounts(entry.counts)),
@@ -2979,6 +3074,212 @@
 
     if (stableRanked.length > 0 && compareEntries(stableRanked[0], best) < 0) {
       best = stableRanked[0];
+    }
+
+    // Sapma (perturbation) uretici: bir adayin 2-4 birimini rastgele buyutup/
+    // kucultup yeni baslangic noktalari uretir. Yerel optimumdan kacis icin.
+    function buildPerturbedCandidates(baseCounts, random, kicks = 5) {
+      const out = [];
+      const activeUnits = ALLY_UNITS.filter((unit) => (availableAllyCounts[unit.key] || 0) > 0);
+      if (activeUnits.length === 0) {
+        return out;
+      }
+      for (let kick = 0; kick < kicks; kick += 1) {
+        const candidate = cloneCounts(baseCounts, ALLY_UNITS);
+        const changes = 2 + Math.floor(random() * 3);
+        for (let change = 0; change < changes; change += 1) {
+          const unit = activeUnits[Math.floor(random() * activeUnits.length)];
+          const max = availableAllyCounts[unit.key] || 0;
+          const current = candidate[unit.key] || 0;
+          const roll = random();
+          if (roll < 0.18) {
+            candidate[unit.key] = 0;
+          } else if (roll < 0.34) {
+            candidate[unit.key] = Math.min(max, Math.max(1, Math.round(max * random())));
+          } else {
+            const factor = 0.4 + random() * 1.2;
+            const bumped = current === 0 ? 1 + Math.floor(random() * 5) : Math.round(current * factor);
+            candidate[unit.key] = Math.min(max, Math.max(0, bumped));
+          }
+        }
+        out.push(normalizeCandidateToPointLimit(candidate, maxPoints));
+        out.push(fillCandidateToPointLimitByPriority(candidate, availableAllyCounts, maxPoints, strategicOrder));
+      }
+      return out;
+    }
+
+    // Uzatma fazi: zaman butcesinden artan sure, seed cesitlendirmeli ek kesif
+    // turlariyla doldurulur. Her tur: elit sapmalari + taze stratejik rastgele
+    // adaylar + en iyiyle crossover. Sonuc yalnizca iyilesebilir (compare monoton).
+    if (searchDeadline !== null) {
+      let extensionRound = 0;
+      let lastRoundMs = 0;
+      while (!isPastHardDeadline()) {
+        const remainingMs = searchDeadline - Date.now();
+        if (remainingMs < Math.max(150, lastRoundMs * 1.3)) {
+          break;
+        }
+        extensionRound += 1;
+        const roundStart = Date.now();
+        const random = createSeededRandom(baseSeed + extensionRound * 1000003);
+        const pool = [];
+        const eliteSources = collectBestUniqueEvaluations(6);
+        eliteSources.forEach((entry) => {
+          if (entry?.searchCounts) {
+            pool.push(...buildPerturbedCandidates(entry.searchCounts, random, 5));
+          }
+        });
+        if (best?.searchCounts) {
+          pool.push(...getNeighborCandidates(best.searchCounts, availableAllyCounts, maxPoints));
+          if (extensionRound % 2 === 1) {
+            pool.push(...getBroadNeighborCandidates(best.searchCounts, availableAllyCounts, enemyCounts, maxPoints));
+          }
+          eliteSources.slice(0, 4).forEach((entry) => {
+            if (entry?.searchCounts && entry.signature !== best.signature) {
+              pool.push(...crossoverCandidates(best.searchCounts, entry.searchCounts));
+            }
+          });
+        }
+        pool.push(...buildStrategicRandomCandidates(availableAllyCounts, enemyCounts, maxPoints, {
+          count: Math.max(40, Math.floor(exploratoryCandidateCount / 2)),
+          seed: baseSeed + 500009 + extensionRound * 7331,
+          minimumPoints: minimumSearchPoints
+        }));
+        if (alternateBaseSeeds.length > 0) {
+          const altSeed = alternateBaseSeeds[(extensionRound - 1) % alternateBaseSeeds.length];
+          pool.push(...buildStrategicRandomCandidates(availableAllyCounts, enemyCounts, maxPoints, {
+            count: exploratoryCandidateCount,
+            seed: altSeed + 91009,
+            minimumPoints: minimumSearchPoints
+          }));
+        }
+        // Donen grid limiti: spreadSelect her turda farkli bir aday alt-kumesi
+        // sectiginden kesif her turda farkli bolgelere ulasir. Liste tum
+        // modlarin kendi grid limitlerini icerir (300/320/448/576).
+        const gridLimits = [576, 300, 448, 384, 320, 512, 240, 660];
+        pool.push(...buildStrategicGridCandidates(availableAllyCounts, enemyCounts, maxPoints, {
+          limit: gridLimits[(extensionRound - 1) % gridLimits.length]
+        }));
+        // Arketip merdiveni: HER birim icin birim-odakli dizilimler. Ana akista
+        // sadece stratejik sirada ilk 4 birim taranir; burada geri kalanlar da
+        // baz birim olarak denenir (ornegin dusuk skorlu ama etkili birimler).
+        ALLY_UNITS.forEach((primaryUnit, unitIndex) => {
+          const primaryPool = availableAllyCounts[primaryUnit.key] || 0;
+          const primaryMax = Math.min(primaryPool, Math.floor(maxPoints / POINTS_BY_ALLY_KEY[primaryUnit.key]));
+          if (primaryMax <= 0) {
+            return;
+          }
+          const ratio = [0.3, 0.5, 0.7, 0.9][(extensionRound + unitIndex) % 4];
+          const seedCandidate = createEmptyAllyCounts();
+          seedCandidate[primaryUnit.key] = Math.max(1, Math.floor(primaryMax * ratio));
+          pool.push(fillCandidateToPointLimitByPriority(seedCandidate, availableAllyCounts, maxPoints, strategicOrder));
+        });
+        if (diversityMode) {
+          pool.push(...buildDiversityCandidates(availableAllyCounts, maxPoints, {
+            count: Math.max(18, Math.floor(diversityCandidateCount / 2)),
+            seed: baseSeed + 17041 + extensionRound * 9013,
+            knownSignatures
+          }));
+        }
+        if (tekilMode) {
+          pool.push(...buildTekilCandidates(availableAllyCounts, enemyCounts, maxPoints, {
+            count: Math.max(24, Math.floor(tekilCandidateCount / 2)),
+            seed: baseSeed + 29041 + extensionRound * 9013,
+            minimumPoints: minimumSearchPoints,
+            knownSignatures
+          }));
+        }
+
+        // Mini yeniden baslatma: bu turun havuzu kendi icinde 2-3 beam iterasyonu
+        // ile yerel inise sokulur. Yeni kesfedilen bolgeler global en iyiden kotu
+        // baslasa bile inisle gelisme sansi bulur; onceden gorulen adaylar
+        // akumulator onbellegi sayesinde neredeyse bedavadir. Turlar dusuk trial
+        // ile kosulur (extensionTrials): gurultu, sondaki stabilite/final
+        // dogrulamasinda temizlenir; kazanc daha fazla tur = daha fazla cesitlilik.
+        const extensionTrials = Math.min(trialCount, 6);
+        let localRanked = successiveHalvingEvaluation(pool, extensionTrials);
+        if (localRanked.length > 0) {
+          let localBeam = selectDiverseBeam(localRanked, Math.min(8, Math.max(4, beamWidth)));
+          for (let localIteration = 0; localIteration < 3; localIteration += 1) {
+            if (isPastDeadline()) {
+              break;
+            }
+            const localMutated = [];
+            localBeam.forEach((entry) => {
+              if (!entry?.searchCounts) {
+                return;
+              }
+              localMutated.push(...getNeighborCandidates(entry.searchCounts, availableAllyCounts, maxPoints));
+              if (localIteration % 2 === 0) {
+                localMutated.push(...getBroadNeighborCandidates(entry.searchCounts, availableAllyCounts, enemyCounts, maxPoints));
+              }
+            });
+            const localStep = successiveHalvingEvaluation(localMutated, extensionTrials);
+            if (localStep.length === 0) {
+              break;
+            }
+            localBeam = selectDiverseBeam([...localBeam, ...localStep], 8);
+          }
+
+          // Yerel kazananlarin ilk 3'u tam stabilite ile dogrulanir (winner's
+          // curse onlemi), kazanan rafine edilir: havza girisi ham haliyle kotu
+          // gorunup rafinasyonla en iyiye donusebilir.
+          let challenger = localBeam
+            .slice(0, 3)
+            .map((entry) => evaluateCandidate(
+              entry.searchCounts || toSearchCounts(entry.counts),
+              stabilityTrials
+            ))
+            .sort(compareEntries)[0];
+          if (challenger.feasible && !isPastDeadline()) {
+            const refinedChallenger = refineEvaluation(challenger);
+            if (refinedChallenger !== challenger) {
+              const stableRefined = evaluateCandidate(
+                refinedChallenger.searchCounts || toSearchCounts(refinedChallenger.counts),
+                stabilityTrials
+              );
+              if (compareEntries(stableRefined, challenger) < 0) {
+                challenger = stableRefined;
+              }
+            }
+          }
+          if (compareEntries(challenger, best) < 0) {
+            best = challenger;
+          }
+        }
+        lastRoundMs = Date.now() - roundStart;
+      }
+
+      // Son cila: butce icinde kaldiysa yeni en iyiyi bir kez daha rafine et.
+      if (best?.feasible && !isPastDeadline()) {
+        const polished = refineEvaluation(best);
+        const stablePolished = polished === best ? best : evaluateCandidate(
+          polished.searchCounts || toSearchCounts(polished.counts),
+          stabilityTrials
+        );
+        if (compareEntries(stablePolished, best) < 0) {
+          best = stablePolished;
+        }
+      }
+    }
+
+    // Final dogrulama: en iyi 6 benzersiz aday + mevcut en iyi, yuksek trial
+    // sayisiyla yeniden olculur ve kazanan buna gore secilir. Dusuk trial'li
+    // modlarda (Hizli) sansli tahminle one gecen adaylar burada elenir;
+    // akumulator sayesinde maliyet sadece eksik denemeler kadardir.
+    if (best) {
+      const finalVerifyTrials = Math.max(stabilityTrials, 32);
+      const finalists = [best, ...collectBestUniqueEvaluations(6)]
+        .filter((entry) => entry?.counts || entry?.searchCounts);
+      const verified = finalists
+        .map((entry) => evaluateCandidate(
+          entry.searchCounts || toSearchCounts(entry.counts),
+          finalVerifyTrials
+        ))
+        .sort(compareEntries);
+      if (verified.length > 0) {
+        best = verified[0];
+      }
     }
 
     if (hasRequiredLossConstraints && !best.feasible) {

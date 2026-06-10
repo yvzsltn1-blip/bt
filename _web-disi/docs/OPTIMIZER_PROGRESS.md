@@ -260,3 +260,71 @@ Yerel test (tek çekirdek, adaptif trial dahil):
 - [ ] Pareto cephesi: kayıp vs ordu büyüklüğü trade-off'unu birlikte tut
 - [ ] Lower-bound budama: enumeration sırasında imkansız subtree'leri atla
 - [ ] Paralel verifier'a worker'lar arası incumbent paylaşımı (filesystem üzerinden)
+
+---
+
+# 10.06.2026 - Algoritma İyileştirme Turu (Sürüm 3) + Ultra Mod
+
+**Durum:** Tamamlandı
+**Motivasyon:** Yüksek katlarda uzay çok genişliyor; mod süreleri korunarak (Hızlı 3-4 sn, Dengeli 7-8 sn, Derin 10-12 sn) daha iyi sonuçlar isteniyor. Benchmark, Derin modun bazı senaryolarda Hızlı moddan daha KÖTÜ sonuç bulduğunu gösterdi (Kat 48: Derin 490 kan, Hızlı 455 kan).
+
+## Tespit Edilen Ana Sorunlar
+
+1. **Beam tek bölgeye çöküyordu** — sıralamada üstteki benzer adaylar 14 beam slotunun hepsini dolduruyor, farklı bölgelerin (örn. 46-Vampir-Köle havzası) mutasyon yolları beam dışına itiliyordu. Kat 48'de Derin modun 455'i kaçırmasının kök nedeni buydu.
+2. **Winner's curse** — düşük trial tahminleriyle sıralanan adaylardan sadece ilk 6'sı stabilite doğrulamasına giriyordu; şanslı tahminli adaylar gerçek kazananı dışarı itebiliyordu.
+3. **Tekrarlanan simülasyon israfı** — aynı aday cheap-tier'da 3 trial, sonra 5, sonra 10 trial ile sıfırdan simüle ediliyordu (CRN seed'leri trial-indeksli olduğu halde).
+4. **Süre bütçesi kullanılmıyordu** — parametreler sabit; arama erken bitince kalan süre boşa gidiyordu.
+
+## Uygulanan Değişiklikler (battle-core.js)
+
+### 1. Artımlı Değerlendirme Akümülatörü
+`evaluateCandidate` artık aday başına `signature:roundingMode` anahtarlı akümülatör tutar; daha yüksek trial istenince yalnız eksik denemeler koşulur. CRN seed'leri trial-indeksli olduğundan sonuç, baştan koşturmayla birebir aynıdır. Etki: ~%20-25 daha az simülasyon, aynı sonuçlar (bütçesiz regresyon birebir doğrulandı).
+
+### 2. Çeşitlilik Koruyan Beam (`selectDiverseBeam`)
+Arketip anahtarı = puan ağırlığına göre ilk 2 birim. Beam'e aynı arketipten en fazla 3 aday alınır; kota dolarsa kalan slotlar en iyilerle dolar. **Kat 48'de Derin modun 455'i bulmasını sağlayan kilit düzeltme.**
+
+### 3. Geniş Stabilite + Final Doğrulama (winner's curse önlemi)
+- Stabilite seti `max(eliteCount, 6)` → `max(eliteCount*2, beamWidth, 12)`.
+- Yeni final adım: en iyi 6 benzersiz aday + mevcut en iyi, `max(stabilityTrials, 32)` trial ile yeniden ölçülür ve kazanan buna göre seçilir. Akümülatör sayesinde maliyet ihmal edilebilir.
+
+### 4. Zaman Bütçeli Uzatma Fazı (`timeBudgetMs`)
+Ana akış erken biterse kalan süre, mini-restart turlarıyla doldurulur. Her tur:
+- Elit sapmaları (`buildPerturbedCandidates`: 2-4 birime çarpansal/sıfırlama/rastgele kick)
+- Diğer modların seed aileleriyle keşif üretimi (`alternateBaseSeeds` — Derin, Hızlı'nın keşif adaylarının üst kümesini görür)
+- Dönen grid limitleri (576/300/448/384/320/512/240/660) — spreadSelect her limitte farklı alt-küme seçer
+- Tüm birimler için arketip merdiveni (ana akış sadece ilk 4 stratejik birimi tarar)
+- En iyiyle crossover + taze stratejik rastgeleler
+- Havuz kendi içinde 2-3 beam iterasyonuyla yerel inişe sokulur (yeni bölge, global en iyiden kötü başlasa bile gelişme şansı bulur), ilk 3 aday stabiliteyle doğrulanır, kazanan rafine edilir.
+Bütçe aşılırsa ana beam döngüsü/refinement erken kesilir (yavaş makinede süre tavanı görevi görür).
+
+### 5. Ultra Mod
+Yeni preset (trial 12-36, beam 18-44, grid 576, exhaustive 40k) + 20 sn bütçe. quick.html / optimizer.html / optimizer-minimum.html mod anahtarına "Ultra" butonu eklendi.
+
+## Mod Süre Bütçeleri (optimizer.js)
+| Mod | Bütçe |
+|-----|-------|
+| Hızlı | 3.5 sn |
+| Dengeli | 7.5 sn |
+| Derin | 11 sn |
+| Ultra | 20 sn |
+
+## Doğrulama Sonuçları (gerçek katman verisi, T1-T7×99 havuz, %75-100 bant, 200-trial bağımsız doğrulama)
+
+| Kat | Baseline en iyi | Yeni en iyi | Not |
+|-----|----------------|-------------|-----|
+| 10  | 0 | 0 | eşit |
+| 20  | 35 | 35 | eşit |
+| 30  | 250 (balanced) / 265 (fast,deep) | **215 (ultra)**, 250-265 diğerleri | ultra %14-19 daha iyi |
+| 48  | 455 (fast,balanced) / **490 (deep!)** | **455 (tüm modlar)** | deep tutarsızlığı giderildi |
+| 65  | 750 | 750 | eşit |
+| 80  | 2120 (fast) / 2102 (balanced) / 2055 (deep) | 2094 (fast) / 2091 (balanced) / 2055 (deep,ultra) | fast/balanced iyileşti |
+| 95  | 2235 (fast) / 2113 (balanced,deep) | 2235 (fast) / 2113 (balanced,deep,ultra) | eşit |
+| 101 | 1220 | 1220 | eşit |
+
+Hiçbir senaryoda gerileme yok. Duman testleri (min_army, safe_win, tekil, tekil v2, çeşitlilik, stone, exact-guard, min kısıt, kayıp kısıtı, dar bant, bütçesiz): hepsi geçti.
+
+**Not:** Zaman bütçeli uzatma fazı makine hızına bağlıdır; aynı girdiyle iki çalıştırma, tamamlanan tur sayısına göre küçük farklar verebilir (sonuç asla ana akışın bulduğundan kötü olamaz — karşılaştırma monotondur).
+
+## Araçlar
+- `_web-disi/optimizer-research-20260610/bench.js` — gerçek katman verisiyle kalite/süre benchmark'ı (`--baseline` eski motorla koşar, `--budget` bütçeyi açar)
+- `_web-disi/optimizer-research-20260610/smoke.js` — tüm seçenek yollarının duman testi

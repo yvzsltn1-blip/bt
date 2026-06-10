@@ -1394,6 +1394,10 @@ body[data-optimizer-variant="minimum"] .layout {
     width: 100%;
   }
 
+  .optimizer-run-mode-switch .optimizer-band-mobile {
+    grid-column: 1 / -1;
+  }
+
   .optimizer-band-controls .optimizer-band-preset-wrap {
     display: none;
   }
@@ -2415,6 +2419,7 @@ body[data-optimizer-variant="minimum"] .layout {
 
   .optimizer-run-mode-switch .optimizer-band-mobile {
     display: block;
+    grid-column: 1 / -1;
   }
 
   .optimizer-run-mode-switch .optimizer-band-mobile-select {
