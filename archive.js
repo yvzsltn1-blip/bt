@@ -380,17 +380,19 @@ function bindArchiveControls() {
     archiveState.testStatusFilter = normalizeTestStatusFilter(archiveTestStatusFilterSelect.value);
     // Filtrelenmis gorunum ilk sayfadan baslasin.
     archiveState.visibleLimit = archiveState.pageSize;
+    // "Son 40" (tail) modundan cik.
+    archiveState.tailMode = false;
+    archiveState.tailItems = [];
     if (archiveState.testStatusFilter !== "all") {
-      // Test sonuc cache'ini her filtre uygulamasinda tazele ki baska pencerede
-      // az once test edilen kayitlar aninda "test edildi" sayilsin (bayat cache'e
-      // takilip "test edilmedi" gorunmesin). Sadece test koleksiyonu okunur, arsiv degil.
-      await refreshArchiveTestedStats({ forceFresh: true });
-      // "Son 40" (tail) modundan cik.
-      archiveState.tailMode = false;
-      archiveState.tailItems = [];
-      // Maliyet korumasi: tum arsivi tarama; sadece ilk sayfayi dolduracak kadar
-      // suzulmus kayit yukle (sayfa basina ~pageSize okuma).
       archiveList.innerHTML = '<p class="summary-empty">Test durumuna gore suzuluyor...</p>';
+    }
+    // Test durumu artik dokuman uzerindeki "tested" alaniyla sunucu tarafinda
+    // filtrelenir (where tested == ...). Bu yuzden tum arsivi taramak yerine
+    // listeyi sifirlayip yalnizca ilk sayfayi cek (~pageSize okuma). Filtre
+    // degisince cursor onceki sorguya ait oldugundan reset sart.
+    await loadArchivePage({ reset: true, forceRemote: archiveState.testStatusFilter !== "all" });
+    if (archiveState.testStatusFilter !== "all") {
+      // Imza tabanli istemci dogrulamasi birkac kaydi eleyebilir; sayfayi doldur.
       await ensureArchiveFilteredItemsLoadedUntil(archiveState.pageSize);
     }
     renderArchivePage();
@@ -605,7 +607,10 @@ async function loadArchivePage(options = {}) {
       armyPowerText: archiveState.filters.armyPowerText,
       datePreset: archiveState.filters.datePreset,
       hours: archiveState.filters.hours,
-      host: archiveState.filters.host
+      host: archiveState.filters.host,
+      // "tested"/"untested" sunucu tarafinda where("tested","==",...) ile suzulur;
+      // boylece tum arsiv taranmaz (sayfa basina ~pageSize okuma).
+      testStatus: (archiveState.testStatusFilter || "all") !== "all" ? archiveState.testStatusFilter : ""
     }
   });
 
@@ -940,8 +945,10 @@ function applyArchiveTestStatusFilter(items) {
   }
   const testedSignatures = getArchiveTestedSignatureSet();
   return items.filter((item) => {
+    // Dokuman uzerindeki denormalize "tested" bayragi birincil kaynak; imza
+    // eslesmesi, bayragi henuz yazilmamis eski test kayitlarini yakalar.
     const signature = getArchiveItemSignature(item);
-    const isTested = Boolean(signature) && testedSignatures.has(signature);
+    const isTested = item?.tested === true || (Boolean(signature) && testedSignatures.has(signature));
     return mode === "tested" ? isTested : !isTested;
   });
 }

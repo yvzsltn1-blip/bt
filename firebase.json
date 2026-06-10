@@ -14,6 +14,7 @@
       "_web-disi/**",
       "**/node_modules/**",
       "scripts/**",
+      "tools/**",
       "tests/**",
       "test-sonuclari-1-40/**",
       "*.bat",

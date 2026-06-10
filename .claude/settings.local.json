@@ -39,7 +39,17 @@
       "Bash(echo \"EXIT: $?\")",
       "Bash(git commit *)",
       "Read(//tmp/**)",
-      "Bash(git -c core.whitespace=cr-at-eol diff --check -- battle-core.js)"
+      "Bash(git -c core.whitespace=cr-at-eol diff --check -- battle-core.js)",
+      "PowerShell(node --check \"firebase-client.js\")",
+      "PowerShell(node --check firebase-client.js; node --check archive.js; node --check tools/backfill-tested-flags.mjs)",
+      "PowerShell(Select-String *)",
+      "PowerShell(git checkout *)",
+      "PowerShell(node -e \"const fs=require\\('fs'\\);const files=['test-sonuclari.html','optimizer.html','optimizer-v2.html','optimizer-minimum.html','regression-report.html','saved.html','quick.html','index.html','fav.html','wrong.html','archive.html'];for\\(const f of files\\){const b=fs.readFileSync\\(f,'utf8'\\);const n=b.replace\\(/firebase-client\\\\.js\\\\?v=[0-9-]+/g,'firebase-client.js?v=20260610-1'\\);fs.writeFileSync\\(f,n,'utf8'\\);} const a=fs.readFileSync\\('archive.html','utf8'\\);fs.writeFileSync\\('archive.html',a.replace\\(/archive\\\\.js\\\\?v=[0-9-]+/,'archive.js?v=20260610-1'\\),'utf8'\\);console.log\\('ok'\\);\")",
+      "PowerShell(firebase *)",
+      "PowerShell(node tools/backfill-tested-flags.mjs)",
+      "PowerShell(node --check firebase-client.js; node -e \"const fs=require\\('fs'\\);const files=['test-sonuclari.html','optimizer.html','optimizer-v2.html','optimizer-minimum.html','regression-report.html','saved.html','quick.html','index.html','fav.html','wrong.html','archive.html'];for\\(const f of files\\){const b=fs.readFileSync\\(f,'utf8'\\);fs.writeFileSync\\(f,b.replace\\(/firebase-client\\\\.js\\\\?v=[0-9-]+/g,'firebase-client.js?v=20260610-2'\\),'utf8'\\);}console.log\\('ok'\\);\")",
+      "PowerShell(node --check firebase-client.js; node tools/backfill-tested-flags.mjs)",
+      "PowerShell(firebase deploy *)"
     ]
   }
 }

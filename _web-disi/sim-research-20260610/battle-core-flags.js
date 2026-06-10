@@ -186,7 +186,9 @@
     const frontClasses = FLAGS.flipFrontOrder
       ? [["enemy", "front"], ["ally", "front"]]
       : [["ally", "front"], ["enemy", "front"]];
-    const classes = [...rearClasses, ...frontClasses];
+    const classes = FLAGS.classOrderAllyFirst
+      ? [["ally", "rear"], ["ally", "front"], ["enemy", "rear"], ["enemy", "front"]]
+      : [...rearClasses, ...frontClasses];
 
     const attackerOrder = [];
     for (let speed = maxSpeed; speed >= minSpeed; speed -= 1) {
@@ -568,6 +570,20 @@
     let turnCount = 0;
     let bansheesReduceTarget = -1;
     let bansheesReducePrevTarget = -1;
+
+    const applyCultistBuffs = () => {
+      const buffRepeats = FLAGS.cultistBuffPerUnit ? unitNumbers[CULTISTS_INDEX] : 1;
+      for (let r = 0; r < buffRepeats; r += 1) {
+        for (let n = 0; n < 50; n += 1) {
+          const randomUnitIndex = randomInt(unitNumbers.length, rng);
+          if (randomUnitIndex !== CULTISTS_INDEX && unitNumbers[randomUnitIndex] > 0 && UNIT_DESC[randomUnitIndex][SIDE_INDEX] === "enemy") {
+            unitBuffs[randomUnitIndex] += 0.1;
+            log(`- ${UNIT_DESC[CULTISTS_INDEX][NAME_INDEX]}, ${UNIT_DESC[randomUnitIndex][NAME_INDEX]} birimini +%10 hasar artisiyla guclendirdi`);
+            break;
+          }
+        }
+      }
+    };
     let enemyCapable = true;
     let allyCapable = true;
     let winner = "";
@@ -620,6 +636,22 @@
       log(bannerLine(`RAUND ${roundCount}`));
       log("");
 
+      if (FLAGS.cultistBuffAtRoundStart && unitNumbers[CULTISTS_INDEX] > 0) {
+        applyCultistBuffs();
+      }
+
+      if (FLAGS.necroBuffEscalatesPerRound && unitNumbers[NECROMANCERS_INDEX] > 0 && roundCount > 1) {
+        let deadGroups = 0;
+        for (let m = 0; m < unitNumbers.length; m += 1) {
+          if (unitNumbersInitial[m] > 0 && unitNumbers[m] === 0) {
+            deadGroups += 1;
+          }
+        }
+        if (deadGroups > 0) {
+          unitBuffs[NECROMANCERS_INDEX] += 0.1 * deadGroups;
+        }
+      }
+
       bansheesReducePrevTarget = bansheesReduceTarget;
       let bansheesReduceRound = -1;
       bansheesReduceTarget = -1;
@@ -643,6 +675,9 @@
         if (unitNumbers[attackerOrder[j]] > 0) {
           attackerIndex = attackerOrder[j];
           foundAttacker = true;
+        }
+        if (FLAGS.reviveNoSpawnRoundAttack && attackerIndex === REVIVED_INDEX && revivedSpawnRound === roundCount) {
+          foundAttacker = false;
         }
 
         let defenderOrder = defenderOrderFrontFirst;
@@ -693,10 +728,10 @@
           log(`- ${UNIT_DESC[attackerIndex][NAME_INDEX]}, ${UNIT_DESC[defenderIndex][NAME_INDEX]} karsisinda tip ustunlugune sahip (+%50 hasar)`);
         }
         if (attackerType === "brute" && defenderType === "monster") {
-          damageMultiplier = 0.5;
+          damageMultiplier = (FLAGS.iskeletNoMonsterPenalty && attackerIndex === SKELETONS_INDEX) || (FLAGS.zombieNoMonsterPenalty && (attackerIndex === ZOMBIES_INDEX || attackerIndex === REVIVED_INDEX)) ? 1 : 0.5;
           log(`- ${UNIT_DESC[attackerIndex][NAME_INDEX]}, ${UNIT_DESC[defenderIndex][NAME_INDEX]} karsisinda tip dezavantajli (-%50 hasar)`);
         }
-        if (attackerType === "occult" && defenderType === "brute" && defenderIndex !== GHOULS_INDEX && attackerIndex !== WRAITHS_INDEX) {
+        if (attackerType === "occult" && defenderType === "brute" && (FLAGS.ghoulStackType || defenderIndex !== GHOULS_INDEX) && attackerIndex !== WRAITHS_INDEX && !(FLAGS.necroNoOccultPenalty && attackerIndex === NECROMANCERS_INDEX)) {
           damageMultiplier = 0.5;
           log(`- ${UNIT_DESC[attackerIndex][NAME_INDEX]}, ${UNIT_DESC[defenderIndex][NAME_INDEX]} karsisinda tip dezavantajli (-%50 hasar)`);
         }
@@ -704,7 +739,7 @@
           damageMultiplier = 1.5;
           log(`- ${UNIT_DESC[attackerIndex][NAME_INDEX]}, ${UNIT_DESC[defenderIndex][NAME_INDEX]} karsisinda tip ustunlugune sahip (+%50 hasar)`);
         }
-        if (attackerType === "monster" && defenderType === "brute" && defenderIndex !== GHOULS_INDEX && attackerIndex !== ROTMAWS_INDEX) {
+        if (attackerType === "monster" && defenderType === "brute" && (FLAGS.ghoulStackType || defenderIndex !== GHOULS_INDEX) && attackerIndex !== ROTMAWS_INDEX) {
           damageMultiplier = 1.5;
           log(`- ${UNIT_DESC[attackerIndex][NAME_INDEX]}, ${UNIT_DESC[defenderIndex][NAME_INDEX]} karsisinda tip ustunlugune sahip (+%50 hasar)`);
         }
@@ -718,7 +753,7 @@
           log(`- ${UNIT_DESC[WRAITHS_INDEX][NAME_INDEX]}, birim tipini onemsemiyor`);
         }
         if (defenderIndex === GHOULS_INDEX) {
-          damageMultiplier = 0.5;
+          damageMultiplier = FLAGS.ghoulStackType ? damageMultiplier * 0.5 : 0.5;
           log(`- ${UNIT_DESC[attackerIndex][NAME_INDEX]}, ${UNIT_DESC[GHOULS_INDEX][NAME_INDEX]} uzerine -%50 azalmis hasarla saldiriyor`);
         }
         if (attackerIndex === ROTMAWS_INDEX) {
@@ -793,8 +828,9 @@
         let rotmawsOverkillDamage = 0;
 
         const attackerSide = UNIT_DESC[attackerIndex][SIDE_INDEX];
+        const effectiveAttack = FLAGS.iskeletAtk4 && attackerIndex === SKELETONS_INDEX ? 4 : UNIT_DESC[attackerIndex][ATTACK_INDEX];
         const rawAttackerDamage =
-          unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex];
+          unitNumbers[attackerIndex] * effectiveAttack * damageMultiplier * unitBuffs[attackerIndex];
         const attackerDamage =
           attackerIndex === WITCHES_INDEX && roundCount % 2 === 0
             ? 0
@@ -808,7 +844,21 @@
                   roundCount,
                   unitNumbers
                 });
-        unitHealth[defenderIndex] -= attackerDamage;
+        let injectedDamage = attackerDamage;
+        if (FLAGS.inject && FLAGS.inject.round === roundCount && FLAGS.inject.attacker === attackerIndex && defenderIndex === ROTMAWS_INDEX && attackerDamage > 0) {
+          injectedDamage += FLAGS.inject.delta;
+        }
+        if (FLAGS.injects && attackerDamage > 0 && defenderIndex === ROTMAWS_INDEX) {
+          for (const inj of FLAGS.injects) {
+            if (inj.round === roundCount && inj.attacker === attackerIndex) {
+              injectedDamage += inj.delta;
+            }
+          }
+        }
+        if (FLAGS.injectAny && attackerDamage > 0 && FLAGS.injectAny.round === roundCount && FLAGS.injectAny.attacker === attackerIndex) {
+          injectedDamage += FLAGS.injectAny.delta;
+        }
+        unitHealth[defenderIndex] -= injectedDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];
         const multiplierText = Math.abs(totalDamageMultiplier - 1) < 1e-9 ? "" : ` × ${totalDamageMultiplier.toFixed(2)} carpan`;
         log(`  ${UNIT_DESC[attackerIndex][NAME_INDEX]} → ${UNIT_DESC[defenderIndex][NAME_INDEX]}`);
@@ -910,6 +960,20 @@
           }
         }
 
+        if (FLAGS.reviveBeforeOverkill) {
+          const earlyDiff = unitNumbersBefore[ZOMBIES_INDEX] - unitNumbers[ZOMBIES_INDEX];
+          if (earlyDiff > 0 && unitNumbers[ZOMBIES_INDEX] === 0 && unitNumbers[REVIVED_INDEX] === 0 && revivedSpawnRound === -1) {
+            unitNumbers[REVIVED_INDEX] = zombies;
+            unitHealth[REVIVED_INDEX] = zombies * UNIT_DESC[REVIVED_INDEX][HEALTH_INDEX];
+            unitSpeed[REVIVED_INDEX] = unitSpeed[ZOMBIES_INDEX];
+            if (FLAGS.revivedInheritZombieBuff) {
+              unitBuffs[REVIVED_INDEX] = unitBuffs[ZOMBIES_INDEX];
+            }
+            revivedSpawnRound = roundCount;
+            log(`- ${UNIT_DESC[ZOMBIES_INDEX][NAME_INDEX]}, her biri 1 canla geri dirildi`);
+          }
+        }
+
         if (rotmawsOverkillDamage > 0) {
           const nextTarget = findDefenderForAttacker(
             attackerIndex,
@@ -934,7 +998,7 @@
         }
 
         const zombiesNumbersDiff = unitNumbersBefore[ZOMBIES_INDEX] - unitNumbers[ZOMBIES_INDEX];
-        if (zombiesNumbersDiff > 0 && unitNumbers[ZOMBIES_INDEX] === 0) {
+        if (zombiesNumbersDiff > 0 && unitNumbers[ZOMBIES_INDEX] === 0 && revivedSpawnRound === -1) {
           unitNumbers[REVIVED_INDEX] = zombies;
           unitHealth[REVIVED_INDEX] = zombies * UNIT_DESC[REVIVED_INDEX][HEALTH_INDEX];
           // Revived zombies keep any speed penalties the original stack had accumulated.
@@ -945,18 +1009,8 @@
           revivedSpawnRound = roundCount;
           log(`- ${UNIT_DESC[ZOMBIES_INDEX][NAME_INDEX]}, her biri 1 canla geri dirildi`);
         }
-        if (attackerIndex === CULTISTS_INDEX && unitNumbers[CULTISTS_INDEX] > 0) {
-          const buffRepeats = FLAGS.cultistBuffPerUnit ? unitNumbers[CULTISTS_INDEX] : 1;
-          for (let r = 0; r < buffRepeats; r += 1) {
-            for (let n = 0; n < 50; n += 1) {
-              const randomUnitIndex = randomInt(unitNumbers.length, rng);
-              if (randomUnitIndex !== CULTISTS_INDEX && unitNumbers[randomUnitIndex] > 0 && UNIT_DESC[randomUnitIndex][SIDE_INDEX] === "enemy") {
-                unitBuffs[randomUnitIndex] += 0.1;
-                log(`- ${UNIT_DESC[CULTISTS_INDEX][NAME_INDEX]}, ${UNIT_DESC[randomUnitIndex][NAME_INDEX]} birimini +%10 hasar artisiyla guclendirdi`);
-                break;
-              }
-            }
-          }
+        if (!FLAGS.cultistBuffAtRoundStart && attackerIndex === CULTISTS_INDEX && unitNumbers[CULTISTS_INDEX] > 0) {
+          applyCultistBuffs();
         }
 
         const corpsesNumbersDiff = unitNumbersBefore[CORPSES_INDEX] - unitNumbers[CORPSES_INDEX];
@@ -988,7 +1042,7 @@
         if (unitNumbers[NECROMANCERS_INDEX] > 0) {
           for (let m = 0; m < unitNumbers.length; m += 1) {
             if (unitNumbersBefore[m] - unitNumbers[m] > 0 && unitNumbers[m] === 0) {
-              unitBuffs[NECROMANCERS_INDEX] += 0.1;
+              unitBuffs[NECROMANCERS_INDEX] += FLAGS.necroBuffPerKill ? 0.1 * unitNumbersBefore[m] : 0.1;
               log(`- ${UNIT_DESC[NECROMANCERS_INDEX][NAME_INDEX]}, yok edilen ${UNIT_DESC[m][NAME_INDEX]} sayesinde +%10 hasar kazandi`);
             }
           }

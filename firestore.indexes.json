@@ -204,6 +204,59 @@
       ]
     },
     {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tested", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tested", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host", "order": "ASCENDING" },
+        { "fieldPath": "tested", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host", "order": "ASCENDING" },
+        { "fieldPath": "tested", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "armyPowerText", "order": "ASCENDING" },
+        { "fieldPath": "tested", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "overviewArchives",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "host", "order": "ASCENDING" },
+        { "fieldPath": "armyPowerText", "order": "ASCENDING" },
+        { "fieldPath": "tested", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "archiveRegressionTests",
       "queryScope": "COLLECTION",
       "fields": [

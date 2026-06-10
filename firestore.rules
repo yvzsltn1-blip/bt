@@ -235,7 +235,8 @@ service cloud.firestore {
     function validOverviewArchive(data, documentId) {
       return documentId.matches('^overview_[0-9]+_[a-z0-9]+$')
         && data.keys().hasOnly([
-          'savedAt', 'updatedAt', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'enemyRosterText', 'allyRosterText', 'fallenUnitsText', 'reviveStoneText', 'sourceType', 'host', 'pageUrl', 'pageTitle'
+          'savedAt', 'updatedAt', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'enemyRosterText', 'allyRosterText', 'fallenUnitsText', 'reviveStoneText', 'sourceType', 'host', 'pageUrl', 'pageTitle',
+          'tested', 'testedSignature', 'testedAt'
         ])
         && data.keys().hasAll([
           'savedAt', 'updatedAt', 'lootGoldText', 'lootGoldValue', 'expText', 'expValue', 'armyPowerText', 'levelText', 'sourceType'
@@ -255,7 +256,10 @@ service cloud.firestore {
         && data.sourceType in ['manual', 'fill']
         && (!('host' in data) || isShortString(data.host, 120))
         && (!('pageUrl' in data) || isShortString(data.pageUrl, 400))
-        && (!('pageTitle' in data) || isShortString(data.pageTitle, 160));
+        && (!('pageTitle' in data) || isShortString(data.pageTitle, 160))
+        && (!('tested' in data) || data.tested is bool)
+        && (!('testedSignature' in data) || isShortString(data.testedSignature, 200))
+        && (!('testedAt' in data) || isShortString(data.testedAt, 40));
     }
 
     function validArchiveRegressionTest(data, documentId) {

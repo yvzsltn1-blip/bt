@@ -82,14 +82,65 @@
     }
   }
 
+  // Kota dolunca ayni anahtara saniyeler icinde yuzlerce kez yazmayi denemek hem
+  // konsolu hata seline boguyor hem de buyuk dizilerin tekrar tekrar stringify
+  // edilmesi UI'yi donduruyor. Basarisiz anahtari bir sure (backoff) atla.
+  const STORAGE_QUOTA_BACKOFF_MS = 60000;
+  const storageQuotaFailedAt = new Map();
+
+  function isStorageQuotaBackoffActive(key) {
+    const failedAt = storageQuotaFailedAt.get(key) || 0;
+    return failedAt > 0 && (Date.now() - failedAt) < STORAGE_QUOTA_BACKOFF_MS;
+  }
+
+  function tryWriteStorageRaw(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      storageQuotaFailedAt.delete(key);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function markStorageQuotaFailure(key) {
+    if (!isStorageQuotaBackoffActive(key)) {
+      console.warn(`localStorage yazilamadi (${key}), kota dolu; cache yazimi ${STORAGE_QUOTA_BACKOFF_MS / 1000}sn atlanacak.`);
+    }
+    storageQuotaFailedAt.set(key, Date.now());
+  }
+
+  // Kota dolunca guvenle silinebilecek yer acici: legacy strateji anahtari
+  // CACHE_KEY'in birebir kopyasiydi (writeCache cift yaziyordu) ve megabaytlarca
+  // logText tasiyor. Bir kez temizleyip yazimi tekrar dene.
+  let storageQuotaReliefAttempted = false;
+  function tryFreeStorageSpace() {
+    if (storageQuotaReliefAttempted) {
+      return false;
+    }
+    storageQuotaReliefAttempted = true;
+    try {
+      localStorage.removeItem(LEGACY_KEY);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function writeStorage(key, items) {
     // Cache yazimi "best-effort"; kota dolarsa (QuotaExceededError) sessizce gec ki
     // sunucudan gelen taze veri asla atilmasin. (Onceki davranis: throw -> veri kaybi.)
-    try {
-      localStorage.setItem(key, JSON.stringify(items));
-    } catch (error) {
-      console.warn(`localStorage yazilamadi (${key}), cache atlandi.`, error?.name || error);
+    if (isStorageQuotaBackoffActive(key)) {
+      return false;
     }
+    if (tryWriteStorageRaw(key, items)) {
+      return true;
+    }
+    if (tryFreeStorageSpace() && tryWriteStorageRaw(key, items)) {
+      return true;
+    }
+    markStorageQuotaFailure(key);
+    return false;
   }
 
   function readObjectStorage(key) {
@@ -106,17 +157,28 @@
   }
 
   function writeObjectStorage(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value && typeof value === "object" ? value : {}));
-    } catch (error) {
-      console.warn(`localStorage yazilamadi (${key}), cache atlandi.`, error?.name || error);
+    if (isStorageQuotaBackoffActive(key)) {
+      return false;
     }
+    if (tryWriteStorageRaw(key, value && typeof value === "object" ? value : {})) {
+      return true;
+    }
+    markStorageQuotaFailure(key);
+    return false;
   }
 
   function writeCache(items) {
     const normalized = mergeStrategies(items);
-    writeStorage(CACHE_KEY, normalized);
-    writeStorage(LEGACY_KEY, normalized);
+    // Ayni veriyi LEGACY_KEY'e de kopyalamak localStorage kullanimini ikiye
+    // katliyordu (logText'li kayitlarla megabaytlar). Artik tek anahtara yaz;
+    // okuyucular LEGACY_KEY'i gecis donemi icin okumaya devam ediyor.
+    if (writeStorage(CACHE_KEY, normalized)) {
+      try {
+        localStorage.removeItem(LEGACY_KEY);
+      } catch {
+        // yoksay
+      }
+    }
   }
 
   function readMigrationFlag() {
@@ -230,11 +292,24 @@
   }
 
   function writeOverviewArchives(items) {
-    let merged = mergeOverviewArchives(items);
+    let merged = sortByStringFieldDesc(mergeOverviewArchives(items), "savedAt");
     if (merged.length > OVERVIEW_ARCHIVE_CACHE_MAX_ITEMS) {
-      merged = sortByStringFieldDesc(merged, "savedAt").slice(0, OVERVIEW_ARCHIVE_CACHE_MAX_ITEMS);
+      merged = merged.slice(0, OVERVIEW_ARCHIVE_CACHE_MAX_ITEMS);
     }
-    writeStorage(OVERVIEW_ARCHIVE_CACHE_KEY, merged);
+    if (isStorageQuotaBackoffActive(OVERVIEW_ARCHIVE_CACHE_KEY)) {
+      return;
+    }
+    // Kota dolarsa en yeni kayitlari koruyarak yariya indirip tekrar dene;
+    // boylece cache tamamen bos kalmaz, sadece daha az kayit tutar.
+    let written = tryWriteStorageRaw(OVERVIEW_ARCHIVE_CACHE_KEY, merged);
+    while (!written && merged.length > 25) {
+      merged = merged.slice(0, Math.floor(merged.length / 2));
+      written = tryWriteStorageRaw(OVERVIEW_ARCHIVE_CACHE_KEY, merged);
+    }
+    if (!written) {
+      markStorageQuotaFailure(OVERVIEW_ARCHIVE_CACHE_KEY);
+      return;
+    }
     writeOverviewArchiveCacheMeta({
       itemCount: merged.length,
       lastSyncedAt: new Date().toISOString()
@@ -354,7 +429,8 @@
     allowLegacyFirstPageFallback = true,
     preferCache = false,
     cacheMaxAgeMs = 0,
-    readMeta = null
+    readMeta = null,
+    cacheKey = ""
   }) {
     const normalizedPageSize = normalizePageSize(pageSize);
     const normalizedSortDirection = normalizeSortDirection(sortDirection);
@@ -402,7 +478,10 @@
           pageSize: normalizedPageSize
         });
       }
-      if (typeof writeLocal === "function" && items.length > 0) {
+      // Kota backoff aktifken oku+birlestir+stringify adimini tumden atla;
+      // cok sayfali taramalarda (ornegin untested filtresi) bu adim her sayfada
+      // tekrarlanip UI'yi donduruyordu.
+      if (typeof writeLocal === "function" && items.length > 0 && !(cacheKey && isStorageQuotaBackoffActive(cacheKey))) {
         writeLocal(mergeItems([...readLocal(), ...items]));
       }
       return {
@@ -558,12 +637,13 @@
       armyPowerText,
       armyPowerTextIn: armyPowerText ? [] : normalizeOverviewArchiveNumericFilterList(options.armyPowerTextIn),
       sourceType: normalizeOverviewArchiveSourceType(options.sourceType),
-      host: typeof options.host === "string" ? options.host.trim() : ""
+      host: typeof options.host === "string" ? options.host.trim() : "",
+      testStatus: options.testStatus === "tested" || options.testStatus === "untested" ? options.testStatus : ""
     };
   }
 
   function isOverviewArchiveFilterEmpty(filters) {
-    return !filters.armyPowerText && !filters.armyPowerTextIn.length && !filters.sourceType && !filters.dateRange && !filters.host;
+    return !filters.armyPowerText && !filters.armyPowerTextIn.length && !filters.sourceType && !filters.dateRange && !filters.host && !filters.testStatus;
   }
 
   function filterOverviewArchiveItems(items, rawFilters = {}) {
@@ -585,6 +665,12 @@
         return false;
       }
       if (filters.dateRange && !(savedAt >= filters.dateRange.startIso && savedAt < filters.dateRange.endIso)) {
+        return false;
+      }
+      if (filters.testStatus === "tested" && item?.tested !== true) {
+        return false;
+      }
+      if (filters.testStatus === "untested" && item?.tested === true) {
         return false;
       }
       return true;
@@ -614,6 +700,9 @@
       query = query
         .where("savedAt", ">=", filters.dateRange.startIso)
         .where("savedAt", "<", filters.dateRange.endIso);
+    }
+    if (filters.testStatus) {
+      query = query.where("tested", "==", filters.testStatus === "tested");
     }
     if (options.includeOrderBy !== false) {
       query = query.orderBy("savedAt", normalizeSortDirection(options.sortDirection));
@@ -664,6 +753,9 @@
     if (filters.dateRange) {
       clauses.push({ fieldFilter: { field: { fieldPath: "savedAt" }, op: "GREATER_THAN_OR_EQUAL", value: { stringValue: filters.dateRange.startIso } } });
       clauses.push({ fieldFilter: { field: { fieldPath: "savedAt" }, op: "LESS_THAN", value: { stringValue: filters.dateRange.endIso } } });
+    }
+    if (filters.testStatus) {
+      clauses.push({ fieldFilter: { field: { fieldPath: "tested" }, op: "EQUAL", value: { booleanValue: filters.testStatus === "tested" } } });
     }
     if (clauses.length === 0) {
       return null;
@@ -1125,8 +1217,19 @@
     };
   }
 
+  // Savas yeniden kurulabilir mi? Iki tarafin roster'i da sayilabilir formatta
+  // olmali (bulk-regression.js'teki parser desenleriyle ayni: "R1: 5",
+  // "(R1) x 5" ve muttefik icin legacy "[1-2-3]").
+  function hasOverviewArchiveBattleDetail(item) {
+    const enemyText = String(item?.enemyRosterText || "");
+    const allyText = String(item?.allyRosterText || "");
+    const enemyHasCounts = /R\d+\s*[:=]\s*\d|\(R\d+\)\s*x\s*\d/i.test(enemyText);
+    const allyHasCounts = /T\d+\s*[:=]\s*\d|\(T\d+\)\s*x\s*\d|\[[\d\s-]+\]/i.test(allyText);
+    return enemyHasCounts && allyHasCounts;
+  }
+
   function sanitizeOverviewArchive(item) {
-    return {
+    const payload = {
       savedAt: trimText(item?.savedAt || new Date().toISOString(), 40),
       updatedAt: trimText(new Date().toISOString(), 40),
       lootGoldText: trimText(item?.lootGoldText || "-", 40),
@@ -1144,6 +1247,22 @@
       pageUrl: trimText(item?.pageUrl || "", 400),
       pageTitle: trimText(item?.pageTitle || "", 160)
     };
+    // "Test edilmedi" filtresi sunucu tarafinda where("tested","==",...) ile calisir;
+    // bu yuzden her dokumana tested alani yazilir (yeni kayitlar false baslar).
+    // Roster detayi olmayan kayitlar test edilemez (toplu testte atlanir);
+    // "test edilmeyenler" filtresinde surekli one cikmasinlar diye taranmis sayilir.
+    payload.tested = item?.tested === true || !hasOverviewArchiveBattleDetail(payload);
+    if (payload.tested) {
+      const testedSignature = trimText(item?.testedSignature || "", 200);
+      if (testedSignature) {
+        payload.testedSignature = testedSignature;
+      }
+      const testedAt = trimText(item?.testedAt || "", 40);
+      if (testedAt) {
+        payload.testedAt = testedAt;
+      }
+    }
+    return payload;
   }
 
   function normalizeWinnerValue(value) {
@@ -1190,11 +1309,14 @@
       result: item?.result === "fail" || item?.result === "skipped" ? item.result : "pass",
       host: typeof item?.host === "string" ? item.host : ""
     }));
-    writeStorage(ARCHIVE_TEST_CACHE_KEY, slim);
-    writeObjectStorage(ARCHIVE_TEST_CACHE_META_KEY, {
-      itemCount: slim.length,
-      lastSyncedAt: new Date().toISOString()
-    });
+    // Meta'yi sadece asil yazim basariliysa guncelle; aksi halde cache "taze"
+    // gorunup bayat veriyle calisilir.
+    if (writeStorage(ARCHIVE_TEST_CACHE_KEY, slim)) {
+      writeObjectStorage(ARCHIVE_TEST_CACHE_META_KEY, {
+        itemCount: slim.length,
+        lastSyncedAt: new Date().toISOString()
+      });
+    }
   }
 
   function isIntegerInRange(value, minValue, maxValue) {
@@ -1877,7 +1999,7 @@
 
   function validateOverviewArchivePayload(data, docId) {
     const errors = [];
-    const allowedKeys = ["savedAt", "updatedAt", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "enemyRosterText", "allyRosterText", "fallenUnitsText", "reviveStoneText", "sourceType", "host", "pageUrl", "pageTitle"];
+    const allowedKeys = ["savedAt", "updatedAt", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "enemyRosterText", "allyRosterText", "fallenUnitsText", "reviveStoneText", "sourceType", "host", "pageUrl", "pageTitle", "tested", "testedSignature", "testedAt"];
     const requiredKeys = ["savedAt", "updatedAt", "lootGoldText", "lootGoldValue", "expText", "expValue", "armyPowerText", "levelText", "sourceType"];
 
     if (!/^overview_[0-9]+_[a-z0-9]+$/.test(docId)) {
@@ -1941,6 +2063,15 @@
     }
     if ("pageTitle" in data && data.pageTitle && !validateShortString(data.pageTitle, 160)) {
       errors.push("pageTitle 1..160 karakter olmali.");
+    }
+    if ("tested" in data && typeof data.tested !== "boolean") {
+      errors.push("tested true/false olmali.");
+    }
+    if ("testedSignature" in data && !validateShortString(data.testedSignature, 200)) {
+      errors.push("testedSignature 1..200 karakter olmali.");
+    }
+    if ("testedAt" in data && !validateShortString(data.testedAt, 40)) {
+      errors.push("testedAt 1..40 karakter olmali.");
     }
 
     return errors;
@@ -2400,13 +2531,95 @@
     return set;
   }
 
+  // Arsiv dokumanindaki denormalize test alanlarini gunceller; boylece
+  // "test edilmeyenler" filtresi tum arsivi taramadan where("tested","==",false)
+  // ile sunucu tarafinda calisir. Best-effort: hata test kaydini engellemez.
+  async function markOverviewArchiveTested(options) {
+    const docId = typeof options?.id === "string" ? options.id.trim() : "";
+    if (!docId) {
+      return false;
+    }
+    const patch = {
+      tested: true,
+      updatedAt: trimText(new Date().toISOString(), 40),
+      testedAt: trimText(options?.testedAt || new Date().toISOString(), 40)
+    };
+    const testedSignature = trimText(options?.matchSignature || "", 200);
+    if (testedSignature) {
+      patch.testedSignature = testedSignature;
+    }
+
+    const nextLocal = readOverviewArchives().map((item) => (
+      item?.id === docId ? { ...item, ...patch } : item
+    ));
+    writeOverviewArchives(nextLocal);
+
+    if (!db) {
+      return true;
+    }
+    try {
+      await db.collection(OVERVIEW_ARCHIVE_COLLECTION).doc(docId).update(patch);
+      return true;
+    } catch (error) {
+      if (error?.code === "permission-denied") {
+        try {
+          await patchOverviewArchiveTestedViaRest(docId, patch);
+          return true;
+        } catch (restError) {
+          console.warn("Arsiv tested alani REST ile guncellenemedi.", restError);
+          return false;
+        }
+      }
+      if (error?.code !== "not-found") {
+        console.warn("Arsiv tested alani guncellenemedi.", error);
+      }
+      return false;
+    }
+  }
+
+  async function patchOverviewArchiveTestedViaRest(docId, patch) {
+    if (typeof globalScope.fetch !== "function") {
+      throw new Error("REST fallback icin fetch kullanilamiyor.");
+    }
+    const maskParams = Object.keys(patch)
+      .map((field) => `updateMask.fieldPaths=${encodeURIComponent(field)}`)
+      .join("&");
+    const response = await globalScope.fetch(
+      `${firestoreRestBaseUrl}/${OVERVIEW_ARCHIVE_COLLECTION}/${encodeURIComponent(docId)}?${maskParams}&currentDocument.exists=true&key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fields: toFirestoreRestFields(patch)
+        })
+      }
+    );
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new Error(`REST fallback basarisiz: HTTP ${response.status} ${response.statusText}\n${responseText}`);
+    }
+    return response.json().catch(() => null);
+  }
+
   async function saveArchiveRegressionTest(item) {
     const payload = sanitizeArchiveRegressionTest(item);
     const docId = buildArchiveRegressionTestDocId(payload.matchSignature);
+    const markTested = async () => {
+      if (payload.archiveId) {
+        await markOverviewArchiveTested({
+          id: payload.archiveId,
+          matchSignature: payload.matchSignature,
+          testedAt: payload.testedAt
+        });
+      }
+    };
 
     if (!db) {
       const next = [{ ...payload, id: docId }, ...readArchiveRegressionTests().filter((candidate) => candidate.id !== docId)];
       writeArchiveRegressionTests(next);
+      await markTested();
       return { ...payload, id: docId };
     }
 
@@ -2414,12 +2627,14 @@
       await db.collection(ARCHIVE_TEST_COLLECTION).doc(docId).set(payload, { merge: true });
       const next = [{ ...payload, id: docId }, ...readArchiveRegressionTests().filter((candidate) => candidate.id !== docId)];
       writeArchiveRegressionTests(next);
+      await markTested();
       return { ...payload, id: docId };
     } catch (error) {
       if (error?.code === "permission-denied") {
         await upsertArchiveRegressionTestViaRest(docId, payload);
         const next = [{ ...payload, id: docId }, ...readArchiveRegressionTests().filter((candidate) => candidate.id !== docId)];
         writeArchiveRegressionTests(next);
+        await markTested();
         return { ...payload, id: docId, savedVia: "rest-fallback" };
       }
       throw error;
@@ -2566,7 +2781,8 @@
         }
         return query.orderBy("testedAt", "desc");
       },
-      allowLegacyFirstPageFallback: false
+      allowLegacyFirstPageFallback: false,
+      cacheKey: ARCHIVE_TEST_CACHE_KEY
     });
   }
 
@@ -2846,7 +3062,8 @@
       allowLegacyFirstPageFallback: isOverviewArchiveFilterEmpty(filters),
       preferCache: Boolean(options.preferCache),
       cacheMaxAgeMs: options.cacheMaxAgeMs,
-      readMeta: readOverviewArchiveCacheMeta
+      readMeta: readOverviewArchiveCacheMeta,
+      cacheKey: OVERVIEW_ARCHIVE_CACHE_KEY
     });
   }
 
@@ -3121,6 +3338,7 @@
     getOverviewArchiveCacheInfo,
     saveOverviewArchive,
     updateOverviewArchive,
+    markOverviewArchiveTested,
     deleteOverviewArchive,
     deleteOverviewArchives,
     loadArchiveRegressionTests,
