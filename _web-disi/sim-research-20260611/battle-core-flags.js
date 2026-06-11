@@ -346,8 +346,13 @@
     let bestOrderRank = Number.POSITIVE_INFINITY;
     let bestDefenderIndex = -1;
     let bestPositionRank = Number.POSITIVE_INFINITY;
+    let bestAdvRank = Number.POSITIVE_INFINITY;
     let bestSpeed = Number.POSITIVE_INFINITY;
     let bestCount = -1;
+
+    const useTypeAdv = FLAGS2.enemyPreferTypeAdvFront && attackerSide === "enemy" &&
+      attackerIndex !== WRAITHS_INDEX;
+    const attackerType = UNIT_DESC[attackerIndex][TYPE_INDEX];
 
     for (let i = 0; i < defenderOrder.length; i += 1) {
       const defenderIndex = defenderOrder[i];
@@ -364,16 +369,27 @@
         : (defenderPosition === "front" ? 0 : 1);
       const speed = unitSpeed[defenderIndex];
       const count = unitNumbers[defenderIndex];
+      let advRank = 0;
+      if (useTypeAdv) {
+        const defType = UNIT_DESC[defenderIndex][TYPE_INDEX];
+        const hasAdv = defenderIndex !== GHOULS_INDEX && (
+          (attackerType === "brute" && defType === "occult") ||
+          (attackerType === "occult" && defType === "monster") ||
+          (attackerType === "monster" && defType === "brute"));
+        advRank = hasAdv ? 0 : 1;
+      }
 
       const isBetter =
         positionRank < bestPositionRank ||
-        (positionRank === bestPositionRank && speed < bestSpeed) ||
-        (positionRank === bestPositionRank && speed === bestSpeed && count > bestCount) ||
-        (positionRank === bestPositionRank && speed === bestSpeed && count === bestCount && i < bestOrderRank);
+        (positionRank === bestPositionRank && advRank < bestAdvRank) ||
+        (positionRank === bestPositionRank && advRank === bestAdvRank && speed < bestSpeed) ||
+        (positionRank === bestPositionRank && advRank === bestAdvRank && speed === bestSpeed && count > bestCount) ||
+        (positionRank === bestPositionRank && advRank === bestAdvRank && speed === bestSpeed && count === bestCount && i < bestOrderRank);
 
       if (isBetter) {
         bestDefenderIndex = defenderIndex;
         bestPositionRank = positionRank;
+        bestAdvRank = advRank;
         bestSpeed = speed;
         bestCount = count;
         bestOrderRank = i;
@@ -880,9 +896,22 @@
             const perFrac = perUnit - Math.floor(perUnit);
             if (Math.abs(perFrac - 0.5) < 1e-9) {
               const n = unitNumbers[attackerIndex];
+              const pUp = !isAlly && FLAGS.enemyHalfP ? FLAGS.enemyHalfP : 0.5;
               let total = Math.floor(perUnit) * n;
               for (let u = 0; u < n; u += 1) {
-                if (rng() >= 0.5) total += 1;
+                if (rng() < pUp) total += 1;
+              }
+              return total;
+            }
+          }
+          if (FLAGS.perUnitFracRandomBoth && attackerIndex !== WRAITHS_INDEX && !(attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1)) {
+            const perUnit = UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex];
+            const perFrac = perUnit - Math.floor(perUnit);
+            if (perFrac > 1e-9 && perFrac < 1 - 1e-9) {
+              const n = unitNumbers[attackerIndex];
+              let total = Math.floor(perUnit) * n;
+              for (let u = 0; u < n; u += 1) {
+                if (rng() < perFrac) total += 1;
               }
               return total;
             }

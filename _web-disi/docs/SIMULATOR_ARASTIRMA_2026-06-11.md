@@ -195,3 +195,68 @@ asersiyonlariyla genisletildi.
 Dusman tarafi binom (`perUnitHalfRandomBoth` bayragi) 1946/1946 koruyor ve
 #1/#4/#11'i yaklastiriyor; tam eslesme saglamadigi icin uygulanmadi, gelecek
 icin en guclu aday.
+
+---
+
+## 10. Ucuncu Oturum: Dusman Tarafi Binom ve Kalan 4 Vakanin Kapanis Durumu
+
+Yeni fail dosyasi (`tumu6-20260611-0944`): #2(kat8) ve #4(kat15) lokal binom
+yamasiyla zaten duzelmisti; hedef 4 vaka = kat7, kat10, kat19, kat39. Eski
+fail dosyasi `_web-disi/local-backups/fail-dosya-arsivi/`ne tasindi (harness
+cift sayim yapmasin).
+
+### kat10 — MEKANIZMA BULUNDU (kuyruk olayi)
+
+Iki tarafli binom modelinde 262k seed taramasi gercek parmak izini buldu ve
+trajektorisi tamamen dogal: **iskeletin 8 birimlik 1.5'lik vuruslari uc raund
+ust uste yuksek geliyor** (12,12,12 yerine 15,15,16), rotmaw R3'te oluyor,
+R4'te iskelet salvosu iki gulyabaniyi aliyor → birebir 180 kan / T2x2+T8.
+Yani mekanizma dusman tarafi .5 binom; sadece p=0.5 altinda nadir (~1/100k),
+arsiv yeniden-testinin 1024 seed'i pratikte bulamaz. Yanli olasilik denendi:
+pass seti p'yi 0.5-0.6'ya kilitler (p=0.65: 2 bozuk; p=0.70: 53; p=0.75: 245),
+kat10 ise p>=0.7 ister → yanlilik celiskili, adil p=0.5 kaldi. **Uretim motoru
+iki tarafli binoma yukseltildi** (Mezar Dehseti haric — ozel round kurali);
+1946/1946 + testler yesil; determinizm: tum dogrular ilk 16 seed'de, ortalama
+%75.4, kirilgan 0.
+
+### kat7 — yapisal dar bogaz
+
+Gercek: tam 1 gulyabani + rotmaw kaybi. 262k taramada ulasilabilir sonuclar:
+0 kayip / T2x2+T8 (180) / T2x2+T5+T8 (230) — "tek gulyabani" hicbir dalda yok.
+Gulyabani yigininin tam (0,5] can penceresinde kalmasi ve savasin o anda
+bitmesi gerekiyor; banshee'nin iskeleti dirilenlerden once vurmasi sarti
+hedefleme kurallarina takiliyor.
+
+### kat19 — cephe hedefleme anomalisi (kilitli)
+
+Gercekte cephedeki T2x2+T3x4+T6 olurken rotmaw (en yavas cephe birimi) sag
+kalmis — "en yavas one" kuralinin acik ihlali. Tip-avantaji tercihli hedefleme
+denendi: **1714 dogru bozuldu** (kural pas setiyle celik gibi kilitli).
+Binom dallarinda kultistlerin sag kaldigi govde var ama yapraklarda hep
+yarasalar da oluyor (415 kan dali). Oyun ici raund logu sart.
+
+### kat39 — dirilen blokaji (kilitli)
+
+Kazanan kurali degil: simde dusman 32 iskelet + 3 mezar dehsetiyle sag.
+Kritik an R2-R3: yarasalar 272 hasari 30 ve 15 canlik zombi/dirilen
+yiginlarina harciyor (242+257 overkill), 128 canlik iskelet beklerken; sonra
+Mezar Dehseti 6x carpanla yarasalari siliyor. Dirilenleri es gecen tum
+hedefleme bayraklari yeni tabanda da 728-1031 dogru bozuyor. Iki tarafli
+binomda ilk kez muttefik zaferi dali acildi (1544/262k, 1165 kan) ama
+yarasalar sag kaliyor; gercek 1505 (yarasalar da olu) 262k'da bulunamadi.
+
+### Elenen diger hipotezler (3. oturum)
+
+| Hipotez | Dogru | Karar |
+|---|---:|---|
+| reviveDeprioritized/Untargetable (binom tabanda) | 915-1300 | 638-1031 bozuk |
+| Dusman tip-avantaji cephe hedeflemesi | 232 | 1714 bozuk |
+| Dusman p yanli yazi-tura (0.65/0.70/0.75) | 1944/1893/1701 | kat10 p>=0.7 ister, pass seti p<=0.6 kilitler |
+| Genel kesirli birim-basi olasilik (perUnitFracRandomBoth) | 1946 | Zarar yok, pratik kazanc da yok |
+
+### Skor
+
+| Asama | Dogru | Yanlis (guncel 6'li dosya) |
+|---|---:|---|
+| Gun basi | 1.946 | 0/6 |
+| Binom yamalari sonrasi | **1.946** | **2/6 pratik + kat10 mekanizmasi kanitli** |

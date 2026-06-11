@@ -97,7 +97,17 @@
       "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"perUnitHalfRandomBoth\\\\\",{\\\\\"perUnitHalfRandomBoth\\\\\":true}]]')",
       "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\deep-seed-scan.js\" 32768 '{\\\\\"perUnitHalfRandomBoth\\\\\":true}')",
       "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\determinism-stats.js\" '{\\\\\"perUnitHalfRandomBoth\\\\\":true}')",
-      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\deep-seed-scan.js\" 262144)"
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\deep-seed-scan.js\" 262144)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\inspect-rec.js\" fail 10 3 0 > \"_web-disi\\\\sim-research-20260611\\\\case-kat10.txt\"; $c = Get-Content \"_web-disi\\\\sim-research-20260611\\\\case-kat10.txt\"; \"satir: \" + $c.Count; $c | Select-Object -Skip 130)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"pu+revDepAlways\\\\\",{\\\\\"perUnitHalfRandom\\\\\":true,\\\\\"reviveDeprioritizedAlways\\\\\":true}],[\\\\\"pu+revDepSpawn\\\\\",{\\\\\"perUnitHalfRandom\\\\\":true,\\\\\"reviveDeprioritizedSpawnRound\\\\\":true}],[\\\\\"pu+revUntargetSpawn\\\\\",{\\\\\"perUnitHalfRandom\\\\\":true,\\\\\"reviveUntargetableSpawnRound\\\\\":true}]]')",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\deep-seed-scan.js\" 262144 '{\\\\\"perUnitHalfRandomBoth\\\\\":true}' \"1,3,5,6\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\inspect-rec.js\" fail 10 3 35699 '{\\\\\"perUnitHalfRandomBoth\\\\\":true}' > \"_web-disi\\\\sim-research-20260611\\\\case-kat10-match.txt\"; Get-Content \"_web-disi\\\\sim-research-20260611\\\\case-kat10-match.txt\" | Select-String -Pattern \"RAUND|Hesap|tamamen yok|geri dirildi|kaybetti|WINNER\" | ForEach-Object { $_.Line.Trim\\(\\) } | Select-Object -First 60)",
+      "PowerShell(node -e \"const fs=require\\('fs'\\),vm=require\\('vm'\\);const c={console,window:{}};c.window.window=c.window;vm.createContext\\(c\\);vm.runInContext\\(fs.readFileSync\\('battle-core.js','utf8'\\),c\\);const r=c.window.BattleCore.simulateBattle\\({skeletons:8,zombies:33,cultists:12,bonewings:0,corpses:0,wraiths:0,revenants:0,giants:0,broodmothers:0,liches:0},{bats:1,ghouls:2,thralls:0,banshees:5,necromancers:1,gargoyles:0,witches:0,rotmaws:1},{seed:35699,collectLog:false,roundingMode:'legacy'}\\);console.log\\(r.winner,r.lostBloodTotal,JSON.stringify\\(r.allyLosses\\)\\);\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\deep-seed-scan.js\" 262144 $null \"1,3,5,6\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\deep-seed-scan.js\" 262144 \"null\" \"1,3,5,6\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"pu+enemyTypeAdv\\\\\",{\\\\\"perUnitHalfRandomBoth\\\\\":true,\\\\\"enemyPreferTypeAdvFront\\\\\":true}]]')",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"pu+enemyP60\\\\\",{\\\\\"perUnitHalfRandomBoth\\\\\":true,\\\\\"enemyHalfP\\\\\":0.6}],[\\\\\"pu+enemyP75\\\\\",{\\\\\"perUnitHalfRandomBoth\\\\\":true,\\\\\"enemyHalfP\\\\\":0.75}]]')",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"pu+enemyP65\\\\\",{\\\\\"perUnitHalfRandomBoth\\\\\":true,\\\\\"enemyHalfP\\\\\":0.65}],[\\\\\"pu+enemyP70\\\\\",{\\\\\"perUnitHalfRandomBoth\\\\\":true,\\\\\"enemyHalfP\\\\\":0.7}]]')"
     ]
   }
 }

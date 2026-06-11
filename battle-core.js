@@ -373,13 +373,15 @@
       if (shouldRound) {
         return roundCombatValue(normalizedValue);
       }
-      // Birim basina tam .5 kesirli muttefik hasari gercek oyunda deterministik
-      // degil: ayni 3.5'lik banshee vurusu bir savasta 4, digerinde 3 olarak
-      // gerceklesiyor (arsiv kat2#5 vs fail #3); 7 banshee'nin 24.5'i bir
-      // savasta 23 kultisti silerken digerinde sag birakiyor (fail #8).
-      // Her birim icin bagimsiz seed'li yazi-tura (binom dagilimi) iki
-      // dunyayi da kapsar; n=1'de tekil yazi-turaya indirgenir.
-      if (rng && side === "ally") {
+      // Birim basina tam .5 kesirli hasar gercek oyunda deterministik degil:
+      // ayni 3.5'lik banshee vurusu bir savasta 4, digerinde 3 olarak
+      // gerceklesiyor (arsiv kat2#5 vs fail kat8); 7 banshee'nin 24.5'i bir
+      // savasta 23 kultisti silerken digerinde sag birakiyor (fail kat19).
+      // Dusman tarafi da ayni: kat10'da iskeletin 8 x 1.5'lik vuruslari ust
+      // uste yuksek gelerek rotmaw'i olduruyor. Her birim icin bagimsiz
+      // seed'li yazi-tura (binom dagilimi) iki dunyayi da kapsar; n=1'de
+      // tekil yazi-turaya indirgenir. Mezar Dehseti haric (ozel round kurali).
+      if (rng && attackerIndex !== WRAITHS_INDEX) {
         const unitCount = attackerIndex >= 0 ? (unitNumbers?.[attackerIndex] || 0) : 0;
         if (unitCount > 0) {
           const perUnitDamage = normalizedValue / unitCount;

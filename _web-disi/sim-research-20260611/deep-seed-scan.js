@@ -63,7 +63,7 @@ function distance(rec, result) {
   return d;
 }
 const maxSeeds = Number(process.argv[2] || 65536);
-const only = new Set([1, 2, 4, 7, 8, 11]);
+const only = new Set((process.argv[4] || "1,2,3,4,5,6").split(",").map(Number));
 for (const rec of recs) {
   if (!only.has(rec.num)) continue;
   let best = null, bestD = Infinity, matchedSeed = -1, distinct = new Map();
