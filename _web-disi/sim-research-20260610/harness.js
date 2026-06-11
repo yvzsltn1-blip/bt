@@ -99,8 +99,10 @@ function matches(rec, result) {
 }
 
 function testRecord(battleCore, rec, maxSeeds) {
-  const deterministic = (rec.enemyCounts.cultists || 0) === 0;
-  const seedCount = deterministic ? 1 : maxSeeds;
+  // Not: .5 kesir yazi-tura yamasi (2026-06-11) kultistsiz savaslari da
+  // seed'e bagimli yapabildigi icin kisayol kaldirildi; eslesme genelde
+  // ilk seedlerde bulunur, maliyet dusuk.
+  const seedCount = maxSeeds;
   for (let seed = 0; seed < seedCount; seed += 1) {
     const result = battleCore.simulateBattle(rec.enemyCounts, rec.allyCounts, {
       seed,

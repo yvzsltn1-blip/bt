@@ -115,7 +115,7 @@ const ROSTER_CLIPBOARD_TTL_MS = 60 * 1000;
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 const OPTIMIZER_RELIABILITY_STORAGE_KEY = "bt-analiz.optimizer-reliability.v1";
 const FAVORITE_STRATEGIES_STORAGE_KEY = "bt-analiz.optimizer.favorite-strategies.v1";
-const AUTO_STAGE_ADVANCE_STORAGE_KEY = "bt-analiz.optimizer.autoStageAdvance.v1";
+const EXTENDED_SEARCH_STORAGE_KEY = "bt-analiz.optimizer.extendedSearch.v1";
 const ROUNDING_MODE_STORAGE_KEY = "bt-analiz.rounding-mode.v1";
 const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
 
@@ -162,7 +162,7 @@ let rosterClipboardIndicatorTimer = null;
 let optimizerIncumbentContext = null;
 let currentFavoriteModalSignature = null;
 let currentFavoriteModalPendingEntry = null;
-let autoStageAdvanceEnabled = false;
+let extendedSearchEnabled = false;
 let lossConstraintModeEnabled = false;
 let optimizerManualPointRangeEnabled = false;
 
@@ -772,8 +772,8 @@ if (isQuickVariant()) {
     }
   });
 }
-loadAutoStageAdvanceSetting();
-syncAutoStageAdvanceToggle();
+loadExtendedSearchSetting();
+syncExtendedSearchToggle();
 syncLossConstraintToggle();
 renderPointSummary();
 applyStageFromQuery();
@@ -1000,10 +1000,11 @@ stageInput.addEventListener("blur", () => {
 
 if (stageAutoAdvanceToggleBtn) {
   stageAutoAdvanceToggleBtn.addEventListener("click", () => {
-    autoStageAdvanceEnabled = !autoStageAdvanceEnabled;
-    persistAutoStageAdvanceSetting();
-    syncAutoStageAdvanceToggle();
-    optimizerStatus.textContent = autoStageAdvanceEnabled ? "Kademe +1 acildi" : "Kademe +1 kapatildi";
+    extendedSearchEnabled = !extendedSearchEnabled;
+    persistExtendedSearchSetting();
+    syncExtendedSearchToggle();
+    invalidateSearchSession();
+    optimizerStatus.textContent = extendedSearchEnabled ? "Genis arama acildi" : "Genis arama kapatildi";
   });
 }
 
@@ -1507,7 +1508,7 @@ async function runOptimizerSearch(batchRuns) {
         tekilV2Mode: optimizerTekilV2Mode,
         exploratoryCandidateCount: lastRunConfig.exploratoryCandidateCount,
         exhaustiveCandidateLimit: lastRunConfig.exhaustiveCandidateLimit,
-        timeBudgetMs: lastRunConfig.timeBudgetMs,
+        timeBudgetMs: extendedSearchEnabled ? lastRunConfig.timeBudgetMs : 0,
         alternateBaseSeeds: lastRunConfig.alternateBaseSeeds,
         diversityCandidateCount: lastRunConfig.diversityCandidateCount,
         tekilCandidateCount: lastRunConfig.tekilCandidateCount,
@@ -1763,28 +1764,30 @@ function syncTekilV2ModeButton() {
   tekilV2ModeBtn.textContent = optimizerTekilV2Mode ? "Tekil v2 Acik" : "Tekil v2";
 }
 
-function syncAutoStageAdvanceToggle() {
+function syncExtendedSearchToggle() {
   if (!stageAutoAdvanceToggleBtn) {
     return;
   }
-  stageAutoAdvanceToggleBtn.classList.toggle("is-active", autoStageAdvanceEnabled);
-  stageAutoAdvanceToggleBtn.setAttribute("aria-pressed", autoStageAdvanceEnabled ? "true" : "false");
-  stageAutoAdvanceToggleBtn.setAttribute("aria-label", autoStageAdvanceEnabled ? "Kademe +1 acik" : "Kademe +1 kapali");
-  stageAutoAdvanceToggleBtn.title = autoStageAdvanceEnabled ? "Kademe +1 acik" : "Kademe +1 kapali";
+  stageAutoAdvanceToggleBtn.classList.toggle("is-active", extendedSearchEnabled);
+  stageAutoAdvanceToggleBtn.setAttribute("aria-pressed", extendedSearchEnabled ? "true" : "false");
+  stageAutoAdvanceToggleBtn.setAttribute("aria-label", extendedSearchEnabled ? "Genis arama acik" : "Genis arama kapali");
+  stageAutoAdvanceToggleBtn.title = extendedSearchEnabled
+    ? "Genis arama acik: sure butcesi dolana kadar daha fazla aday tarar"
+    : "Genis arama kapali: hizli cevap icin sure butcesi kullanilmaz";
 }
 
-function loadAutoStageAdvanceSetting() {
+function loadExtendedSearchSetting() {
   try {
-    const raw = window.localStorage.getItem(AUTO_STAGE_ADVANCE_STORAGE_KEY);
-    autoStageAdvanceEnabled = raw === "1";
+    const raw = window.localStorage.getItem(EXTENDED_SEARCH_STORAGE_KEY);
+    extendedSearchEnabled = raw === "1";
   } catch (_error) {
-    autoStageAdvanceEnabled = false;
+    extendedSearchEnabled = false;
   }
 }
 
-function persistAutoStageAdvanceSetting() {
+function persistExtendedSearchSetting() {
   try {
-    window.localStorage.setItem(AUTO_STAGE_ADVANCE_STORAGE_KEY, autoStageAdvanceEnabled ? "1" : "0");
+    window.localStorage.setItem(EXTENDED_SEARCH_STORAGE_KEY, extendedSearchEnabled ? "1" : "0");
   } catch (_error) {
     // localStorage erisimi yoksa ayar sadece bu sayfa oturumunda kalir.
   }
@@ -3734,11 +3737,6 @@ function syncStageAfterSimulation(stage) {
     return;
   }
   renderSimulatedStageDisplay(stage);
-  if (!autoStageAdvanceEnabled) {
-    return;
-  }
-  stageInput.value = String(stage + 1);
-  commitStageInput();
 }
 
 function collectMinimumRequiredCounts() {

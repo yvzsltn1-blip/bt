@@ -365,12 +365,24 @@
       return normalizedValue;
     }
     if (normalizedMode === "legacy") {
-      const { attackerIndex, defenderIndex, roundCount, unitNumbers } = context;
+      const { attackerIndex, defenderIndex, roundCount, unitNumbers, rng } = context;
       const attackerCount = attackerIndex >= 0 ? (unitNumbers?.[attackerIndex] || 0) : 0;
       const shouldRound =
         (attackerIndex === WRAITHS_INDEX && attackerCount % 2 === 1) ||
         (attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1);
-      return shouldRound ? roundCombatValue(normalizedValue) : ceilCombatValue(normalizedValue);
+      if (shouldRound) {
+        return roundCombatValue(normalizedValue);
+      }
+      // Tam .5 kesirli muttefik hasari gercek oyunda deterministik degil:
+      // ayni 3.5'lik vurus bir savasta 4, digerinde 3 olarak gerceklesiyor
+      // (arsiv kat2#5 vs fail #3). Seed'li yazi-tura iki dunyayi da kapsar.
+      if (rng && side === "ally") {
+        const fraction = normalizedValue - Math.floor(normalizedValue);
+        if (Math.abs(fraction - 0.5) < 1e-9) {
+          return rng() < 0.5 ? floorCombatValue(normalizedValue) : ceilCombatValue(normalizedValue);
+        }
+      }
+      return ceilCombatValue(normalizedValue);
     }
     return side === "ally" ? floorCombatValue(normalizedValue) : ceilCombatValue(normalizedValue);
   }
@@ -725,7 +737,8 @@
               attackerIndex,
               defenderIndex,
               roundCount,
-              unitNumbers
+              unitNumbers,
+              rng
             });
         unitHealth[defenderIndex] -= attackerDamage;
         const totalDamageMultiplier = damageMultiplier * unitBuffs[attackerIndex];

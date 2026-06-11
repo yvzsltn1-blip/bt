@@ -1,0 +1,50 @@
+node bench | modes=fast,balanced,deep,ultra layers=10,20,30,48,65,80,95,101 budget=true
+
+=== Kat 10 (limit 110, band 82-110) enemy={"skeletons":5,"zombies":42,"cultists":7}
+  fast       3104ms sims=  22999 cand=  7018 | sec: win=100% eBlood=0.0 | dogrulama(200): win=100.0% eBlood=0.0 | 30/0/1/2/0/1/0/0
+  balanced   6918ms sims=  36322 cand= 10420 | sec: win=100% eBlood=0.0 | dogrulama(200): win=100.0% eBlood=0.0 | 30/0/1/2/0/1/0/0
+  deep      10420ms sims=  53432 cand= 14575 | sec: win=100% eBlood=0.0 | dogrulama(200): win=100.0% eBlood=0.0 | 30/0/1/2/0/1/0/0
+  ultra     19952ms sims=  97493 cand= 27124 | sec: win=100% eBlood=0.0 | dogrulama(200): win=100.0% eBlood=0.0 | 30/0/1/2/0/1/0/0
+
+=== Kat 20 (limit 210, band 157-210) enemy={"skeletons":16,"zombies":41,"cultists":19,"bonewings":11}
+  fast       3155ms sims=  54092 cand= 16665 | sec: win=100% eBlood=35.0 | dogrulama(200): win=100.0% eBlood=35.0 | 29/4/11/1/0/4/0/0
+  balanced   6915ms sims=  96801 cand= 28104 | sec: win=100% eBlood=35.0 | dogrulama(200): win=100.0% eBlood=35.0 | 29/4/11/1/0/4/0/0
+  deep      10514ms sims= 131862 cand= 37172 | sec: win=100% eBlood=35.0 | dogrulama(200): win=100.0% eBlood=35.0 | 29/4/11/1/0/4/0/0
+  ultra     20072ms sims= 228397 cand= 64740 | sec: win=100% eBlood=35.0 | dogrulama(200): win=100.0% eBlood=35.0 | 29/4/11/1/0/4/0/0
+
+=== Kat 30 (limit 310, band 232-310) enemy={"skeletons":23,"zombies":40,"cultists":17,"bonewings":18,"corpses":11}
+  fast       3120ms sims=  32049 cand=  9966 | sec: win=100% eBlood=265.0 | dogrulama(200): win=100.0% eBlood=265.0 | 22/1/13/5/1/8/1/0
+  balanced   6805ms sims=  90861 cand= 26059 | sec: win=100% eBlood=215.0 | dogrulama(200): win=100.0% eBlood=215.0 | 10/1/13/5/1/11/1/0
+  deep      10473ms sims=  91122 cand= 25458 | sec: win=100% eBlood=265.0 | dogrulama(200): win=100.0% eBlood=265.0 | 22/1/13/5/1/8/1/0
+  ultra     20134ms sims= 217053 cand= 60277 | sec: win=100% eBlood=215.0 | dogrulama(200): win=100.0% eBlood=215.0 | 10/1/13/5/1/11/1/0
+
+=== Kat 48 (limit 490, band 367-490) enemy={"skeletons":19,"zombies":27,"cultists":31,"bonewings":12,"corpses":9,"wraiths":13,"revenants":7}
+  fast       3023ms sims=  26578 cand=  8109 | sec: win=100% eBlood=455.0 | dogrulama(200): win=100.0% eBlood=455.0 | 21/15/46/11/1/2/1/0
+  balanced   6944ms sims=  51674 cand= 14689 | sec: win=100% eBlood=455.0 | dogrulama(200): win=100.0% eBlood=455.0 | 21/15/46/11/1/2/1/0
+  deep      10349ms sims=  91363 cand= 23620 | sec: win=100% eBlood=455.0 | dogrulama(200): win=100.0% eBlood=455.0 | 21/15/46/11/1/2/1/0
+  ultra     20027ms sims= 145633 cand= 37530 | sec: win=100% eBlood=455.0 | dogrulama(200): win=100.0% eBlood=455.0 | 21/15/46/11/1/2/1/0
+
+=== Kat 65 (limit 660, band 495-660) enemy={"skeletons":17,"zombies":37,"cultists":20,"bonewings":11,"corpses":8,"wraiths":8,"revenants":8,"giants":9,"broodmothers":2}
+  fast       3178ms sims=  36761 cand= 10945 | sec: win=100% eBlood=750.0 | dogrulama(200): win=100.0% eBlood=750.0 | 49/43/30/7/1/15/1/0
+  balanced   6935ms sims=  66749 cand= 18408 | sec: win=100% eBlood=750.0 | dogrulama(200): win=100.0% eBlood=750.0 | 49/43/30/7/1/15/1/0
+  deep      10113ms sims= 104014 cand= 24872 | sec: win=100% eBlood=750.0 | dogrulama(200): win=100.0% eBlood=750.0 | 49/43/30/7/1/15/1/0
+  ultra     19962ms sims= 159366 cand= 38508 | sec: win=100% eBlood=750.0 | dogrulama(200): win=100.0% eBlood=750.0 | 49/43/30/7/1/15/1/0
+
+=== Kat 80 (limit 810, band 607-810) enemy={"skeletons":26,"zombies":25,"cultists":6,"bonewings":19,"corpses":15,"wraiths":4,"revenants":8,"giants":6,"broodmothers":5,"liches":5}
+  fast       2953ms sims=  29256 cand=  8909 | sec: win=100% eBlood=2085.9 | dogrulama(200): win=100.0% eBlood=2094.4 | 44/74/32/1/1/11/1/0
+  balanced   6693ms sims=  64385 cand= 17092 | sec: win=100% eBlood=2105.3 | dogrulama(200): win=100.0% eBlood=2091.3 | 45/74/32/1/1/11/1/0
+  deep      10432ms sims=  75794 cand= 18544 | sec: win=100% eBlood=2055.0 | dogrulama(200): win=100.0% eBlood=2055.0 | 47/74/32/1/1/10/1/0
+  ultra     19643ms sims= 115544 cand= 30702 | sec: win=100% eBlood=2055.0 | dogrulama(200): win=100.0% eBlood=2055.0 | 47/74/32/1/1/10/1/0
+
+=== Kat 95 (limit 960, band 720-960) enemy={"skeletons":9,"zombies":32,"cultists":9,"bonewings":23,"corpses":10,"wraiths":6,"revenants":10,"giants":9,"broodmothers":7,"liches":5}
+  fast       2897ms sims=  19048 cand=  5752 | sec: win=100% eBlood=2235.0 | dogrulama(200): win=100.0% eBlood=2235.0 | 24/75/18/32/1/13/1/0
+  balanced   6817ms sims=  39646 cand= 11051 | sec: win=100% eBlood=2109.4 | dogrulama(200): win=100.0% eBlood=2113.1 | 24/75/40/2/1/17/1/0
+  deep      10173ms sims=  91690 cand= 20557 | sec: win=100% eBlood=2111.3 | dogrulama(200): win=100.0% eBlood=2113.1 | 24/75/40/2/1/17/1/0
+  ultra     19802ms sims= 111382 cand= 29033 | sec: win=100% eBlood=2120.0 | dogrulama(200): win=100.0% eBlood=2113.1 | 24/75/40/2/1/17/1/0
+
+=== Kat 101 (limit 1020, band 765-1020) enemy={"zombies":14,"cultists":3,"bonewings":29,"corpses":21,"wraiths":15,"revenants":11,"giants":9,"broodmothers":4,"liches":5}
+  fast       2907ms sims=  37700 cand= 10925 | sec: win=100% eBlood=1220.0 | dogrulama(200): win=100.0% eBlood=1220.0 | 50/58/39/31/1/6/1/0
+  balanced   6827ms sims=  40073 cand= 10167 | sec: win=100% eBlood=1220.0 | dogrulama(200): win=100.0% eBlood=1220.0 | 51/58/63/17/1/6/1/0
+  deep      10402ms sims=  85551 cand= 19913 | sec: win=100% eBlood=1220.0 | dogrulama(200): win=100.0% eBlood=1220.0 | 50/58/39/31/1/6/1/0
+  ultra     19849ms sims= 150621 cand= 36518 | sec: win=100% eBlood=1220.0 | dogrulama(200): win=100.0% eBlood=1220.0 | 50/58/25/39/1/6/1/0
+

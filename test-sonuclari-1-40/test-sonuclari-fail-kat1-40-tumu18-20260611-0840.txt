@@ -1,0 +1,135 @@
+Arsiv Toplu Test Sonuclari
+Sunucu: s66
+Tur: Yanlislar | Kat: Kat 1-40 | Kapsam: Tumu (11) | Siralama: Kat (kucukten buyuge)
+
+#1 [YANLIS] 7. Kat / s66
+Tarih: 04.06.2026 12:09:17
+Rakip: Rakip : [R1:4-R2:26-R3:8]
+Biz: Biz : [T1:0-T2:2-T3:0-T4:2-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 165 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: Gulyabani (T2) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: -
+Farklar: Kan kaybi: -165 | Kayip farki: T2 -1, T8 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#2 [YANLIS] 8. Kat / s66
+Tarih: 09.06.2026 19:17:35
+Rakip: Rakip : [R1:4-R2:34-R3:6]
+Biz: Biz : [T1:0-T2:0-T3:0-T4:4-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 200 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: -
+Farklar: Kan kaybi: -200 | Kayip farki: T5 -1, T8 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#3 [YANLIS] 8. Kat / s66
+Tarih: 09.06.2026 08:41:39
+Rakip: Rakip : [R1:7-R2:34-R3:5]
+Biz: Biz : [T1:11-T2:3-T3:0-T4:1-T5:0-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 150 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: Curuk Girtlak (T8) x1
+Simulator kayip birlik: -
+Farklar: Kan kaybi: -150 | Kayip farki: T8 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#4 [YANLIS] 10. Kat / s66
+Tarih: 08.06.2026 11:01:23
+Rakip: Rakip : [R1:8-R2:33-R3:12]
+Biz: Biz : [T1:1-T2:2-T3:0-T4:5-T5:1-T6:0-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 180 ; Simulator sonucu: 0
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Curuk Girtlak (T8) x1
+Simulator kayip birlik: -
+Farklar: Kan kaybi: -180 | Kayip farki: T2 -2, T8 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#5 [YANLIS] 14. Kat / s66
+Tarih: 03.06.2026 17:53:26
+Rakip: Rakip : [R1:6-R2:40-R3:18-R4:2]
+Biz: Biz : [T1:28-T2:6-T3:1-T4:1-T5:0-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 215 ; Simulator sonucu: 65
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x3, Banshee (T4) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Yarasa Surusu (T1) x3, Banshee (T4) x1
+Farklar: Kan kaybi: -150 | Kayip farki: T8 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#6 [YANLIS] 15. Kat / s66
+Tarih: 11.06.2026 08:18:51
+Rakip: Rakip : [R1:6-R2:35-R3:18-R4:6]
+Biz: Biz : [T1:25-T2:3-T3:0-T4:1-T5:0-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 275 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x9, Banshee (T4) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -240 | Toplam kayip: -10 birlik | Kayip farki: T1 -9, T8 -1
+Not: Ilk 64 seedde eslesme cikmadi; 1024 seed derin taramada da beklenen sonuc bulunamadi. Bu arsiv kaydi muhtemelen yanlis loot/kayip verisiyle overwrite oldu.
+
+#7 [YANLIS] 15. Kat / s66
+Tarih: 06.06.2026 09:44:27
+Rakip: Rakip : [R1:11-R2:36-R3:19-R4:4]
+Biz: Biz : [T1:26-T2:7-T3:0-T4:2-T5:1-T6:2-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 270 ; Simulator sonucu: 120
+Gerceklesen kayip birlik: Banshee (T4) x2, Olu Cagirici (T5) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Banshee (T4) x2, Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -150 | Kayip farki: T8 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#8 [YANLIS] 19. Kat / s66
+Tarih: 02.06.2026 10:49:52
+Rakip: Rakip : [R1:9-R2:41-R3:23-R4:8]
+Biz: Biz : [T1:12-T2:2-T3:4-T4:7-T5:1-T6:1-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 375 ; Simulator sonucu: 50
+Gerceklesen kayip birlik: Gulyabani (T2) x2, Vampir Kole (T3) x4, Banshee (T4) x4, Olu Cagirici (T5) x1, Gargoyle (T6) x1
+Simulator kayip birlik: Olu Cagirici (T5) x1
+Farklar: Kan kaybi: -325 | Kayip farki: T2 -2, T3 -4, T4 -4, T6 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#9 [YANLIS] 20. Kat / s66
+Tarih: 06.06.2026 17:01:22
+Rakip: Rakip : [R1:16-R2:31-R3:19-R4:15]
+Biz: Biz : [T1:22-T2:0-T3:8-T4:1-T5:0-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 405 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x22, Banshee (T4) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -370 | Kayip farki: T1 -22, T8 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#10 [YANLIS] 20. Kat / s66
+Tarih: 31.05.2026 13:40:43
+Rakip: Rakip : [R1:18-R2:29-R3:23-R4:13]
+Biz: Biz : [T1:21-T2:1-T3:8-T4:1-T5:0-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Galibiyet (dusman yenildi)
+Gerceklesen kayip: 375 ; Simulator sonucu: 35
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x19, Banshee (T4) x1, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Banshee (T4) x1
+Farklar: Kan kaybi: -340 | Kayip farki: T1 -19, T8 -1
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.
+
+#11 [YANLIS] 39. Kat / s66
+Tarih: 02.06.2026 00:32:33
+Rakip: Rakip : [R1:32-R2:15-R3:15-R4:21-R5:18-R6:8]
+Biz: Biz : [T1:34-T2:1-T3:1-T4:18-T5:1-T6:4-T7:0-T8:1]
+Gerceklesen sonuc: Galibiyet (dusman yenildi)
+Simulator sonucu: Maglubiyet (muttefikler yenildi)
+Gerceklesen kayip: 1.505 ; Simulator sonucu: 1.505
+Gerceklesen kayip birlik: Yarasa Surusu (T1) x34, Gulyabani (T2) x1, Vampir Kole (T3) x1, Banshee (T4) x18, Olu Cagirici (T5) x1, Gargoyle (T6) x4, Curuk Girtlak (T8) x1
+Simulator kayip birlik: Yarasa Surusu (T1) x34, Gulyabani (T2) x1, Vampir Kole (T3) x1, Banshee (T4) x18, Olu Cagirici (T5) x1, Gargoyle (T6) x4, Curuk Girtlak (T8) x1
+Farklar: Sonuc: Zafer -> Maglubiyet
+Not: Yeniden test: beklenen sonuc 1024 deterministik seed icinde bulunamadi.

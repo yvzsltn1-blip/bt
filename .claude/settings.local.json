@@ -49,7 +49,32 @@
       "PowerShell(node tools/backfill-tested-flags.mjs)",
       "PowerShell(node --check firebase-client.js; node -e \"const fs=require\\('fs'\\);const files=['test-sonuclari.html','optimizer.html','optimizer-v2.html','optimizer-minimum.html','regression-report.html','saved.html','quick.html','index.html','fav.html','wrong.html','archive.html'];for\\(const f of files\\){const b=fs.readFileSync\\(f,'utf8'\\);fs.writeFileSync\\(f,b.replace\\(/firebase-client\\\\.js\\\\?v=[0-9-]+/g,'firebase-client.js?v=20260610-2'\\),'utf8'\\);}console.log\\('ok'\\);\")",
       "PowerShell(node --check firebase-client.js; node tools/backfill-tested-flags.mjs)",
-      "PowerShell(firebase deploy *)"
+      "PowerShell(firebase deploy *)",
+      "Bash(tee final-results.txt)",
+      "Read(//c/Users/YAVUZ/.claude/projects/C--Users-YAVUZ-Documents-BT-Analyss---v6---Kopya/memory/**)",
+      "Bash(printf -- \"- [Optimizer v3 mimarisi]\\(optimizer-v3-time-budget-architecture.md\\) — zaman butceli arama, diverse beam, Ultra mod; bench araclari optimizer-research-20260610.\\\\n\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260610\\\\harness.js\")",
+      "PowerShell(\\(Get-Content \"simulat.js\" | Measure-Object -Line\\).Lines)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\mode-survey.js\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\diffmode.js\" 3 legacy safe 0)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\diffmode.js\" 6 legacy safe 0)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\diffmode.js\" 9 legacy safe 0)",
+      "PowerShell(Copy-Item *)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\inspect-rec.js\" pass 2 5 0 | Select-Object -First 60)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\mode-harness.js\" exact; node \"_web-disi\\\\sim-research-20260611\\\\mode-harness.js\" safe; node \"_web-disi\\\\sim-research-20260611\\\\mode-harness.js\" simulat)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"bansheeHalfRandom\\\\\",{\\\\\"bansheeHalfRandom\\\\\":true}],[\\\\\"allyHalfRandom\\\\\",{\\\\\"allyHalfRandom\\\\\":true}],[\\\\\"halfRandom\\\\\",{\\\\\"halfRandom\\\\\":true}]]')",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"fracRandom\\\\\",{\\\\\"fracRandom\\\\\":true}],[\\\\\"halfRandom+\\\\\",{\\\\\"halfRandom\\\\\":true,\\\\\"reviveUntargetableSpawnRound\\\\\":false}]]')",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\determinism-stats.js\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"allyHalfRandomKeepSpecials\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true}]]')",
+      "PowerShell(node \"tests\\\\test-half-fraction-random-rounding.js\")",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"hr\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true}],[\\\\\"hr+debuffNextRound\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"bansheeDebuffNextRound\\\\\":true}],[\\\\\"hr+debuffBothRounds\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"bansheeDebuffBothRounds\\\\\":true}],[\\\\\"hr+cultistPerUnit\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"cultistBuffPerUnit\\\\\":true}],[\\\\\"hr+revivedInherit\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"revivedInheritZombieBuff\\\\\":true}]]')",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"hr+cultistRoundStart\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"cultistBuffAtRoundStart\\\\\":true}],[\\\\\"hr+necroEscalates\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"necroBuffEscalatesPerRound\\\\\":true}],[\\\\\"hr+reviveDeprioritized\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"reviveDeprioritizedSpawnRound\\\\\":true}]]')",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"necroEscalates\\(tek\\)\\\\\",{\\\\\"necroBuffEscalatesPerRound\\\\\":true}]]')",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\case2-compare.js\" > \"_web-disi\\\\sim-research-20260611\\\\case2-compare-out.txt\"; Get-Content \"_web-disi\\\\sim-research-20260611\\\\case2-compare-out.txt\" -TotalCount 80)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\case2-compare.js\" > \"_web-disi\\\\sim-research-20260611\\\\case2-compare-out.txt\"; Select-String -Path \"_web-disi\\\\sim-research-20260611\\\\case2-compare-out.txt\" -Pattern \"ROUND|attacks|Result:|REVIVE|Reaper|died\" | Select-Object -First 60 | ForEach-Object { $_.Line.Trim\\(\\) -replace '<[^>]+>','' })",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\case2-compare.js\" > \"_web-disi\\\\sim-research-20260611\\\\case2-compare-out.txt\"; \\(Get-Content \"_web-disi\\\\sim-research-20260611\\\\case2-compare-out.txt\" -TotalCount 3\\); $raw = Get-Content \"_web-disi\\\\sim-research-20260611\\\\case2-compare-out.txt\" -Raw; $sim = $raw.Substring\\(0, $raw.IndexOf\\(\"LEGACY hr\"\\)\\); \\($sim -replace '<[^>]+>',''\\) -split \"`n\" | Where-Object { $_ -match \"ROUND|attacks|Result|REVIVE|Reaper|Formula\" } | Select-Object -First 70)",
+      "PowerShell(node \"_web-disi\\\\sim-research-20260611\\\\search.js\" '[[\\\\\"hr+bansheeAmbushT1\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"bansheeAmbushTurn1\\\\\":true}],[\\\\\"hr+bansheeAmbushHerRaund\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"bansheeAmbushEveryRound\\\\\":true}],[\\\\\"hr+ambushHerRaund\\\\\",{\\\\\"allyHalfRandomKeepSpecials\\\\\":true,\\\\\"ambushEveryRound\\\\\":true}]]')"
     ]
   }
 }
