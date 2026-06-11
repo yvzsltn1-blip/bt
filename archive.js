@@ -68,11 +68,57 @@ const archiveEditPageTitleInput = document.querySelector("#archiveEditPageTitleI
 
 const DEFAULT_PAGE_SIZE = 40;
 const PAGE_SIZE_OPTIONS = new Set([20, 40, 80]);
-// Sunucu filtresi: bos = tum sunucular. Varsayilan s66.
+// Sunucu filtresi: bos = tum sunucular. Varsayilan s66. Liste sabit degil;
+// archiveHosts meta koleksiyonundan okunan sunucular acilista dropdown'a eklenir.
 const ARCHIVE_DEFAULT_HOST = "s66-tr.bitefight.gameforge.com";
 const ARCHIVE_HOST_OPTIONS = new Set(["", "s66-tr.bitefight.gameforge.com", "s62-tr.bitefight.gameforge.com"]);
 function normalizeArchiveHost(value) {
   return ARCHIVE_HOST_OPTIONS.has(value) ? value : ARCHIVE_DEFAULT_HOST;
+}
+
+function archiveHostLabel(host) {
+  const match = String(host).match(/^([a-z0-9]+)[-.]/i);
+  return match ? match[1] : String(host);
+}
+
+function archiveHostSortKey(host) {
+  const match = String(host).match(/^s(\d+)/i);
+  return match ? Number(match[1]) : -1;
+}
+
+// archiveHosts meta koleksiyonundan sunucu listesini cekip dropdown'u yeniden kurar.
+// Yeni bir sunucudan (orn. s65) ilk arsiv kaydi dustugunde secenek otomatik belirir.
+async function populateArchiveHostOptions() {
+  if (!archiveHostFilterSelect || typeof window.BTFirebase?.loadArchiveHosts !== "function") {
+    return;
+  }
+  let remoteHosts = [];
+  try {
+    remoteHosts = await window.BTFirebase.loadArchiveHosts();
+  } catch {
+    return;
+  }
+
+  const merged = new Set([...ARCHIVE_HOST_OPTIONS, ...remoteHosts]);
+  merged.delete("");
+  const sorted = [...merged].sort((a, b) =>
+    archiveHostSortKey(b) - archiveHostSortKey(a) || a.localeCompare(b)
+  );
+  sorted.forEach((host) => ARCHIVE_HOST_OPTIONS.add(host));
+
+  const currentValue = archiveHostFilterSelect.value;
+  archiveHostFilterSelect.innerHTML = "";
+  sorted.forEach((host) => {
+    const option = document.createElement("option");
+    option.value = host;
+    option.textContent = archiveHostLabel(host);
+    archiveHostFilterSelect.appendChild(option);
+  });
+  const allOption = document.createElement("option");
+  allOption.value = "";
+  allOption.textContent = "Tumu";
+  archiveHostFilterSelect.appendChild(allOption);
+  archiveHostFilterSelect.value = ARCHIVE_HOST_OPTIONS.has(currentValue) ? currentValue : ARCHIVE_DEFAULT_HOST;
 }
 const ARCHIVE_TEST_STATUS_OPTIONS = new Set(["all", "tested", "untested"]);
 function normalizeTestStatusFilter(value) {
@@ -192,6 +238,7 @@ let archiveTestResultsCache = [];
 bindArchiveControls();
 bindArchiveEditModal();
 void bindAdminAuth();
+void populateArchiveHostOptions();
 void refreshArchiveView();
 void refreshArchiveTestedStats();
 
@@ -404,6 +451,7 @@ function bindArchiveControls() {
   });
 
   archiveRefreshBtn?.addEventListener("click", () => {
+    void populateArchiveHostOptions();
     void refreshArchiveView({ forceRemote: true });
     void refreshArchiveTestedStats({ forceFresh: true });
   });

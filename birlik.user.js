@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      1.8
-// @description  quick.html sonuclarini Bitefight savasa otomatik doldurur ve arsiv kaydi tutar
+// @version      2.0
+// @description  quick.html sonuclarini Bitefight savasa otomatik doldurur, arsiv kaydi tutar ve kat botu ile katlari otomatik gecer
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_xmlhttpRequest
+// @connect      bt-analiz.web.app
 // ==/UserScript==
 
 (function () {
@@ -15,7 +17,9 @@
 
   const FIREBASE_API_KEY = 'AIzaSyB6_mwliHgUXjCSidzZIBiQj_8hLkYvZV4';
   const FIRESTORE_ARCHIVE_URL = 'https://firestore.googleapis.com/v1/projects/bt-analiz/databases/(default)/documents/overviewArchives';
+  const FIRESTORE_ARCHIVE_HOSTS_URL = 'https://firestore.googleapis.com/v1/projects/bt-analiz/databases/(default)/documents/archiveHosts';
   const LAST_ARCHIVE_ID_KEY = 'btLastArchiveId';
+  const REGISTERED_HOST_KEY = 'btArchiveRegisteredHost';
   const LAST_ARCHIVE_PAYLOAD_KEY = 'btLastArchivePayload';
   const LAST_LOOT_SYNC_KEY = 'btLastLootSyncSignature';
   const ALLY_TIER_LABELS = {
@@ -343,6 +347,34 @@
     };
   }
 
+  // Host'u archiveHosts meta koleksiyonuna upsert eder; arsiv sayfasindaki sunucu
+  // dropdown'u bu listeden beslenir. Ayni host icin tekrar yazmamak adina GM'de tutulur.
+  async function registerArchiveHost(host) {
+    const normalized = String(host || '').trim();
+    if (!normalized || GM_getValue(REGISTERED_HOST_KEY, '') === normalized) {
+      return;
+    }
+    try {
+      const response = await fetch(`${FIRESTORE_ARCHIVE_HOSTS_URL}/${encodeURIComponent(normalized)}?key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            host: { stringValue: normalized },
+            updatedAt: { stringValue: new Date().toISOString() }
+          }
+        })
+      });
+      if (response.ok) {
+        GM_setValue(REGISTERED_HOST_KEY, normalized);
+      }
+    } catch {
+      // best-effort; arsiv kaydini engellemesin
+    }
+  }
+
   async function postArchiveRecord(payload, docId = '') {
     const finalDocId = docId || `overview_${Date.now()}_${Math.random().toString(36).slice(2, 9) || '0'}`;
     const response = await fetch(`${FIRESTORE_ARCHIVE_URL}?documentId=${encodeURIComponent(finalDocId)}&key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
@@ -360,6 +392,7 @@
       throw new Error(`Kayit basarisiz: ${response.status} ${response.statusText} ${message}`);
     }
 
+    void registerArchiveHost(payload.host);
     return finalDocId;
   }
 
@@ -472,6 +505,522 @@
       await sleep(580 + Math.random() * 180);
     }
   }
+
+  // ====================== KAT BOTU ======================
+  // Akis: kat sayfasinda GIR -> savas sayfasinda rakibi oku, BattleCore ile lokalde
+  // quick.html varsayilanlariyla cozum ara, doldur, BASLA -> sonuc sayfasinda hayata
+  // dondur + ILERI -> kat sayfasinda bir sonraki kati sec -> tekrar GIR.
+  // Hesap tamamen bu sekmede yapilir; quick.html sekmesine gerek yoktur.
+
+  const BOT_ENABLED_KEY = 'btBotEnabled';
+  const BOT_NEXT_STAGE_KEY = 'btBotNextStage';
+  const BOT_STOP_STAGE_KEY = 'btBotStopStage';
+  const BOT_DONE_KEY = 'btBotDone';
+  // Onerilen cozumun kazanma orani bunun altindaysa bot durur (quick popup %100 esdegeri).
+  const BOT_MIN_WIN_RATE = 0.995;
+  const BATTLE_CORE_URL = 'https://bt-analiz.web.app/battle-core.js';
+  // battle-core.js'teki ENEMY_UNITS / ALLY_UNITS sirasiyla ayni olmali.
+  const BOT_ENEMY_KEYS = ['skeletons', 'zombies', 'cultists', 'bonewings', 'corpses', 'wraiths', 'revenants', 'giants', 'broodmothers', 'liches'];
+  const BOT_ALLY_KEYS = ['bats', 'ghouls', 'thralls', 'banshees', 'necromancers', 'gargoyles', 'witches', 'rotmaws'];
+
+  let battleCorePromise = null;
+  let botTickStarted = false;
+
+  function gmFetchText(url) {
+    return new Promise((resolve, reject) => {
+      GM_xmlhttpRequest({
+        method: 'GET',
+        url,
+        onload: (response) => {
+          if (response.status >= 200 && response.status < 300) {
+            resolve(response.responseText);
+          } else {
+            reject(new Error(`HTTP ${response.status}`));
+          }
+        },
+        onerror: () => reject(new Error('istek basarisiz'))
+      });
+    });
+  }
+
+  // Motoru her oturumda canli siteden ceker; boylece motor guncellemeleri botu da gunceller.
+  function loadBattleCore() {
+    if (!battleCorePromise) {
+      battleCorePromise = (async () => {
+        const code = await gmFetchText(`${BATTLE_CORE_URL}?bot=${Date.now()}`);
+        (0, eval)(code);
+        const core = (typeof window !== 'undefined' && window.BattleCore) || globalThis.BattleCore;
+        if (!core || typeof core.optimizeArmyUsage !== 'function') {
+          throw new Error('BattleCore yuklenemedi');
+        }
+        return core;
+      })();
+      battleCorePromise.catch(() => {
+        battleCorePromise = null;
+      });
+    }
+    return battleCorePromise;
+  }
+
+  // optimizer.js getRunConfig'in "balanced" preseti, runIndex=1 (quick.html varsayilani).
+  // optimizer.js'te preset degisirse burayi da guncelle.
+  function getQuickRunConfig(stage) {
+    const seedOffsets = { fast: 1301, balanced: 2603, deep: 5209, ultra: 9203 };
+    const seedBase = 41017 + stage * 31 + 7919;
+    return {
+      trialCount: 6,
+      fullArmyTrials: 10,
+      beamWidth: 10,
+      maxIterations: 4,
+      eliteCount: 6,
+      stabilityTrials: 18,
+      exploratoryCandidateCount: 100,
+      exhaustiveCandidateLimit: 6000,
+      diversityCandidateCount: 0,
+      tekilCandidateCount: 0,
+      baseSeed: seedBase + seedOffsets.balanced,
+      timeBudgetMs: 0,
+      alternateBaseSeeds: [seedOffsets.fast, seedOffsets.deep, seedOffsets.ultra].map((offset) => seedBase + offset)
+    };
+  }
+
+  function parseEnemyCountsForBot() {
+    const counts = Object.fromEntries(BOT_ENEMY_KEYS.map((key) => [key, 0]));
+    let total = 0;
+    document.querySelectorAll('.enemySlot').forEach((slot) => {
+      const styleText = slot.getAttribute('style') || '';
+      const match = styleText.match(/enemyUnit_(\d+)\.jpg/i);
+      const qty = parseQtyValue(slot.querySelector('.qtyValue')?.textContent || '');
+      if (!match || qty === null) {
+        return;
+      }
+      const key = BOT_ENEMY_KEYS[Number.parseInt(match[1], 10) - 1];
+      if (key) {
+        counts[key] += qty;
+        total += qty;
+      }
+    });
+    return { counts, total };
+  }
+
+  // quick.html varsayilan havuzu: acik kademelerde 99 (T8 icin 1), kapali kademelerde 0.
+  function buildBotAllyPool() {
+    const openTiers = new Set(getOpenAllyTiers());
+    return Object.fromEntries(BOT_ALLY_KEYS.map((key, index) => {
+      const tier = index + 1;
+      if (!openTiers.has(tier)) {
+        return [key, 0];
+      }
+      return [key, tier === 8 ? 1 : 99];
+    }));
+  }
+
+  function parseBotMaxPoints() {
+    const text = getArmyPowerText();
+    const match = text.match(/\/(\d+)$/);
+    return match ? Number.parseInt(match[1], 10) : 0;
+  }
+
+  function getClickableText(el) {
+    if (el.tagName === 'INPUT') {
+      return normalizeTurkishText(el.value);
+    }
+    return normalizeTurkishText(el.textContent);
+  }
+
+  function isElementVisible(el) {
+    return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+  }
+
+  // Metne gore tiklanabilir eleman arar; ic ice eslesmelerde en icteki elemani dondurur.
+  function findClickableByText(predicate) {
+    const candidates = [...document.querySelectorAll('a, button, input[type="submit"], input[type="button"], div, span, p, td, li, h2, h3')]
+      .filter((el) => isElementVisible(el) && predicate(getClickableText(el), el));
+    const innermost = candidates.filter((el) => !candidates.some((other) => other !== el && el.contains(other)));
+    return innermost[0] || null;
+  }
+
+  function pageHasNormalizedText(snippet) {
+    return normalizeTurkishText(document.body?.textContent || '').includes(snippet);
+  }
+
+  async function waitForClickable(predicate, timeoutMs) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const el = findClickableByText(predicate);
+      if (el) {
+        return el;
+      }
+      await sleep(250);
+    }
+    return null;
+  }
+
+  function findKatElements() {
+    return [...document.querySelectorAll('a, button, div, span, p, td, li, h2, h3')]
+      .filter((el) => isElementVisible(el) && /^kat \d+$/.test(getClickableText(el)))
+      .filter((el, _i, list) => !list.some((other) => other !== el && el.contains(other)));
+  }
+
+  // Onizleme basligindaki "Kat N" degerini bulur (ZORLUK FAKTORU metnine yakin olan).
+  function detectSelectedStage() {
+    const katElements = findKatElements();
+    for (const el of katElements) {
+      let node = el.parentElement;
+      for (let depth = 0; node && depth < 6; depth += 1) {
+        const text = normalizeTurkishText(node.textContent);
+        if (text.includes('zorluk fakt')) {
+          const match = getClickableText(el).match(/^kat (\d+)$/);
+          return match ? Number.parseInt(match[1], 10) : null;
+        }
+        node = node.parentElement;
+      }
+    }
+    return null;
+  }
+
+  function isBattleSetupPage() {
+    return !!document.querySelector('.stepBtn') && !!document.querySelector('.enemySlot');
+  }
+
+  function isResultPage() {
+    return !isBattleSetupPage() && (
+      !!document.querySelector('.lootItemsDiv') ||
+      !!findClickableByText((text) => text.includes('olen birimleri hayata dondur'))
+    );
+  }
+
+  function isFloorPage() {
+    return !isBattleSetupPage() && !isResultPage() && findKatElements().length >= 3;
+  }
+
+  function isBotEnabled() {
+    return GM_getValue(BOT_ENABLED_KEY, false) === true;
+  }
+
+  function setBotStatus(text) {
+    GM_setValue('btBotStatus', text);
+    const statusEl = document.querySelector('#bt-bot-status');
+    if (statusEl) {
+      statusEl.textContent = text;
+    }
+  }
+
+  function stopBot(reason) {
+    GM_setValue(BOT_ENABLED_KEY, false);
+    setBotStatus(`Durdu: ${reason}`);
+    renderBotPanel();
+  }
+
+  function startBot(startStage, stopStage) {
+    GM_setValue(BOT_ENABLED_KEY, true);
+    GM_setValue(BOT_NEXT_STAGE_KEY, startStage);
+    GM_setValue(BOT_STOP_STAGE_KEY, stopStage || 0);
+    GM_setValue(BOT_DONE_KEY, 0);
+    setBotStatus(`Bot basladi: Kat ${startStage}`);
+    renderBotPanel();
+    botTickStarted = false;
+    void runBotTick();
+  }
+
+  async function handleBattlePage() {
+    const stage = GM_getValue(BOT_NEXT_STAGE_KEY, 0);
+    if (!stage) {
+      stopBot('Kat bilgisi yok; bota kat sayfasindan basla');
+      return;
+    }
+
+    setBotStatus(`Kat ${stage}: rakip okunuyor...`);
+    const enemy = parseEnemyCountsForBot();
+    if (!enemy.total) {
+      stopBot(`Kat ${stage}: rakip dizilisi okunamadi`);
+      return;
+    }
+
+    let core;
+    try {
+      setBotStatus(`Kat ${stage}: motor yukleniyor...`);
+      core = await loadBattleCore();
+    } catch (error) {
+      stopBot(`Motor yuklenemedi: ${error.message}`);
+      return;
+    }
+
+    const pool = buildBotAllyPool();
+    const maxPoints = parseBotMaxPoints() || core.getStagePointLimit(stage);
+    if (!maxPoints) {
+      stopBot(`Kat ${stage}: puan limiti okunamadi`);
+      return;
+    }
+
+    setBotStatus(`Kat ${stage}: cozum araniyor (puan ${maxPoints})...`);
+    await sleep(150);
+
+    const runConfig = getQuickRunConfig(stage);
+    let result;
+    try {
+      result = core.optimizeArmyUsage(pool, enemy.counts, {
+        maxPoints,
+        minimumUsedPoints: Math.max(0, Math.ceil(maxPoints * 0.75)),
+        maximumUsedPoints: maxPoints,
+        minimumRequiredCounts: {},
+        requiredLossCounts: {},
+        requiredLossExactFlags: {},
+        minWinRate: 0.75,
+        trialCount: runConfig.trialCount,
+        fullArmyTrials: runConfig.fullArmyTrials,
+        beamWidth: runConfig.beamWidth,
+        maxIterations: runConfig.maxIterations,
+        eliteCount: runConfig.eliteCount,
+        stabilityTrials: runConfig.stabilityTrials,
+        baseSeed: runConfig.baseSeed,
+        objective: 'min_loss',
+        roundingMode: 'legacy',
+        stoneMode: false,
+        diversityMode: false,
+        tekilMode: false,
+        tekilV2Mode: true,
+        exploratoryCandidateCount: runConfig.exploratoryCandidateCount,
+        exhaustiveCandidateLimit: runConfig.exhaustiveCandidateLimit,
+        timeBudgetMs: runConfig.timeBudgetMs,
+        alternateBaseSeeds: runConfig.alternateBaseSeeds,
+        diversityCandidateCount: runConfig.diversityCandidateCount,
+        tekilCandidateCount: runConfig.tekilCandidateCount,
+        knownSignatures: [],
+        seedCandidates: []
+      });
+    } catch (error) {
+      stopBot(`Kat ${stage}: hesap hatasi (${error.message})`);
+      return;
+    }
+
+    const source = result.possible ? result.recommendation : null;
+    const winRate = source ? Number(source.winRate || 0) : 0;
+    if (!source || winRate < BOT_MIN_WIN_RATE) {
+      stopBot(`Kat ${stage}: guvenli cozum yok (kazanma %${Math.round(winRate * 100)})`);
+      return;
+    }
+
+    const targets = {};
+    BOT_ALLY_KEYS.forEach((key, index) => {
+      const count = Number(source.counts?.[key] || 0);
+      if (count > 0) {
+        targets[index + 1] = count;
+      }
+    });
+
+    setBotStatus(`Kat ${stage}: %${Math.round(winRate * 100)} cozum dolduruluyor...`);
+    try {
+      await createArchiveRecord('fill', { targets, preferTargets: true });
+    } catch (error) {
+      console.error('Otomatik arsiv kaydi olusturulamadi.', error);
+    }
+
+    await fillUnits(targets);
+    if (!isBotEnabled()) {
+      return;
+    }
+
+    const startBtn = findClickableByText((text) => text === 'basla');
+    if (!startBtn) {
+      stopBot(`Kat ${stage}: BASLA butonu bulunamadi`);
+      return;
+    }
+    setBotStatus(`Kat ${stage}: savas baslatiliyor...`);
+    await sleep(900 + Math.random() * 600);
+    startBtn.click();
+  }
+
+  async function handleResultPage() {
+    const stage = GM_getValue(BOT_NEXT_STAGE_KEY, 0);
+    const victory = pageHasNormalizedText('zafer');
+
+    // Olen birim varsa hayata dondur (yenilgide de tas varsa kurtarmaya calis).
+    const reviveOpener = findClickableByText((text) => text.includes('olen birimleri hayata dondur'));
+    if (reviveOpener) {
+      setBotStatus(`Kat ${stage}: olen birimler hayata donduruluyor...`);
+      await sleep(900 + Math.random() * 500);
+      reviveOpener.click();
+      const confirmBtn = await waitForClickable(
+        (text) => text.endsWith('hayata dondur') && !text.includes('olen birimleri'),
+        6000
+      );
+      if (confirmBtn) {
+        await sleep(700 + Math.random() * 400);
+        confirmBtn.click();
+        await sleep(1400 + Math.random() * 500);
+      }
+    }
+
+    if (!victory) {
+      stopBot(`Kat ${stage}: zafer goremedim, sonucu kontrol et`);
+      return;
+    }
+
+    const done = GM_getValue(BOT_DONE_KEY, 0) + 1;
+    GM_setValue(BOT_DONE_KEY, done);
+    GM_setValue(BOT_NEXT_STAGE_KEY, stage + 1);
+
+    const stopStage = GM_getValue(BOT_STOP_STAGE_KEY, 0);
+    if (stopStage && stage >= stopStage) {
+      stopBot(`Hedef kat (${stopStage}) tamamlandi, ${done} kat gecildi`);
+      return;
+    }
+
+    const nextBtn = await waitForClickable((text) => text === 'ileri', 5000);
+    if (!nextBtn) {
+      stopBot(`Kat ${stage}: ILERI butonu bulunamadi`);
+      return;
+    }
+    setBotStatus(`Kat ${stage} tamam (${done} kat). Sonraki: Kat ${stage + 1}`);
+    await sleep(1100 + Math.random() * 700);
+    nextBtn.click();
+  }
+
+  async function handleFloorPage(attempt = 0) {
+    const target = GM_getValue(BOT_NEXT_STAGE_KEY, 0);
+    if (!target) {
+      stopBot('Hedef kat yok');
+      return;
+    }
+
+    const selected = detectSelectedStage();
+    if (selected === target) {
+      const enterBtn = findClickableByText((text) => text === 'gir');
+      if (!enterBtn) {
+        stopBot(`Kat ${target}: GIR bulunamadi (acma sarti dolmus olabilir)`);
+        return;
+      }
+      setBotStatus(`Kat ${target}: giriliyor...`);
+      await sleep(1000 + Math.random() * 600);
+      enterBtn.click();
+      return;
+    }
+
+    const katEl = findKatElements().find((el) => getClickableText(el) === `kat ${target}`);
+    if (!katEl) {
+      stopBot(`Kat ${target} listede bulunamadi`);
+      return;
+    }
+    setBotStatus(`Kat ${target} seciliyor...`);
+    await sleep(900 + Math.random() * 500);
+    katEl.click();
+
+    // Secim sayfa yenilemeden (AJAX) gerceklesirse ayni yuklemede tekrar dene.
+    if (attempt < 4) {
+      await sleep(2200);
+      if (isBotEnabled() && isFloorPage()) {
+        await handleFloorPage(attempt + 1);
+      }
+    }
+  }
+
+  async function runBotTick() {
+    if (botTickStarted || !isBotEnabled()) {
+      return;
+    }
+    botTickStarted = true;
+    try {
+      if (isBattleSetupPage()) {
+        await handleBattlePage();
+      } else if (isResultPage()) {
+        await handleResultPage();
+      } else if (isFloorPage()) {
+        await handleFloorPage();
+      }
+      // Taninmayan sayfalarda dokunma; kullanici gezinmeye devam edebilir.
+    } catch (error) {
+      console.error('Kat botu hatasi', error);
+      stopBot(`Beklenmeyen hata: ${error.message}`);
+    }
+  }
+
+  function renderBotPanel() {
+    const existing = document.querySelector('#bt-bot-panel');
+    if (existing) {
+      existing.remove();
+    }
+    if (!isBattleSetupPage() && !isResultPage() && !isFloorPage() && !isBotEnabled()) {
+      return;
+    }
+
+    const panel = document.createElement('div');
+    panel.id = 'bt-bot-panel';
+    panel.style.cssText = [
+      'position:fixed',
+      'bottom:24px',
+      'left:24px',
+      'z-index:99999',
+      'background:#1a0505',
+      'border:2px solid #ffd700',
+      'border-radius:10px',
+      'padding:10px 12px',
+      'min-width:190px',
+      'box-shadow:0 2px 12px rgba(0,0,0,0.8)',
+      'color:#ffd700',
+      'font-size:13px',
+      'display:flex',
+      'flex-direction:column',
+      'gap:8px'
+    ].join(';');
+
+    const status = document.createElement('div');
+    status.id = 'bt-bot-status';
+    status.style.cssText = 'color:#f3e2b3;font-size:12px;max-width:230px';
+    status.textContent = GM_getValue('btBotStatus', 'Kat botu hazir');
+    panel.appendChild(status);
+
+    if (isBotEnabled()) {
+      const stopBtn = buildActionButton('Botu Durdur', 'padding:8px 14px;font-size:13px');
+      stopBtn.onclick = () => {
+        stopBot('kullanici durdurdu');
+      };
+      panel.appendChild(stopBtn);
+    } else {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:6px;align-items:center';
+
+      const startInput = document.createElement('input');
+      startInput.type = 'number';
+      startInput.min = '1';
+      startInput.placeholder = 'Kat';
+      startInput.style.cssText = 'width:62px;padding:6px;border-radius:6px;border:1px solid #ffd700;background:#2a0a0a;color:#ffd700';
+      const detected = detectSelectedStage() || GM_getValue(BOT_NEXT_STAGE_KEY, 0);
+      if (detected) {
+        startInput.value = String(detected);
+      }
+
+      const stopInput = document.createElement('input');
+      stopInput.type = 'number';
+      stopInput.min = '0';
+      stopInput.placeholder = 'Son kat';
+      stopInput.title = 'Bos birakirsan durdurulana/yenilgiye kadar devam eder';
+      stopInput.style.cssText = startInput.style.cssText;
+      const storedStop = GM_getValue(BOT_STOP_STAGE_KEY, 0);
+      if (storedStop) {
+        stopInput.value = String(storedStop);
+      }
+
+      row.appendChild(startInput);
+      row.appendChild(stopInput);
+      panel.appendChild(row);
+
+      const startBtn = buildActionButton('Botu Baslat', 'padding:8px 14px;font-size:13px');
+      startBtn.onclick = () => {
+        const startStage = Number.parseInt(startInput.value, 10);
+        if (!Number.isInteger(startStage) || startStage < 1) {
+          setBotStatus('Gecerli bir baslangic kati gir');
+          return;
+        }
+        const stopStage = Number.parseInt(stopInput.value, 10);
+        startBot(startStage, Number.isInteger(stopStage) && stopStage > 0 ? stopStage : 0);
+      };
+      panel.appendChild(startBtn);
+    }
+
+    document.body.appendChild(panel);
+  }
+  // ====================== /KAT BOTU ======================
 
   function buildActionButton(label, extraStyle) {
     const button = document.createElement('button');

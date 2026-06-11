@@ -31,6 +31,10 @@
   const FAVORITE_COLLECTION = "favoriteStrategies";
   const OVERVIEW_ARCHIVE_COLLECTION = "overviewArchives";
   const ARCHIVE_TEST_COLLECTION = "archiveRegressionTests";
+  // Sunucu (host) listesi meta koleksiyonu: arsiv kaydi yazilirken host buraya da
+  // upsert edilir; arsiv sayfasi dropdown'u tum koleksiyonu degil bu kucuk listeyi okur.
+  const ARCHIVE_HOST_COLLECTION = "archiveHosts";
+  const ARCHIVE_HOST_CACHE_KEY = "btAnalyssArchiveHostsCacheV1";
   const DEFAULT_PAGE_SIZE = 10;
   const ENEMY_COUNT_KEYS = [
     "skeletons", "zombies", "cultists", "bonewings", "corpses",
@@ -1842,6 +1846,96 @@
     return response.json().catch(() => null);
   }
 
+  // Arsiv kaydindaki host'u meta koleksiyona upsert eder (best-effort, akisi bloklamaz).
+  async function registerArchiveHost(host) {
+    const normalized = String(host || "").trim();
+    if (!normalized || normalized.length > 120) {
+      return;
+    }
+    const payload = { host: normalized, updatedAt: new Date().toISOString() };
+    try {
+      if (db) {
+        await db.collection(ARCHIVE_HOST_COLLECTION).doc(normalized).set(payload);
+        return;
+      }
+      if (typeof globalScope.fetch === "function") {
+        await globalScope.fetch(
+          `${firestoreRestBaseUrl}/${ARCHIVE_HOST_COLLECTION}/${encodeURIComponent(normalized)}?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fields: {
+                host: { stringValue: payload.host },
+                updatedAt: { stringValue: payload.updatedAt }
+              }
+            })
+          }
+        );
+      }
+    } catch (error) {
+      console.warn("Arsiv sunucu listesi guncellenemedi.", error);
+    }
+  }
+
+  function readArchiveHostCache() {
+    try {
+      const raw = localStorage.getItem(ARCHIVE_HOST_CACHE_KEY);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.hosts)) {
+        return parsed;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  // archiveHosts koleksiyonunu okur (sunucu basina 1 dokuman, toplam ~birkac okuma).
+  // Maliyet ihmal edilebilir oldugundan her cagrida canli okunur; localStorage cache
+  // yalnizca okuma hatasinda fallback olarak kullanilir. Yeni sunucu boylece
+  // gecikmesiz dropdown'a duser.
+  async function loadArchiveHosts() {
+    const cached = readArchiveHostCache();
+    let hosts = [];
+    try {
+      if (db) {
+        const snapshot = await db.collection(ARCHIVE_HOST_COLLECTION).get();
+        hosts = (Array.isArray(snapshot?.docs) ? snapshot.docs : [])
+          .map((doc) => {
+            const data = typeof doc?.data === "function" ? doc.data() : {};
+            return String(data?.host || doc?.id || "").trim();
+          })
+          .filter(Boolean);
+      } else if (typeof globalScope.fetch === "function") {
+        const response = await globalScope.fetch(
+          `${firestoreRestBaseUrl}/${ARCHIVE_HOST_COLLECTION}?key=${encodeURIComponent(firebaseConfig.apiKey)}`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const body = await response.json().catch(() => null);
+        hosts = (Array.isArray(body?.documents) ? body.documents : [])
+          .map((doc) => String(doc?.fields?.host?.stringValue || "").trim())
+          .filter(Boolean);
+      }
+    } catch (error) {
+      console.warn("Arsiv sunucu listesi okunamadi, cache kullaniliyor.", error);
+      return cached ? cached.hosts.slice() : [];
+    }
+
+    const unique = Array.from(new Set(hosts)).sort();
+    try {
+      localStorage.setItem(ARCHIVE_HOST_CACHE_KEY, JSON.stringify({ hosts: unique, fetchedAt: Date.now() }));
+    } catch {
+      // cache yazimi best-effort
+    }
+    return unique;
+  }
+
   async function upsertArchiveRegressionTestViaRest(docId, payload) {
     if (typeof globalScope.fetch !== "function") {
       throw new Error("REST fallback icin fetch kullanilamiyor.");
@@ -3110,12 +3204,14 @@
 
     try {
       await db.collection(OVERVIEW_ARCHIVE_COLLECTION).doc(docId).set(payload);
+      void registerArchiveHost(payload.host);
       const next = mergeOverviewArchives([...readOverviewArchives(), { ...payload, id: docId }]);
       writeOverviewArchives(next);
       return { ...payload, id: docId };
     } catch (error) {
       if (error?.code === "permission-denied") {
         const response = await createOverviewArchiveViaRest(docId, payload);
+        void registerArchiveHost(payload.host);
         const next = mergeOverviewArchives([...readOverviewArchives(), { ...payload, id: docId }]);
         writeOverviewArchives(next);
         return { ...payload, id: docId, savedVia: response ? "rest-fallback" : "rest-fallback" };
@@ -3151,6 +3247,7 @@
     }
 
     await db.collection(OVERVIEW_ARCHIVE_COLLECTION).doc(docId).set(payload);
+    void registerArchiveHost(payload.host);
     const next = mergeOverviewArchives([...readOverviewArchives().filter((candidate) => candidate.id !== docId), { ...payload, id: docId }]);
     writeOverviewArchives(next);
     return next.find((candidate) => candidate.id === docId) || { ...payload, id: docId };
@@ -3338,6 +3435,8 @@
     getOverviewArchiveCacheInfo,
     saveOverviewArchive,
     updateOverviewArchive,
+    registerArchiveHost,
+    loadArchiveHosts,
     markOverviewArchiveTested,
     deleteOverviewArchive,
     deleteOverviewArchives,

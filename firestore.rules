@@ -337,10 +337,24 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    function validArchiveHost(data, documentId) {
+      return data.keys().hasOnly(['host', 'updatedAt'])
+        && data.keys().hasAll(['host'])
+        && data.host == documentId
+        && isShortString(data.host, 120)
+        && (!('updatedAt' in data) || isShortString(data.updatedAt, 40));
+    }
+
     match /overviewArchives/{documentId} {
       allow read: if true;
       allow create: if validOverviewArchive(request.resource.data, documentId);
       allow update: if isAdmin() || validOverviewArchive(request.resource.data, documentId);
+      allow delete: if isAdmin();
+    }
+
+    match /archiveHosts/{documentId} {
+      allow read: if true;
+      allow create, update: if validArchiveHost(request.resource.data, documentId);
       allow delete: if isAdmin();
     }
 
