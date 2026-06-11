@@ -373,13 +373,26 @@
       if (shouldRound) {
         return roundCombatValue(normalizedValue);
       }
-      // Tam .5 kesirli muttefik hasari gercek oyunda deterministik degil:
-      // ayni 3.5'lik vurus bir savasta 4, digerinde 3 olarak gerceklesiyor
-      // (arsiv kat2#5 vs fail #3). Seed'li yazi-tura iki dunyayi da kapsar.
+      // Birim basina tam .5 kesirli muttefik hasari gercek oyunda deterministik
+      // degil: ayni 3.5'lik banshee vurusu bir savasta 4, digerinde 3 olarak
+      // gerceklesiyor (arsiv kat2#5 vs fail #3); 7 banshee'nin 24.5'i bir
+      // savasta 23 kultisti silerken digerinde sag birakiyor (fail #8).
+      // Her birim icin bagimsiz seed'li yazi-tura (binom dagilimi) iki
+      // dunyayi da kapsar; n=1'de tekil yazi-turaya indirgenir.
       if (rng && side === "ally") {
-        const fraction = normalizedValue - Math.floor(normalizedValue);
-        if (Math.abs(fraction - 0.5) < 1e-9) {
-          return rng() < 0.5 ? floorCombatValue(normalizedValue) : ceilCombatValue(normalizedValue);
+        const unitCount = attackerIndex >= 0 ? (unitNumbers?.[attackerIndex] || 0) : 0;
+        if (unitCount > 0) {
+          const perUnitDamage = normalizedValue / unitCount;
+          const perUnitFraction = perUnitDamage - Math.floor(perUnitDamage);
+          if (Math.abs(perUnitFraction - 0.5) < 1e-9) {
+            let total = Math.floor(perUnitDamage) * unitCount;
+            for (let u = 0; u < unitCount; u += 1) {
+              if (rng() >= 0.5) {
+                total += 1;
+              }
+            }
+            return total;
+          }
         }
       }
       return ceilCombatValue(normalizedValue);

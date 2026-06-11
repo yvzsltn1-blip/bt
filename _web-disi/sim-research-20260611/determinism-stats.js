@@ -15,7 +15,7 @@ context.window.window = context.window;
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(__dirname, "battle-core-flags.js"), "utf8"), context, { filename: "battle-core-flags.js" });
 const core = context.window.BattleCore;
-context.window.__SIM_FLAGS__ = { noRecomputeOnZeroDamage: true, allyHalfRandom: true };
+context.window.__SIM_FLAGS__ = { noRecomputeOnZeroDamage: true, ...JSON.parse(process.argv[2] || '{"allyHalfRandom":true}') };
 
 function parseCountsBlock(text, prefix, keys) {
   const counts = Object.fromEntries(keys.map((k) => [k, 0]));

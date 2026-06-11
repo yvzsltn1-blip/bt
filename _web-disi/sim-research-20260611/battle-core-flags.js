@@ -654,6 +654,7 @@
 
       bansheesReducePrevTarget = bansheesReduceTarget;
       let bansheesReduceRound = -1;
+      let bansheesReduceCount = 0;
       bansheesReduceTarget = -1;
       let gargoylesReactiveReduceEvent = false;
       let gargoylesReactiveReduceEnemyIndex = -1;
@@ -772,14 +773,18 @@
         }
         // Simulat motorundaki Ambush: banshee/bonewings raundun ilk canli birimiyse +%20.
         const firstAliveInOrder = attackerOrder.find((idx) => unitNumbers[idx] > 0);
+        let ambushApplied = false;
         if (FLAGS.bansheeAmbushTurn1 && attackerIndex === BANSHEES_INDEX && turnCount === 1) {
           damageMultiplier *= 1.2;
+          ambushApplied = true;
         }
         if (FLAGS.bansheeAmbushEveryRound && attackerIndex === BANSHEES_INDEX && attackerIndex === firstAliveInOrder) {
           damageMultiplier *= 1.2;
+          ambushApplied = true;
         }
         if (FLAGS.ambushEveryRound && (attackerIndex === BANSHEES_INDEX || attackerIndex === BONEWINGS_INDEX) && attackerIndex === firstAliveInOrder) {
           damageMultiplier *= 1.2;
+          ambushApplied = true;
         }
 
         if (attackerIndex === WRAITHS_INDEX) {
@@ -812,6 +817,7 @@
         if (attackerIndex === BANSHEES_INDEX) {
           bansheesReduceRound = roundCount;
           bansheesReduceTarget = defenderIndex;
+          bansheesReduceCount = unitNumbers[BANSHEES_INDEX];
           log(`- ${UNIT_DESC[BANSHEES_INDEX][NAME_INDEX]}, ${UNIT_DESC[bansheesReduceTarget][NAME_INDEX]} hasarini %25 azaltti`);
         }
         const bansheeDebuffApplies = FLAGS.bansheeDebuffNextRound
@@ -820,7 +826,14 @@
             ? (attackerIndex === bansheesReducePrevTarget || (bansheesReduceRound === roundCount && attackerIndex === bansheesReduceTarget))
             : (bansheesReduceRound === roundCount && attackerIndex === bansheesReduceTarget);
         if (!FLAGS.bansheeDebuffOff && bansheeDebuffApplies) {
-          damageMultiplier *= 0.75;
+          if (FLAGS.bansheeDebuffScaled) {
+            const cover = Math.min(1, bansheesReduceCount / Math.max(1, unitNumbers[attackerIndex]));
+            damageMultiplier *= 1 - 0.25 * cover;
+          } else if (FLAGS.bansheeDebuffRandom) {
+            if (rng() < 0.5) damageMultiplier *= 0.75;
+          } else {
+            damageMultiplier *= 0.75;
+          }
           log(`- ${UNIT_DESC[attackerIndex][NAME_INDEX]}, -%25 azalmis hasarla saldiriyor`);
         }
 
@@ -861,6 +874,19 @@
           const frac = raw - Math.floor(raw);
           const isHalf = Math.abs(frac - 0.5) < 1e-9;
           const isAlly = attackerSide === "ally";
+          if (FLAGS.ambushRound && ambushApplied) return roundCombatValue(raw);
+          if ((FLAGS.perUnitHalfRandom ? isAlly : FLAGS.perUnitHalfRandomBoth && attackerIndex !== WRAITHS_INDEX) && !(attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1)) {
+            const perUnit = UNIT_DESC[attackerIndex][ATTACK_INDEX] * damageMultiplier * unitBuffs[attackerIndex];
+            const perFrac = perUnit - Math.floor(perUnit);
+            if (Math.abs(perFrac - 0.5) < 1e-9) {
+              const n = unitNumbers[attackerIndex];
+              let total = Math.floor(perUnit) * n;
+              for (let u = 0; u < n; u += 1) {
+                if (rng() >= 0.5) total += 1;
+              }
+              return total;
+            }
+          }
           if (FLAGS.halfRandom && isHalf) return rng() < 0.5 ? floorCombatValue(raw) : ceilCombatValue(raw);
           if (FLAGS.allyHalfRandom && isAlly && isHalf) return rng() < 0.5 ? floorCombatValue(raw) : ceilCombatValue(raw);
           if (FLAGS.allyHalfRandomKeepSpecials && isAlly && isHalf && !(attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1)) {
