@@ -266,6 +266,8 @@ async function bindAdminAuth() {
         testsDeleteSkippedBtn.hidden = !isAdmin;
       }
       syncRetestControls();
+      // Kart basina silme butonlari admin durumuna gore gorunur/gizlenir.
+      renderList();
     }
   });
 }
@@ -608,6 +610,7 @@ function buildTestCard(item) {
   const hostLabel = shortHost(item?.host);
   const resultBadgeText = RESULT_LABELS[item?.result] || "ATLANDI";
   const canSim = hasSimCounts(item);
+  const canDelete = isAdminSession && typeof item?.id === "string" && item.id;
 
   let headerHtml = `
     <div class="trc-header">
@@ -626,6 +629,7 @@ function buildTestCard(item) {
       <div class="trc-header-actions">
         <span class="trc-status-badge">${resultBadgeText}</span>
         ${canSim ? `<button class="trc-sim-btn" type="button" title="Simulatorde Gor" aria-label="Simulatorde Gor"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>` : ""}
+        ${canDelete ? `<button class="trc-delete-btn" type="button" title="Kaydi Sil" aria-label="Kaydi Sil"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"/></svg></button>` : ""}
       </div>
     </div>
   `;
@@ -740,7 +744,50 @@ function buildTestCard(item) {
     });
   }
 
+  if (canDelete) {
+    const deleteBtn = card.querySelector(".trc-delete-btn");
+    deleteBtn?.addEventListener("click", () => {
+      void deleteSingleTest(item, deleteBtn);
+    });
+  }
+
   return card;
+}
+
+// Tek test kaydini siler; bagli arsiv kaydina dokunmaz (arsiv "tested" kaldigi
+// icin toplu testte yeniden olusmaz). Liste ve sayaclar yerel olarak guncellenir.
+async function deleteSingleTest(item, button) {
+  if (!isAdminSession) {
+    window.alert("Bu islem icin admin oturumu gerekli.");
+    return;
+  }
+  if (!window.BTFirebase || typeof window.BTFirebase.deleteArchiveRegressionTest !== "function") {
+    window.alert("Silme servisi hazir degil.");
+    return;
+  }
+  const stageLabel = Number.isInteger(item?.stage) ? `${item.stage}. Kat` : "Arsiv kaydi";
+  const dateLabel = item?.archiveSavedAt ? ` (${formatStamp(item.archiveSavedAt)})` : "";
+  if (!window.confirm(`${stageLabel}${dateLabel} test sonucu kalici olarak silinecek. Devam edilsin mi?`)) {
+    return;
+  }
+  if (button) {
+    button.disabled = true;
+  }
+  try {
+    await window.BTFirebase.deleteArchiveRegressionTest(item.id);
+    loadedItems = loadedItems.filter((candidate) => candidate?.id !== item.id);
+    const tabKey = item?.result === "fail" ? "fail" : item?.result === "skipped" ? "skipped" : "pass";
+    counts[tabKey] = Math.max(0, Number(counts[tabKey] || 0) - 1);
+    counts.total = Math.max(0, Number(counts.total || 0) - 1);
+    renderCounts();
+    renderList();
+  } catch (error) {
+    console.warn("Test kaydi silinemedi.", error);
+    window.alert(`Silme basarisiz: ${String(error?.message || error || "Bilinmeyen hata")}`);
+    if (button) {
+      button.disabled = false;
+    }
+  }
 }
 
 function hasSimCounts(item) {

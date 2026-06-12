@@ -2751,6 +2751,24 @@
     writeArchiveRegressionTests([]);
   }
 
+  // Tek bir test sonucunu siler (bagli arsiv kaydina dokunmaz). Admin gerektirir.
+  async function deleteArchiveRegressionTest(id) {
+    const docId = typeof id === "string" ? id.trim() : "";
+    if (!docId) {
+      throw new Error("Silinecek test kaydinin kimligi yok.");
+    }
+    if (!db) {
+      writeArchiveRegressionTests(readArchiveRegressionTests().filter((item) => item?.id !== docId));
+      return;
+    }
+    const currentUser = auth ? auth.currentUser : null;
+    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+      throw new Error("Test kaydi silmek icin admin girisi zorunludur.");
+    }
+    await db.collection(ARCHIVE_TEST_COLLECTION).doc(docId).delete();
+    writeArchiveRegressionTests(readArchiveRegressionTests().filter((item) => item?.id !== docId));
+  }
+
   async function deleteSkippedArchiveRegressionTests(options = {}) {
     const host = typeof options.host === "string" ? options.host : "";
     const isSkippedForHost = (item) => (
@@ -3448,6 +3466,7 @@
     saveArchiveRegressionTest,
     getArchiveRegressionTestedSignatures,
     buildArchiveRegressionTestDocId,
+    deleteArchiveRegressionTest,
     deleteSkippedArchiveRegressionTests,
     clearArchiveRegressionTests
   };

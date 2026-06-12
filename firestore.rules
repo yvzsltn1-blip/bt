@@ -352,6 +352,25 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Gecici hata ayiklama: kat botu icin sayfa HTML dokumleri (script/stil/oturum
+    // degerleri istemcide temizlenir). Is bitince admin tarafindan silinir.
+    function validBotDump(data, documentId) {
+      return documentId.matches('^dump_[0-9]+_[a-z0-9]+$')
+        && data.keys().hasOnly(['savedAt', 'pageUrl', 'pageTitle', 'kind', 'html'])
+        && data.keys().hasAll(['savedAt', 'html'])
+        && isShortString(data.savedAt, 40)
+        && (!('pageUrl' in data) || isTextString(data.pageUrl, 400))
+        && (!('pageTitle' in data) || isTextString(data.pageTitle, 160))
+        && (!('kind' in data) || isTextString(data.kind, 40))
+        && data.html is string && data.html.size() <= 900000;
+    }
+
+    match /botDumps/{documentId} {
+      allow read: if true;
+      allow create: if validBotDump(request.resource.data, documentId);
+      allow delete: if isAdmin();
+    }
+
     match /archiveHosts/{documentId} {
       allow read: if true;
       allow create, update: if validArchiveHost(request.resource.data, documentId);

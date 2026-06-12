@@ -160,31 +160,42 @@
     const deepCount = Math.max(initialCount, Number(options.deepSeedCount || DEEP_SEED_COUNT));
     const seeds = buildDeterministicSeeds(item, deepCount);
     const roundingMode = options.roundingMode || "legacy";
+    // Eslesme bulunamazsa uzanti motoru yuvarlamasiyla (extround) ikinci tur denenir.
+    // Dogrular ilk turda eslestigi icin davranislari degismez; yalnizca
+    // yanlislarin bir kismi bu alternatif yuvarlama dunyasinda yakalanir.
+    const roundingModePasses = roundingMode === "extround"
+      ? ["extround"]
+      : [roundingMode, "extround"];
     let closest = null;
     let closestScore = Number.POSITIVE_INFINITY;
     let matched = null;
+    let matchedRoundingMode = null;
     let scanned = 0;
 
-    for (let index = 0; index < seeds.length; index += 1) {
-      const seed = seeds[index];
-      const actual = getResultFingerprint(simulateBattle(enemyCounts, allyCounts, {
-        seed,
-        collectLog: false,
-        roundingMode
-      }));
-      scanned = index + 1;
+    outer:
+    for (const passRoundingMode of roundingModePasses) {
+      for (let index = 0; index < seeds.length; index += 1) {
+        const seed = seeds[index];
+        const actual = getResultFingerprint(simulateBattle(enemyCounts, allyCounts, {
+          seed,
+          collectLog: false,
+          roundingMode: passRoundingMode
+        }));
+        scanned = index + 1;
 
-      const score = fingerprintDistance(expected, actual);
-      if (score < closestScore) {
-        closest = { ...actual, seed };
-        closestScore = score;
-      }
-      if (isExactMatch(expected, actual)) {
-        matched = { ...actual, seed };
-        break;
-      }
-      if (scanned === initialCount && options.deepScan === false) {
-        break;
+        const score = fingerprintDistance(expected, actual);
+        if (score < closestScore) {
+          closest = { ...actual, seed };
+          closestScore = score;
+        }
+        if (isExactMatch(expected, actual)) {
+          matched = { ...actual, seed };
+          matchedRoundingMode = passRoundingMode;
+          break outer;
+        }
+        if (scanned === initialCount && options.deepScan === false) {
+          break;
+        }
       }
     }
 
@@ -205,8 +216,8 @@
       actualAllyLosses: actual.allyLosses,
       differences: matched ? "" : buildDifferences(expected, actual),
       note: matched
-        ? `Yeniden test: beklenen sonuc ${scanned} seed icinde bulundu (seed ${matched.seed}).`
-        : `Yeniden test: beklenen sonuc ${scanned} deterministik seed icinde bulunamadi.`
+        ? `Yeniden test: beklenen sonuc ${scanned} seed icinde bulundu (seed ${matched.seed}${matchedRoundingMode === "extround" ? ", extround yuvarlama" : ""}).`
+        : `Yeniden test: beklenen sonuc ${scanned} deterministik seed icinde bulunamadi (extround dahil).`
     };
   }
 

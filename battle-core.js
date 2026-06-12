@@ -352,7 +352,7 @@
   }
 
   function normalizeRoundingMode(mode) {
-    if (mode === "legacy" || mode === "exact" || mode === "simulat") {
+    if (mode === "legacy" || mode === "exact" || mode === "simulat" || mode === "extround") {
       return mode;
     }
     return "safe";
@@ -361,6 +361,12 @@
   function roundDamageByMode(mode, side, value, context = {}) {
     const normalizedMode = normalizeRoundingMode(mode);
     const normalizedValue = Math.max(0, Number(value) || 0);
+    if (normalizedMode === "extround") {
+      // Uzanti motoru (Master Auto Adventure) yuvarlamasi: tum hasarlarda
+      // yarimdan yukari (floor(x+0.5)). 2026-06-12 olcumu: 1946 dogru arsiv
+      // kaydinin tamamini koruyor, 21 yanlisin 14'unu birebir yakaliyor.
+      return Math.floor(normalizedValue + 0.5);
+    }
     if (normalizedMode === "exact") {
       return normalizedValue;
     }

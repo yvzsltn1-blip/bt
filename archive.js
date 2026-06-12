@@ -1048,6 +1048,7 @@ function renderArchivePage() {
             <th>EXP</th>
             <th>Seviye</th>
             <th>Kat</th>
+            <th>Tas</th>
             <th class="archive-detail-col">Detay</th>
             <th class="archive-actions-col">Islem</th>
           </tr>
@@ -1168,6 +1169,7 @@ function renderArchiveRow(item) {
       <td class="archive-exp-cell">${escapeHtml(formatNumber(item?.expValue, item?.expText || "-"))}</td>
       <td>${escapeHtml(item?.levelText || "-")}</td>
       <td>${escapeHtml(formatArmyPowerDisplay(item?.armyPowerText || "-"))}</td>
+      <td class="archive-stone-cell">${escapeHtml(formatArchiveStoneDisplay(item?.reviveStoneText))}</td>
       <td class="archive-detail-cell">${renderArchiveDetailButton(item, isExpanded)}</td>
       <td class="archive-action-cell">${renderArchiveActionGroup(item)}</td>
     </tr>
@@ -1194,6 +1196,7 @@ function renderArchiveCard(item) {
         ${renderArchiveCardMetric("EXP", formatNumber(item?.expValue, item?.expText || "-"))}
         ${renderArchiveCardMetric("Seviye", item?.levelText || "-")}
         ${renderArchiveCardMetric("Kat", formatArmyPowerDisplay(item?.armyPowerText || "-"))}
+        ${renderArchiveCardMetric("Tas", formatArchiveStoneDisplay(item?.reviveStoneText))}
       </div>
     </article>
   `;
@@ -1314,7 +1317,7 @@ function renderArchiveDetailRow(item) {
 
   return `
     <tr class="archive-detail-row">
-      <td colspan="8">
+      <td colspan="9">
         <div class="archive-detail-panel archive-detail-panel-inline">
           ${detailLines}
         </div>
@@ -1415,6 +1418,16 @@ function formatArmyPowerDisplay(value) {
   }
 
   return text;
+}
+
+// Cehennem tasi sutunu: bilinmiyorsa "-", harcanan sayi varsa o (0 dahil) gosterilir.
+function formatArchiveStoneDisplay(value) {
+  const text = String(value ?? "").trim();
+  if (!text || text === "-") {
+    return "-";
+  }
+  const numeric = Number.parseInt(text.replace(/[^\d-]/g, ""), 10);
+  return Number.isFinite(numeric) ? String(Math.max(0, numeric)) : text;
 }
 
 function findArchiveItemById(id) {

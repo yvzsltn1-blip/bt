@@ -6368,7 +6368,7 @@ body.simulation-log-fullscreen {
   }
 
   .archive-table {
-    min-width: 634px;
+    min-width: 692px;
     border-collapse: separate;
     border-spacing: 0;
   }
@@ -6463,60 +6463,73 @@ body.simulation-log-fullscreen {
     color: #ffffff;
   }
 
-  /* 2. Ganimet sütunu */
+  /* Tas sütunu (Kat'tan hemen sonra, baslik ve deger ortali) */
+  .archive-table th:nth-child(7),
+  .archive-table td:nth-child(7) {
+    width: 58px;
+    min-width: 58px;
+    flex: 0 0 58px;
+    order: 3;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Ganimet sütunu */
   .archive-table th:nth-child(3),
   .archive-table td:nth-child(3) {
     width: 95px;
     min-width: 95px;
     flex: 0 0 95px;
-    order: 3;
+    order: 4;
   }
 
-  /* 3. EXP sütunu */
+  /* EXP sütunu */
   .archive-table th:nth-child(4),
   .archive-table td:nth-child(4) {
     width: 85px;
     min-width: 85px;
     flex: 0 0 85px;
-    order: 4;
+    order: 5;
   }
 
-  /* 4. Seviye sütunu */
+  /* Seviye sütunu */
   .archive-table th:nth-child(5),
   .archive-table td:nth-child(5) {
     width: 65px;
     min-width: 65px;
     flex: 0 0 65px;
-    order: 5;
+    order: 6;
     text-align: center;
   }
 
-  /* 5. Tarih sütunu */
+  /* Tarih sütunu */
   .archive-table th:nth-child(2),
   .archive-table td:nth-child(2) {
     width: 138px;
     min-width: 138px;
     flex: 0 0 138px;
-    order: 6;
+    order: 7;
     padding-right: 18px;
   }
 
-  .archive-table th:nth-child(7),
-  .archive-table td:nth-child(7) {
+  /* Detay sütunu */
+  .archive-table th:nth-child(8),
+  .archive-table td:nth-child(8) {
     width: 66px;
     min-width: 66px;
     flex: 0 0 66px;
-    order: 7;
+    order: 8;
     text-align: center;
     padding-left: 14px;
   }
 
-  .archive-table th:nth-child(8),
-  .archive-table td:nth-child(8) {
+  /* Islem sütunu (sil/duzenle) */
+  .archive-table th:nth-child(9),
+  .archive-table td:nth-child(9) {
     width: 72px;
     min-width: 72px;
     flex: 0 0 72px;
-    order: 8;
+    order: 9;
     text-align: center;
   }
 
@@ -7611,6 +7624,44 @@ body[data-optimizer-variant="quick"] .controls-panel {
   height: 16px;
   fill: currentColor;
   stroke: none;
+}
+
+.trc-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.trc-delete-btn:hover {
+  background: rgba(255, 107, 107, 0.26);
+}
+
+.trc-delete-btn:active {
+  transform: scale(0.94);
+}
+
+.trc-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.trc-delete-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .tests-load-more {
