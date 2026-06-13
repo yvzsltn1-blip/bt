@@ -135,7 +135,9 @@
       "Bash(git rev-list *)",
       "Bash(git config *)",
       "PowerShell(& \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6 - Kopya\\\\github-yedekle.ps1\")",
-      "PowerShell(& \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6 - Kopya\\\\github-yedekle.ps1\"; \"EXIT=$LASTEXITCODE\")"
+      "PowerShell(& \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6 - Kopya\\\\github-yedekle.ps1\"; \"EXIT=$LASTEXITCODE\")",
+      "Bash(export FILTER_BRANCH_SQUELCH_WARNING=1)",
+      "Bash(git filter-branch *)"
     ]
   }
 }

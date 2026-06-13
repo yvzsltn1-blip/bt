@@ -4,3 +4,5 @@ __pycache__/
 .backups/
 colab-workspace/runs/
 colab-workspace/LOCAL_STATE.md
+# Yerel repo snapshot zip'leri (GitHub 100MB limitini asar; surumlemeye girmez)
+_web-disi/local-backups/
