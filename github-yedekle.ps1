@@ -80,7 +80,7 @@ Step-OK
 
 # ---- 2/4 Yerel yedekleri commit disi birak ----
 Write-Step 2 4 'Yerel yedekler haric tutuluyor...'
-git reset HEAD -- "_web-disi/local-backups" 2>$null | Out-Null
+git rm -r --cached --ignore-unmatch "_web-disi/local-backups" 2>$null | Out-Null
 Step-OK
 
 # ---- 3/4 Commit ----
@@ -123,3 +123,4 @@ Write-Host ("  $vb{0,-$($W+2)}$vb" -f $msg) -ForegroundColor Green
 Write-Host "  $bl$line$br" -ForegroundColor Green
 Write-Host ''
 exit 0
+
