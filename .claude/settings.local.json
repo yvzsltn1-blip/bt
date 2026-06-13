@@ -137,7 +137,9 @@
       "PowerShell(& \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6 - Kopya\\\\github-yedekle.ps1\")",
       "PowerShell(& \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6 - Kopya\\\\github-yedekle.ps1\"; \"EXIT=$LASTEXITCODE\")",
       "Bash(export FILTER_BRANCH_SQUELCH_WARNING=1)",
-      "Bash(git filter-branch *)"
+      "Bash(git filter-branch *)",
+      "Bash(git cat-file *)",
+      "Bash(awk '{printf \"%.1f MB  %s\\\\n\", $1/1048576, $2}')"
     ]
   }
 }
