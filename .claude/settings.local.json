@@ -129,7 +129,13 @@
       "Bash(npx --yes js-beautify js/simulator-worker.js)",
       "Bash(npx --yes js-beautify js/wk.js)",
       "Bash(grep -iv \"comment\\\\|//\")",
-      "Bash(grep -o \"s[0-9]*$\")"
+      "Bash(grep -o \"s[0-9]*$\")",
+      "Bash(xargs -0 -I{} find {} -size +95M)",
+      "Bash(git fetch *)",
+      "Bash(git rev-list *)",
+      "Bash(git config *)",
+      "PowerShell(& \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6 - Kopya\\\\github-yedekle.ps1\")",
+      "PowerShell(& \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6 - Kopya\\\\github-yedekle.ps1\"; \"EXIT=$LASTEXITCODE\")"
     ]
   }
 }

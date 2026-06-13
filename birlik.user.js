@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      3.0
+// @version      3.1
 // @description  quick.html sonuclarini Bitefight savasa otomatik doldurur, arsiv kaydi tutar ve kat botu ile katlari otomatik gecer
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -544,6 +544,12 @@
   const BOT_NEXT_STAGE_KEY = 'btBotNextStage';
   const BOT_STOP_STAGE_KEY = 'btBotStopStage';
   const BOT_DONE_KEY = 'btBotDone';
+  // Girise kapali (bekleme suresi olan) katlari atlarken art arda kac kat atlandigini
+  // tutar; sonsuz atlamayi onlemek icin kullanilir. Basarili giris/zaferde sifirlanir.
+  const BOT_SKIP_COUNT_KEY = 'btBotSkipCount';
+  // Sayfa taninmayinca (yarim yuklenmis sayfa, gecici hata) yapilan toparlanma denemesi
+  // sayacini ve zaman damgasini tutar; surekli basarisiz toparlanmada bot durur.
+  const BOT_RECOVER_KEY = 'btBotRecoverState';
   // Onerilen cozumun kazanma orani bunun altindaysa bot durur (quick popup %100 esdegeri).
   const BOT_MIN_WIN_RATE = 0.995;
   // Dengeli cozumun beklenen kan kaybi bu esigi asarsa hizli ve derin modlar da
@@ -629,6 +635,46 @@
         onerror: () => reject(new Error('istek basarisiz'))
       });
     });
+  }
+
+  // Anlik internet kesintilerinde botu durdurmak yerine baglanti geri gelene kadar
+  // bekletir. navigator.onLine cevrimdisi oldugunda kesin false doner; cevrimici
+  // gorunup istekler patladiginda ise gmFetchTextWithRetry devreye girer.
+  // Donus: true = cevrimici ve bot hala acik; false = bot durduruldu (cagiran cikmali).
+  async function ensureOnline(contextLabel) {
+    if (navigator.onLine !== false) {
+      return true;
+    }
+    let waited = 0;
+    while (isBotEnabled() && navigator.onLine === false) {
+      setBotStatus(`${contextLabel || 'Bot'}: internet bekleniyor... (${waited} sn)`);
+      await sleep(2000);
+      waited += 2;
+      void acquireWakeLock();
+    }
+    return isBotEnabled() && navigator.onLine !== false;
+  }
+
+  // gmFetchText'i gecici ag hatalarinda yeniden dener; her denemeden once baglantinin
+  // geri gelmesini bekler. Tum denemeler basarisiz olursa son hatayi firlatir.
+  async function gmFetchTextWithRetry(url, options = {}) {
+    const attempts = options.attempts || 5;
+    const label = options.label || 'Indirme';
+    let lastError = null;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      if (isBotEnabled() && !(await ensureOnline(label))) {
+        throw new Error('bot durduruldu');
+      }
+      try {
+        return await gmFetchText(url);
+      } catch (error) {
+        lastError = error;
+        const backoff = Math.min(8000, 1500 * attempt);
+        setBotStatus(`${label}: baglanti hatasi, ${Math.round(backoff / 1000)} sn sonra tekrar (${attempt}/${attempts})`);
+        await sleep(backoff);
+      }
+    }
+    throw lastError || new Error('indirme basarisiz');
   }
 
   // Tampermonkey korumali alani saf hesap donglerini ciddi yavaslatir (with-proxy
@@ -745,7 +791,7 @@ self.onmessage = (event) => {
     }
     if (!battleCorePromise) {
       battleCorePromise = (async () => {
-        const code = await gmFetchText(`${BATTLE_CORE_URL}?bot=${Date.now()}`);
+        const code = await gmFetchTextWithRetry(`${BATTLE_CORE_URL}?bot=${Date.now()}`, { label: 'Motor yukleme' });
         (0, eval)(code);
         const core = getEmbeddedBattleCore();
         if (!core) {
@@ -941,6 +987,14 @@ self.onmessage = (event) => {
     }
   });
 
+  // Internet geri geldiginde ekran kilidini tekrar al. ensureOnline'in bekleme
+  // donguleri zaten 2 sn'de bir baglantiyi kontrol edip kaldigi yerden devam eder.
+  window.addEventListener('online', () => {
+    if (isBotEnabled()) {
+      void acquireWakeLock();
+    }
+  });
+
   function setBotStatus(text) {
     GM_setValue('btBotStatus', text);
     const statusEl = document.querySelector('#bt-bot-status');
@@ -961,6 +1015,8 @@ self.onmessage = (event) => {
     GM_setValue(BOT_NEXT_STAGE_KEY, startStage);
     GM_setValue(BOT_STOP_STAGE_KEY, stopStage || 0);
     GM_setValue(BOT_DONE_KEY, 0);
+    GM_setValue(BOT_SKIP_COUNT_KEY, 0);
+    GM_setValue(BOT_RECOVER_KEY, '');
     void acquireWakeLock();
     setBotStatus(`Bot basladi: Kat ${startStage}`);
     renderBotPanel();
@@ -1070,6 +1126,9 @@ self.onmessage = (event) => {
     GM_setValue(LAST_REVIVE_STONES_KEY, '0');
     setBotStatus(`Kat ${stage}: savas baslatiliyor...`);
     await timedSleep('button');
+    if (!(await ensureOnline(`Kat ${stage}`))) {
+      return;
+    }
     startBtn.click();
   }
 
@@ -1189,6 +1248,8 @@ self.onmessage = (event) => {
     const done = GM_getValue(BOT_DONE_KEY, 0) + 1;
     GM_setValue(BOT_DONE_KEY, done);
     GM_setValue(BOT_NEXT_STAGE_KEY, stage + 1);
+    // Zafer = ilerleme; girise kapali kat atlama sayacini sifirla.
+    GM_setValue(BOT_SKIP_COUNT_KEY, 0);
 
     const stopStage = GM_getValue(BOT_STOP_STAGE_KEY, 0);
     if (stopStage && stage >= stopStage) {
@@ -1210,6 +1271,9 @@ self.onmessage = (event) => {
     if (!isBotEnabled()) {
       return;
     }
+    if (!(await ensureOnline(`Kat ${stage + 1}`))) {
+      return;
+    }
     location.assign(buildFloorUrl(stage + 1));
   }
 
@@ -1225,6 +1289,9 @@ self.onmessage = (event) => {
       // Hedef kat secili degil; secimi sunucuya URL ile yaptir.
       setBotStatus(`Kat ${target} aciliyor...`);
       await timedSleep('button');
+      if (!(await ensureOnline(`Kat ${target}`))) {
+        return;
+      }
       location.assign(buildFloorUrl(target));
       return;
     }
@@ -1232,12 +1299,77 @@ self.onmessage = (event) => {
     const enterLink = document.querySelector(`#layerInfoContainer${target} a.layerEntryBtn`)
       || document.querySelector('.layerInfoContainer[style*="block"] a.layerEntryBtn');
     if (!enterLink || !enterLink.classList.contains('entryAvailable')) {
-      stopBot(`Kat ${target}: giris kapali (acma sarti dolmus olabilir)`);
+      // Kat girise kapali (bekleme suresi / cooldown / acma sarti). Bota gore: durma,
+      // bir sonraki kata atla ve oradan devam et. Sonsuz atlamayi onlemek icin Son kat
+      // sinirina gelince ya da Son kat girilmemisken art arda 50 kat atlaninca dur.
+      const stopStage = GM_getValue(BOT_STOP_STAGE_KEY, 0);
+      if (stopStage && target >= stopStage) {
+        stopBot(`Kat ${target}: giris kapali ve hedef kat (${stopStage}) sinirina gelindi`);
+        return;
+      }
+      const skipCount = (GM_getValue(BOT_SKIP_COUNT_KEY, 0) || 0) + 1;
+      if (!stopStage && skipCount > 50) {
+        stopBot(`Kat ${target}: giris kapali; art arda 50 kat atlandi, durduruldu`);
+        return;
+      }
+      GM_setValue(BOT_SKIP_COUNT_KEY, skipCount);
+      const next = target + 1;
+      GM_setValue(BOT_NEXT_STAGE_KEY, next);
+      setBotStatus(`Kat ${target}: giris kapali, atlaniyor -> Kat ${next}`);
+      await timedSleep('button');
+      if (!(await ensureOnline(`Kat ${next}`))) {
+        return;
+      }
+      location.assign(buildFloorUrl(next));
       return;
     }
+    // Basarili giris: atlama sayacini sifirla.
+    GM_setValue(BOT_SKIP_COUNT_KEY, 0);
     setBotStatus(`Kat ${target}: giriliyor...`);
     await timedSleep('button');
+    if (!(await ensureOnline(`Kat ${target}`))) {
+      return;
+    }
     enterLink.click();
+  }
+
+  // Sayfa taninmayinca cagrilir: beklenen kata geri donerek toparlanir. 2 dk'lik
+  // pencerede 8'den fazla toparlanma denenirse (genelde kalici bir sorun: oturum
+  // kapanmis, captcha, bakim) botu durdurur ki sonsuz reload olmasin.
+  async function recoverFromUnknownPage() {
+    let recover = {};
+    try {
+      recover = JSON.parse(GM_getValue(BOT_RECOVER_KEY, '') || '{}') || {};
+    } catch {
+      recover = {};
+    }
+    const now = Date.now();
+    if (!recover.ts || now - recover.ts > 120000) {
+      recover = { count: 0, ts: now };
+    }
+    recover.count = (recover.count || 0) + 1;
+    recover.ts = now;
+    GM_setValue(BOT_RECOVER_KEY, JSON.stringify(recover));
+
+    if (recover.count > 8) {
+      stopBot('Sayfa surekli taninmiyor; toparlanamadi (oturum kapanmis / captcha / bakim olabilir)');
+      return;
+    }
+
+    const target = GM_getValue(BOT_NEXT_STAGE_KEY, 0);
+    setBotStatus(`Sayfa taninmadi, toparlaniyor... (${recover.count}/8)`);
+    await sleep(4000);
+    if (!isBotEnabled()) {
+      return;
+    }
+    if (!(await ensureOnline('Toparlanma'))) {
+      return;
+    }
+    if (target) {
+      location.assign(buildFloorUrl(target));
+    } else {
+      location.reload();
+    }
   }
 
   async function runBotTick() {
@@ -1247,14 +1379,25 @@ self.onmessage = (event) => {
     botTickStarted = true;
     void acquireWakeLock();
     try {
+      const recognized = isBattleSetupPage() || isResultPage() || isFloorPage();
+      if (recognized) {
+        // Bilinen bir sayfaya ulasildi; toparlanma sayacini sifirla.
+        GM_setValue(BOT_RECOVER_KEY, '');
+      }
       if (isBattleSetupPage()) {
         await handleBattlePage();
       } else if (isResultPage()) {
         await handleResultPage();
       } else if (isFloorPage()) {
         await handleFloorPage();
+      } else if (isBotEnabled()) {
+        // Bot acik ama sayfa taninmiyor: yarim yuklenmis sayfa, gecici sunucu hatasi
+        // veya kisa internet kesintisinin ardindan gelen bos/hata sayfasi olabilir.
+        // Kisa bekleyip beklenen kata geri donerek toparlanmayi dene. Surekli
+        // basarisiz olursa (or. cikis yapilmis / captcha) durdur.
+        await recoverFromUnknownPage();
       }
-      // Taninmayan sayfalarda dokunma; kullanici gezinmeye devam edebilir.
+      // Diger durumlarda (bot kapali) dokunma; kullanici gezinmeye devam edebilir.
     } catch (error) {
       console.error('Kat botu hatasi', error);
       stopBot(`Beklenmeyen hata: ${error.message}`);
