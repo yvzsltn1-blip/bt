@@ -123,7 +123,13 @@
       "PowerShell($a = Get-FileHash \"birlik.user.js\"; $b = Get-FileHash \"tampermonkey\\\\birlik.js\"; \"$\\($a.Hash -eq $b.Hash\\)\"; \\(Get-Content \"tampermonkey\\\\birlik.js\" -TotalCount 6\\) -join \"`n\")",
       "PowerShell(node --check \"birlik.user.js\"; if \\($?\\) { \"SYNTAX OK\" })",
       "PowerShell(\\(Get-Content \"test-sonuclari.js\" | Measure-Object -Line\\).Lines; \\(Get-Content \"test-sonuclari.html\" | Measure-Object -Line\\).Lines)",
-      "PowerShell(node --check \"test-sonuclari.js\"; if \\($?\\) { \"JS OK\" }; node --check \"firebase-client.js\"; if \\($?\\) { \"FB OK\" })"
+      "PowerShell(node --check \"test-sonuclari.js\"; if \\($?\\) { \"JS OK\" }; node --check \"firebase-client.js\"; if \\($?\\) { \"FB OK\" })",
+      "Bash(npx --yes firebase-tools deploy --only hosting --non-interactive)",
+      "Bash(npx --yes js-beautify js/sbs.js)",
+      "Bash(npx --yes js-beautify js/simulator-worker.js)",
+      "Bash(npx --yes js-beautify js/wk.js)",
+      "Bash(grep -iv \"comment\\\\|//\")",
+      "Bash(grep -o \"s[0-9]*$\")"
     ]
   }
 }
