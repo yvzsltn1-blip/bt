@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BiteFight Grotte Loop
 // @namespace    https://bt-analiz.web.app
-// @version      1.3
+// @version      1.4
 // @description  Magara ekraninda secilen zorlugu dongu halinde tekrarlar.
 // @match        https://*.bitefight.gameforge.com/city/grotte
 // @match        https://*.bitefight.gameforge.com/city/grotte/*
@@ -95,8 +95,48 @@
 
     function clearState() {
         localStorage.removeItem(STORAGE_KEY);
+        releaseWakeLock();
         refreshPanel();
     }
+
+    let wakeLockSentinel = null;
+
+    async function acquireWakeLock() {
+        if (!loadState().enabled || document.visibilityState !== 'visible') {
+            return;
+        }
+        if (!navigator.wakeLock || typeof navigator.wakeLock.request !== 'function') {
+            return;
+        }
+        if (wakeLockSentinel && !wakeLockSentinel.released) {
+            return;
+        }
+
+        try {
+            wakeLockSentinel = await navigator.wakeLock.request('screen');
+        } catch (error) {
+            console.warn('[Grotte Loop] Ekran uyanik tutulamadi.', error);
+        }
+    }
+
+    function releaseWakeLock() {
+        try {
+            wakeLockSentinel?.release();
+        } catch {
+            // Kilit tarayici tarafindan daha once birakilmis olabilir.
+        }
+        wakeLockSentinel = null;
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            void acquireWakeLock();
+        }
+    });
+
+    window.addEventListener('online', () => {
+        void acquireWakeLock();
+    });
 
     function delay(ms, callback) {
         window.setTimeout(callback, ms);
@@ -231,6 +271,7 @@
             stopReason: reason,
             lastStoppedAt: Date.now()
         });
+        releaseWakeLock();
         debugLog(`Dongu durduruldu. Sebep: ${reason}`);
     }
 
@@ -254,6 +295,7 @@
             stopReason: null
         });
 
+        void acquireWakeLock();
         debugLog(`Dongu baslatildi. Zorluk: ${normalizedDifficulty}`);
 
         if (isGrottePage()) {
@@ -925,6 +967,7 @@
                     stopReason: null
                 });
 
+                void acquireWakeLock();
                 debugLog(`Manuel secim yakalandi: ${option.key}`);
             }, true);
         }
@@ -1062,6 +1105,7 @@
     function route() {
         exposeApi();
         createControlPanel();
+        void acquireWakeLock();
 
         if (isFightReportPage()) {
             handleFightReportPage();

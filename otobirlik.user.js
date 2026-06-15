@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      3.6
+// @version      3.7
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -1740,7 +1740,258 @@ self.onmessage = (event) => {
     return docId;
   }
 
+  function injectBotPanelStyles() {
+    if (document.querySelector('#bt-bot-panel-styles')) {
+      return;
+    }
+
+    const style = document.createElement('style');
+    style.id = 'bt-bot-panel-styles';
+    style.textContent = `
+      #bt-bot-panel {
+        width: min(286px, calc(100vw - 32px)) !important;
+        min-width: 0 !important;
+        padding: 16px !important;
+        gap: 12px !important;
+        overflow: hidden;
+        border: 1px solid rgba(239, 190, 92, .42) !important;
+        border-radius: 18px !important;
+        background:
+          radial-gradient(circle at 100% 0%, rgba(206, 133, 48, .18), transparent 42%),
+          linear-gradient(145deg, rgba(38, 11, 14, .98), rgba(18, 7, 10, .98)) !important;
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, .58),
+          inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+        color: #f8e8c4 !important;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        backdrop-filter: blur(16px);
+      }
+
+      #bt-bot-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: linear-gradient(180deg, #f3c66f, #9d341f 72%, transparent);
+      }
+
+      #bt-bot-panel .bt-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      #bt-bot-panel .bt-panel-kicker {
+        color: #b99e78;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+      }
+
+      #bt-bot-panel .bt-panel-title {
+        margin-top: 2px;
+        color: #fff5df;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: .01em;
+      }
+
+      #bt-bot-panel .bt-panel-dot {
+        width: 9px;
+        height: 9px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: #8c6e55;
+        box-shadow: 0 0 0 5px rgba(140, 110, 85, .12);
+      }
+
+      #bt-bot-panel .bt-panel-dot.is-active {
+        background: #66d19e;
+        box-shadow: 0 0 0 5px rgba(102, 209, 158, .12), 0 0 16px rgba(102, 209, 158, .45);
+      }
+
+      #bt-bot-status {
+        max-width: none !important;
+        padding: 10px 11px !important;
+        border: 1px solid rgba(255, 255, 255, .07);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, .035);
+        color: #d8c7a6 !important;
+        font-size: 11px !important;
+        line-height: 1.45;
+      }
+
+      #bt-bot-panel input[type="number"] {
+        min-width: 0;
+        height: 36px;
+        box-sizing: border-box;
+        padding: 0 10px !important;
+        border: 1px solid rgba(239, 190, 92, .24) !important;
+        border-radius: 9px !important;
+        outline: none;
+        background: rgba(255, 255, 255, .045) !important;
+        color: #fff0c9 !important;
+        font: 700 12px/1 ui-monospace, SFMono-Regular, Consolas, monospace !important;
+        transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+      }
+
+      #bt-bot-panel input[type="number"]:focus {
+        border-color: #e7b75d !important;
+        background: rgba(255, 255, 255, .075) !important;
+        box-shadow: 0 0 0 3px rgba(231, 183, 93, .12);
+      }
+
+      #bt-bot-panel button,
+      #bt-filler-actions button {
+        min-height: 38px;
+        border: 1px solid rgba(245, 200, 111, .55) !important;
+        border-radius: 10px !important;
+        background: linear-gradient(135deg, #8f2d26, #5d171c) !important;
+        color: #fff2cf !important;
+        font-family: inherit !important;
+        font-weight: 800 !important;
+        letter-spacing: .01em;
+        box-shadow: 0 8px 20px rgba(74, 12, 18, .28) !important;
+        transition: transform .16s ease, filter .16s ease, border-color .16s ease;
+      }
+
+      #bt-bot-panel button:hover,
+      #bt-filler-actions button:hover {
+        filter: brightness(1.12);
+        border-color: #f1c46d !important;
+        transform: translateY(-1px);
+      }
+
+      #bt-bot-panel button:active,
+      #bt-filler-actions button:active {
+        transform: translateY(0) scale(.985);
+      }
+
+      #bt-bot-panel button:focus-visible,
+      #bt-filler-actions button:focus-visible {
+        outline: 3px solid rgba(240, 191, 97, .24);
+        outline-offset: 2px;
+      }
+
+      #bt-bot-panel .bt-auto-button {
+        border-color: rgba(108, 208, 154, .48) !important;
+        background: linear-gradient(135deg, #226b4b, #123d2d) !important;
+      }
+
+      #bt-bot-panel .bt-settings-header {
+        min-height: 24px;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #e2c98e !important;
+      }
+
+      #bt-bot-panel .bt-settings-header:hover {
+        filter: none;
+        transform: none;
+        color: #f3d99d !important;
+      }
+
+      #bt-bot-panel .bt-secondary-button {
+        border-color: rgba(255, 255, 255, .12) !important;
+        background: rgba(255, 255, 255, .055) !important;
+        color: #cab99c !important;
+        box-shadow: none !important;
+      }
+
+      #bt-bot-panel .bt-panel-mode {
+        color: #f1c46d !important;
+        font-size: 11px !important;
+        letter-spacing: .03em;
+      }
+
+      #bt-bot-panel .bt-panel-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px !important;
+      }
+
+      #bt-bot-panel .bt-panel-row input {
+        width: 100% !important;
+      }
+
+      #bt-bot-panel .bt-panel-section {
+        margin-top: 0 !important;
+        padding: 11px !important;
+        gap: 9px !important;
+        border: 1px solid rgba(255, 255, 255, .065) !important;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .025);
+      }
+
+      #bt-bot-panel .bt-panel-section label {
+        justify-content: space-between;
+        color: #cdbb98 !important;
+        line-height: 1.3;
+      }
+
+      #bt-bot-panel .bt-panel-section label span:first-child {
+        flex: 1;
+      }
+
+      #bt-bot-panel .bt-panel-toggle {
+        padding: 2px 1px;
+        color: #d7c4a1 !important;
+        font-size: 11px !important;
+      }
+
+      #bt-bot-panel input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #d59c46 !important;
+      }
+
+      #bt-filler-actions {
+        padding: 6px;
+        border: 1px solid rgba(239, 190, 92, .26);
+        border-radius: 15px;
+        background: rgba(25, 8, 11, .9);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, .42);
+        backdrop-filter: blur(14px);
+      }
+
+      #bt-filler-actions button {
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+      }
+
+      #bt-filler-actions button.is-loading {
+        background: linear-gradient(135deg, #9b5b20, #663711) !important;
+      }
+
+      #bt-filler-actions button.is-success {
+        border-color: rgba(115, 219, 159, .56) !important;
+        background: linear-gradient(135deg, #237248, #12452f) !important;
+      }
+
+      @media (max-width: 520px) {
+        #bt-bot-panel {
+          left: 12px !important;
+          bottom: 12px !important;
+          width: min(280px, calc(100vw - 24px)) !important;
+          max-height: calc(100vh - 24px);
+          overflow-y: auto;
+        }
+
+        #bt-filler-actions {
+          right: 12px !important;
+          bottom: 12px !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function renderBotPanel() {
+    injectBotPanelStyles();
     const existing = document.querySelector('#bt-bot-panel');
     if (existing) {
       existing.remove();
@@ -1769,6 +2020,22 @@ self.onmessage = (event) => {
       'gap:8px'
     ].join(';');
 
+    const panelHead = document.createElement('div');
+    panelHead.className = 'bt-panel-head';
+    const panelHeading = document.createElement('div');
+    const panelKicker = document.createElement('div');
+    panelKicker.className = 'bt-panel-kicker';
+    panelKicker.textContent = 'BiteFight otomasyon';
+    const panelTitle = document.createElement('div');
+    panelTitle.className = 'bt-panel-title';
+    panelTitle.textContent = 'Kat Kontrolü';
+    panelHeading.append(panelKicker, panelTitle);
+    const panelDot = document.createElement('span');
+    panelDot.className = `bt-panel-dot${isBotEnabled() ? ' is-active' : ''}`;
+    panelDot.title = isBotEnabled() ? 'Bot aktif' : 'Bot beklemede';
+    panelHead.append(panelHeading, panelDot);
+    panel.appendChild(panelHead);
+
     const status = document.createElement('div');
     status.id = 'bt-bot-status';
     status.style.cssText = 'color:#f3e2b3;font-size:12px;max-width:230px';
@@ -1777,6 +2044,7 @@ self.onmessage = (event) => {
 
     if (isBotEnabled()) {
       const modeLabel = document.createElement('div');
+      modeLabel.className = 'bt-panel-mode';
       modeLabel.style.cssText = 'color:#ffd700;font-size:12px;font-weight:bold';
       modeLabel.textContent = isAutoEnabled() ? '⟳ Oto kat modu aktif' : '▶ Manuel kat botu aktif';
       panel.appendChild(modeLabel);
@@ -1788,6 +2056,7 @@ self.onmessage = (event) => {
       panel.appendChild(stopBtn);
     } else {
       const row = document.createElement('div');
+      row.className = 'bt-panel-row';
       row.style.cssText = 'display:flex;gap:6px;align-items:center';
 
       const startInput = document.createElement('input');
@@ -1835,6 +2104,7 @@ self.onmessage = (event) => {
 
       // --- Oto kat modu ---
       const autoWrap = document.createElement('div');
+      autoWrap.className = 'bt-panel-section';
       autoWrap.style.cssText = 'border-top:1px solid rgba(255,215,0,0.25);padding-top:8px;margin-top:2px;display:flex;flex-direction:column;gap:6px';
 
       const savedAutoRange = autoFloorRange();
@@ -1882,6 +2152,7 @@ self.onmessage = (event) => {
       autoWrap.appendChild(autoIntervalRow);
 
       const autoBtn = buildActionButton('Oto Kat Modu Baslat', 'padding:8px 14px;font-size:13px;background:#0a3a1a');
+      autoBtn.classList.add('bt-auto-button');
       autoBtn.title = 'Secilen kat araligini sirayla tarar; girilebilen katlari tamamlar, tur bitince bekleyip ilk kattan tekrar dener';
       autoBtn.onclick = () => {
         const autoStart = Number.parseInt(autoStartInput.value, 10);
@@ -1907,6 +2178,7 @@ self.onmessage = (event) => {
     }
 
     const reviveRow = document.createElement('label');
+    reviveRow.className = 'bt-panel-toggle';
     reviveRow.style.cssText = 'display:flex;gap:6px;align-items:center;color:#f3e2b3;font-size:12px;cursor:pointer';
     const reviveCheckbox = document.createElement('input');
     reviveCheckbox.type = 'checkbox';
@@ -1931,12 +2203,14 @@ self.onmessage = (event) => {
   function appendTimingSettings(panel) {
     const timing = loadBotTiming();
     const wrap = document.createElement('div');
+    wrap.className = 'bt-panel-section';
     wrap.style.cssText = 'border-top:1px solid rgba(255,215,0,0.25);padding-top:8px;margin-top:2px;display:flex;flex-direction:column;gap:8px';
 
     const isOpen = () => GM_getValue(BOT_SETTINGS_OPEN_KEY, false) === true;
 
     const header = document.createElement('button');
     header.type = 'button';
+    header.className = 'bt-settings-header';
     header.style.cssText = 'background:transparent;border:none;color:#ffd700;font-size:12px;font-weight:bold;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px;width:100%;text-align:left';
 
     const body = document.createElement('div');
@@ -1983,6 +2257,7 @@ self.onmessage = (event) => {
     actions.style.cssText = 'display:flex;gap:6px';
     const saveBtn = buildActionButton('Kaydet', 'padding:7px 12px;font-size:12px');
     const resetBtn = buildActionButton('Varsayilan', 'padding:7px 12px;font-size:12px;background:#3a0a0a');
+    resetBtn.classList.add('bt-secondary-button');
     actions.append(saveBtn, resetBtn);
     body.appendChild(actions);
 
@@ -2053,6 +2328,7 @@ self.onmessage = (event) => {
   function injectButtons() {
     if (document.querySelector('#bt-filler-actions')) return;
     if (!document.querySelector('.stepBtn')) return;
+    injectBotPanelStyles();
 
     const panel = document.createElement('div');
     panel.id = 'bt-filler-actions';
@@ -2081,6 +2357,7 @@ self.onmessage = (event) => {
 
       const targets = JSON.parse(raw);
       fillBtn.textContent = 'Dolduruluyor...';
+      fillBtn.classList.add('is-loading');
       fillBtn.style.background = '#8a4b00';
       fillBtn.style.borderColor = '#ffd27a';
       fillBtn.style.color = '#fff4db';
@@ -2098,9 +2375,12 @@ self.onmessage = (event) => {
       await fillUnits(targets);
 
       fillBtn.textContent = 'Tamamlandi!';
+      fillBtn.classList.remove('is-loading');
+      fillBtn.classList.add('is-success');
       fillBtn.style.background = '#1a6b2a';
       setTimeout(() => {
         fillBtn.textContent = 'BT Doldur';
+        fillBtn.classList.remove('is-success');
         fillBtn.style.background = '#6b0000';
         fillBtn.disabled = false;
       }, 3000);
