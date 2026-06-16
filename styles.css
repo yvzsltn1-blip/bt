@@ -1444,6 +1444,12 @@ body[data-optimizer-variant="minimum"] .layout {
   gap: 7px;
 }
 
+.sim-modes-batch-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .sim-btn-main {
   display: inline-flex;
   align-items: center;
@@ -1634,6 +1640,83 @@ body[data-optimizer-variant="minimum"] .layout {
   background: rgba(255, 107, 107, 0.08);
   color: #ffb4b4;
   border-color: rgba(255, 107, 107, 0.2);
+}
+
+@media (max-width: 720px) {
+  .sim-action-bar {
+    padding: 6px 8px;
+    gap: 5px;
+    margin-top: 6px;
+    border-radius: 14px;
+  }
+  .sim-action-row {
+    gap: 4px;
+  }
+  .sim-action-row-primary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sim-btn-main {
+    font-size: 0.82rem;
+    padding: 7px 11px;
+    width: 100%;
+    justify-content: center;
+  }
+  .sim-modes-batch-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+  }
+  .sim-mode-group {
+    gap: 2px;
+    padding: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .sim-mode-btn {
+    padding: 3px 5px;
+    font-size: 0.63rem;
+    gap: 2px;
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 26px;
+  }
+  .sim-batch-group {
+    flex-shrink: 0;
+  }
+  .sim-batch-input {
+    width: 28px;
+    font-size: 0.7rem;
+    padding: 3px 2px;
+  }
+  .sim-batch-btn {
+    font-size: 0.68rem;
+    padding: 3px 6px;
+  }
+  .sim-action-row-secondary {
+    gap: 3px;
+    justify-content: space-between;
+  }
+  .sim-fill-btn,
+  .sim-stop-btn,
+  .sim-util-btn,
+  .sim-clear-btn {
+    font-size: 0.66rem;
+    padding: 4px 6px;
+    gap: 3px;
+    flex: 1 1 48%;
+    min-height: 28px;
+    justify-content: center;
+  }
+  .sim-fill-btn span,
+  .sim-stop-btn span,
+  .sim-util-btn span,
+  .sim-clear-btn span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 /* ── End sim action bar ───────────────────────────── */

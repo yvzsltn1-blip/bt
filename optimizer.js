@@ -904,7 +904,7 @@ if (optimizerPointRangeToggleBtn) {
     syncPointRangeToggle();
     invalidateSearchSession();
     renderConstraintInfo();
-    optimizerStatus.textContent = optimizerManualPointRangeEnabled ? "Manuel puan araligi acildi" : "Manuel puan araligi kapatildi";
+    optimizerStatus.textContent = optimizerManualPointRangeEnabled ? "Manuel puan aralığı açıldı" : "Manuel puan aralığı kapatıldı";
   });
 }
 
@@ -912,7 +912,7 @@ diversityModeBtn.addEventListener("click", () => {
   optimizerDiversityMode = !optimizerDiversityMode;
   syncDiversityModeButton();
   invalidateSearchSession();
-  optimizerStatus.textContent = optimizerDiversityMode ? "Cesitlilik modu acildi" : "Cesitlilik modu kapatildi";
+  optimizerStatus.textContent = optimizerDiversityMode ? "Çeşitlilik modu açıldı" : "Çeşitlilik modu kapatıldı";
 });
 
 if (tekilModeBtn) {
@@ -924,7 +924,7 @@ if (tekilModeBtn) {
     syncTekilModeButton();
     syncTekilV2ModeButton();
     invalidateSearchSession();
-    optimizerStatus.textContent = optimizerTekilMode ? "TekilMod acildi" : "TekilMod kapatildi";
+    optimizerStatus.textContent = optimizerTekilMode ? "Tekil Mod açıldı" : "Tekil Mod kapatıldı";
   });
 }
 
@@ -937,7 +937,7 @@ if (tekilV2ModeBtn) {
     syncTekilModeButton();
     syncTekilV2ModeButton();
     invalidateSearchSession();
-    optimizerStatus.textContent = optimizerTekilV2Mode ? "Tekil v2 acildi" : "Tekil v2 kapatildi";
+    optimizerStatus.textContent = optimizerTekilV2Mode ? "Tekil v2 açıldı" : "Tekil v2 kapatıldı";
   });
 }
 
@@ -947,7 +947,7 @@ if (lossConstraintToggleBtn) {
     syncLossConstraintToggle();
     invalidateSearchSession();
     renderPointSummary();
-    optimizerStatus.textContent = lossConstraintModeEnabled ? "Kayipli kazan modu acildi" : "Kayipli kazan modu kapatildi";
+    optimizerStatus.textContent = lossConstraintModeEnabled ? "Kayıplı kazan modu açıldı" : "Kayıplı kazan modu kapatıldı";
   });
 }
 
@@ -1004,7 +1004,7 @@ if (stageAutoAdvanceToggleBtn) {
     persistExtendedSearchSetting();
     syncExtendedSearchToggle();
     invalidateSearchSession();
-    optimizerStatus.textContent = extendedSearchEnabled ? "Genis arama acildi" : "Genis arama kapatildi";
+    optimizerStatus.textContent = extendedSearchEnabled ? "Geniş arama açıldı" : "Geniş arama kapatıldı";
   });
 }
 
@@ -1122,7 +1122,7 @@ optimizerClearBtn.addEventListener("click", () => {
   matchedActualPanel.innerHTML = "";
   recommendationPanel.innerHTML = "";
   optimizerLogOutput.textContent = "Analizden sonra onerilen dizilime ait bir savas gunlugu burada gosterilecek.";
-  optimizerStatus.textContent = "Sifirlandi";
+  optimizerStatus.textContent = "Sıfırlandı";
   currentWrongCandidate = null;
   reportWrongOptimizerBtn.disabled = true;
   closeFavoriteStrategiesModal();
@@ -1743,7 +1743,7 @@ function waitForNextFrame() {
 function syncDiversityModeButton() {
   diversityModeBtn.classList.toggle("is-active", optimizerDiversityMode);
   diversityModeBtn.setAttribute("aria-pressed", optimizerDiversityMode ? "true" : "false");
-  diversityModeBtn.textContent = optimizerDiversityMode ? "Cesitlilik Acik" : "Cesitlilik Modu";
+  diversityModeBtn.textContent = optimizerDiversityMode ? "Çeşitlilik Açık" : "Çeşitlilik Modu";
 }
 
 function syncTekilModeButton() {
@@ -1752,7 +1752,7 @@ function syncTekilModeButton() {
   }
   tekilModeBtn.classList.toggle("is-active", optimizerTekilMode);
   tekilModeBtn.setAttribute("aria-pressed", optimizerTekilMode ? "true" : "false");
-  tekilModeBtn.textContent = optimizerTekilMode ? "TekilMod Acik" : "TekilMod";
+  tekilModeBtn.textContent = optimizerTekilMode ? "Tekil Mod Açık" : "Tekil Mod";
 }
 
 function syncTekilV2ModeButton() {
@@ -1761,7 +1761,7 @@ function syncTekilV2ModeButton() {
   }
   tekilV2ModeBtn.classList.toggle("is-active", optimizerTekilV2Mode);
   tekilV2ModeBtn.setAttribute("aria-pressed", optimizerTekilV2Mode ? "true" : "false");
-  tekilV2ModeBtn.textContent = optimizerTekilV2Mode ? "Tekil v2 Acik" : "Tekil v2";
+  tekilV2ModeBtn.textContent = optimizerTekilV2Mode ? "Tekil v2 Açık" : "Tekil v2";
 }
 
 function syncExtendedSearchToggle() {
@@ -1770,10 +1770,10 @@ function syncExtendedSearchToggle() {
   }
   stageAutoAdvanceToggleBtn.classList.toggle("is-active", extendedSearchEnabled);
   stageAutoAdvanceToggleBtn.setAttribute("aria-pressed", extendedSearchEnabled ? "true" : "false");
-  stageAutoAdvanceToggleBtn.setAttribute("aria-label", extendedSearchEnabled ? "Genis arama acik" : "Genis arama kapali");
+  stageAutoAdvanceToggleBtn.setAttribute("aria-label", extendedSearchEnabled ? "Geniş arama açık" : "Geniş arama kapalı");
   stageAutoAdvanceToggleBtn.title = extendedSearchEnabled
-    ? "Genis arama acik: sure butcesi dolana kadar daha fazla aday tarar"
-    : "Genis arama kapali: hizli cevap icin sure butcesi kullanilmaz";
+    ? "Geniş arama açık: süre bütçesi dolana kadar daha fazla aday tarar"
+    : "Geniş arama kapalı: hızlı cevap için süre bütçesi kullanılmaz";
 }
 
 function loadExtendedSearchSetting() {
@@ -3013,7 +3013,7 @@ function buildLossConstraintInputs() {
 
 function syncLossConstraintToggle() {
   if (lossConstraintToggleBtn) {
-    lossConstraintToggleBtn.textContent = lossConstraintModeEnabled ? "Kayipli Kazan Acik" : "Kayipli Kazan Modu";
+    lossConstraintToggleBtn.textContent = lossConstraintModeEnabled ? "Kayıplı Kazan Açık" : "Kayıplı Kazan Modu";
     lossConstraintToggleBtn.setAttribute("aria-expanded", lossConstraintModeEnabled ? "true" : "false");
     lossConstraintToggleBtn.setAttribute("aria-pressed", lossConstraintModeEnabled ? "true" : "false");
   }
@@ -4290,7 +4290,7 @@ function renderComparisonPanel() {
   }
 
   if (!entry.normal || !entry.diverse) {
-    const missingLabel = entry.normal ? "Cesitlilik modu" : "Standart mod";
+    const missingLabel = entry.normal ? "Çeşitlilik modu" : "Standart mod";
     comparePanelContent.innerHTML = `<p class="summary-empty">${missingLabel} ile de ayni senaryoyu calistir; kutu burada yan yana kiyaslayacak.</p>`;
     return;
   }
@@ -6114,16 +6114,16 @@ function getObjectiveLabel(objective) {
 
 function getOptimizerFlavorLabel(diversityMode = false, tekilMode = false, tekilV2Mode = false) {
   if (diversityMode && tekilMode) {
-    return "Cesitlilik + Tekil";
+    return "Çeşitlilik + Tekil";
   }
   if (diversityMode && tekilV2Mode) {
-    return "Cesitlilik + Tekil v2";
+    return "Çeşitlilik + Tekil v2";
   }
   if (diversityMode) {
-    return "Cesitlilik";
+    return "Çeşitlilik";
   }
   if (tekilMode) {
-    return "TekilMod";
+    return "Tekil Mod";
   }
   if (tekilV2Mode) {
     return "Tekil v2";
@@ -6134,13 +6134,13 @@ function getOptimizerFlavorLabel(diversityMode = false, tekilMode = false, tekil
 function getModeLabel(mode, objective = "min_loss", diversityMode = false, tekilMode = false, tekilV2Mode = false, stoneMode = false, roundingMode = "safe") {
   const parts = [getSearchModeLabel(mode), getObjectiveLabel(objective), getRoundingModeLabel(roundingMode)];
   if (stoneMode) {
-    parts.push("Tasli");
+    parts.push("Taşlı");
   }
   if (diversityMode) {
-    parts.push("Cesitlilik");
+    parts.push("Çeşitlilik");
   }
   if (tekilMode) {
-    parts.push("TekilMod");
+    parts.push("Tekil Mod");
   }
   if (tekilV2Mode) {
     parts.push("Tekil v2");
