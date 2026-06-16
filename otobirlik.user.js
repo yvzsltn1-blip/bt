@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      3.7
+// @version      3.9
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -1749,30 +1749,34 @@ self.onmessage = (event) => {
     style.id = 'bt-bot-panel-styles';
     style.textContent = `
       #bt-bot-panel {
-        width: min(286px, calc(100vw - 32px)) !important;
+        width: min(300px, calc(100vw - 28px)) !important;
         min-width: 0 !important;
-        padding: 16px !important;
-        gap: 12px !important;
+        padding: 18px 18px 16px !important;
+        gap: 13px !important;
         overflow: hidden;
-        border: 1px solid rgba(239, 190, 92, .42) !important;
-        border-radius: 18px !important;
+        border: 1px solid rgba(212, 175, 110, .35) !important;
+        border-radius: 20px !important;
         background:
-          radial-gradient(circle at 100% 0%, rgba(206, 133, 48, .18), transparent 42%),
-          linear-gradient(145deg, rgba(38, 11, 14, .98), rgba(18, 7, 10, .98)) !important;
+          linear-gradient(152deg, rgba(18, 11, 9, .97), rgba(11, 7, 5, .97)),
+          radial-gradient(115% 70% at 92% 12%, rgba(198, 140, 72, .13), transparent 60%) !important;
         box-shadow:
-          0 24px 60px rgba(0, 0, 0, .58),
-          inset 0 1px 0 rgba(255, 255, 255, .05) !important;
-        color: #f8e8c4 !important;
+          0 28px 75px -18px rgba(0, 0, 0, .78),
+          0 12px 28px rgba(0, 0, 0, .5),
+          inset 0 1px 0 rgba(255, 255, 255, .07),
+          inset 0 -1px 0 rgba(0, 0, 0, .35) !important;
+        color: #f5e9d2 !important;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        backdrop-filter: blur(16px);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
       }
 
       #bt-bot-panel::before {
         content: "";
         position: absolute;
         inset: 0 auto 0 0;
-        width: 3px;
-        background: linear-gradient(180deg, #f3c66f, #9d341f 72%, transparent);
+        width: 3.5px;
+        background: linear-gradient(180deg, #d4af77, #8a3c28 68%, transparent);
+        border-radius: 3px 0 0 3px;
       }
 
       #bt-bot-panel .bt-panel-head {
@@ -1783,129 +1787,159 @@ self.onmessage = (event) => {
       }
 
       #bt-bot-panel .bt-panel-kicker {
-        color: #b99e78;
+        color: #a38b68;
         font-size: 9px;
         font-weight: 800;
-        letter-spacing: .18em;
+        letter-spacing: .2em;
         text-transform: uppercase;
+        opacity: .9;
       }
 
       #bt-bot-panel .bt-panel-title {
-        margin-top: 2px;
-        color: #fff5df;
+        margin-top: 1px;
+        color: #f8f0d8;
         font-family: Georgia, "Times New Roman", serif;
-        font-size: 20px;
+        font-size: 21px;
         font-weight: 700;
-        letter-spacing: .01em;
+        letter-spacing: .005em;
+        line-height: 1;
       }
 
       #bt-bot-panel .bt-panel-dot {
-        width: 9px;
-        height: 9px;
+        width: 10px;
+        height: 10px;
         flex: 0 0 auto;
         border-radius: 50%;
-        background: #8c6e55;
-        box-shadow: 0 0 0 5px rgba(140, 110, 85, .12);
+        background: #7c6350;
+        box-shadow: 0 0 0 4px rgba(124, 99, 80, .18);
+        border: 1px solid rgba(212, 175, 110, .25);
       }
 
       #bt-bot-panel .bt-panel-dot.is-active {
-        background: #66d19e;
-        box-shadow: 0 0 0 5px rgba(102, 209, 158, .12), 0 0 16px rgba(102, 209, 158, .45);
+        background: #5fc89a;
+        border-color: rgba(95, 200, 154, .4);
+        box-shadow: 0 0 0 4px rgba(95, 200, 154, .14), 0 0 18px rgba(95, 200, 154, .5);
       }
 
       #bt-bot-status {
         max-width: none !important;
-        padding: 10px 11px !important;
-        border: 1px solid rgba(255, 255, 255, .07);
-        border-radius: 11px;
-        background: rgba(255, 255, 255, .035);
+        padding: 12px 14px !important;
+        border: 1px solid rgba(255, 255, 255, .055);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, .028);
         color: #d8c7a6 !important;
-        font-size: 11px !important;
-        line-height: 1.45;
+        font-size: 11.5px !important;
+        line-height: 1.48;
       }
 
       #bt-bot-panel input[type="number"] {
+        appearance: textfield;
+        -moz-appearance: textfield;
         min-width: 0;
-        height: 36px;
+        height: 38px;
         box-sizing: border-box;
-        padding: 0 10px !important;
-        border: 1px solid rgba(239, 190, 92, .24) !important;
-        border-radius: 9px !important;
+        padding: 0 13px !important;
+        border: 1px solid rgba(198, 160, 90, .32) !important;
+        border-radius: 10px !important;
         outline: none;
-        background: rgba(255, 255, 255, .045) !important;
-        color: #fff0c9 !important;
-        font: 700 12px/1 ui-monospace, SFMono-Regular, Consolas, monospace !important;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, .035), transparent),
+          #211a13 !important;
+        color: #fff6dc !important;
+        caret-color: #f1c46d;
+        font: 800 13px/1 ui-monospace, SFMono-Regular, Consolas, monospace !important;
+        text-align: left;
+        letter-spacing: 0;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.055), inset 0 -1px 0 rgba(0,0,0,.28);
         transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
       }
 
+      #bt-bot-panel input[type="number"]::-webkit-outer-spin-button,
+      #bt-bot-panel input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      #bt-bot-panel input[type="number"]::placeholder {
+        color: rgba(245, 233, 210, .55);
+        font-weight: 650;
+      }
+
       #bt-bot-panel input[type="number"]:focus {
-        border-color: #e7b75d !important;
-        background: rgba(255, 255, 255, .075) !important;
-        box-shadow: 0 0 0 3px rgba(231, 183, 93, .12);
+        border-color: #d4af77 !important;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, .045), transparent),
+          #2a2118 !important;
+        box-shadow: 0 0 0 4px rgba(212, 175, 110, .12), inset 0 1px 0 rgba(255,255,255,.07);
       }
 
       #bt-bot-panel button,
       #bt-filler-actions button {
-        min-height: 38px;
-        border: 1px solid rgba(245, 200, 111, .55) !important;
-        border-radius: 10px !important;
-        background: linear-gradient(135deg, #8f2d26, #5d171c) !important;
-        color: #fff2cf !important;
+        min-height: 40px;
+        border: 1px solid rgba(212, 175, 110, .5) !important;
+        border-radius: 12px !important;
+        background: linear-gradient(152deg, #5c211c, #3a1210) !important;
+        color: #f4e6c3 !important;
         font-family: inherit !important;
         font-weight: 800 !important;
         letter-spacing: .01em;
-        box-shadow: 0 8px 20px rgba(74, 12, 18, .28) !important;
-        transition: transform .16s ease, filter .16s ease, border-color .16s ease;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, .48), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+        transition: transform .17s cubic-bezier(.2,.0,.1,1), filter .17s ease, border-color .17s ease, box-shadow .17s ease;
       }
 
       #bt-bot-panel button:hover,
       #bt-filler-actions button:hover {
-        filter: brightness(1.12);
-        border-color: #f1c46d !important;
-        transform: translateY(-1px);
+        filter: brightness(1.08) saturate(1.03);
+        border-color: #d4af77 !important;
+        transform: translateY(-1.5px);
+        box-shadow: 0 14px 32px rgba(0, 0, 0, .52), inset 0 1px 0 rgba(255, 255, 255, .1) !important;
       }
 
       #bt-bot-panel button:active,
       #bt-filler-actions button:active {
-        transform: translateY(0) scale(.985);
+        transform: translateY(0) scale(.982);
+        filter: brightness(.96);
       }
 
       #bt-bot-panel button:focus-visible,
       #bt-filler-actions button:focus-visible {
-        outline: 3px solid rgba(240, 191, 97, .24);
+        outline: 3px solid rgba(212, 175, 110, .22);
         outline-offset: 2px;
       }
 
       #bt-bot-panel .bt-auto-button {
-        border-color: rgba(108, 208, 154, .48) !important;
-        background: linear-gradient(135deg, #226b4b, #123d2d) !important;
+        border-color: rgba(90, 170, 120, .52) !important;
+        background: linear-gradient(152deg, #1e4633, #122a20) !important;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, .48), inset 0 1px 0 rgba(255, 255, 255, .09) !important;
       }
 
       #bt-bot-panel .bt-settings-header {
-        min-height: 24px;
+        min-height: 26px;
         border: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
-        color: #e2c98e !important;
+        color: #d2b57f !important;
+        font-weight: 700 !important;
       }
 
       #bt-bot-panel .bt-settings-header:hover {
         filter: none;
         transform: none;
-        color: #f3d99d !important;
+        color: #e6ca96 !important;
       }
 
       #bt-bot-panel .bt-secondary-button {
-        border-color: rgba(255, 255, 255, .12) !important;
-        background: rgba(255, 255, 255, .055) !important;
-        color: #cab99c !important;
+        border-color: rgba(255, 255, 255, .11) !important;
+        background: rgba(255, 255, 255, .04) !important;
+        color: #c8b49a !important;
         box-shadow: none !important;
       }
 
       #bt-bot-panel .bt-panel-mode {
-        color: #f1c46d !important;
+        color: #d4af77 !important;
         font-size: 11px !important;
         letter-spacing: .03em;
+        font-weight: 600;
       }
 
       #bt-bot-panel .bt-panel-row {
@@ -1920,63 +1954,89 @@ self.onmessage = (event) => {
 
       #bt-bot-panel .bt-panel-section {
         margin-top: 0 !important;
-        padding: 11px !important;
-        gap: 9px !important;
-        border: 1px solid rgba(255, 255, 255, .065) !important;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, .025);
+        padding: 13px !important;
+        gap: 10px !important;
+        border: 1px solid rgba(255, 255, 255, .05) !important;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, .018);
       }
 
       #bt-bot-panel .bt-panel-section label {
         justify-content: space-between;
-        color: #cdbb98 !important;
-        line-height: 1.3;
+        color: #c8b49a !important;
+        line-height: 1.35;
+        font-size: 12px;
       }
 
       #bt-bot-panel .bt-panel-section label span:first-child {
         flex: 1;
       }
 
+      #bt-bot-panel .bt-inline-field {
+        display: grid !important;
+        grid-template-columns: minmax(76px, 1fr) 62px 62px;
+        align-items: center;
+        gap: 9px !important;
+      }
+
+      #bt-bot-panel .bt-small-number {
+        width: 62px !important;
+      }
+
+      #bt-bot-panel .bt-timing-inputs {
+        display: grid !important;
+        grid-template-columns: 62px auto 62px;
+        align-items: center;
+        gap: 8px !important;
+      }
+
+      #bt-bot-panel .bt-panel-section .bt-timing-label {
+        color: #d8c6a6 !important;
+        font-size: 11.5px !important;
+      }
+
       #bt-bot-panel .bt-panel-toggle {
-        padding: 2px 1px;
-        color: #d7c4a1 !important;
-        font-size: 11px !important;
-      }
-
-      #bt-bot-panel input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        accent-color: #d59c46 !important;
-      }
-
-      #bt-filler-actions {
-        padding: 6px;
-        border: 1px solid rgba(239, 190, 92, .26);
-        border-radius: 15px;
-        background: rgba(25, 8, 11, .9);
-        box-shadow: 0 18px 40px rgba(0, 0, 0, .42);
-        backdrop-filter: blur(14px);
-      }
-
-      #bt-filler-actions button {
-        padding: 10px 16px !important;
+        padding: 3px 1px;
+        color: #c8b49a !important;
         font-size: 12px !important;
       }
 
+      #bt-bot-panel input[type="checkbox"] {
+        width: 17px;
+        height: 17px;
+        accent-color: #c9a36a !important;
+        border-radius: 4px;
+      }
+
+      #bt-filler-actions {
+        padding: 8px;
+        border: 1px solid rgba(212, 175, 110, .22);
+        border-radius: 18px;
+        background: rgba(18, 10, 8, .92);
+        box-shadow: 0 22px 55px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255,255,255,.04);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+
+      #bt-filler-actions button {
+        padding: 11px 18px !important;
+        font-size: 12.5px !important;
+      }
+
       #bt-filler-actions button.is-loading {
-        background: linear-gradient(135deg, #9b5b20, #663711) !important;
+        background: linear-gradient(152deg, #7a4a1f, #4f2d13) !important;
       }
 
       #bt-filler-actions button.is-success {
-        border-color: rgba(115, 219, 159, .56) !important;
-        background: linear-gradient(135deg, #237248, #12452f) !important;
+        border-color: rgba(90, 175, 125, .55) !important;
+        background: linear-gradient(152deg, #1e4a30, #0f2a1c) !important;
       }
 
       @media (max-width: 520px) {
         #bt-bot-panel {
           left: 12px !important;
           bottom: 12px !important;
-          width: min(280px, calc(100vw - 24px)) !important;
+          width: min(288px, calc(100vw - 24px)) !important;
           max-height: calc(100vh - 24px);
           overflow-y: auto;
         }
@@ -2063,7 +2123,7 @@ self.onmessage = (event) => {
       startInput.type = 'number';
       startInput.min = '1';
       startInput.placeholder = 'Kat';
-      startInput.style.cssText = 'width:62px;padding:6px;border-radius:6px;border:1px solid #ffd700;background:#2a0a0a;color:#ffd700';
+      startInput.style.cssText = 'width:100%';
       const detected = detectSelectedStage() || GM_getValue(BOT_NEXT_STAGE_KEY, 0);
       if (detected) {
         startInput.value = String(detected);
@@ -2109,6 +2169,7 @@ self.onmessage = (event) => {
 
       const savedAutoRange = autoFloorRange();
       const autoFloorRow = document.createElement('label');
+      autoFloorRow.className = 'bt-inline-field';
       autoFloorRow.style.cssText = 'display:flex;gap:6px;align-items:center;color:#f3e2b3;font-size:11px';
       const autoFloorText = document.createElement('span');
       autoFloorText.textContent = 'Kat araligi:';
@@ -2118,7 +2179,8 @@ self.onmessage = (event) => {
       autoStartInput.max = String(AUTO_MAX_FLOOR);
       autoStartInput.value = String(savedAutoRange.start);
       autoStartInput.title = 'Oto taramanin baslayacagi kat';
-      autoStartInput.style.cssText = 'width:48px;padding:6px;border-radius:6px;border:1px solid #ffd700;background:#2a0a0a;color:#ffd700';
+      autoStartInput.className = 'bt-small-number';
+      autoStartInput.style.cssText = '';
       const autoEndInput = document.createElement('input');
       autoEndInput.type = 'number';
       autoEndInput.min = String(AUTO_MIN_FLOOR);
@@ -2126,10 +2188,12 @@ self.onmessage = (event) => {
       autoEndInput.value = String(savedAutoRange.end);
       autoEndInput.title = 'Oto taramanin bitecegi kat';
       autoEndInput.style.cssText = autoStartInput.style.cssText;
+      autoEndInput.className = autoStartInput.className;
       autoFloorRow.append(autoFloorText, autoStartInput, autoEndInput);
       autoWrap.appendChild(autoFloorRow);
 
       const autoIntervalRow = document.createElement('label');
+      autoIntervalRow.className = 'bt-inline-field';
       autoIntervalRow.style.cssText = 'display:flex;gap:6px;align-items:center;color:#f3e2b3;font-size:11px';
       const autoIntervalText = document.createElement('span');
       autoIntervalText.textContent = 'Yeniden deneme (sn):';
@@ -2138,7 +2202,8 @@ self.onmessage = (event) => {
       autoIntervalMinInput.type = 'number';
       autoIntervalMinInput.min = String(AUTO_MIN_INTERVAL_SEC);
       autoIntervalMinInput.step = '1';
-      autoIntervalMinInput.style.cssText = 'width:48px;padding:6px;border-radius:6px;border:1px solid #ffd700;background:#2a0a0a;color:#ffd700';
+      autoIntervalMinInput.className = 'bt-small-number';
+      autoIntervalMinInput.style.cssText = '';
       autoIntervalMinInput.value = String(savedAutoInterval.min);
       autoIntervalMinInput.title = 'En az beklenecek saniye';
       const autoIntervalMaxInput = document.createElement('input');
@@ -2146,6 +2211,7 @@ self.onmessage = (event) => {
       autoIntervalMaxInput.min = String(AUTO_MIN_INTERVAL_SEC);
       autoIntervalMaxInput.step = '1';
       autoIntervalMaxInput.style.cssText = autoIntervalMinInput.style.cssText;
+      autoIntervalMaxInput.className = autoIntervalMinInput.className;
       autoIntervalMaxInput.value = String(savedAutoInterval.max);
       autoIntervalMaxInput.title = 'En fazla beklenecek saniye';
       autoIntervalRow.append(autoIntervalText, autoIntervalMinInput, autoIntervalMaxInput);
@@ -2216,7 +2282,7 @@ self.onmessage = (event) => {
     const body = document.createElement('div');
     body.style.cssText = 'flex-direction:column;gap:8px';
 
-    const inputStyle = 'width:52px;padding:5px;border-radius:6px;border:1px solid #ffd700;background:#2a0a0a;color:#ffd700;font-size:12px';
+    const inputStyle = '';
     const fieldInputs = {};
     BOT_TIMING_FIELDS.forEach((field) => {
       const fieldRow = document.createElement('div');
@@ -2224,15 +2290,18 @@ self.onmessage = (event) => {
 
       const label = document.createElement('span');
       label.textContent = `${field.label} (sn)`;
+      label.className = 'bt-timing-label';
       label.style.cssText = 'color:#f3e2b3;font-size:11px';
 
       const inputs = document.createElement('div');
+      inputs.className = 'bt-timing-inputs';
       inputs.style.cssText = 'display:flex;gap:6px;align-items:center';
 
       const minInput = document.createElement('input');
       minInput.type = 'number';
       minInput.min = '0';
       minInput.step = '0.1';
+      minInput.className = 'bt-small-number';
       minInput.style.cssText = inputStyle;
       minInput.value = String(timing[field.key].min);
 
@@ -2244,6 +2313,7 @@ self.onmessage = (event) => {
       maxInput.type = 'number';
       maxInput.min = '0';
       maxInput.step = '0.1';
+      maxInput.className = 'bt-small-number';
       maxInput.style.cssText = inputStyle;
       maxInput.value = String(timing[field.key].max);
 
