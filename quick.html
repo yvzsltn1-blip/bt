@@ -77,10 +77,10 @@
               <strong>Ek Ayarlar</strong>
               <span>Yuvarlama, arama bandi, puan araligi ve kayip kisitlari</span>
             </div>
-            <button id="optimizerAdvancedControlsToggleBtn" class="button button-ghost button-icon panel-collapsible-toggle" type="button" aria-expanded="true" aria-controls="optimizerAdvancedControlsContent" title="Ek ayarlari kapat">-</button>
+            <button id="optimizerAdvancedControlsToggleBtn" class="button button-ghost button-icon panel-collapsible-toggle" type="button" aria-expanded="false" aria-controls="optimizerAdvancedControlsContent" title="Ek ayarlari ac">+</button>
           </div>
-          <div id="optimizerAdvancedControlsContent" class="panel-collapsible-content">
-        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
+          <div id="optimizerAdvancedControlsContent" class="panel-collapsible-content" hidden>
+        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline optimizer-rounding-row">
           <div class="mode-switch" aria-label="Hesap modu">
             <button class="objective-button rounding-mode-button optimizer-rounding-mode-button active" data-rounding-mode="legacy" type="button">Degismemis</button>
             <button class="objective-button rounding-mode-button optimizer-rounding-mode-button" data-rounding-mode="safe" type="button">Guvenli</button>
@@ -93,11 +93,27 @@
           <label class="select-wrap optimizer-band-preset-wrap" for="optimizerObjectiveSelect">
             <span>Hedef</span>
             <select id="optimizerObjectiveSelect" class="stage-select">
-              <option value="min_loss">En Az Kayipla Kazan</option>
+              <option value="min_loss" selected>En Az Kayipla Kazan</option>
               <option value="min_army">En Az Orduyla Kazan</option>
               <option value="safe_win">Daha Guvenli Kazan</option>
             </select>
           </label>
+          <label class="select-wrap optimizer-band-preset-wrap" for="optimizerWinRateThreshold">
+            <span>Kazanma Orani</span>
+            <select id="optimizerWinRateThreshold" class="stage-select">
+              <option value="75">%75+ (varsayilan)</option>
+              <option value="90">%90+</option>
+              <option value="95" selected>%95+</option>
+              <option value="100">%100</option>
+              <option value="custom">Ozel</option>
+            </select>
+          </label>
+          <div id="optimizerCustomWinRateInputs" class="optimizer-custom-band" hidden>
+            <label class="select-wrap" for="optimizerCustomWinRate">
+              <span>Min %</span>
+              <input id="optimizerCustomWinRate" class="stage-select" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" value="100">
+            </label>
+          </div>
           <label class="select-wrap optimizer-band-preset-wrap" for="optimizerSearchBandPreset">
             <span>Arama BandI</span>
             <select id="optimizerSearchBandPreset" class="stage-select">
@@ -467,8 +483,8 @@
   <script src="site-gate.js?v=20260502-02" defer></script>
   <script src="firebase-client.js?v=20260610-3" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="battle-core.js?v=20260612-2" defer></script>
+  <script src="battle-core.js?v=20260617-2" defer></script>
   <script src="simulat.js?v=20260520-01" defer></script>
-  <script src="optimizer.js?v=20260610-1" defer></script>
+  <script src="optimizer.js?v=20260617-2" defer></script>
 </body>
 </html>

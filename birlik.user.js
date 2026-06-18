@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      3.1
+// @version      3.3
 // @description  quick.html sonuclarini Bitefight savasa otomatik doldurur, arsiv kaydi tutar ve kat botu ile katlari otomatik gecer
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -551,7 +551,13 @@
   // sayacini ve zaman damgasini tutar; surekli basarisiz toparlanmada bot durur.
   const BOT_RECOVER_KEY = 'btBotRecoverState';
   // Onerilen cozumun kazanma orani bunun altindaysa bot durur (quick popup %100 esdegeri).
-  const BOT_MIN_WIN_RATE = 0.995;
+  // Panelden secilebilir; GM'de saklanir. Varsayilan: %99.5.
+  const BOT_MIN_WIN_RATE_DEFAULT = 0.995;
+  const BOT_MIN_WIN_RATE_KEY = 'btBotMinWinRate';
+  // Panel simge durumuna kucululdu mu (kullanici tercihi, GM'de saklanir).
+  const BOT_PANEL_MINIMIZED_KEY = 'btBotPanelMinimized';
+  // Panele konacak kazanma orani secenekleri (yuzde). 'custom' -> elle giris.
+  const BOT_WIN_RATE_PRESETS = [90, 95, 99.5, 100];
   // Dengeli cozumun beklenen kan kaybi bu esigi asarsa hizli ve derin modlar da
   // taranir; en dusuk kayipli guvenli cozum hangi moddaysa onunla savasilir.
   const BOT_LOSS_ESCALATION_THRESHOLD = 90;
@@ -572,6 +578,42 @@
   const BOT_TIMING_DEFAULTS = Object.fromEntries(
     BOT_TIMING_FIELDS.map((field) => [field.key, { min: field.min, max: field.max }])
   );
+
+  // Kabul edilen minimum kazanma orani (kesir). Panelden secilir, GM'de saklanir.
+  function getBotMinWinRate() {
+    const stored = Number(GM_getValue(BOT_MIN_WIN_RATE_KEY, BOT_MIN_WIN_RATE_DEFAULT));
+    if (!Number.isFinite(stored) || stored <= 0 || stored > 1) {
+      return BOT_MIN_WIN_RATE_DEFAULT;
+    }
+    return stored;
+  }
+
+  function setBotMinWinRate(rate) {
+    const clamped = Math.min(1, Math.max(0.01, Number(rate)));
+    GM_setValue(BOT_MIN_WIN_RATE_KEY, Number.isFinite(clamped) ? clamped : BOT_MIN_WIN_RATE_DEFAULT);
+  }
+
+  // Nihai dogrulamada kullanilacak minimum deneme sayisi: yuksek esiklerde kucuk
+  // orneklemde sansla "%100" gorunen adaylari gercek oranina ceker (battle-core
+  // minVerifyTrials). Esik ne kadar yuksekse o kadar cok dogrulama denemesi.
+  function getBotMinVerifyTrials() {
+    const rate = getBotMinWinRate();
+    if (rate >= 0.99) {
+      return 480;
+    }
+    if (rate >= 0.95) {
+      return 360;
+    }
+    return 240;
+  }
+
+  function isBotPanelMinimized() {
+    return GM_getValue(BOT_PANEL_MINIMIZED_KEY, false) === true;
+  }
+
+  function setBotPanelMinimized(minimized) {
+    GM_setValue(BOT_PANEL_MINIMIZED_KEY, minimized === true);
+  }
 
   function loadBotTiming() {
     let stored = {};
@@ -1140,7 +1182,8 @@ self.onmessage = (event) => {
       minimumRequiredCounts: {},
       requiredLossCounts: {},
       requiredLossExactFlags: {},
-      minWinRate: 0.75,
+      minWinRate: getBotMinWinRate(),
+      minVerifyTrials: getBotMinVerifyTrials(),
       trialCount: runConfig.trialCount,
       fullArmyTrials: runConfig.fullArmyTrials,
       beamWidth: runConfig.beamWidth,
@@ -1176,7 +1219,7 @@ self.onmessage = (event) => {
   }
 
   function isSafeBotOutcome(entry) {
-    return !!entry && entry.possible && !!entry.counts && Number(entry.winRate || 0) >= BOT_MIN_WIN_RATE;
+    return !!entry && entry.possible && !!entry.counts && Number(entry.winRate || 0) >= getBotMinWinRate();
   }
 
   // Verilen modda cozum arar: once Web Worker (native hiz, UI donmaz), olmazsa
@@ -1445,12 +1488,53 @@ self.onmessage = (event) => {
     return docId;
   }
 
+  // Panel simge durumundayken gosterilen kucuk yuvarlak buton.
+  function renderBotPanelMinimized() {
+    const icon = document.createElement('button');
+    icon.id = 'bt-bot-panel-mini';
+    icon.type = 'button';
+    icon.title = 'Kat botu panelini ac';
+    icon.textContent = '⚔';
+    icon.style.cssText = [
+      'position:fixed',
+      'bottom:24px',
+      'left:24px',
+      'z-index:99999',
+      'width:44px',
+      'height:44px',
+      'border-radius:50%',
+      'background:#1a0505',
+      `border:2px solid ${isBotEnabled() ? '#5fc89a' : '#ffd700'}`,
+      'color:#ffd700',
+      'font-size:20px',
+      'cursor:pointer',
+      'box-shadow:0 2px 12px rgba(0,0,0,0.8)',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'padding:0'
+    ].join(';');
+    icon.onclick = () => {
+      setBotPanelMinimized(false);
+      renderBotPanel();
+    };
+    document.body.appendChild(icon);
+  }
+
   function renderBotPanel() {
     const existing = document.querySelector('#bt-bot-panel');
     if (existing) {
       existing.remove();
     }
+    const existingMini = document.querySelector('#bt-bot-panel-mini');
+    if (existingMini) {
+      existingMini.remove();
+    }
     if (!isBattleSetupPage() && !isResultPage() && !isFloorPage() && !isBotEnabled()) {
+      return;
+    }
+    if (isBotPanelMinimized()) {
+      renderBotPanelMinimized();
       return;
     }
 
@@ -1473,6 +1557,24 @@ self.onmessage = (event) => {
       'flex-direction:column',
       'gap:8px'
     ].join(';');
+
+    // Baslik satiri: ad + simge durumuna kucult butonu.
+    const head = document.createElement('div');
+    head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px';
+    const headTitle = document.createElement('span');
+    headTitle.textContent = 'Kat Botu';
+    headTitle.style.cssText = 'font-weight:bold;font-size:13px;color:#ffd700';
+    const minimizeBtn = document.createElement('button');
+    minimizeBtn.type = 'button';
+    minimizeBtn.title = 'Simge durumuna kucult';
+    minimizeBtn.textContent = '–';
+    minimizeBtn.style.cssText = 'background:transparent;border:none;color:#ffd700;font-size:20px;line-height:1;cursor:pointer;padding:0 4px';
+    minimizeBtn.onclick = () => {
+      setBotPanelMinimized(true);
+      renderBotPanel();
+    };
+    head.append(headTitle, minimizeBtn);
+    panel.appendChild(head);
 
     const status = document.createElement('div');
     status.id = 'bt-bot-status';
@@ -1551,8 +1653,82 @@ self.onmessage = (event) => {
     reviveRow.append(reviveCheckbox, reviveLabel);
     panel.appendChild(reviveRow);
 
+    appendWinRateSetting(panel);
     appendTimingSettings(panel);
     document.body.appendChild(panel);
+  }
+
+  // Panele "Kazanma orani" secimi ekler: bot yalnizca bu oranin uzerindeki
+  // (guvenli) cozumleri doldurur. Hazir kademeler + elle giris.
+  function appendWinRateSetting(panel) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'border-top:1px solid rgba(255,215,0,0.25);padding-top:8px;margin-top:2px;display:flex;flex-direction:column;gap:6px';
+
+    const label = document.createElement('span');
+    label.textContent = 'Kazanma orani (min)';
+    label.style.cssText = 'color:#f3e2b3;font-size:11px';
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;align-items:center';
+
+    const select = document.createElement('select');
+    select.style.cssText = 'flex:1;padding:6px;border-radius:6px;border:1px solid #ffd700;background:#2a0a0a;color:#ffd700;font-size:12px';
+    BOT_WIN_RATE_PRESETS.forEach((percent) => {
+      const option = document.createElement('option');
+      option.value = String(percent);
+      option.textContent = percent === 99.5 ? '%99.5 (varsayilan)' : `%${percent}`;
+      select.appendChild(option);
+    });
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = 'Ozel';
+    select.appendChild(customOption);
+
+    const customInput = document.createElement('input');
+    customInput.type = 'number';
+    customInput.min = '1';
+    customInput.max = '100';
+    customInput.step = '0.1';
+    customInput.style.cssText = 'width:64px;padding:6px;border-radius:6px;border:1px solid #ffd700;background:#2a0a0a;color:#ffd700;font-size:12px';
+
+    const currentPercent = Math.round(getBotMinWinRate() * 1000) / 10;
+    const matchedPreset = BOT_WIN_RATE_PRESETS.find((percent) => Math.abs(percent - currentPercent) < 1e-6);
+    if (matchedPreset !== undefined) {
+      select.value = String(matchedPreset);
+      customInput.value = String(matchedPreset);
+      customInput.style.display = 'none';
+    } else {
+      select.value = 'custom';
+      customInput.value = String(currentPercent);
+      customInput.style.display = '';
+    }
+
+    const applyPercent = (percent) => {
+      if (!Number.isFinite(percent)) {
+        return;
+      }
+      const clamped = Math.min(100, Math.max(1, percent));
+      setBotMinWinRate(clamped / 100);
+      setBotStatus(`Kazanma orani esigi %${clamped} olarak ayarlandi`);
+    };
+
+    select.onchange = () => {
+      if (select.value === 'custom') {
+        customInput.style.display = '';
+        applyPercent(Number(customInput.value));
+      } else {
+        customInput.style.display = 'none';
+        customInput.value = select.value;
+        applyPercent(Number(select.value));
+      }
+    };
+    customInput.onchange = () => {
+      applyPercent(Number(customInput.value));
+    };
+
+    row.append(select, customInput);
+    wrap.append(label, row);
+    panel.appendChild(wrap);
   }
 
   // Panele acilip kapanan "Bekleme Ayarlari" bolumu: her parametre icin min-max (sn).

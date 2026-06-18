@@ -2275,6 +2275,10 @@
     const maxIterations = options.maxIterations || 4;
     const eliteCount = options.eliteCount || Math.max(4, Math.min(beamWidth, 8));
     const stabilityTrials = options.stabilityTrials || Math.max(fullArmyTrials, trialCount * 3);
+    // Nihai dogrulamada kullanilacak minimum deneme sayisi tabani. Yuksek kazanma
+    // orani esiklerinde (or. %100) kucuk orneklemde sansla '%100' gorunen adaylari
+    // gercek oranlarina cekmek icin optimizer buraya buyuk bir deger gecirir.
+    const minVerifyTrials = Math.max(0, Number(options.minVerifyTrials) || 0);
     const baseSeed = options.baseSeed || 42042;
     const diversityMode = Boolean(options.diversityMode);
     const tekilMode = Boolean(options.tekilMode);
@@ -3301,8 +3305,8 @@
     // sayisiyla yeniden olculur ve kazanan buna gore secilir. Dusuk trial'li
     // modlarda (Hizli) sansli tahminle one gecen adaylar burada elenir;
     // akumulator sayesinde maliyet sadece eksik denemeler kadardir.
+    const finalVerifyTrials = Math.max(stabilityTrials, 32, minVerifyTrials);
     if (best) {
-      const finalVerifyTrials = Math.max(stabilityTrials, 32);
       const finalists = [best, ...collectBestUniqueEvaluations(6)]
         .filter((entry) => entry?.counts || entry?.searchCounts);
       const verified = finalists
@@ -3342,12 +3346,19 @@
     const fullArmyEvaluation = evaluateCandidate(normalizeCandidateToPointLimit(availableAllyCounts, maxPoints), fullArmyTrials);
     const stableFullArmyEvaluation = evaluateCandidate(
       normalizeCandidateToPointLimit(availableAllyCounts, maxPoints),
-      Math.max(fullArmyTrials, stabilityTrials)
+      Math.max(fullArmyTrials, stabilityTrials, minVerifyTrials)
     );
     const fallbackEvaluation = compareEntries(stableFullArmyEvaluation, fullArmyEvaluation) < 0
       ? stableFullArmyEvaluation
       : fullArmyEvaluation;
-    const searchFinalEvaluation = best.feasible ? best : fallbackEvaluation;
+    // Esigi saglayan cozum yoksa "en yakin" olarak tum orduyu degil, aramanin
+    // buldugu en iyi (infeasible adaylar kazanma oranina gore siralanir) ile tum
+    // ordudan hangisi daha iyiyse onu goster. Boylece tum ordu %0 kazansa bile
+    // daha yuksek oranli bir dizilim varsa o onerilir.
+    const bestEffortEvaluation = compareEntries(best, fallbackEvaluation) <= 0
+      ? best
+      : fallbackEvaluation;
+    const searchFinalEvaluation = best.feasible ? best : bestEffortEvaluation;
     const finalEvaluation = actualGuardMode
       ? (findMinimumSafeEvaluation(searchFinalEvaluation) || evaluateCandidate(
           searchFinalEvaluation.searchCounts || toSearchCounts(searchFinalEvaluation.counts),

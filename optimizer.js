@@ -33,6 +33,9 @@ const optimizerSearchBandPresetMobileInput = document.querySelector("#optimizerS
 const optimizerCustomBandInputs = document.querySelector("#optimizerCustomBandInputs");
 const optimizerCustomBandMinInput = document.querySelector("#optimizerCustomBandMin");
 const optimizerCustomBandMaxInput = document.querySelector("#optimizerCustomBandMax");
+const optimizerWinRateThresholdInput = document.querySelector("#optimizerWinRateThreshold");
+const optimizerCustomWinRateInputs = document.querySelector("#optimizerCustomWinRateInputs");
+const optimizerCustomWinRateInput = document.querySelector("#optimizerCustomWinRate");
 const optimizerPointRangeToggleBtn = document.querySelector("#optimizerPointRangeToggleBtn");
 const optimizerPointRangePanel = document.querySelector("#optimizerPointRangePanel");
 const optimizerAdvancedControlsToggleBtn = document.querySelector("#optimizerAdvancedControlsToggleBtn");
@@ -122,6 +125,8 @@ const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
 let optimizerSearchSession = createEmptySearchSession();
 let optimizerMode = "balanced";
 let optimizerObjective = "min_loss";
+let optimizerActiveMinWinRate = 0.75;
+let optimizerActiveMinVerifyTrials = 0;
 let optimizerRoundingMode = loadStoredRoundingMode();
 var roundingMode = optimizerRoundingMode;
 let optimizerDiversityMode = false;
@@ -130,7 +135,7 @@ let optimizerTekilV2Mode = false;
 let optimizerStoneMode = false;
 let optimizerComparisonCache = new Map();
 let comparePanelOpen = false;
-let optimizerAdvancedControlsOpen = true;
+let optimizerAdvancedControlsOpen = optimizerVariant !== "quick";
 let optimizerSummaryOpen = true;
 let optimizerAdvancedControlsPinned = false;
 let optimizerSummaryPinned = false;
@@ -380,6 +385,83 @@ function getOptimizerObjectiveStatusText(objective) {
 
 function getOptimizerMinWinRate(objective) {
   return isSafeWinObjective(objective) ? 0.9 : 0.75;
+}
+
+// Kullanicinin sectigi minimum kazanma orani esigini (kesir olarak) dondurur.
+// Hicbir secim yoksa veya kontrol mevcut degilse null doner.
+function getOptimizerSelectedMinWinRate() {
+  if (!optimizerWinRateThresholdInput) {
+    return null;
+  }
+  const rawValue = optimizerWinRateThresholdInput.value;
+  if (!rawValue) {
+    return null;
+  }
+  const percentText = rawValue === "custom" ? (optimizerCustomWinRateInput?.value ?? "") : rawValue;
+  const percent = Math.round(Number(percentText));
+  if (!Number.isFinite(percent)) {
+    return null;
+  }
+  const clamped = Math.min(100, Math.max(0, percent));
+  return clamped / 100;
+}
+
+// Hedefe gore varsayilan esik ile kullanici secimini birlestirir.
+// Kullanici secimi yalnizca esigi yukseltebilir (guvenli hedefi asagi cekemez).
+function resolveOptimizerMinWinRate(objective) {
+  const base = getOptimizerMinWinRate(objective);
+  const selected = getOptimizerSelectedMinWinRate();
+  return selected === null ? base : Math.max(base, selected);
+}
+
+function syncWinRateThresholdControls() {
+  if (!optimizerWinRateThresholdInput || !optimizerCustomWinRateInputs) {
+    return;
+  }
+  optimizerCustomWinRateInputs.hidden = optimizerWinRateThresholdInput.value !== "custom";
+}
+
+// Kullanici kazanma orani esigini hedefin varsayilaninin uzerine cikardiysa
+// nihai dogrulama daha cok denemeyle yapilir. Boylece kucuk orneklemde sansla
+// "%100" gorunen aday gercek oranina (or. %97.9) cekilir ve esigi gercekten
+// saglamayan dizilimler "%100" diye gosterilmez. 0 -> varsayilan davranis.
+function getOptimizerMinVerifyTrials(objective) {
+  const base = getOptimizerMinWinRate(objective);
+  if (optimizerActiveMinWinRate <= base + 1e-9) {
+    return 0;
+  }
+  if (optimizerActiveMinWinRate >= 0.999) {
+    return 480;
+  }
+  if (optimizerActiveMinWinRate >= 0.97) {
+    return 360;
+  }
+  return 240;
+}
+
+// Esik yukseltildiginde arama butcesini artirir: adaylar daha cok denemeyle
+// olculur, boylece arama sansli adaylara takilmadan gercekten yuksek oranli
+// dizilimleri bulur. Esik yukseltilmediyse config aynen birakilir.
+function getWinRateAdjustedRunConfig(runConfig, objective) {
+  const base = getOptimizerMinWinRate(objective);
+  if (optimizerActiveMinWinRate <= base + 1e-9) {
+    return runConfig;
+  }
+  const boostedTrialCount = Math.max(runConfig.trialCount || 0, 14);
+  const boostedFullArmyTrials = Math.max(runConfig.fullArmyTrials || 0, 18);
+  return {
+    ...runConfig,
+    trialCount: boostedTrialCount,
+    fullArmyTrials: boostedFullArmyTrials,
+    eliteCount: Math.max(runConfig.eliteCount || 0, 6),
+    stabilityTrials: Math.max(
+      runConfig.stabilityTrials || 0,
+      boostedFullArmyTrials,
+      boostedTrialCount * 4
+    ),
+    exploratoryCandidateCount: Math.max(runConfig.exploratoryCandidateCount || 0, 16),
+    diversityCandidateCount: Math.max(runConfig.diversityCandidateCount || 0, 24)
+  };
 }
 
 function getObjectiveAdjustedRunConfig(runConfig, objective) {
@@ -790,6 +872,7 @@ if (isQuickVariant()) {
 syncRoundingModeButtons();
 syncObjectiveSelect();
 syncSearchBandControls();
+syncWinRateThresholdControls();
 syncPointRangeToggle();
 syncComparePanelToggle();
 applyResponsiveCollapsibleDefaults();
@@ -842,6 +925,27 @@ if (optimizerSearchBandPresetMobileInput) {
     syncSearchBandControls();
     invalidateSearchSession();
     renderPointSummary();
+  });
+}
+
+if (optimizerWinRateThresholdInput) {
+  optimizerWinRateThresholdInput.addEventListener("change", () => {
+    syncWinRateThresholdControls();
+    invalidateSearchSession();
+  });
+}
+
+if (optimizerCustomWinRateInput) {
+  optimizerCustomWinRateInput.addEventListener("input", () => {
+    optimizerCustomWinRateInput.value = optimizerCustomWinRateInput.value.replace(/\D+/g, "");
+    invalidateSearchSession();
+  });
+  optimizerCustomWinRateInput.addEventListener("blur", () => {
+    if (optimizerCustomWinRateInput.value.trim() === "") {
+      optimizerCustomWinRateInput.value = "100";
+    }
+    const clamped = Math.min(100, Math.max(0, Math.round(Number(optimizerCustomWinRateInput.value)) || 0));
+    optimizerCustomWinRateInput.value = String(clamped);
   });
 }
 
@@ -1472,13 +1576,19 @@ async function runOptimizerSearch(batchRuns) {
     syncOptimizeButtonCompletionState(false);
     setOptimizerBusy(true);
 
+    optimizerActiveMinWinRate = resolveOptimizerMinWinRate(optimizerObjective);
+    optimizerActiveMinVerifyTrials = getOptimizerMinVerifyTrials(optimizerObjective);
+
     for (let step = 1; step <= batchRuns; step += 1) {
       if (optimizerStopRequested) {
         break;
       }
       runIndex += 1;
-      lastRunConfig = getObjectiveAdjustedRunConfig(
-        getRunConfig(stage, runIndex, optimizerMode, optimizerDiversityMode, optimizerTekilMode, optimizerTekilV2Mode),
+      lastRunConfig = getWinRateAdjustedRunConfig(
+        getObjectiveAdjustedRunConfig(
+          getRunConfig(stage, runIndex, optimizerMode, optimizerDiversityMode, optimizerTekilMode, optimizerTekilV2Mode),
+          optimizerObjective
+        ),
         optimizerObjective
       );
       optimizerStatus.textContent = batchRuns === 1 ? "Hesapliyor" : `${batchRuns} tur araniyor (${step}/${batchRuns})`;
@@ -1492,7 +1602,8 @@ async function runOptimizerSearch(batchRuns) {
         minimumRequiredCounts,
         requiredLossCounts,
         requiredLossExactFlags,
-        minWinRate: getOptimizerMinWinRate(optimizerObjective),
+        minWinRate: optimizerActiveMinWinRate,
+        minVerifyTrials: optimizerActiveMinVerifyTrials,
         trialCount: lastRunConfig.trialCount,
         fullArmyTrials: lastRunConfig.fullArmyTrials,
         beamWidth: lastRunConfig.beamWidth,
@@ -1695,6 +1806,12 @@ function setOptimizerBusy(isBusy) {
   if (optimizerCustomBandMaxInput) {
     optimizerCustomBandMaxInput.disabled = isBusy || optimizerCustomBandInputs?.hidden;
   }
+  if (optimizerWinRateThresholdInput) {
+    optimizerWinRateThresholdInput.disabled = isBusy;
+  }
+  if (optimizerCustomWinRateInput) {
+    optimizerCustomWinRateInput.disabled = isBusy || optimizerCustomWinRateInputs?.hidden;
+  }
   if (optimizerPointRangeToggleBtn) {
     optimizerPointRangeToggleBtn.disabled = isBusy;
   }
@@ -1837,7 +1954,7 @@ function syncOptimizerSummaryToggle() {
 function applyResponsiveCollapsibleDefaults() {
   const compact = !!optimizerHalfScreenMedia?.matches;
   if (!optimizerAdvancedControlsPinned) {
-    optimizerAdvancedControlsOpen = !compact;
+    optimizerAdvancedControlsOpen = optimizerVariant === "quick" ? false : !compact;
   }
   if (!optimizerSummaryPinned) {
     optimizerSummaryOpen = !compact;
@@ -3881,6 +3998,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.tekilMode, meta.tekilV2Mode, meta.stoneMode, meta.roundingMode)}`,
     ...(source?.actualGuard ? [`- gercek dogrulama: Guvenli modda +${source.actualGuard.addedPoints} puan / +${source.actualGuard.addedUnits} birlik`] : []),
     `- arama bandi: ${formatSearchRangeSummary(maxPoints, searchBandSettings, manualPointRangeSettings)}`,
+    `- kazanma orani hedefi: %${Math.round(optimizerActiveMinWinRate * 100)}+`,
     ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),
     ...(activeRequiredLossEntries.length ? [`- kayip hedefi: ${formatRequiredLossRequirements(activeRequiredLossEntries, 6)}`] : []),
     `- arama bandindaki kombinasyon: ${formatLargeInteger(meta.bandCombinationCount)}`,
@@ -3979,15 +4097,29 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     ];
   } else {
     const fallback = result.fallback || result.fullArmyEvaluation;
-    summaryLines = [
-      "======================  OPTIMIZER  SONUCU  ======================",
-      `>> ${stage}. kademe limitiyle bu savas kazanilmaz.`,
-      `- puan limiti: ${maxPoints}`,
-      `- en iyi denenen duzen kazanamadi`,
-      `- yaklasik kazanma orani: %${Math.round(fallback.winRate * 100)}`,
-      `- rakibin ortalama kalan cani: ${Math.round(fallback.avgEnemyRemainingHealth)}`,
-      ...progressLines
-    ];
+    const targetPercent = Math.round(optimizerActiveMinWinRate * 100);
+    const fallbackPercent = Math.round(fallback.winRate * 100);
+    // Esik baglayici mi (en iyi dizilis aslinda sik kazaniyor ama esigin altinda)
+    // yoksa savas gercekten kazanilamaz mi ayrimini yap.
+    const thresholdBinding = fallback.winRate >= 0.5 && fallbackPercent < targetPercent;
+    summaryLines = thresholdBinding
+      ? [
+          "======================  OPTIMIZER  SONUCU  ======================",
+          `>> %${targetPercent} kazanma orani hedefini saglayan dizilim bulunamadi.`,
+          `- puan limiti: ${maxPoints}`,
+          `- en yuksek bulunan kazanma orani: %${fallbackPercent} (en yakin dizilim gosteriliyor)`,
+          `- rakibin ortalama kalan cani: ${Math.round(fallback.avgEnemyRemainingHealth)}`,
+          ...progressLines
+        ]
+      : [
+          "======================  OPTIMIZER  SONUCU  ======================",
+          `>> ${stage}. kademe limitiyle bu savas kazanilmaz.`,
+          `- puan limiti: ${maxPoints}`,
+          `- en iyi denenen duzen kazanamadi`,
+          `- yaklasik kazanma orani: %${fallbackPercent}`,
+          `- rakibin ortalama kalan cani: ${Math.round(fallback.avgEnemyRemainingHealth)}`,
+          ...progressLines
+        ];
   }
   renderStyledLines(summaryLines, summaryBlock);
 
@@ -5079,8 +5211,25 @@ function buildDisplayedTopCandidates(result) {
   }
 
   const primarySignature = getOptimizerCandidateSignature(primary);
-  const alternatives = ranked
+  const allAlternatives = ranked
     .filter((entry) => getOptimizerCandidateSignature(entry) !== primarySignature);
+
+  // Secilen kazanma orani esigini saglayan (feasible) dizilis varsa, yalnizca
+  // onlari goster. Hicbiri esigi saglamiyorsa en yakin alternatifleri goster.
+  const feasibleAlternatives = allAlternatives.filter((entry) => entry.feasible);
+  const baseMinWinRate = getOptimizerMinWinRate(primary.objective);
+  const thresholdElevated = optimizerActiveMinWinRate > baseMinWinRate + 1e-9;
+  let alternatives;
+  if (!primary.feasible) {
+    // Esigi saglayan dizilis yok: en yakin alternatifleri goster.
+    alternatives = allAlternatives;
+  } else if (thresholdElevated) {
+    // Kullanici esigi yukseltti: yalnizca esigi saglayanlari goster (bos olsa bile).
+    alternatives = feasibleAlternatives;
+  } else {
+    // Varsayilan esik: esigi saglayan varsa onlari, yoksa en yakinlari goster.
+    alternatives = feasibleAlternatives.length ? feasibleAlternatives : allAlternatives;
+  }
 
   const sortedAlternatives = [...alternatives].sort((left, right) => {
     const compare = compareTopResultsBySortMode(left, right, "blood");
@@ -5776,8 +5925,19 @@ function showQuickPopup(result, maxPoints, meta) {
   syncQuickPopupApprovedUi();
 
   if (titleEl) {
-    titleEl.textContent = result.possible ? "Kazanilabilir" : "Kazanamaz";
-    titleEl.dataset.outcome = result.possible ? "win" : "lose";
+    const targetPercent = Math.round(optimizerActiveMinWinRate * 100);
+    const thresholdBinding = !result.possible && source.winRate >= 0.5
+      && Math.round(source.winRate * 100) < targetPercent;
+    if (result.possible) {
+      titleEl.textContent = "Kazanilabilir";
+      titleEl.dataset.outcome = "win";
+    } else if (thresholdBinding) {
+      titleEl.textContent = `%${targetPercent} bulunamadi`;
+      titleEl.dataset.outcome = "lose";
+    } else {
+      titleEl.textContent = "Kazanamaz";
+      titleEl.dataset.outcome = "lose";
+    }
   }
   if (winRateEl) winRateEl.textContent = `%${Math.round(source.winRate * 100)}`;
   if (lossEl) lossEl.textContent = String(Math.round(getDisplayedRepresentativeLossValue(source, result)));

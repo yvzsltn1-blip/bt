@@ -1130,9 +1130,6 @@ body[data-optimizer-variant="minimum"] .layout {
     display: block;
   }
 
-  .optimizer-band-controls .optimizer-band-preset-wrap {
-    display: none;
-  }
 }
 
 .unit-grid {
@@ -1398,9 +1395,6 @@ body[data-optimizer-variant="minimum"] .layout {
     grid-column: 1 / -1;
   }
 
-  .optimizer-band-controls .optimizer-band-preset-wrap {
-    display: none;
-  }
 }
 
 .optimizer-custom-band {
@@ -6745,6 +6739,130 @@ body[data-optimizer-variant="quick"] .layout {
 
 body[data-optimizer-variant="quick"] .controls-panel {
   max-width: 100%;
+}
+
+[data-optimizer-variant="quick"] .optimizer-run-mode-switch .optimizer-band-mobile {
+  display: none;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .panel-collapsible-content:not([hidden]) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-secondary-inline,
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-band-controls {
+  display: grid;
+  width: 100%;
+  margin: 0;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-secondary-inline {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-band-controls {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 6px;
+}
+
+/* Hedef / Kazanma Orani / Arama Bandi selectleri dar ekranda da sigsin */
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-band-controls .stage-select {
+  font-size: 0.72rem;
+  padding-inline: 8px;
+}
+
+/* Hesap modu satiri tum genisligi kaplasin */
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-rounding-row {
+  grid-column: 1 / -1;
+}
+
+/* Hesap modu (Degismemis/Guvenli/Gercek/Simulator) tek satirda yan yana */
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-secondary-inline .mode-switch {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 3px;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .rounding-mode-button {
+  min-width: 0;
+  padding-inline: 4px;
+  font-size: 0.72rem;
+  letter-spacing: -0.01em;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .mode-switch {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .mode-button,
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .objective-button {
+  min-width: 0;
+  padding-inline: 6px;
+  white-space: nowrap;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .select-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-band-preset-wrap > span {
+  display: block;
+  font-size: 0.66rem;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .stage-select {
+  width: 100%;
+  min-width: 0;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-band-controls,
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-custom-band,
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-constraint-note,
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .roster-card {
+  grid-column: 1 / -1;
+}
+
+/* Ek Ayarlar toggle (+/-) stays on the side even on narrow screens */
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .panel-collapsible-head {
+  flex-wrap: nowrap;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .panel-collapsible-copy {
+  flex: 1 1 auto;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .panel-collapsible-toggle {
+  width: auto;
+  min-width: 38px;
+  align-self: center;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .panel-head-tools-secondary {
+  margin-bottom: 0;
+}
+
+[data-optimizer-variant="quick"] .optimizer-advanced-collapsible .optimizer-constraint-note {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  [data-optimizer-variant="quick"] .optimizer-advanced-collapsible .panel-collapsible-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-optimizer-variant="quick"] .optimizer-advanced-collapsible .mode-switch {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* ── Quick variant – paste button above popup backdrop ───────────── */

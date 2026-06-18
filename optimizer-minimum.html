@@ -98,6 +98,22 @@
               <option value="safe_win">Daha Guvenli Kazan</option>
             </select>
           </label>
+          <label class="select-wrap optimizer-band-preset-wrap" for="optimizerWinRateThreshold">
+            <span>Kazanma Orani</span>
+            <select id="optimizerWinRateThreshold" class="stage-select">
+              <option value="75" selected>%75+ (varsayilan)</option>
+              <option value="90">%90+</option>
+              <option value="95">%95+</option>
+              <option value="100">%100</option>
+              <option value="custom">Ozel</option>
+            </select>
+          </label>
+          <div id="optimizerCustomWinRateInputs" class="optimizer-custom-band" hidden>
+            <label class="select-wrap" for="optimizerCustomWinRate">
+              <span>Min %</span>
+              <input id="optimizerCustomWinRate" class="stage-select" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="done" value="100">
+            </label>
+          </div>
           <label class="select-wrap optimizer-band-preset-wrap" for="optimizerSearchBandPreset">
             <span>Arama BandI</span>
             <select id="optimizerSearchBandPreset" class="stage-select">
@@ -421,8 +437,8 @@
   <script src="site-gate.js?v=20260502-02" defer></script>
   <script src="firebase-client.js?v=20260610-3" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="battle-core.js?v=20260612-2" defer></script>
+  <script src="battle-core.js?v=20260617-2" defer></script>
   <script src="simulat.js?v=20260520-01" defer></script>
-  <script src="optimizer.js?v=20260610-1" defer></script>
+  <script src="optimizer.js?v=20260617-2" defer></script>
 </body>
 </html>
