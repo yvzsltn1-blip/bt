@@ -22,6 +22,7 @@ const archiveBulkRegressionBtn = document.querySelector("#archiveBulkRegressionB
 const archiveDedupeBtn = document.querySelector("#archiveDedupeBtn");
 const archiveBulkRegressionModeSelect = document.querySelector("#archiveBulkRegressionModeSelect");
 const archiveBulkRegressionLimitInput = document.querySelector("#archiveBulkRegressionLimitInput");
+const archiveExportTxtBtn = document.querySelector("#archiveExportTxtBtn");
 const archiveFilteredCountValue = document.querySelector("#archiveFilteredCountValue");
 const archiveFilteredCountHint = document.querySelector("#archiveFilteredCountHint");
 const archiveTestedCountValue = document.querySelector("#archiveTestedCountValue");
@@ -139,6 +140,7 @@ const ARCHIVE_FALLBACK_MAX_DOCS = 300;
 const ARCHIVE_CHANGE_TOKEN_KEY = "btAnalyssArchiveChangeTokenV1";
 const ARCHIVE_LIVE_REFRESH_VERSION_KEY = "btAnalyssArchiveLiveRefreshVersion";
 const ARCHIVE_LIVE_REFRESH_VERSION = "20260609-6";
+const ARCHIVE_FALLEN_UNIT_BLOOD_VALUES = [10, 15, 20, 35, 50, 75, 90, 150];
 
 forceArchiveLiveRefresh();
 
@@ -455,6 +457,10 @@ function bindArchiveControls() {
     void populateArchiveHostOptions();
     void refreshArchiveView({ forceRemote: true });
     void refreshArchiveTestedStats({ forceFresh: true });
+  });
+
+  archiveExportTxtBtn?.addEventListener("click", () => {
+    void handleArchiveTxtExport();
   });
 
   archiveBulkRegressionBtn?.addEventListener("click", async () => {
@@ -1231,6 +1237,158 @@ function getSelectedArchiveItems() {
   return [...pool.values()];
 }
 
+const ARCHIVE_EXPORT_COLUMNS = [
+  {
+    key: "loot",
+    label: "Ganimet",
+    getValue: (item) => formatNumber(item?.lootGoldValue, item?.lootGoldText || "-")
+  },
+  {
+    key: "exp",
+    label: "EXP",
+    getValue: (item) => formatNumber(item?.expValue, item?.expText || "-")
+  },
+  {
+    key: "floor",
+    label: "Kat",
+    getValue: (item) => formatArmyPowerDisplay(item?.armyPowerText || "-")
+  },
+  {
+    key: "level",
+    label: "Seviye",
+    getValue: (item) => item?.levelText || "-"
+  },
+  {
+    key: "date",
+    label: "Tarih",
+    getValue: (item) => formatDateTime(item?.savedAt)
+  },
+  {
+    key: "stone",
+    label: "Tas",
+    getValue: (item) => formatArchiveStoneDisplay(item?.reviveStoneText)
+  }
+];
+
+async function handleArchiveTxtExport() {
+  const selectedColumns = getSelectedArchiveExportColumns();
+  if (!selectedColumns.length) {
+    window.alert("Indirmek icin en az bir sutun sec.");
+    return;
+  }
+
+  if (!window.BTFirebase || typeof window.BTFirebase.loadOverviewArchivesPage !== "function") {
+    window.alert("Arsiv verisi henuz hazir degil.");
+    return;
+  }
+
+  const originalLabel = archiveExportTxtBtn?.textContent || "TXT Indir";
+  if (archiveExportTxtBtn) {
+    archiveExportTxtBtn.disabled = true;
+    archiveExportTxtBtn.textContent = "Hazirlaniyor...";
+  }
+
+  try {
+    await ensureAllArchiveItemsLoaded();
+    const exportItems = getArchiveExportItems();
+    if (!exportItems.length) {
+      window.alert("Bu filtrelerde indirilecek kayit bulunamadi.");
+      return;
+    }
+
+    const columnLabels = selectedColumns.map((column) => column.label);
+    const confirmed = window.confirm(
+      `${buildArchiveExportScopeLabel(exportItems.length)} ${columnLabels.join(" - ")} bilgileri indirilecek. Onayliyor musun?`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    downloadArchiveTxtFile(exportItems, selectedColumns);
+  } catch (error) {
+    console.error("TXT arsiv indirme hatasi.", error);
+    window.alert("TXT indirme hazirlanirken hata olustu.");
+  } finally {
+    if (archiveExportTxtBtn) {
+      archiveExportTxtBtn.disabled = false;
+      archiveExportTxtBtn.textContent = originalLabel;
+    }
+    renderArchivePage();
+  }
+}
+
+function getSelectedArchiveExportColumns() {
+  const checkedValues = new Set(
+    [...document.querySelectorAll('input[name="archiveExportColumn"]:checked')]
+      .map((input) => input instanceof HTMLInputElement ? input.value : "")
+      .filter(Boolean)
+  );
+  return ARCHIVE_EXPORT_COLUMNS.filter((column) => checkedValues.has(column.key));
+}
+
+function getArchiveExportItems() {
+  return applyArchiveTestStatusFilter(archiveState.loadedItems);
+}
+
+function buildArchiveExportScopeLabel(count) {
+  const countText = `${formatNumber(count)} verinin,`;
+  if (archiveState.filters.armyPowerText) {
+    return `${archiveState.filters.armyPowerText}. katta bulunan ${countText}`;
+  }
+  if (archiveState.filters.hours) {
+    return `Son ${archiveState.filters.hours} saatte bulunan ${countText}`;
+  }
+  if (archiveState.filters.datePreset === "today") {
+    return `Bugun bulunan ${countText}`;
+  }
+  if (archiveState.filters.datePreset === "7d") {
+    return `Son 7 gunde bulunan ${countText}`;
+  }
+  if (archiveState.filters.datePreset === "30d") {
+    return `Son 30 gunde bulunan ${countText}`;
+  }
+  return `Filtrede bulunan ${countText}`;
+}
+
+function downloadArchiveTxtFile(items, columns) {
+  const header = columns.map((column) => sanitizeArchiveTxtCell(column.label)).join("\t");
+  const rows = items.map((item) =>
+    columns.map((column) => sanitizeArchiveTxtCell(column.getValue(item))).join("\t")
+  );
+  const blob = new Blob([[header, ...rows].join("\n")], { type: "text/plain;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = buildArchiveExportFileName();
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
+function buildArchiveExportFileName() {
+  const parts = ["arsiv"];
+  if (archiveState.filters.host) {
+    parts.push(archiveHostLabel(archiveState.filters.host));
+  }
+  if (archiveState.filters.armyPowerText) {
+    parts.push(`kat-${archiveState.filters.armyPowerText}`);
+  }
+  if (archiveState.filters.datePreset && archiveState.filters.datePreset !== "all") {
+    parts.push(archiveState.filters.datePreset);
+  }
+  if (archiveState.filters.hours) {
+    parts.push(`son-${archiveState.filters.hours}-saat`);
+  }
+  if ((archiveState.testStatusFilter || "all") !== "all") {
+    parts.push(archiveState.testStatusFilter);
+  }
+  return `${parts.join("-")}.txt`;
+}
+
+function sanitizeArchiveTxtCell(value) {
+  return String(value ?? "-").replace(/[\t\r\n]+/g, " ").trim();
+}
+
 function renderArchiveSelectionSummary() {
   if (!archiveSelectionSummary || !archiveSelectionCount || !archiveSelectionTotals) {
     return;
@@ -1238,9 +1396,18 @@ function renderArchiveSelectionSummary() {
   const selectedItems = getSelectedArchiveItems();
   const totalExp = selectedItems.reduce((sum, item) => sum + normalizeMetricNumber(item?.expValue), 0);
   const totalLoot = selectedItems.reduce((sum, item) => sum + normalizeMetricNumber(item?.lootGoldValue), 0);
+  const fallenTotals = getArchiveFallenUnitsTotals(selectedItems);
   archiveSelectionSummary.hidden = selectedItems.length === 0;
   archiveSelectionCount.textContent = `${formatNumber(selectedItems.length)} kayit secildi`;
-  archiveSelectionTotals.textContent = `${formatNumber(totalExp)} EXP / ${formatNumber(totalLoot)} ganimet`;
+  archiveSelectionTotals.innerHTML = `
+    <span class="archive-selection-total archive-selection-total-exp">${formatNumber(totalExp)} EXP</span>
+    <span class="archive-selection-separator">*</span>
+    <span class="archive-selection-total archive-selection-total-loot">${formatNumber(totalLoot)} ganimet</span>
+    <span class="archive-selection-separator">*</span>
+    <span class="archive-selection-total archive-selection-total-fallen">${fallenTotals.text} olen</span>
+    <span class="archive-selection-separator">*</span>
+    <span class="archive-selection-total archive-selection-total-blood">${formatNumber(fallenTotals.blood)} kan kaybi</span>
+  `;
   if (archiveDeleteSelectedBtn) {
     archiveDeleteSelectedBtn.disabled = !isAdminSession || selectedItems.length === 0;
     archiveDeleteSelectedBtn.title = isAdminSession
@@ -1252,6 +1419,24 @@ function renderArchiveSelectionSummary() {
     archiveDedupeBtn.hidden = !isAdminSession;
   }
   syncArchiveSelectAllVisibleControl();
+}
+
+function getArchiveFallenUnitsTotals(items) {
+  const totals = Array(8).fill(0);
+  (items || []).forEach((item) => {
+    [...String(item?.fallenUnitsText || "").matchAll(/\(T(\d+)\)\s*x\s*(\d+)/gi)].forEach((match) => {
+      const index = Number.parseInt(match[1], 10) - 1;
+      if (index >= 0 && index < totals.length) {
+        totals[index] += normalizeMetricNumber(match[2]);
+      }
+    });
+  });
+  const blood = totals.reduce((sum, count, index) =>
+    sum + count * (ARCHIVE_FALLEN_UNIT_BLOOD_VALUES[index] || 0), 0);
+  return {
+    text: totals.map((value) => formatNumber(value)).join("/"),
+    blood
+  };
 }
 
 function renderArchiveActionGroup(item) {

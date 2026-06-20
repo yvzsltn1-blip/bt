@@ -111,6 +111,18 @@
                 <option value="untested">Test yapilmayanlar</option>
               </select>
             </label>
+            <div class="field archive-filter-field archive-export-field">
+              <span>TXT Sutunlari</span>
+              <div class="archive-export-columns" aria-label="TXT indirilecek sutunlar">
+                <label><input type="checkbox" name="archiveExportColumn" value="loot" checked> Ganimet</label>
+                <label><input type="checkbox" name="archiveExportColumn" value="exp" checked> EXP</label>
+                <label><input type="checkbox" name="archiveExportColumn" value="floor" checked> Kat</label>
+                <label><input type="checkbox" name="archiveExportColumn" value="level" checked> Seviye</label>
+              </div>
+              <button id="archiveExportTxtBtn" class="button button-secondary archive-export-btn" type="button">
+                TXT Indir
+              </button>
+            </div>
           </div>
 
           <div class="archive-insight-grid">
@@ -294,6 +306,6 @@
   <script src="admin-auth-ui.js?v=20260529-16" defer></script>
   <script src="battle-core.js?v=20260612-2" defer></script>
   <script src="bulk-regression.js?v=20260607-1" defer></script>
-  <script src="archive.js?v=20260610-1" defer></script>
+  <script src="archive.js?v=20260621-3" defer></script>
 </body>
 </html>

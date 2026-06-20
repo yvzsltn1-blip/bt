@@ -144,7 +144,9 @@
       "Bash(python3 -)",
       "Bash(gcloud config *)",
       "Bash(gcloud auth *)",
-      "Bash(awk 'NR>=380 && NR<=460 && /function |=>/{print NR\": \"$0}' archive.js)"
+      "Bash(awk 'NR>=380 && NR<=460 && /function |=>/{print NR\": \"$0}' archive.js)",
+      "Bash(sed -i \"2d\" /tmp/analyze.js)",
+      "Bash(sed -i \"s|const dir = process.cwd\\(\\);|const dir = process.cwd\\(\\);|\" /tmp/analyze.js)"
     ]
   }
 }

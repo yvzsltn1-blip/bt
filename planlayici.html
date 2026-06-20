@@ -196,16 +196,16 @@
       </div>
       <div class="field full">
         <label>Kat <b>(x)</b></label>
-        <input id="kat" type="number" inputmode="numeric" value="3" min="1">
+        <input id="kat" type="number" inputmode="numeric" value="3" min="1" max="100">
         <div class="hint">Tek kat stratejisi → sadece bu katı yaparsın. İlk-x stratejisi → 1'den x'e kadar tüm katları sırayla yaparsın.</div>
       </div>
       <div class="field">
         <label>Aralık <b>başı</b></label>
-        <input id="ra" type="number" inputmode="numeric" value="11" min="1">
+        <input id="ra" type="number" inputmode="numeric" value="11" min="1" max="100">
       </div>
       <div class="field">
         <label>Aralık <b>sonu</b></label>
-        <input id="rb" type="number" inputmode="numeric" value="20" min="1">
+        <input id="rb" type="number" inputmode="numeric" value="20" min="1" max="100">
       </div>
       <div class="field full" style="margin-top:-4px">
         <div class="hint">Aralık stratejisi → her turda yalnızca bu aralıktaki katları (örn. 11–20) yaparsın.</div>
@@ -228,8 +228,8 @@
         <input id="qs" type="number" inputmode="numeric" value="1800" min="1" oninput="hizliHesap()">
       </div>
       <div class="field">
-        <label><b>Kat</b></label>
-        <input id="qk" type="number" inputmode="numeric" value="17" min="1" oninput="hizliHesap()">
+        <label><b>Kat</b> (1–100)</label>
+        <input id="qk" type="number" inputmode="numeric" value="17" min="1" max="100" oninput="hizliHesap()">
       </div>
     </div>
     <div class="qresult">
@@ -242,6 +242,52 @@
         <span class="qval" id="qgan">—</span>
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Tek Tur Özeti · İlk N Katı 1 Kez</div>
+    <div class="grid">
+      <div class="field">
+        <label><b>Seviye</b> (kademe)</label>
+        <input id="tsLevel" type="number" inputmode="numeric" value="2514" min="1" oninput="tekTurHesap()">
+      </div>
+      <div class="field">
+        <label><b>Kaç kat?</b> (1–100)</label>
+        <input id="tsKat" type="number" inputmode="numeric" value="90" min="1" max="100" oninput="tekTurHesap()">
+      </div>
+    </div>
+    <div class="qresult">
+      <div class="qbox"><span class="qlabel">Toplam EXP</span><span class="qval gold" id="tsExp">—</span></div>
+      <div class="qbox"><span class="qlabel">Toplam Ganimet</span><span class="qval" id="tsGan">—</span></div>
+    </div>
+    <div class="qresult">
+      <div class="qbox"><span class="qlabel">Kazanılan Kademe</span><span class="qval gold" id="tsLevels">—</span></div>
+      <div class="qbox"><span class="qlabel">Ulaşılan Kademe</span><span class="qval" id="tsFinal">—</span></div>
+    </div>
+    <div class="hint" id="tsNote" style="margin-top:14px;line-height:1.6"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Hedef Tecrübe → İlk Kaç Kat?</div>
+    <div class="grid">
+      <div class="field">
+        <label><b>Seviye</b> (kademe)</label>
+        <input id="htLevel" type="number" inputmode="numeric" value="2514" min="1" oninput="hedefTecrubeHesap()">
+      </div>
+      <div class="field">
+        <label>Hedef <b>EXP</b></label>
+        <input id="htExp" type="number" inputmode="numeric" value="100000" min="1" oninput="hedefTecrubeHesap()">
+      </div>
+    </div>
+    <div class="qresult">
+      <div class="qbox"><span class="qlabel">İlk ? Katı Yap</span><span class="qval gold" id="htKat">—</span></div>
+      <div class="qbox"><span class="qlabel">Bu Turda EXP</span><span class="qval" id="htExpOut">—</span></div>
+    </div>
+    <div class="qresult">
+      <div class="qbox"><span class="qlabel">Toplam Ganimet</span><span class="qval" id="htGan">—</span></div>
+      <div class="qbox"><span class="qlabel">Kazanılan Kademe</span><span class="qval gold" id="htLevels">—</span></div>
+    </div>
+    <div class="hint" id="htNote" style="margin-top:14px;line-height:1.6"></div>
   </div>
 
   <div id="out">
@@ -278,7 +324,7 @@
         </div>
       </div>
       <div class="foot">
-        Ödüller, doğrulanmış regresyon formülüyle hesaplanır (Kat 1-40 & Seviye 1576-1745 aralığında ±0,3 EXP / ±%0,01 sapma).<br>
+        Ödüller, arşiv verisine (s65+s66) dayalı regresyon formülüyle hesaplanır (Kat 1-90 & Seviye 1114-2510 aralığında ort. ±%0,04 sapma).<br>
         Kademe eşiği: <code>toplam EXP = 5·K² + K − 1</code> &nbsp;·&nbsp; bir kademe için <code>10·K + 6</code> EXP.
       </div>
     </div>
@@ -299,15 +345,14 @@
 </div>
 
 <script>
-// --- Doğrulanmış regresyon katsayıları ---
+// --- Doğrulanmış regresyon katsayıları (arşiv s65+s66, kat 1-90 · seviye 1114-2510) ---
+// Model: seviyede kuadratik, kata göre ölçeklenir → ort. %0,04 sapma.
 const C = {
-  exp: {c0:1756.80,  cK:35.6417,    cS:0.3837,   cKS:0.007962},
-  gan: {c0:641193.97,cK:47726.2945, cS:249.9631, cKS:19.129108}
+  exp: {c0:1542.7403401, cK:30.1594530, cS:0.6309934591, cKS:0.01428960903, cS2:-0.00007169204518, cKS2:-0.000001826994188},
+  gan: {c0:530796.21093, cK:37560.45103, cS:377.2236096,  cKS:30.90520798,  cS2:-0.03683641192,   cKS2:-0.003415688597}
 };
-const EXP_ADJUST = 1999 / 2000;
-const GAN_ADJUST = 999500 / 1000000;
-const expRun = (k,s)=> (C.exp.c0 + C.exp.cK*k + C.exp.cS*s + C.exp.cKS*k*s) * EXP_ADJUST;
-const ganRun = (k,s)=> (C.gan.c0 + C.gan.cK*k + C.gan.cS*s + C.gan.cKS*k*s) * GAN_ADJUST;
+const expRun = (k,s)=> C.exp.c0 + C.exp.cK*k + C.exp.cS*s + C.exp.cKS*k*s + C.exp.cS2*s*s + C.exp.cKS2*k*s*s;
+const ganRun = (k,s)=> C.gan.c0 + C.gan.cK*k + C.gan.cS*s + C.gan.cKS*k*s + C.gan.cS2*s*s + C.gan.cKS2*k*s*s;
 
 // Kademe K'ya ulaşmak için gereken toplam EXP
 const totalExp = K => 5*K*K + K - 1;
@@ -316,6 +361,8 @@ const seviyeFromExp = E => Math.floor((-1 + Math.sqrt(1 + 20*(E+1)))/10);
 
 const fmt = n => Math.round(n).toLocaleString('tr-TR');
 const MAX_ITER = 3_000_000;
+const MAX_KAT = 100;                       // oyunda en fazla 100 kat var
+const clampKat = k => Math.min(Math.max(k,1), MAX_KAT);
 
 function simTekKat(startE, targetE, x){
   let totE=startE, runs=0, gan=0;
@@ -346,9 +393,10 @@ function simRange(startE, targetE, a, b){
 // --- Hızlı hesap: seviye + kat → EXP & Ganimet ---
 function hizliHesap(){
   const s = parseInt(document.getElementById('qs').value);
-  const k = parseInt(document.getElementById('qk').value);
+  let k = parseInt(document.getElementById('qk').value);
   const ex = document.getElementById('qexp'), gn = document.getElementById('qgan');
   if(!s||!k||s<1||k<1){ ex.textContent='—'; gn.textContent='—'; return; }
+  k = clampKat(k);
   setFitValue(ex, fmt(expRun(k,s)));
   setFitValue(gn, fmt(ganRun(k,s)));
 }
@@ -377,6 +425,10 @@ function hesapla(){
   if(!ra||!rb||ra<1||rb<1){ showWarn(warn,"Lütfen geçerli bir kat aralığı gir."); return; }
   if(ra>rb){ const t=ra; ra=rb; rb=t; }  // ters girilmişse düzelt
 
+  // Kat tavanı: oyunda en fazla 100 kat var
+  const katAsildi = (x>MAX_KAT || ra>MAX_KAT || rb>MAX_KAT);
+  const xC = clampKat(x), raC = clampKat(ra), rbC = clampKat(rb);
+
   let startE = totalExp(cur);
   if(curexpRaw!==''){
     const ce = parseInt(curexpRaw);
@@ -384,39 +436,40 @@ function hesapla(){
   }
   const targetE = totalExp(tgt);
 
-  // Ekstrapolasyon uyarısı
+  // Ekstrapolasyon / tavan uyarısı
   const msgs=[];
-  if(Math.max(x,rb)>80) msgs.push("Kat 80'in üstünde — arşiv verisi seyrek, tahmin sapabilir.");
-  if(Math.max(x,rb)>72 && Math.max(cur,tgt)<1500) msgs.push("Düşük seviyede Kat 72 üstü için yeterli arşiv verisi yok.");
+  if(katAsildi) msgs.push("Oyunda en fazla 100 kat var — değerler 100'e sabitlendi.");
+  if(Math.max(xC,rbC)>90) msgs.push("Kat 90'ın üstünde — arşiv verisi yok, tahmin sapabilir.");
+  if(Math.max(cur,tgt)>2510) msgs.push("Seviye 2510 üstü arşiv verisi dışında — tahmin sapabilir.");
   if(msgs.length) showWarn(warn, "⚠ "+msgs.join(" "));
 
-  const A = simTekKat(startE, targetE, x);
-  const B = simRange(startE, targetE, 1, x);
-  const R = simRange(startE, targetE, ra, rb);
+  const A = simTekKat(startE, targetE, xC);
+  const B = simRange(startE, targetE, 1, xC);
+  const R = simRange(startE, targetE, raC, rbC);
 
   document.getElementById('needexp').textContent = fmt(targetE-startE);
   document.getElementById('pathtxt').innerHTML =
     `Kademe <b>${fmt(cur)}</b> → <b>${fmt(tgt)}</b>`;
 
   // Tek kat
-  document.getElementById('t1').textContent = `Sadece Kat ${x}`;
-  document.getElementById('s1').textContent = `Sadece ${x}. katı tekrarla.`;
+  document.getElementById('t1').textContent = `Sadece Kat ${xC}`;
+  document.getElementById('s1').textContent = `Sadece ${xC}. katı tekrarla.`;
   document.getElementById('r1').innerHTML = `${fmt(A.runs)}<small> kez</small>`;
   document.getElementById('g1').textContent = fmt(A.gan);
   document.getElementById('e1').textContent = fmt((A.finalE-startE)/Math.max(A.runs,1));
   document.getElementById('f1').textContent = fmt(seviyeFromExp(A.finalE));
 
   // İlk x kat
-  document.getElementById('t2').textContent = `İlk ${x} Kat (tur)`;
-  document.getElementById('s2').textContent = `Her turda 1'den ${x}'e kadar tüm katları yap.`;
+  document.getElementById('t2').textContent = `İlk ${xC} Kat (tur)`;
+  document.getElementById('s2').textContent = `Her turda 1'den ${xC}'e kadar tüm katları yap.`;
   document.getElementById('r2').innerHTML = `${fmt(B.cycles)}<small> tur</small>`;
   document.getElementById('rr2').textContent = fmt(B.runs);
   document.getElementById('g2').textContent = fmt(B.gan);
   document.getElementById('f2').textContent = fmt(seviyeFromExp(B.finalE));
 
   // Aralık kat
-  document.getElementById('t3').textContent = `Kat ${ra}–${rb} (tur)`;
-  document.getElementById('s3').textContent = `Her turda yalnızca ${ra}–${rb} katları yap.`;
+  document.getElementById('t3').textContent = `Kat ${raC}–${rbC} (tur)`;
+  document.getElementById('s3').textContent = `Her turda yalnızca ${raC}–${rbC} katları yap.`;
   document.getElementById('r3').innerHTML = `${fmt(R.cycles)}<small> tur</small>`;
   document.getElementById('rr3').textContent = fmt(R.runs);
   document.getElementById('g3').textContent = fmt(R.gan);
@@ -432,8 +485,9 @@ const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 function ornekUret(){
   const cur=parseInt(document.getElementById('cur').value);
   const tgt=parseInt(document.getElementById('tgt').value);
-  const x=parseInt(document.getElementById('kat').value);
+  let x=parseInt(document.getElementById('kat').value);
   if(!cur||!tgt||!x||tgt<=cur) return;
+  x=clampKat(x);
   document.getElementById('sampleNote').innerHTML =
     `Kademe <b style="color:var(--gold-soft)">${fmt(cur)}–${fmt(tgt)}</b> arası, kat <b style="color:var(--blood-soft)">1–${x}</b> arasından rastgele 10 değer:`;
   let rows='';
@@ -445,8 +499,78 @@ function ornekUret(){
   document.getElementById('sampleBody').innerHTML=rows;
 }
 
+// --- İlk N katı bir kez yapmanın tek-tur özeti (seviye tur içinde güncellenir) ---
+function onePass(level, N){
+  N = clampKat(N);
+  let E0 = totalExp(level), E = E0, gan = 0;
+  for(let k=1;k<=N;k++){
+    const s = seviyeFromExp(E);
+    E   += Math.round(expRun(k,s));
+    gan += Math.round(ganRun(k,s));
+  }
+  return { exp:E-E0, gan, finalLevel:seviyeFromExp(E), levels:seviyeFromExp(E)-level, N };
+}
+
+function tekTurHesap(){
+  const lv = parseInt(document.getElementById('tsLevel').value);
+  let N    = parseInt(document.getElementById('tsKat').value);
+  const exp=document.getElementById('tsExp'),  gan=document.getElementById('tsGan'),
+        lvl=document.getElementById('tsLevels'), fin=document.getElementById('tsFinal'),
+        note=document.getElementById('tsNote');
+  if(!lv||!N||lv<1||N<1){ [exp,gan,lvl,fin].forEach(e=>e.textContent='—'); note.textContent=''; return; }
+  if(N>MAX_KAT){ N=MAX_KAT; document.getElementById('tsKat').value=MAX_KAT; }
+  const r = onePass(lv, N);
+  setFitValue(exp, fmt(r.exp));
+  setFitValue(gan, fmt(r.gan));
+  lvl.textContent = '+'+fmt(r.levels);
+  fin.textContent = fmt(r.finalLevel);
+  note.innerHTML =
+    `Seviye <b>${fmt(lv)}</b> oyuncu ilk <b>${N}</b> katı 1 kez yaparsa <b style="color:var(--gold-soft)">${fmt(r.exp)}</b> EXP ` +
+    `ve <b>${fmt(r.gan)}</b> ganimet kazanır → <b style="color:var(--blood-soft)">${fmt(r.levels)}</b> kademe ilerler ` +
+    `(${fmt(lv)} → ${fmt(r.finalLevel)}). Kat başına ort. <b>${fmt(r.exp/N)}</b> EXP.`;
+}
+
+function hedefTecrubeHesap(){
+  const lv     = parseInt(document.getElementById('htLevel').value);
+  const target = parseInt(document.getElementById('htExp').value);
+  const kOut=document.getElementById('htKat'),   eOut=document.getElementById('htExpOut'),
+        gOut=document.getElementById('htGan'),    lOut=document.getElementById('htLevels'),
+        note=document.getElementById('htNote');
+  if(!lv||!target||lv<1||target<1){ [kOut,eOut,gOut,lOut].forEach(e=>e.textContent='—'); note.textContent=''; return; }
+
+  // İlk x katı 1 kez yapmak hedefi karşılıyor mu? (x büyüdükçe tur EXP'i monoton artar)
+  let found=0, r=null;
+  for(let x=1;x<=MAX_KAT;x++){ r=onePass(lv,x); if(r.exp>=target){ found=x; break; } }
+
+  if(found){
+    kOut.textContent='İlk '+found;
+    setFitValue(eOut, fmt(r.exp));
+    setFitValue(gOut, fmt(r.gan));
+    lOut.textContent='+'+fmt(r.levels);
+    note.innerHTML =
+      `<b style="color:var(--gold-soft)">${fmt(target)}</b> EXP için seviye <b>${fmt(lv)}</b> oyuncu ` +
+      `<b style="color:var(--blood-soft)">ilk ${found} katı</b> 1 kez yapmalı. Bu tur <b>${fmt(r.exp)}</b> EXP, ` +
+      `<b>${fmt(r.gan)}</b> ganimet verir ve <b>${fmt(r.levels)}</b> kademe ilerletir (${fmt(lv)} → ${fmt(r.finalLevel)}).`;
+  } else {
+    // İlk 100 kat tek turda yetmiyor → tüm 100 katı kaç tur tekrarlamak gerekir?
+    let E0=totalExp(lv), E=E0, gan=0, passes=0;
+    while(E-E0 < target && passes < 1_000_000){
+      for(let k=1;k<=MAX_KAT;k++){ const s=seviyeFromExp(E); E+=Math.round(expRun(k,s)); gan+=Math.round(ganRun(k,s)); }
+      passes++;
+    }
+    kOut.textContent='100 ×'+fmt(passes)+' tur';
+    setFitValue(eOut, fmt(E-E0));
+    setFitValue(gOut, fmt(gan));
+    lOut.textContent='+'+fmt(seviyeFromExp(E)-lv);
+    note.innerHTML =
+      `<b style="color:var(--gold-soft)">${fmt(target)}</b> EXP için ilk 100 kat tek turda yetmez. ` +
+      `Tüm 100 katı <b style="color:var(--blood-soft)">${fmt(passes)} tur</b> yapmak gerekir → toplam <b>${fmt(E-E0)}</b> EXP, ` +
+      `<b>${fmt(gan)}</b> ganimet, <b>${fmt(seviyeFromExp(E)-lv)}</b> kademe.`;
+  }
+}
+
 // İlk açılışta otomatik hesapla
-window.addEventListener('load', ()=>{ hesapla(); hizliHesap(); });
+window.addEventListener('load', ()=>{ hesapla(); hizliHesap(); tekTurHesap(); hedefTecrubeHesap(); });
 </script>
       </div>
     </main>
