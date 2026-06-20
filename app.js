@@ -1906,7 +1906,14 @@ function renderVariantDetails(analysis) {
     }),
     buildAverageSummaryCard(analysis.averageLostBlood),
     buildProbabilitySummaryCard("Zafer olasiligi", analysis.victoryProbability),
-    buildProbabilitySummaryCard("Maglubiyet olasiligi", analysis.defeatProbability)
+    buildProbabilitySummaryCard("Maglubiyet olasiligi", analysis.defeatProbability, () => {
+      const defeatVariant = getMostLikelyOutcomeVariant(analysis, "enemy");
+      if (!defeatVariant) {
+        return;
+      }
+      focusVariantInDetails(analysis, defeatVariant);
+      showVariantInMainResult(analysis, defeatVariant);
+    })
   );
 
   const randomBenchmarkPanel = analysis.randomBenchmark
@@ -1921,6 +1928,22 @@ function renderVariantDetails(analysis) {
     const card = document.createElement("article");
     card.className = `variant-card${variant.isCurrent ? " is-primary" : ""}${analysis.focusedVariantIndex === index ? " is-focused" : ""}`;
     card.dataset.variantIndex = String(index);
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", `${index + 1}. ${variant.winner === "ally" ? "Zafer" : "Maglubiyet"} senaryosunu ana sonuc ekraninda goster`);
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("button")) {
+        return;
+      }
+      showVariantInMainResult(analysis, variant);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      showVariantInMainResult(analysis, variant);
+    });
 
     const headRow = document.createElement("div");
     headRow.className = "variant-card-head";
@@ -1962,15 +1985,6 @@ function renderVariantDetails(analysis) {
     const actions = document.createElement("div");
     actions.className = "variant-actions";
 
-    const logButton = document.createElement("button");
-    logButton.type = "button";
-    logButton.className = "button button-ghost";
-    logButton.textContent = "Savas Gunlugunu Gor";
-    logButton.addEventListener("click", () => {
-      openVariantLogModal(analysis, variant);
-    });
-    actions.appendChild(logButton);
-
     if (isAdminSession) {
       const saveButton = document.createElement("button");
       saveButton.type = "button";
@@ -1982,7 +1996,10 @@ function renderVariantDetails(analysis) {
       actions.appendChild(saveButton);
     }
 
-    card.append(headRow, losses, note, actions);
+    card.append(headRow, losses, note);
+    if (actions.childElementCount > 0) {
+      card.appendChild(actions);
+    }
     list.appendChild(card);
   }
 
@@ -2100,6 +2117,81 @@ function scrollToFocusedVariantCard(analysis) {
   });
 }
 
+function showVariantInMainResult(analysis, variant) {
+  if (!analysis || !variant) {
+    return;
+  }
+
+  const enemyCounts = { ...(analysis.enemyCounts || {}) };
+  const allyCounts = { ...(analysis.allyCounts || {}) };
+  const logView = ensureVariantLogView(enemyCounts, allyCounts, variant);
+  const roundingMode = normalizeRoundingMode(currentSimulationResult?.roundingMode || currentSimulationReport?.roundingMode);
+  const result = logView.result || simulateBattle(enemyCounts, allyCounts, {
+    seed: logView.seed,
+    collectLog: true,
+    roundingMode
+  });
+  const variantSignature = buildVariantSignature(result);
+
+  isLossReductionActive = false;
+  lastSummaryTextTr = logView.summaryText;
+  lastLogTextTr = logView.detailText;
+
+  currentSimulationReport = {
+    source: "simulation",
+    sourceLabel: "Simulasyon",
+    reportedAt: new Date().toISOString(),
+    enemyCounts,
+    allyCounts,
+    seed: logView.seed,
+    matchSignature: buildMatchSignature("simulation", enemyCounts, allyCounts),
+    summaryText: logView.summaryText,
+    logText: logView.detailText,
+    usedCapacity: result.usedCapacity,
+    usedPoints: calculateArmyPoints(allyCounts),
+    roundingMode: result.roundingMode,
+    lostBlood: result.lostBloodTotal,
+    expectedWinner: result.winner,
+    expectedLostBlood: result.lostBloodTotal,
+    expectedUsedCapacity: result.usedCapacity,
+    expectedUsedPoints: calculateArmyPoints(allyCounts),
+    expectedAllyLosses: { ...(result.allyLosses || {}) },
+    expectedVariantSignature: variantSignature
+  };
+  currentSimulationResult = {
+    winner: result.winner,
+    lostBloodTotal: result.lostBloodTotal,
+    variantSignature,
+    roundingMode: result.roundingMode,
+    seed: logView.seed,
+    allyLosses: { ...(result.allyLosses || {}) }
+  };
+
+  analysis.variants.forEach((item) => {
+    item.isCurrent = item.signature === variantSignature;
+  });
+  currentVariantAnalysis = analysis;
+  currentKnifeEdgeRisk = analyzeKnifeEdgeRisk(enemyCounts, allyCounts, {
+    seed: logView.seed,
+    result,
+    roundingMode: result.roundingMode
+  });
+
+  reportWrongSimulationBtn.disabled = false;
+  renderSimulationMeta(currentSimulationReport, currentSimulationResult);
+  paintLogPanels();
+  closeVariantLogModal();
+  void refreshMatchedActualReport();
+  syncSimulationAdminActions();
+  syncVariantInsightsUi();
+  startNearbyAdviceAnalysis(enemyCounts, allyCounts, result);
+  statusLabel.textContent = `Temsilci seed ${logView.seed} gosteriliyor`;
+
+  window.requestAnimationFrame(() => {
+    summaryPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
 function buildVariantLossChips(lossesByKey) {
   const chips = [];
   ALLY_UNITS.forEach((unit) => {
@@ -2110,6 +2202,20 @@ function buildVariantLossChips(lossesByKey) {
     chips.push(`${unit.label}: ${count}`);
   });
   return chips;
+}
+
+function getMostLikelyOutcomeVariant(analysis, winner) {
+  if (!analysis || !Array.isArray(analysis.variants)) {
+    return null;
+  }
+
+  return analysis.variants
+    .filter((variant) => variant.winner === winner)
+    .sort((left, right) =>
+      right.count - left.count ||
+      right.lostBloodTotal - left.lostBloodTotal ||
+      left.seeds[0] - right.seeds[0]
+    )[0] || null;
 }
 
 function buildVariantSummaryCard(label, variant, onActivate) {
@@ -2142,13 +2248,24 @@ function buildAverageSummaryCard(averageLostBlood) {
   return buildMetricSummaryCard("Ortalama kan kaybi", `${formatAverageValue(averageLostBlood)} kan`, "Agirlikli beklenen deger");
 }
 
-function buildProbabilitySummaryCard(label, probability) {
-  return buildMetricSummaryCard(label, `%${formatProbability(probability)}`, "Seed dagilimi uzerinden tahmini oran");
+function buildProbabilitySummaryCard(label, probability, onActivate = null) {
+  const hasAction = typeof onActivate === "function" && probability > 0;
+  return buildMetricSummaryCard(
+    label,
+    `%${formatProbability(probability)}`,
+    hasAction ? "Tikla: temsili senaryo sonucunu gor" : "Seed dagilimi uzerinden tahmini oran",
+    hasAction ? onActivate : null
+  );
 }
 
-function buildMetricSummaryCard(label, value, metaText) {
-  const card = document.createElement("section");
-  card.className = "variant-summary-card";
+function buildMetricSummaryCard(label, value, metaText, onActivate = null) {
+  const hasAction = typeof onActivate === "function";
+  const card = document.createElement(hasAction ? "button" : "section");
+  card.className = `variant-summary-card${hasAction ? " is-action" : ""}`;
+  if (hasAction) {
+    card.type = "button";
+    card.addEventListener("click", onActivate);
+  }
 
   const heading = document.createElement("span");
   heading.className = "variant-summary-label";
@@ -2548,6 +2665,7 @@ function buildVariantLogView(result, enemyCounts, allyCounts, seed) {
 
   return {
     seed,
+    result,
     usedCapacity: result.usedCapacity,
     summaryText,
     detailText

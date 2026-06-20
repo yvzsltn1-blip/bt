@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      4.1
+// @version      4.7
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -139,8 +139,34 @@
     GM_setValue(LAST_REVIVE_STONES_KEY, '');
   }
 
+  function getReviveStoneCostFromElement(root) {
+    if (!root) {
+      return 0;
+    }
+    const value = Math.abs(parseQtyValue(root.querySelector('span')?.textContent) || 0);
+    return value > 0 ? value : 0;
+  }
+
+  function getReviveStoneCostFromDom() {
+    return getReviveStoneCostFromElement(document.querySelector('#showReviveBtn'))
+      || getReviveStoneCostFromElement(document.querySelector('#reviveBtn'));
+  }
+
+  function hasReviveSuccessMessage() {
+    return !!document.querySelector('#revivedResult .success-message, #revivedResult .revived-banner');
+  }
+
   function readReviveStoneText() {
     const raw = GM_getValue(LAST_REVIVE_STONES_KEY, '');
+    const domCost = getReviveStoneCostFromDom();
+    if ((raw === '' || raw === null || raw === undefined) && hasReviveSuccessMessage() && domCost > 0) {
+      GM_setValue(LAST_REVIVE_STONES_KEY, String(domCost));
+      return String(domCost);
+    }
+    if (String(raw) === '0' && hasReviveSuccessMessage() && domCost > 0) {
+      GM_setValue(LAST_REVIVE_STONES_KEY, String(domCost));
+      return String(domCost);
+    }
     return raw === '' || raw === null || raw === undefined ? '-' : String(raw);
   }
 
@@ -436,7 +462,29 @@
     return { docId, payload };
   }
 
-  async function syncLootResultToLastArchive() {
+  // Sonuc sayfasinda hem watchLootPage gozlemcisi hem de runBotTick (handleResultPage/
+  // handleAutoResultPage) bu fonksiyonu cagirir ve sayfa kademeli yuklendiginden ayni
+  // anda birden cok kez tetiklenebilir. Mukerrer kaydi onleyen imza ancak POST bittikten
+  // sonra yazildigi icin, kilit olmadan es zamanli cagrilarin hepsi ayri doküman olusturup
+  // arsive ayni saniyeli 2-4 mukerrer kayit dusururdu. Bu kilit es zamanli cagrilari tek
+  // calisan isleme baglar; islem bitince imza/temizlik yazildigindan sonraki cagrilar erken cikar.
+  let lootSyncInFlight = null;
+
+  function syncLootResultToLastArchive() {
+    if (lootSyncInFlight) {
+      return lootSyncInFlight;
+    }
+    lootSyncInFlight = (async () => {
+      try {
+        return await runLootResultSync();
+      } finally {
+        lootSyncInFlight = null;
+      }
+    })();
+    return lootSyncInFlight;
+  }
+
+  async function runLootResultSync() {
     const lootGoldText = getLootGoldText();
     const expText = getLootExpText();
     const fallenUnitsText = getFallenUnitsText();
@@ -653,13 +701,15 @@
   // Sonuc sayfasindaki olen birimleri (panelde aciksa) hayata dondurur. Manuel ve
   // oto sonuc isleyicilerinin ortak yardimcisi.
   async function reviveFallenIfNeeded(stage) {
-    const reviveOpener = isReviveEnabled() ? document.querySelector('#showReviveBtn') : null;
+    const reviveOpener = isReviveEnabled()
+      ? (document.querySelector('#showReviveBtn') || await waitForElement('#showReviveBtn', 2500))
+      : null;
     if (!reviveOpener) {
       return;
     }
     // Diriltme maliyeti butonda gosterilir (or. "-1"). Senkron yarisini onlemek icin
     // tasi diriltmeden once yaz; bakiye degisirse gercek harcama sonra guncellenir.
-    const reviveCost = Math.abs(parseQtyValue(reviveOpener.querySelector('span')?.textContent) || 0);
+    const reviveCost = getReviveStoneCostFromElement(reviveOpener);
     const balanceBefore = parseDigits(document.querySelector('#devil_stone_balance')?.textContent);
     GM_setValue(LAST_REVIVE_STONES_KEY, String(reviveCost));
 
@@ -669,6 +719,10 @@
     const confirmBtn = await waitForElement('.revivePopUpActivated #reviveBtn', 5000)
       || document.querySelector('#reviveBtn');
     if (confirmBtn) {
+      const confirmCost = getReviveStoneCostFromElement(confirmBtn);
+      if (confirmCost > 0) {
+        GM_setValue(LAST_REVIVE_STONES_KEY, String(confirmCost));
+      }
       await timedSleep('button');
       confirmBtn.click();
       await waitForElement('#revivedResult .success-message, #revivedResult .revived-banner', 7000);
@@ -769,6 +823,11 @@
     const victory = !!document.querySelector('h1.combatResultHeader.resultVictory');
 
     await reviveFallenIfNeeded(stage);
+    try {
+      await syncLootResultToLastArchive();
+    } catch (error) {
+      console.error('Diriltme sonrasi arsiv kaydi guncellenemedi.', error);
+    }
 
     if (!victory) {
       stopBot(`Kat ${stage}: zafer goremedim, sonucu kontrol et`);
@@ -1577,6 +1636,11 @@ self.onmessage = (event) => {
     // Olen birim varsa ve panelde diriltme acik ise hayata dondur (yenilgide de
     // tas varsa kurtarmaya calis). Diriltme kapaliysa buton hic tiklanmaz.
     await reviveFallenIfNeeded(stage);
+    try {
+      await syncLootResultToLastArchive();
+    } catch (error) {
+      console.error('Diriltme sonrasi arsiv kaydi guncellenemedi.', error);
+    }
 
     if (!victory) {
       stopBot(`Kat ${stage}: zafer goremedim, sonucu kontrol et`);
@@ -1792,109 +1856,111 @@ self.onmessage = (event) => {
     style.id = 'bt-bot-panel-styles';
     style.textContent = `
       #bt-bot-panel {
-        width: min(300px, calc(100vw - 28px)) !important;
+        width: min(368px, calc(100vw - 18px)) !important;
         min-width: 0 !important;
-        padding: 18px 18px 16px !important;
-        gap: 13px !important;
+        padding: 11px 13px 9px !important;
+        gap: 7px !important;
         overflow: hidden;
-        border: 1px solid rgba(212, 175, 110, .35) !important;
-        border-radius: 20px !important;
+        border: 1px solid rgba(210, 170, 115, .28) !important;
+        border-radius: 16px !important;
         background:
-          linear-gradient(152deg, rgba(18, 11, 9, .97), rgba(11, 7, 5, .97)),
-          radial-gradient(115% 70% at 92% 12%, rgba(198, 140, 72, .13), transparent 60%) !important;
+          linear-gradient(158deg, #100a08 0%, #080604 100%),
+          radial-gradient(120% 55% at 88% 8%, rgba(212, 170, 100, .10), transparent 68%) !important;
         box-shadow:
-          0 28px 75px -18px rgba(0, 0, 0, .78),
-          0 12px 28px rgba(0, 0, 0, .5),
-          inset 0 1px 0 rgba(255, 255, 255, .07),
-          inset 0 -1px 0 rgba(0, 0, 0, .35) !important;
+          0 22px 60px -16px rgba(0, 0, 0, .88),
+          0 8px 22px rgba(0, 0, 0, .55),
+          inset 0 1px 0 rgba(255, 255, 255, .06),
+          inset 0 -1px 0 rgba(0, 0, 0, .4) !important;
         color: #f5e9d2 !important;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        -webkit-font-smoothing: antialiased;
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
       }
 
       #bt-bot-panel::before {
         content: "";
         position: absolute;
         inset: 0 auto 0 0;
-        width: 3.5px;
-        background: linear-gradient(180deg, #d4af77, #8a3c28 68%, transparent);
-        border-radius: 3px 0 0 3px;
+        width: 2.5px;
+        background: linear-gradient(180deg, #d4af77, #7a3725 72%, transparent);
+        border-radius: 2px 0 0 2px;
       }
 
       #bt-bot-panel .bt-panel-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 8px;
       }
 
       #bt-bot-panel .bt-panel-kicker {
         color: #a38b68;
-        font-size: 9px;
+        font-size: 8.5px;
         font-weight: 800;
-        letter-spacing: .2em;
+        letter-spacing: .22em;
         text-transform: uppercase;
-        opacity: .9;
+        opacity: .85;
       }
 
       #bt-bot-panel .bt-panel-title {
-        margin-top: 1px;
+        margin-top: 0;
         color: #f8f0d8;
         font-family: Georgia, "Times New Roman", serif;
-        font-size: 21px;
+        font-size: 18px;
         font-weight: 700;
-        letter-spacing: .005em;
+        letter-spacing: .01em;
         line-height: 1;
       }
 
       #bt-bot-panel .bt-panel-dot {
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         flex: 0 0 auto;
         border-radius: 50%;
         background: #7c6350;
-        box-shadow: 0 0 0 4px rgba(124, 99, 80, .18);
-        border: 1px solid rgba(212, 175, 110, .25);
+        box-shadow: 0 0 0 3px rgba(124, 99, 80, .16);
+        border: 1px solid rgba(212, 175, 110, .22);
       }
 
       #bt-bot-panel .bt-panel-dot.is-active {
         background: #5fc89a;
-        border-color: rgba(95, 200, 154, .4);
-        box-shadow: 0 0 0 4px rgba(95, 200, 154, .14), 0 0 18px rgba(95, 200, 154, .5);
+        border-color: rgba(95, 200, 154, .35);
+        box-shadow: 0 0 0 3px rgba(95, 200, 154, .12), 0 0 12px rgba(95, 200, 154, .45);
       }
 
       #bt-bot-status {
         max-width: none !important;
-        padding: 12px 14px !important;
-        border: 1px solid rgba(255, 255, 255, .055);
-        border-radius: 14px;
-        background: rgba(255, 255, 255, .028);
+        padding: 8px 10px !important;
+        border: 1px solid rgba(255, 255, 255, .045);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, .022);
         color: #d8c7a6 !important;
-        font-size: 11.5px !important;
-        line-height: 1.48;
+        font-size: 11px !important;
+        line-height: 1.38;
       }
 
-      #bt-bot-panel input[type="number"] {
+      #bt-bot-panel input[type="number"],
+      #bt-bot-panel select {
         appearance: textfield;
         -moz-appearance: textfield;
         min-width: 0;
-        height: 38px;
+        height: 31px;
         box-sizing: border-box;
-        padding: 0 13px !important;
-        border: 1px solid rgba(198, 160, 90, .32) !important;
-        border-radius: 10px !important;
+        padding: 0 10px !important;
+        border: 1px solid rgba(198, 160, 90, .28) !important;
+        border-radius: 8px !important;
         outline: none;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, .035), transparent),
-          #211a13 !important;
+          linear-gradient(180deg, rgba(255, 255, 255, .03), transparent),
+          #18120e !important;
         color: #fff6dc !important;
         caret-color: #f1c46d;
-        font: 800 13px/1 ui-monospace, SFMono-Regular, Consolas, monospace !important;
+        font: 700 12.5px/1 ui-monospace, SFMono-Regular, Consolas, monospace !important;
         text-align: left;
         letter-spacing: 0;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.055), inset 0 -1px 0 rgba(0,0,0,.28);
-        transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(0,0,0,.32);
+        transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
       }
 
       #bt-bot-panel input[type="number"]::-webkit-outer-spin-button,
@@ -1904,91 +1970,99 @@ self.onmessage = (event) => {
       }
 
       #bt-bot-panel input[type="number"]::placeholder {
-        color: rgba(245, 233, 210, .55);
-        font-weight: 650;
+        color: rgba(245, 233, 210, .5);
+        font-weight: 600;
       }
 
-      #bt-bot-panel input[type="number"]:focus {
+      #bt-bot-panel input[type="number"]:focus,
+      #bt-bot-panel select:focus {
         border-color: #d4af77 !important;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, .045), transparent),
-          #2a2118 !important;
-        box-shadow: 0 0 0 4px rgba(212, 175, 110, .12), inset 0 1px 0 rgba(255,255,255,.07);
+          linear-gradient(180deg, rgba(255, 255, 255, .04), transparent),
+          #221b15 !important;
+        box-shadow: 0 0 0 3px rgba(212, 175, 110, .10), inset 0 1px 0 rgba(255,255,255,.05);
+      }
+
+      #bt-bot-panel select {
+        height: 31px;
+        font-size: 12.5px !important;
+        color: #f5e9d2 !important;
       }
 
       #bt-bot-panel button,
       #bt-filler-actions button {
-        min-height: 40px;
-        border: 1px solid rgba(212, 175, 110, .5) !important;
-        border-radius: 12px !important;
-        background: linear-gradient(152deg, #5c211c, #3a1210) !important;
+        min-height: 33px;
+        border: 1px solid rgba(210, 168, 108, .42) !important;
+        border-radius: 9px !important;
+        background: linear-gradient(155deg, #4f1c18, #2f100d) !important;
         color: #f4e6c3 !important;
         font-family: inherit !important;
-        font-weight: 800 !important;
-        letter-spacing: .01em;
-        box-shadow: 0 10px 26px rgba(0, 0, 0, .48), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
-        transition: transform .17s cubic-bezier(.2,.0,.1,1), filter .17s ease, border-color .17s ease, box-shadow .17s ease;
+        font-weight: 700 !important;
+        letter-spacing: .008em;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, .52), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+        transition: transform .14s cubic-bezier(.2,.0,.1,1), filter .14s ease, border-color .14s ease;
       }
 
       #bt-bot-panel button:hover,
       #bt-filler-actions button:hover {
-        filter: brightness(1.08) saturate(1.03);
+        filter: brightness(1.1) saturate(1.02);
         border-color: #d4af77 !important;
-        transform: translateY(-1.5px);
-        box-shadow: 0 14px 32px rgba(0, 0, 0, .52), inset 0 1px 0 rgba(255, 255, 255, .1) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 11px 24px rgba(0, 0, 0, .56), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
       }
 
       #bt-bot-panel button:active,
       #bt-filler-actions button:active {
-        transform: translateY(0) scale(.982);
-        filter: brightness(.96);
+        transform: translateY(0) scale(.985);
+        filter: brightness(.95);
       }
 
       #bt-bot-panel button:focus-visible,
       #bt-filler-actions button:focus-visible {
-        outline: 3px solid rgba(212, 175, 110, .22);
-        outline-offset: 2px;
+        outline: 2px solid rgba(212, 175, 110, .2);
+        outline-offset: 1px;
       }
 
       #bt-bot-panel .bt-auto-button {
-        border-color: rgba(90, 170, 120, .52) !important;
-        background: linear-gradient(152deg, #1e4633, #122a20) !important;
-        box-shadow: 0 10px 26px rgba(0, 0, 0, .48), inset 0 1px 0 rgba(255, 255, 255, .09) !important;
+        border-color: rgba(82, 158, 112, .48) !important;
+        background: linear-gradient(155deg, #1a3f2e, #0f241a) !important;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, .52), inset 0 1px 0 rgba(255, 255, 255, .07) !important;
       }
 
       #bt-bot-panel .bt-settings-header {
-        min-height: 26px;
+        min-height: 22px;
         border: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
-        color: #d2b57f !important;
+        color: #c9a46d !important;
         font-weight: 700 !important;
+        font-size: 11px !important;
       }
 
       #bt-bot-panel .bt-settings-header:hover {
         filter: none;
         transform: none;
-        color: #e6ca96 !important;
+        color: #ddb97e !important;
       }
 
       #bt-bot-panel .bt-secondary-button {
-        border-color: rgba(255, 255, 255, .11) !important;
-        background: rgba(255, 255, 255, .04) !important;
+        border-color: rgba(255, 255, 255, .09) !important;
+        background: rgba(255, 255, 255, .035) !important;
         color: #c8b49a !important;
         box-shadow: none !important;
       }
 
       #bt-bot-panel .bt-panel-mode {
         color: #d4af77 !important;
-        font-size: 11px !important;
-        letter-spacing: .03em;
+        font-size: 10.5px !important;
+        letter-spacing: .025em;
         font-weight: 600;
       }
 
       #bt-bot-panel .bt-panel-row {
         display: grid !important;
         grid-template-columns: 1fr 1fr;
-        gap: 8px !important;
+        gap: 5px !important;
       }
 
       #bt-bot-panel .bt-panel-row input {
@@ -1997,18 +2071,18 @@ self.onmessage = (event) => {
 
       #bt-bot-panel .bt-panel-section {
         margin-top: 0 !important;
-        padding: 13px !important;
-        gap: 10px !important;
-        border: 1px solid rgba(255, 255, 255, .05) !important;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, .018);
+        padding: 8px !important;
+        gap: 6px !important;
+        border: 1px solid rgba(255, 255, 255, .04) !important;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, .014);
       }
 
       #bt-bot-panel .bt-panel-section label {
         justify-content: space-between;
         color: #c8b49a !important;
-        line-height: 1.35;
-        font-size: 12px;
+        line-height: 1.25;
+        font-size: 11px;
       }
 
       #bt-bot-panel .bt-panel-section label span:first-child {
@@ -2017,76 +2091,135 @@ self.onmessage = (event) => {
 
       #bt-bot-panel .bt-inline-field {
         display: grid !important;
-        grid-template-columns: minmax(76px, 1fr) 62px 62px;
+        grid-template-columns: minmax(68px, 1fr) 56px 56px;
         align-items: center;
-        gap: 9px !important;
+        gap: 6px !important;
       }
 
       #bt-bot-panel .bt-small-number {
-        width: 62px !important;
+        width: 56px !important;
       }
 
       #bt-bot-panel .bt-timing-inputs {
         display: grid !important;
-        grid-template-columns: 62px auto 62px;
+        grid-template-columns: 56px auto 56px;
         align-items: center;
-        gap: 8px !important;
+        gap: 5px !important;
       }
 
       #bt-bot-panel .bt-panel-section .bt-timing-label {
         color: #d8c6a6 !important;
-        font-size: 11.5px !important;
+        font-size: 10.5px !important;
       }
 
       #bt-bot-panel .bt-panel-toggle {
-        padding: 3px 1px;
+        padding: 2px 1px;
         color: #c8b49a !important;
-        font-size: 12px !important;
+        font-size: 11px !important;
       }
 
       #bt-bot-panel input[type="checkbox"] {
-        width: 17px;
-        height: 17px;
+        width: 15px;
+        height: 15px;
         accent-color: #c9a36a !important;
-        border-radius: 4px;
+        border-radius: 3px;
       }
 
       #bt-filler-actions {
-        padding: 8px;
-        border: 1px solid rgba(212, 175, 110, .22);
-        border-radius: 18px;
-        background: rgba(18, 10, 8, .92);
-        box-shadow: 0 22px 55px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255,255,255,.04);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
+        padding: 6px;
+        border: 1px solid rgba(210, 168, 108, .18);
+        border-radius: 12px;
+        background: rgba(16, 10, 7, .94);
+        box-shadow: 0 16px 42px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255,255,255,.035);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
       }
 
       #bt-filler-actions button {
-        padding: 11px 18px !important;
-        font-size: 12.5px !important;
+        padding: 8px 14px !important;
+        font-size: 11.5px !important;
+        min-height: 30px;
       }
 
       #bt-filler-actions button.is-loading {
-        background: linear-gradient(152deg, #7a4a1f, #4f2d13) !important;
+        background: linear-gradient(155deg, #6c421a, #3f2a12) !important;
       }
 
       #bt-filler-actions button.is-success {
-        border-color: rgba(90, 175, 125, .55) !important;
-        background: linear-gradient(152deg, #1e4a30, #0f2a1c) !important;
+        border-color: rgba(82, 158, 112, .48) !important;
+        background: linear-gradient(155deg, #1a3f2e, #0f241a) !important;
       }
 
       @media (max-width: 520px) {
         #bt-bot-panel {
-          left: 12px !important;
-          bottom: 12px !important;
-          width: min(288px, calc(100vw - 24px)) !important;
-          max-height: calc(100vh - 24px);
+          left: 8px !important;
+          bottom: 8px !important;
+          width: min(340px, calc(100vw - 16px)) !important;
+          max-height: 54vh;
+          max-height: min(440px, 54dvh);
+          padding: 8px 10px 7px !important;
+          gap: 5px !important;
           overflow-y: auto;
+          overscroll-behavior: contain;
+          border-radius: 12px !important;
+        }
+
+        #bt-bot-panel .bt-panel-kicker {
+          font-size: 8px;
+          letter-spacing: .18em;
+        }
+
+        #bt-bot-panel .bt-panel-title {
+          font-size: 16px;
+        }
+
+        #bt-bot-status {
+          padding: 6px 8px !important;
+          font-size: 10px !important;
+          line-height: 1.3;
+        }
+
+        #bt-bot-panel input[type="number"],
+        #bt-bot-panel select {
+          height: 28px !important;
+          padding: 0 8px !important;
+          font-size: 11.5px !important;
+          border-radius: 7px !important;
+        }
+
+        #bt-bot-panel button,
+        #bt-filler-actions button {
+          min-height: 30px;
+        }
+
+        #bt-bot-panel .bt-panel-section {
+          padding: 6px !important;
+          gap: 4px !important;
+          border-radius: 8px;
+        }
+
+        #bt-bot-panel .bt-inline-field {
+          grid-template-columns: minmax(64px, 1fr) 52px 52px;
+          gap: 5px !important;
+        }
+
+        #bt-bot-panel .bt-small-number {
+          width: 52px !important;
+        }
+
+        #bt-bot-panel .bt-timing-inputs {
+          grid-template-columns: 52px auto 52px;
+          gap: 4px !important;
+        }
+
+        #bt-bot-panel .bt-settings-header {
+          min-height: 20px;
+          font-size: 10.5px !important;
         }
 
         #bt-filler-actions {
-          right: 12px !important;
-          bottom: 12px !important;
+          right: 8px !important;
+          bottom: 8px !important;
         }
       }
     `;
@@ -2102,18 +2235,18 @@ self.onmessage = (event) => {
     icon.textContent = '⚔';
     icon.style.cssText = [
       'position:fixed',
-      'bottom:24px',
-      'left:24px',
+      'bottom:20px',
+      'left:20px',
       'z-index:99999',
-      'width:44px',
-      'height:44px',
+      'width:38px',
+      'height:38px',
       'border-radius:50%',
-      'background:#1a0505',
-      `border:2px solid ${isBotEnabled() ? '#5fc89a' : '#ffd700'}`,
-      'color:#ffd700',
-      'font-size:20px',
+      'background:#100a08',
+      `border:1.5px solid ${isBotEnabled() ? '#5fc89a' : '#d4af77'}`,
+      'color:#d4af77',
+      'font-size:17px',
       'cursor:pointer',
-      'box-shadow:0 2px 12px rgba(0,0,0,0.8)',
+      'box-shadow:0 6px 16px rgba(0,0,0,0.7)',
       'display:flex',
       'align-items:center',
       'justify-content:center',
@@ -2148,20 +2281,11 @@ self.onmessage = (event) => {
     panel.id = 'bt-bot-panel';
     panel.style.cssText = [
       'position:fixed',
-      'bottom:24px',
-      'left:24px',
+      'bottom:22px',
+      'left:22px',
       'z-index:99999',
-      'background:#1a0505',
-      'border:2px solid #ffd700',
-      'border-radius:10px',
-      'padding:10px 12px',
-      'min-width:190px',
-      'box-shadow:0 2px 12px rgba(0,0,0,0.8)',
-      'color:#ffd700',
-      'font-size:13px',
       'display:flex',
-      'flex-direction:column',
-      'gap:8px'
+      'flex-direction:column'
     ].join(';');
 
     const panelHead = document.createElement('div');
@@ -2183,7 +2307,7 @@ self.onmessage = (event) => {
     minimizeBtn.type = 'button';
     minimizeBtn.title = 'Simge durumuna kucult';
     minimizeBtn.textContent = '–';
-    minimizeBtn.style.cssText = 'background:transparent;border:none;color:#ffd700;font-size:22px;line-height:1;cursor:pointer;padding:0 4px;box-shadow:none';
+    minimizeBtn.style.cssText = 'background:transparent;border:none;color:#c9a46d;font-size:18px;line-height:1;cursor:pointer;padding:0 3px;box-shadow:none';
     minimizeBtn.onclick = () => {
       setBotPanelMinimized(true);
       renderBotPanel();
@@ -2194,7 +2318,7 @@ self.onmessage = (event) => {
 
     const status = document.createElement('div');
     status.id = 'bt-bot-status';
-    status.style.cssText = 'color:#f3e2b3;font-size:12px;max-width:230px';
+    status.style.cssText = 'color:#d8c7a6;font-size:11px';
     status.textContent = GM_getValue('btBotStatus', 'Kat botu hazir');
     panel.appendChild(status);
 
@@ -2246,7 +2370,7 @@ self.onmessage = (event) => {
       row.appendChild(stopInput);
       panel.appendChild(row);
 
-      const startBtn = buildActionButton('Botu Baslat', 'padding:8px 14px;font-size:13px');
+      const startBtn = buildActionButton('Botu Baslat', 'padding:6px 12px;font-size:12px');
       startBtn.onclick = () => {
         const startStage = Number.parseInt(startInput.value, 10);
         if (!Number.isInteger(startStage) || startStage < 1) {
@@ -2261,12 +2385,12 @@ self.onmessage = (event) => {
       // --- Oto kat modu ---
       const autoWrap = document.createElement('div');
       autoWrap.className = 'bt-panel-section';
-      autoWrap.style.cssText = 'border-top:1px solid rgba(255,215,0,0.25);padding-top:8px;margin-top:2px;display:flex;flex-direction:column;gap:6px';
+      autoWrap.style.cssText = 'border-top:1px solid rgba(210,168,108,.18);padding-top:5px;margin-top:1px;display:flex;flex-direction:column;gap:4px';
 
       const savedAutoRange = autoFloorRange();
       const autoFloorRow = document.createElement('label');
       autoFloorRow.className = 'bt-inline-field';
-      autoFloorRow.style.cssText = 'display:flex;gap:6px;align-items:center;color:#f3e2b3;font-size:11px';
+      autoFloorRow.style.cssText = 'display:flex;gap:4px;align-items:center;color:#c8b49a;font-size:10.5px';
       const autoFloorText = document.createElement('span');
       autoFloorText.textContent = 'Kat araligi:';
       const autoStartInput = document.createElement('input');
@@ -2290,7 +2414,7 @@ self.onmessage = (event) => {
 
       const autoIntervalRow = document.createElement('label');
       autoIntervalRow.className = 'bt-inline-field';
-      autoIntervalRow.style.cssText = 'display:flex;gap:6px;align-items:center;color:#f3e2b3;font-size:11px';
+      autoIntervalRow.style.cssText = 'display:flex;gap:4px;align-items:center;color:#c8b49a;font-size:10.5px';
       const autoIntervalText = document.createElement('span');
       autoIntervalText.textContent = 'Yeniden deneme (sn):';
       const savedAutoInterval = autoIntervalRange();
@@ -2313,7 +2437,7 @@ self.onmessage = (event) => {
       autoIntervalRow.append(autoIntervalText, autoIntervalMinInput, autoIntervalMaxInput);
       autoWrap.appendChild(autoIntervalRow);
 
-      const autoBtn = buildActionButton('Oto Kat Modu Baslat', 'padding:8px 14px;font-size:13px;background:#0a3a1a');
+      const autoBtn = buildActionButton('Oto Kat Modu Baslat', 'padding:6px 12px;font-size:12px;background:#0a3a1a');
       autoBtn.classList.add('bt-auto-button');
       autoBtn.title = 'Secilen kat araligini sirayla tarar; girilebilen katlari tamamlar, tur bitince bekleyip ilk kattan tekrar dener';
       autoBtn.onclick = () => {
@@ -2341,7 +2465,7 @@ self.onmessage = (event) => {
 
     const reviveRow = document.createElement('label');
     reviveRow.className = 'bt-panel-toggle';
-    reviveRow.style.cssText = 'display:flex;gap:6px;align-items:center;color:#f3e2b3;font-size:12px;cursor:pointer';
+    reviveRow.style.cssText = 'display:flex;gap:5px;align-items:center;color:#c8b49a;font-size:11px;cursor:pointer';
     const reviveCheckbox = document.createElement('input');
     reviveCheckbox.type = 'checkbox';
     reviveCheckbox.checked = isReviveEnabled();
@@ -2367,17 +2491,17 @@ self.onmessage = (event) => {
   function appendWinRateSetting(panel) {
     const wrap = document.createElement('div');
     wrap.className = 'bt-panel-section';
-    wrap.style.cssText = 'border-top:1px solid rgba(255,215,0,0.25);padding-top:8px;margin-top:2px;display:flex;flex-direction:column;gap:6px';
+    wrap.style.cssText = 'border-top:1px solid rgba(210,168,108,.18);padding-top:5px;margin-top:1px;display:flex;flex-direction:column;gap:4px';
 
     const label = document.createElement('span');
     label.textContent = 'Kazanma orani (min)';
-    label.style.cssText = 'color:#f3e2b3;font-size:11px';
+    label.style.cssText = 'color:#c8b49a;font-size:10.5px';
 
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:6px;align-items:center';
+    row.style.cssText = 'display:flex;gap:4px;align-items:center';
 
     const select = document.createElement('select');
-    select.style.cssText = 'flex:1;height:38px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,215,0,0.5);background:#2a0a0a;color:#ffd700;font-size:12px';
+    select.style.cssText = 'flex:1;height:31px;padding:0 8px;border-radius:8px;border:1px solid rgba(210,168,108,.35);background:#18120e;color:#f5e9d2;font-size:11.5px';
     BOT_WIN_RATE_PRESETS.forEach((percent) => {
       const option = document.createElement('option');
       option.value = String(percent);
@@ -2395,7 +2519,7 @@ self.onmessage = (event) => {
     customInput.max = '100';
     customInput.step = '0.1';
     customInput.className = 'bt-small-number';
-    customInput.style.cssText = 'width:70px';
+    customInput.style.cssText = 'width:52px';
 
     const currentPercent = Math.round(getBotMinWinRate() * 1000) / 10;
     const matchedPreset = BOT_WIN_RATE_PRESETS.find((percent) => Math.abs(percent - currentPercent) < 1e-6);
@@ -2442,32 +2566,32 @@ self.onmessage = (event) => {
     const timing = loadBotTiming();
     const wrap = document.createElement('div');
     wrap.className = 'bt-panel-section';
-    wrap.style.cssText = 'border-top:1px solid rgba(255,215,0,0.25);padding-top:8px;margin-top:2px;display:flex;flex-direction:column;gap:8px';
+    wrap.style.cssText = 'border-top:1px solid rgba(210,168,108,.18);padding-top:5px;margin-top:1px;display:flex;flex-direction:column;gap:5px';
 
     const isOpen = () => GM_getValue(BOT_SETTINGS_OPEN_KEY, false) === true;
 
     const header = document.createElement('button');
     header.type = 'button';
     header.className = 'bt-settings-header';
-    header.style.cssText = 'background:transparent;border:none;color:#ffd700;font-size:12px;font-weight:bold;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px;width:100%;text-align:left';
+    header.style.cssText = 'background:transparent;border:none;color:#c9a46d;font-size:11px;font-weight:700;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;width:100%;text-align:left';
 
     const body = document.createElement('div');
-    body.style.cssText = 'flex-direction:column;gap:8px';
+    body.style.cssText = 'flex-direction:column;gap:5px';
 
     const inputStyle = '';
     const fieldInputs = {};
     BOT_TIMING_FIELDS.forEach((field) => {
       const fieldRow = document.createElement('div');
-      fieldRow.style.cssText = 'display:flex;flex-direction:column;gap:3px';
+      fieldRow.style.cssText = 'display:flex;flex-direction:column;gap:2px';
 
       const label = document.createElement('span');
       label.textContent = `${field.label} (sn)`;
       label.className = 'bt-timing-label';
-      label.style.cssText = 'color:#f3e2b3;font-size:11px';
+      label.style.cssText = 'color:#d8c6a6;font-size:10px';
 
       const inputs = document.createElement('div');
       inputs.className = 'bt-timing-inputs';
-      inputs.style.cssText = 'display:flex;gap:6px;align-items:center';
+      inputs.style.cssText = 'display:flex;gap:4px;align-items:center';
 
       const minInput = document.createElement('input');
       minInput.type = 'number';
@@ -2496,9 +2620,9 @@ self.onmessage = (event) => {
     });
 
     const actions = document.createElement('div');
-    actions.style.cssText = 'display:flex;gap:6px';
-    const saveBtn = buildActionButton('Kaydet', 'padding:7px 12px;font-size:12px');
-    const resetBtn = buildActionButton('Varsayilan', 'padding:7px 12px;font-size:12px;background:#3a0a0a');
+    actions.style.cssText = 'display:flex;gap:4px';
+    const saveBtn = buildActionButton('Kaydet', 'padding:5px 10px;font-size:11px');
+    const resetBtn = buildActionButton('Varsayilan', 'padding:5px 10px;font-size:11px;background:#3a0a0a');
     resetBtn.classList.add('bt-secondary-button');
     actions.append(saveBtn, resetBtn);
     body.appendChild(actions);
@@ -2553,15 +2677,15 @@ self.onmessage = (event) => {
     button.type = 'button';
     button.textContent = label;
     button.style.cssText = [
-      'background:#6b0000',
-      'color:#ffd700',
-      'border:2px solid #ffd700',
-      'padding:12px 20px',
-      'border-radius:8px',
-      'font-size:15px',
-      'font-weight:bold',
+      'background:#4f1c18',
+      'color:#f4e6c3',
+      'border:1px solid rgba(210,168,108,.42)',
+      'padding:6px 12px',
+      'border-radius:9px',
+      'font-size:12px',
+      'font-weight:700',
       'cursor:pointer',
-      'box-shadow:0 2px 10px rgba(0,0,0,0.7)',
+      'box-shadow:0 6px 14px rgba(0,0,0,.5)',
       extraStyle || ''
     ].join(';');
     return button;
@@ -2633,6 +2757,7 @@ self.onmessage = (event) => {
   }
 
   function watchLootPage() {
+    let syncTimer = 0;
     const attemptSync = async () => {
       try {
         await syncLootResultToLastArchive();
@@ -2640,16 +2765,22 @@ self.onmessage = (event) => {
         console.error(error);
       }
     };
+    const scheduleSync = () => {
+      window.clearTimeout(syncTimer);
+      // Sonuc sayfasi kademeli yuklenebiliyor; botun #showReviveBtn'i gorup
+      // harcanan tasi yazmasina firsat vermeden arsivi "0" ile kapatma.
+      syncTimer = window.setTimeout(attemptSync, 1200);
+    };
 
     if (document.querySelector('.lootItemsDiv')) {
-      void attemptSync();
+      scheduleSync();
     }
 
     const observer = new MutationObserver(() => {
       if (!document.querySelector('.lootItemsDiv')) {
         return;
       }
-      void attemptSync();
+      scheduleSync();
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }

@@ -141,7 +141,10 @@
       "Bash(git cat-file *)",
       "Bash(awk '{printf \"%.1f MB  %s\\\\n\", $1/1048576, $2}')",
       "Bash(firebase login:list)",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(gcloud config *)",
+      "Bash(gcloud auth *)",
+      "Bash(awk 'NR>=380 && NR<=460 && /function |=>/{print NR\": \"$0}' archive.js)"
     ]
   }
 }

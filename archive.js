@@ -19,6 +19,7 @@ const archiveTestStatusFilterSelect = document.querySelector("#archiveTestStatus
 const archiveResetFiltersBtn = document.querySelector("#archiveResetFiltersBtn");
 const archiveRefreshBtn = document.querySelector("#archiveRefreshBtn");
 const archiveBulkRegressionBtn = document.querySelector("#archiveBulkRegressionBtn");
+const archiveDedupeBtn = document.querySelector("#archiveDedupeBtn");
 const archiveBulkRegressionModeSelect = document.querySelector("#archiveBulkRegressionModeSelect");
 const archiveBulkRegressionLimitInput = document.querySelector("#archiveBulkRegressionLimitInput");
 const archiveFilteredCountValue = document.querySelector("#archiveFilteredCountValue");
@@ -542,6 +543,10 @@ function bindArchiveControls() {
       backLabel: "Arsiv",
       items: preparedItems
     });
+  });
+
+  archiveDedupeBtn?.addEventListener("click", () => {
+    void handleDedupeArchives();
   });
 
   const firstXInputs = document.querySelectorAll(".archive-first-x-input");
@@ -1242,6 +1247,10 @@ function renderArchiveSelectionSummary() {
       ? "Secili kayitlari sil"
       : "Silme icin admin girisi gerekli";
   }
+  if (archiveDedupeBtn) {
+    // Mukerrer temizleme yalniz admin oturumunda gorunur (silme yetkisi admin'e bagli).
+    archiveDedupeBtn.hidden = !isAdminSession;
+  }
   syncArchiveSelectAllVisibleControl();
 }
 
@@ -1491,6 +1500,149 @@ async function handleDeleteSelectedArchives() {
     renderArchiveSelectionSummary();
   }
 }
+
+// ====================== MUKERRER TEMIZLEME ======================
+// otobirlik.user.js sonuc sayfasinda arsiv senkronunu ayni anda birden cok kez
+// tetikleyebiliyordu (yaris kosulu); ayni savas, ayni saniyeli birden cok dokuman
+// olarak yazildi. Kok neden duzeltildi; bu arac gecmis kopyalari temizler.
+// Mukerrerler ayni "fill" yukunden uretildigi icin savedAt (ms hassasiyetli) + host
+// + rakip/biz dizilisleri birebir AYNIdir; yalniz doc id ve bazen loot/tas/olen
+// alanlari farkli olur. Bu dortlu anahtara gore gruplanir, her gruptan EN DOLU kayit
+// tutulup digerleri silinir. Farkli savaslar ayni milisaniyeyi paylasamaz.
+
+function dedupeNorm(value) {
+  return String(value == null ? "" : value).trim();
+}
+
+function dedupeGroupKey(item) {
+  return [
+    dedupeNorm(item?.savedAt),
+    dedupeNorm(item?.host),
+    dedupeNorm(item?.enemyRosterText),
+    dedupeNorm(item?.allyRosterText)
+  ].join(" || ");
+}
+
+function dedupeHasBattleDetail(item) {
+  const enemy = dedupeNorm(item?.enemyRosterText);
+  const ally = dedupeNorm(item?.allyRosterText);
+  const enemyHas = /R\d+\s*[:=]\s*\d|\(R\d+\)\s*x\s*\d/i.test(enemy);
+  const allyHas = /T\d+\s*[:=]\s*\d|\(T\d+\)\s*x\s*\d|\[[\d\s-]+\]/i.test(ally);
+  return enemyHas && allyHas;
+}
+
+function dedupeFallenPresent(item) {
+  const text = dedupeNorm(item?.fallenUnitsText);
+  return text && text !== "-" && text !== "Olenler : 0";
+}
+
+// Bir gruptan hangisinin tutulacagini belirler: en cok bilgi iceren kayit kazanir.
+function dedupeCompletenessScore(item) {
+  let score = 0;
+  if (dedupeHasBattleDetail(item)) score += 1000;
+  if (normalizeMetricNumber(item?.lootGoldValue) > 0) score += 100;
+  if (normalizeMetricNumber(item?.expValue) > 0) score += 100;
+  if (dedupeFallenPresent(item)) score += 50;
+  if (dedupeNorm(item?.reviveStoneText) && dedupeNorm(item?.reviveStoneText) !== "-") score += 25;
+  if (item?.tested === true) score += 5;
+  score += Math.min(normalizeMetricNumber(item?.lootGoldValue), 1e12) / 1e15;
+  return score;
+}
+
+function dedupePickKeeper(group) {
+  return group.slice().sort((a, b) => {
+    const diff = dedupeCompletenessScore(b) - dedupeCompletenessScore(a);
+    if (diff !== 0) return diff;
+    return dedupeNorm(b.updatedAt || b.savedAt).localeCompare(dedupeNorm(a.updatedAt || a.savedAt));
+  })[0];
+}
+
+function buildArchiveDedupePlan(items) {
+  const groups = new Map();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    if (!item || !dedupeNorm(item.id) || !dedupeNorm(item.savedAt)) {
+      return;
+    }
+    const key = dedupeGroupKey(item);
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key).push(item);
+  });
+
+  const deleteIds = [];
+  let dupGroups = 0;
+  groups.forEach((group) => {
+    if (group.length < 2) {
+      return;
+    }
+    dupGroups += 1;
+    const keeper = dedupePickKeeper(group);
+    group.forEach((item) => {
+      if (item.id !== keeper.id) {
+        deleteIds.push(item.id);
+      }
+    });
+  });
+
+  return { total: Array.isArray(items) ? items.length : 0, dupGroups, deleteIds };
+}
+
+async function handleDedupeArchives() {
+  if (!isAdminSession) {
+    window.alert("Mukerrer temizleme icin admin girisi zorunlu.");
+    return;
+  }
+  if (typeof window.BTFirebase?.deleteOverviewArchives !== "function"
+    || typeof window.BTFirebase?.loadOverviewArchives !== "function") {
+    window.alert("Arsiv araci hazir degil.");
+    return;
+  }
+
+  const previousLabel = archiveDedupeBtn ? archiveDedupeBtn.innerHTML : "";
+  if (archiveDedupeBtn) {
+    archiveDedupeBtn.disabled = true;
+    archiveDedupeBtn.textContent = "Taraniyor...";
+  }
+
+  try {
+    // Tum arsivi (yalniz gorunen sayfayi degil) tara.
+    const items = await window.BTFirebase.loadOverviewArchives();
+    const plan = buildArchiveDedupePlan(items);
+
+    if (plan.deleteIds.length === 0) {
+      window.alert(`Mukerrer kayit bulunamadi. Toplam ${plan.total} kayit tarandi.`);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `${plan.dupGroups} savasta ${plan.deleteIds.length} mukerrer kayit bulundu.\n` +
+      `Her savastan en dolu kayit tutulup ${plan.deleteIds.length} kopya silinecek.\n` +
+      `Bu islem geri alinamaz. Devam edilsin mi?`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    if (archiveDedupeBtn) {
+      archiveDedupeBtn.textContent = "Siliniyor...";
+    }
+    const result = await window.BTFirebase.deleteOverviewArchives(plan.deleteIds);
+    archiveState.selectedIds.clear();
+    clearArchiveSummaryCache();
+    await refreshArchiveView({ forceRemote: true });
+    window.alert(`Tamamlandi. ${result?.deleted ?? plan.deleteIds.length} mukerrer kayit silindi.`);
+  } catch (error) {
+    console.warn("Mukerrer kayitlar temizlenemedi.", error);
+    window.alert(error?.message || "Mukerrer kayitlar temizlenemedi.");
+  } finally {
+    if (archiveDedupeBtn) {
+      archiveDedupeBtn.disabled = false;
+      archiveDedupeBtn.innerHTML = previousLabel;
+    }
+  }
+}
+// ====================== /MUKERRER TEMIZLEME ======================
 
 async function handleEditArchive(id) {
   if (!isAdminSession) {

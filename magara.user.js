@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BiteFight Grotte Loop
 // @namespace    https://bt-analiz.web.app
-// @version      1.4
+// @version      1.8
 // @description  Magara ekraninda secilen zorlugu dongu halinde tekrarlar.
 // @match        https://*.bitefight.gameforge.com/city/grotte
 // @match        https://*.bitefight.gameforge.com/city/grotte/*
@@ -12,6 +12,7 @@
 // @downloadURL  https://bt-analiz.web.app/magara.user.js
 // @updateURL    https://bt-analiz.web.app/magara.user.js
 // @grant        none
+// @run-at       document-start
 // ==/UserScript==
 
 (function () {
@@ -99,12 +100,110 @@
         refreshPanel();
     }
 
+    // Bot calisirken ekranin kararip kapanmasini onler. Wake Lock bazi mobil
+    // tarayicilarda sayfa gecislerinde duser; fallback'ler kullanici etkilesimiyle
+    // baslatilir ve bot durana kadar canli tutulur.
     let wakeLockSentinel = null;
+    let wakeFallbackVideo = null;
+    let wakeFallbackCanvas = null;
+    let wakeFallbackTimer = null;
+    let wakeAudioContext = null;
+    let wakeHeartbeatTimer = null;
+
+    function isLoopEnabled() {
+        return loadState().enabled === true;
+    }
+
+    function startWakeFallbacks() {
+        if (!isLoopEnabled() || document.visibilityState !== 'visible') {
+            return;
+        }
+
+        try {
+            if (!wakeFallbackVideo && HTMLCanvasElement.prototype.captureStream) {
+                wakeFallbackCanvas = document.createElement('canvas');
+                wakeFallbackCanvas.width = 2;
+                wakeFallbackCanvas.height = 2;
+                const context = wakeFallbackCanvas.getContext('2d');
+                let tick = 0;
+
+                wakeFallbackTimer = window.setInterval(() => {
+                    if (!isLoopEnabled()) {
+                        releaseWakeLock();
+                        return;
+                    }
+                    context.fillStyle = tick % 2 ? '#000' : '#111';
+                    context.fillRect(0, 0, 2, 2);
+                    tick += 1;
+                }, 1000);
+
+                wakeFallbackVideo = document.createElement('video');
+                wakeFallbackVideo.muted = true;
+                wakeFallbackVideo.loop = true;
+                wakeFallbackVideo.playsInline = true;
+                wakeFallbackVideo.setAttribute('playsinline', 'playsinline');
+                wakeFallbackVideo.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px;';
+                wakeFallbackVideo.srcObject = wakeFallbackCanvas.captureStream(1);
+                document.documentElement.appendChild(wakeFallbackVideo);
+            }
+
+            if (wakeFallbackVideo && wakeFallbackVideo.paused) {
+                void wakeFallbackVideo.play().catch(() => {});
+            }
+        } catch (error) {
+            debugLog('Video wake fallback baslatilamadi:', error);
+        }
+
+        try {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass && !wakeAudioContext) {
+                wakeAudioContext = new AudioContextClass();
+                const oscillator = wakeAudioContext.createOscillator();
+                const gain = wakeAudioContext.createGain();
+                gain.gain.value = 0.00001;
+                oscillator.frequency.value = 1;
+                oscillator.connect(gain);
+                gain.connect(wakeAudioContext.destination);
+                oscillator.start();
+            }
+            if (wakeAudioContext?.state === 'suspended') {
+                void wakeAudioContext.resume().catch(() => {});
+            }
+        } catch (error) {
+            debugLog('Audio wake fallback baslatilamadi:', error);
+        }
+    }
+
+    // Bot acikken her birkac saniyede bir kilidin hala canli oldugunu denetler.
+    // Wake Lock sistem tarafindan sessizce dusurulurse (telefon ekrani karartmaya
+    // calistiginda) veya fallback video duraklarsa otomatik geri alir. Boylece
+    // kullanici ekrana dokunmasa bile kilit canli kalir.
+    function startWakeHeartbeat() {
+        if (wakeHeartbeatTimer) {
+            return;
+        }
+        wakeHeartbeatTimer = window.setInterval(() => {
+            if (!isLoopEnabled()) {
+                releaseWakeLock();
+                return;
+            }
+            if (document.visibilityState !== 'visible') {
+                return;
+            }
+            startWakeFallbacks();
+            if (navigator.wakeLock && typeof navigator.wakeLock.request === 'function'
+                && (!wakeLockSentinel || wakeLockSentinel.released)) {
+                void acquireWakeLock();
+            }
+        }, 8000);
+    }
 
     async function acquireWakeLock() {
         if (!loadState().enabled || document.visibilityState !== 'visible') {
             return;
         }
+        startWakeFallbacks();
+        startWakeHeartbeat();
         if (!navigator.wakeLock || typeof navigator.wakeLock.request !== 'function') {
             return;
         }
@@ -114,6 +213,14 @@
 
         try {
             wakeLockSentinel = await navigator.wakeLock.request('screen');
+            wakeLockSentinel.addEventListener?.('release', () => {
+                wakeLockSentinel = null;
+                // Sistem kilidi dusurdu; bot hala acik ve sayfa gorunurse hemen
+                // geri al. Kisa gecikme art arda istek dongusunu onler.
+                if (isLoopEnabled() && document.visibilityState === 'visible') {
+                    window.setTimeout(() => { void acquireWakeLock(); }, 500);
+                }
+            });
         } catch (error) {
             console.warn('[Grotte Loop] Ekran uyanik tutulamadi.', error);
         }
@@ -126,6 +233,26 @@
             // Kilit tarayici tarafindan daha once birakilmis olabilir.
         }
         wakeLockSentinel = null;
+
+        if (wakeHeartbeatTimer) {
+            window.clearInterval(wakeHeartbeatTimer);
+            wakeHeartbeatTimer = null;
+        }
+        if (wakeFallbackTimer) {
+            window.clearInterval(wakeFallbackTimer);
+            wakeFallbackTimer = null;
+        }
+        if (wakeFallbackVideo) {
+            wakeFallbackVideo.pause();
+            wakeFallbackVideo.remove();
+            wakeFallbackVideo.srcObject = null;
+            wakeFallbackVideo = null;
+        }
+        wakeFallbackCanvas = null;
+        if (wakeAudioContext) {
+            void wakeAudioContext.close().catch(() => {});
+            wakeAudioContext = null;
+        }
     }
 
     document.addEventListener('visibilitychange', () => {
@@ -135,11 +262,25 @@
     });
 
     window.addEventListener('online', () => {
-        void acquireWakeLock();
+        if (loadState().enabled) {
+            void acquireWakeLock();
+        }
+    });
+
+    ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(eventName => {
+        document.addEventListener(eventName, () => {
+            if (loadState().enabled) {
+                startWakeFallbacks();
+                void acquireWakeLock();
+            }
+        }, true);
     });
 
     function delay(ms, callback) {
-        window.setTimeout(callback, ms);
+        window.setTimeout(() => {
+            void acquireWakeLock();
+            callback();
+        }, ms);
     }
 
     function getClickableElements() {
@@ -1116,6 +1257,14 @@
             handleGrottePage();
         }
     }
+
+    // Magara dongusu her tur tam bir sayfa yeniden yuklemesi yapar; wake lock
+    // sayfaya bagli oldugu icin her navigasyonda duser. Otobirlik ise turlar
+    // arasinda ayni sayfada bekledigi icin kilidi kesintisiz tutar ve telefonda
+    // ekran kilidi olmaz. Bu farki kapatmak icin script document-start'ta calisir
+    // ve kilidi sayfa daha cizilmeden, mumkun olan en erken anda alir; boylece
+    // navigasyonlar arasindaki kilitsiz bosluk minimuma iner.
+    void acquireWakeLock();
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', route, { once: true });

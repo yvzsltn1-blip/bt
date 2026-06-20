@@ -1018,11 +1018,22 @@ body[data-optimizer-variant="minimum"] .layout {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.03);
   padding: 12px;
+  cursor: pointer;
 }
 
 .variant-card.is-primary {
   border-color: rgba(108, 182, 255, 0.45);
   background: rgba(108, 182, 255, 0.08);
+}
+
+.variant-card:hover {
+  border-color: rgba(108, 182, 255, 0.36);
+  background: rgba(108, 182, 255, 0.06);
+}
+
+.variant-card:focus-visible {
+  outline: 2px solid rgba(108, 182, 255, 0.5);
+  outline-offset: 2px;
 }
 
 .variant-card.is-focused {
