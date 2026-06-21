@@ -1396,6 +1396,7 @@ function renderArchiveSelectionSummary() {
   const selectedItems = getSelectedArchiveItems();
   const totalExp = selectedItems.reduce((sum, item) => sum + normalizeMetricNumber(item?.expValue), 0);
   const totalLoot = selectedItems.reduce((sum, item) => sum + normalizeMetricNumber(item?.lootGoldValue), 0);
+  const totalReviveStones = selectedItems.reduce((sum, item) => sum + getArchiveReviveStoneCount(item?.reviveStoneText), 0);
   const fallenTotals = getArchiveFallenUnitsTotals(selectedItems);
   archiveSelectionSummary.hidden = selectedItems.length === 0;
   archiveSelectionCount.textContent = `${formatNumber(selectedItems.length)} kayit secildi`;
@@ -1407,6 +1408,10 @@ function renderArchiveSelectionSummary() {
     <span class="archive-selection-total archive-selection-total-fallen">${fallenTotals.text} olen</span>
     <span class="archive-selection-separator">*</span>
     <span class="archive-selection-total archive-selection-total-blood">${formatNumber(fallenTotals.blood)} kan kaybi</span>
+    <span class="archive-selection-separator">*</span>
+    <span class="archive-selection-total archive-selection-total-stone">${fallenTotals.afterStoneText} tas sonrasi</span>
+    <span class="archive-selection-separator">*</span>
+    <span class="archive-selection-total archive-selection-total-stone-count">${formatNumber(totalReviveStones)} tas</span>
   `;
   if (archiveDeleteSelectedBtn) {
     archiveDeleteSelectedBtn.disabled = !isAdminSession || selectedItems.length === 0;
@@ -1423,20 +1428,37 @@ function renderArchiveSelectionSummary() {
 
 function getArchiveFallenUnitsTotals(items) {
   const totals = Array(8).fill(0);
+  const afterStoneTotals = Array(8).fill(0);
   (items || []).forEach((item) => {
+    const itemTotals = Array(8).fill(0);
     [...String(item?.fallenUnitsText || "").matchAll(/\(T(\d+)\)\s*x\s*(\d+)/gi)].forEach((match) => {
       const index = Number.parseInt(match[1], 10) - 1;
       if (index >= 0 && index < totals.length) {
-        totals[index] += normalizeMetricNumber(match[2]);
+        itemTotals[index] += normalizeMetricNumber(match[2]);
       }
+    });
+    const hasReviveStone = getArchiveReviveStoneCount(item?.reviveStoneText) > 0;
+    itemTotals.forEach((count, index) => {
+      totals[index] += count;
+      afterStoneTotals[index] += hasReviveStone ? Math.max(0, count - Math.ceil(count / 5)) : count;
     });
   });
   const blood = totals.reduce((sum, count, index) =>
     sum + count * (ARCHIVE_FALLEN_UNIT_BLOOD_VALUES[index] || 0), 0);
   return {
     text: totals.map((value) => formatNumber(value)).join("/"),
+    afterStoneText: afterStoneTotals.map((value) => formatNumber(value)).join("/"),
     blood
   };
+}
+
+function getArchiveReviveStoneCount(value) {
+  const text = String(value ?? "").trim();
+  if (!text || text === "-") {
+    return 0;
+  }
+  const numeric = Number.parseInt(text.replace(/[^\d-]/g, ""), 10);
+  return Number.isFinite(numeric) ? Math.max(0, numeric) : 0;
 }
 
 function renderArchiveActionGroup(item) {

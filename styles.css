@@ -3791,6 +3791,14 @@ body[data-optimizer-variant="minimum"] .layout {
   color: #ff9f7a !important;
 }
 
+.archive-selection-total-stone {
+  color: #c792ea !important;
+}
+
+.archive-selection-total-stone-count {
+  color: #9be7ff !important;
+}
+
 .archive-selection-separator {
   color: rgba(255, 255, 255, 0.42) !important;
 }
