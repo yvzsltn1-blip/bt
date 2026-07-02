@@ -1,0 +1,112 @@
+Manifest-Version: 1.0
+
+Name: icon128.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: cepS3vWvEu80EKztw2A2man7Mlk=
+SHA256-Digest: Mz/o1jL/zLSsrUqJvog8DUwn6uU6eUihXKZChZSPxTc=
+
+Name: manifest.json
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: oAh99PjF25ItY20PZaJwUAB2tW4=
+SHA256-Digest: ePjTqhZJqtk6S5qcuQ/18wig+kY7LJ/H48sBAjunczM=
+
+Name: guard.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: zZjiz4OQealSIUEvzpen7o/FBjg=
+SHA256-Digest: /JOi4DL0qrxGyKsYd7dBiiOAv+WtiCAplfn7sOoLYcg=
+
+Name: prueba gratis.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: ZGDSHvlkjIyz2dtXZN6OE5HumKA=
+SHA256-Digest: pheUrjw8BLBKicUEkgoHTI7eNsUZaR947YCB6r71wwU=
+
+Name: content.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: 3nX60s5dbwaAsE3e4yZGtwO1uxc=
+SHA256-Digest: sUhP0+zaAlQD0pVhhlJsgeAiADgC5F9pgDTKXT9IlPk=
+
+Name: promo_small_440_280_1775411480074.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: Tcxm9LM5TASQZspaktq0n5ZvR+4=
+SHA256-Digest: SPMrLceco0n0SrANfBSeZ0SBhigH3OmM0U/HE8B/aGE=
+
+Name: promocional.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: Y7HQ0FNComSyxh/Ply0c14+pVQ4=
+SHA256-Digest: //qq03ZJlbwR01GkNjEUJdP3aWTycFFkyxTnQf3OvhI=
+
+Name: firebase-app.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: nEHsiLr/gbn4mTwSljKDu76/CQY=
+SHA256-Digest: p42HLe4LZuH9fP2rFGRWeLj5WWz0KyEgKYJQKazaTfw=
+
+Name: content.js_fixed_injectui.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: MjlEKJol8z2tslTgDv7dHi3SHLI=
+SHA256-Digest: yF1fDG/CATjsuW6++cH1GlVDXaZZoO9QRYkzq8yGmAE=
+
+Name: icon.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: g6vAd/8yDpI04MXgZ/Fhf0qDeGI=
+SHA256-Digest: 1mNUdZHqUTJKsMDPhGKB9pyO48DMIZfyfpGWtJi2OcQ=
+
+Name: auth.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: yPbz2U0e47owcxxnS5QlXTiuuvo=
+SHA256-Digest: Prwtk48prsre4ZfMzWkwUeVBoH70Lw6xGBQS14/ODAM=
+
+Name: 300 pix.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: L7wdamL9KiIsYCFOc7kyagmyT14=
+SHA256-Digest: OJ2R0rEChnU0rVy2d7+OpEF9uFNfxAreQcqkcKn4AZk=
+
+Name: ruinas.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: Lk1fUtq7Za7yQ6GF0q2PxTwP0Dw=
+SHA256-Digest: HhDa8ESC1H/+UusmSPEtRzkQwd3gpKXDOsq1Ts9F3oo=
+
+Name: firebase-auth.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: fG+Hc/3PihLY629ERJ9aveaQZb4=
+SHA256-Digest: CplmXXf7sqiZbaVcne4vjfMfsWOk6jqmEgQsnfvX19w=
+
+Name: formato grande.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: ++1kjfPeMf8+YY2w25yGQ6x0mLg=
+SHA256-Digest: SKdt8YIqdNZYacy75t69adPgWmOHjCihXaYeViDVEoU=
+
+Name: gruta.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: XuBDx1/GFBMvVaJ+nKor32NIF1g=
+SHA256-Digest: 2ZrfZ8q1C7CM3ixB3ANdMnrdKcd/g97wsVPU81F1DM8=
+
+Name: firebase_config.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: 8rZcSiaSuWNCWpwdw1IXXreerFc=
+SHA256-Digest: DViY+PXAu1SIz9E5Zx9iHH+k6RITpTCyJ5hhMf7aNuE=
+
+Name: caceria.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: RdzZoMNPbEToEvhfH9oFv2cfGSI=
+SHA256-Digest: Z3yVXZK4+QR0LCqjnxD7UTRIzAlC/Z/r3m3zclId2sA=
+
+Name: firebase-firestore.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: 9FUZ3uhvHChhqzNJEp3vqeuhgU8=
+SHA256-Digest: mFxOg3iXeQKKmU4z2wfMnj5aGueD32NKeOnbC0TYFXM=
+
+Name: background.js
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: 7aGrbbIoQaqQ6X5Gw0JZ5WibMVA=
+SHA256-Digest: ip8brW65LdGxHehBS2g76tCubZkw+z8DwfsWiIGhWF0=
+
+Name: vencida.png
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: afmUoYSXsRJzkCgjTkUG0V6JXdw=
+SHA256-Digest: t8crU6g67YfLv5JR4biRnohHm0nEl6JZNq54ZQID59Q=
+
+Name: .gitignore
+Digest-Algorithms: SHA1 SHA256
+SHA1-Digest: +sqptWdQ6OppJNuxILyevZ9PWh0=
+SHA256-Digest: 1qPmCNMkGwwQdl/eSeyW7ZQ1oYsClSMIwsNh6UZ4C0E=
+

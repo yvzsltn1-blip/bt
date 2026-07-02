@@ -374,6 +374,36 @@ function syncRetestControls(preserveStatus = false) {
   }
 }
 
+async function fillMissingFallenUnitsFromArchive(items) {
+  const missing = (items || []).filter((item) => !String(item?.fallenUnitsText || "").trim());
+  if (!missing.length
+    || !window.BTFirebase
+    || typeof window.BTFirebase.loadOverviewArchives !== "function") {
+    return;
+  }
+  if (testsRetestStatus) {
+    testsRetestStatus.textContent = "Arsiv kayitlari eslestiriliyor...";
+  }
+  try {
+    const archives = await window.BTFirebase.loadOverviewArchives();
+    const fallenById = new Map();
+    (archives || []).forEach((arc) => {
+      const text = String(arc?.fallenUnitsText || "").trim();
+      if (arc?.id && text) {
+        fallenById.set(String(arc.id), text);
+      }
+    });
+    missing.forEach((item) => {
+      const text = fallenById.get(String(item?.archiveId || ""));
+      if (text) {
+        item.fallenUnitsText = text;
+      }
+    });
+  } catch (error) {
+    console.warn("Arsiv fallenUnitsText eslestirme basarisiz.", error);
+  }
+}
+
 async function retestSelectedStage() {
   if (!isAdminSession) {
     window.alert("Bu islem icin admin oturumu gerekli.");
@@ -448,6 +478,11 @@ async function retestSelectedStage() {
       window.alert(`${selection.label} icinde yeniden test edilecek ${getRetestResultLabel(retestResult)} kayit yok.`);
       return;
     }
+
+    // Eski regresyon kayitlarinda ham "Olenler" metni (fallenUnitsText) saklanmamis
+    // olabilir; bu durumda beklenen kayip 0 kalir ve kayit haksiz yere YANLIS gorunur.
+    // Canli arsivden fallenUnitsText'i tamamla ki retest beklenen kaybi dogru turetsin.
+    await fillMissingFallenUnitsFromArchive(items);
 
     if (testsRetestProgress) {
       testsRetestProgress.max = items.length;

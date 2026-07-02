@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      4.7
+// @version      5.8
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -23,6 +23,16 @@
   const FIREBASE_API_KEY = 'AIzaSyB6_mwliHgUXjCSidzZIBiQj_8hLkYvZV4';
   const FIRESTORE_ARCHIVE_URL = 'https://firestore.googleapis.com/v1/projects/bt-analiz/databases/(default)/documents/overviewArchives';
   const FIRESTORE_ARCHIVE_HOSTS_URL = 'https://firestore.googleapis.com/v1/projects/bt-analiz/databases/(default)/documents/archiveHosts';
+  const FIRESTORE_REMINDERS_URL = 'https://firestore.googleapis.com/v1/projects/bt-analiz/databases/(default)/documents/floorReminders';
+  // Kat hatirlatmalari: bu katlar bitince ilgili bant suresi kadar sonra Telegram
+  // bildirimi planlanir (timer'i sunucu tutar -> telefon kilitliyken de gelir).
+  const REMINDER_ENABLED_KEY = 'btReminderEnabled';
+  const FLOOR_REMINDERS = [
+    { floor: 1, bandLabel: '1-10', intervalSec: 60 * 60 },    // 1 saat
+    { floor: 11, bandLabel: '11-20', intervalSec: 90 * 60 },  // 1.5 saat
+    { floor: 21, bandLabel: '21-30', intervalSec: 120 * 60 }, // 2 saat
+    { floor: 31, bandLabel: '31-40', intervalSec: 150 * 60 }  // 2.5 saat
+  ];
   const LAST_ARCHIVE_ID_KEY = 'btLastArchiveId';
   const REGISTERED_HOST_KEY = 'btArchiveRegisteredHost';
   const LAST_ARCHIVE_PAYLOAD_KEY = 'btLastArchivePayload';
@@ -38,7 +48,16 @@
     'kurt saman': 'T5',
     'mezar pencesi': 'T6',
     'kanli ay kahini': 'T7',
-    'cehennem ucurumu': 'T8'
+    'cehennem ucurumu': 'T8',
+    // Oyunda kullanilan guncel birim adlari (battle-core ALLY_UNITS ile ayni).
+    'yarasa surusu': 'T1',
+    'gulyabani': 'T2',
+    'vampir kolu': 'T3',
+    'banshee': 'T4',
+    'olu cagirici': 'T5',
+    'gargoyle': 'T6',
+    'kan cadisi': 'T7',
+    'curuk girtlak': 'T8'
   };
   const ENEMY_SLOT_LABELS = {
     1: 'R1',
@@ -606,6 +625,15 @@
   const BOT_MIN_WIN_RATE_KEY = 'btBotMinWinRate';
   // Panel simge durumuna kucululdu mu (kullanici tercihi, GM'de saklanir).
   const BOT_PANEL_MINIMIZED_KEY = 'btBotPanelMinimized';
+  // Kenardan tutup boyutlandirilan panelin son genisligi/yuksekligi (px).
+  const BOT_PANEL_WIDTH_KEY = 'btBotPanelWidth';
+  const BOT_PANEL_HEIGHT_KEY = 'btBotPanelHeight';
+  const BOT_PANEL_MAX_DESKTOP_WIDTH = 860;
+  // Genislik bu degere kadar (varsayilan ~760px'in %80 kadarini) kisilabilir.
+  const BOT_PANEL_MIN_WIDTH = 170;
+  const BOT_PANEL_MIN_HEIGHT = 140;
+  // Panel kendi genisligi bu esigin altina inince tek sutuna gecer (kompakt mod).
+  const BOT_PANEL_NARROW_WIDTH = 380;
   // Panele konacak kazanma orani secenekleri (yuzde). 'custom' -> elle giris.
   const BOT_WIN_RATE_PRESETS = [90, 95, 99.5, 100];
   // Dengeli cozumun beklenen kan kaybi bu esigi asarsa hizli ve derin modlar da
@@ -838,6 +866,10 @@
     GM_setValue(BOT_DONE_KEY, done);
     GM_setValue(BOT_SKIP_COUNT_KEY, 0);
 
+    // Bant-basi kat (1/11/21/31) ise bant suresi kadar sonrasi icin Telegram
+    // hatirlatmasini planla. (Diger katlar icin kayit yazilmaz.)
+    await scheduleFloorReminder(stage);
+
     if (stage >= end) {
       const waitSeconds = randomAutoIntervalSeconds();
       setBotStatus(`Kat ${stage} tamam (${done} kat). Kat ${start}-${end} taramasi bitti, ${waitSeconds} sn sonra Kat ${start}'den tekrar`);
@@ -915,6 +947,20 @@
 
   function setBotPanelMinimized(minimized) {
     GM_setValue(BOT_PANEL_MINIMIZED_KEY, minimized === true);
+  }
+
+  // Kullanicinin kenardan tutup ayarladigi panel boyutu (0 = otomatik/varsayilan).
+  function getBotPanelSize() {
+    const width = Number(GM_getValue(BOT_PANEL_WIDTH_KEY, 0)) || 0;
+    const height = Number(GM_getValue(BOT_PANEL_HEIGHT_KEY, 0)) || 0;
+    return { width, height };
+  }
+
+  function setBotPanelSize(width, height) {
+    GM_setValue(BOT_PANEL_WIDTH_KEY, Math.round(width) || 0);
+    if (height !== undefined) {
+      GM_setValue(BOT_PANEL_HEIGHT_KEY, Math.round(height) || 0);
+    }
   }
 
   function loadBotTiming() {
@@ -1369,6 +1415,70 @@ self.onmessage = (event) => {
     return GM_getValue(BOT_REVIVE_KEY, true) !== false;
   }
 
+  function isReminderEnabled() {
+    return GM_getValue(REMINDER_ENABLED_KEY, true) !== false;
+  }
+
+  // Oyun host'undan sunucu etiketini cikarir (ornek: "s65.bitefight.gameforge.com"
+  // -> "s65"). Taninmazsa dokuman id'sinde guvenli kullanilacak sekilde host'u
+  // sadelestirir.
+  function reminderServerLabel() {
+    // Ilk etiketteki sunucu numarasini al: "s66-tr.bitefight..." -> "s66".
+    const first = String(location.host || '').split('.')[0].trim();
+    const match = first.match(/^s\d+/i);
+    if (match) {
+      return match[0].toLowerCase();
+    }
+    return String(location.host || 'unknown').replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'unknown';
+  }
+
+  // Bant-basi bir kat (1/11/21/31) bitince Firestore'a hatirlatma kaydi yazar.
+  // Kayit dueAt (epoch ms) tasir; sunucudaki sendFloorReminders fonksiyonu vakti
+  // gelince Telegram'a yollar. Dokuman id'si kat basina sabittir (floorrem_<kat>),
+  // boylece ayni kat yeniden temizlenince timer bastan kurulur (oyun mantigiyla ayni).
+  async function scheduleFloorReminder(floor) {
+    if (!isReminderEnabled()) {
+      return;
+    }
+    const config = FLOOR_REMINDERS.find((entry) => entry.floor === floor);
+    if (!config) {
+      return;
+    }
+    const dueAt = Date.now() + config.intervalSec * 1000;
+    // Sunucu basina ayri dokuman: paralel oynanan her sunucu (s65/s66/s62...) icin
+    // ayri hatirlatma tutulur; boylece biri digerinin kaydini ezmez.
+    const server = reminderServerLabel();
+    const docId = `floorrem_${server}_${floor}`;
+    try {
+      const response = await fetch(`${FIRESTORE_REMINDERS_URL}/${docId}?key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            floor: { integerValue: String(floor) },
+            bandLabel: { stringValue: config.bandLabel },
+            dueAt: { integerValue: String(dueAt) },
+            intervalSec: { integerValue: String(config.intervalSec) },
+            host: { stringValue: location.host },
+            server: { stringValue: server },
+            createdAt: { stringValue: new Date().toISOString() },
+            sent: { booleanValue: false }
+          }
+        })
+      });
+      if (!response.ok) {
+        console.error('Kat hatirlatmasi kaydedilemedi.', floor, await response.text());
+        return;
+      }
+      const dueText = new Date(dueAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      setBotStatus(`Kat ${floor} tamam. Hatirlatma kuruldu: ${dueText} (${config.bandLabel} bandi)`);
+    } catch (error) {
+      console.error('Kat hatirlatmasi kaydedilemedi.', floor, error);
+    }
+  }
+
   // Bot calisirken ekranin kararip kapanmasini onler (Wake Lock API). Kilit sayfa
   // gecislerinde ve sekme arkaya alininca duser; bu yuzden her bot tetiginde ve
   // sayfa tekrar gorunur oldugunda yeniden alinir.
@@ -1653,6 +1763,10 @@ self.onmessage = (event) => {
     // Zafer = ilerleme; girise kapali kat atlama sayacini sifirla.
     GM_setValue(BOT_SKIP_COUNT_KEY, 0);
 
+    // Bant-basi kat (1/11/21/31) ise bant suresi kadar sonrasi icin Telegram
+    // hatirlatmasini planla (oto kat modundaki ile ayni davranis).
+    await scheduleFloorReminder(stage);
+
     const stopStage = GM_getValue(BOT_STOP_STAGE_KEY, 0);
     if (stopStage && stage >= stopStage) {
       stopBot(`Hedef kat (${stopStage}) tamamlandi, ${done} kat gecildi`);
@@ -1856,11 +1970,26 @@ self.onmessage = (event) => {
     style.id = 'bt-bot-panel-styles';
     style.textContent = `
       #bt-bot-panel {
-        width: min(368px, calc(100vw - 18px)) !important;
-        min-width: 0 !important;
-        padding: 11px 13px 9px !important;
-        gap: 7px !important;
-        overflow: hidden;
+        /* !important YOK: aksi halde tarayicinin resize tutacagi calismaz.
+           Min/max sinirlari araliği koruyor; varsayilan genislik buradan gelir. */
+        box-sizing: border-box;
+        width: min(760px, calc(100vw - 36px));
+        padding: 12px 14px 11px !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        align-content: start;
+        column-gap: 12px !important;
+        row-gap: 8px !important;
+        /* Kenarlardan iki yonde de tutup boyutlandirilabilir; son boyut saklanir. */
+        resize: both;
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-width: ${BOT_PANEL_MIN_WIDTH}px !important;
+        min-height: ${BOT_PANEL_MIN_HEIGHT}px;
+        max-width: min(${BOT_PANEL_MAX_DESKTOP_WIDTH}px, calc(100vw - 36px));
+        max-height: min(720px, calc(100dvh - 44px));
+        scrollbar-width: thin;
+        scrollbar-color: rgba(201, 164, 109, .45) transparent;
         border: 1px solid rgba(210, 170, 115, .28) !important;
         border-radius: 16px !important;
         background:
@@ -1887,11 +2016,36 @@ self.onmessage = (event) => {
         border-radius: 2px 0 0 2px;
       }
 
+      #bt-bot-panel::-webkit-scrollbar {
+        width: 7px;
+      }
+
+      #bt-bot-panel::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 999px;
+        background: rgba(201, 164, 109, .42);
+        background-clip: padding-box;
+      }
+
       #bt-bot-panel .bt-panel-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 8px;
+        padding: 0 2px 2px;
+      }
+
+      /* Bu ogeler iki sutunu da kaplar; geri kalan bolumler 2 sutuna dagilir. */
+      #bt-bot-panel .bt-panel-head,
+      #bt-bot-status,
+      #bt-bot-panel .bt-floor-shortcuts,
+      #bt-bot-panel .bt-panel-mode {
+        grid-column: 1 / -1 !important;
+      }
+
+      #bt-bot-panel .bt-floor-shortcuts > div:last-child {
+        display: flex;
+        gap: 6px;
       }
 
       #bt-bot-panel .bt-panel-kicker {
@@ -2075,7 +2229,7 @@ self.onmessage = (event) => {
         gap: 6px !important;
         border: 1px solid rgba(255, 255, 255, .04) !important;
         border-radius: 10px;
-        background: rgba(255, 255, 255, .014);
+        background: linear-gradient(145deg, rgba(255, 255, 255, .022), rgba(255, 255, 255, .008));
       }
 
       #bt-bot-panel .bt-panel-section label {
@@ -2150,16 +2304,59 @@ self.onmessage = (event) => {
         background: linear-gradient(155deg, #1a3f2e, #0f241a) !important;
       }
 
+      /* Panel kendi genisligine gore yeniden dizilir (ekran degil, panel olcusu).
+         Kullanici kenardan daralttikca JS bu sinifi ekler -> tek sutun + kompakt. */
+      #bt-bot-panel.is-narrow {
+        grid-template-columns: 1fr !important;
+        column-gap: 0 !important;
+        row-gap: 6px !important;
+        padding: 9px 11px 8px !important;
+      }
+
+      #bt-bot-panel.is-narrow .bt-panel-title {
+        font-size: 16px;
+      }
+
+      #bt-bot-panel.is-narrow input[type="number"],
+      #bt-bot-panel.is-narrow select {
+        height: 29px !important;
+        font-size: 11.5px !important;
+      }
+
+      #bt-bot-panel.is-narrow button,
+      #bt-bot-panel.is-narrow #bt-filler-actions button {
+        min-height: 30px;
+      }
+
+      #bt-bot-panel.is-narrow .bt-panel-section {
+        padding: 7px !important;
+        gap: 4px !important;
+      }
+
+      #bt-bot-panel.is-narrow .bt-floor-shortcuts > div:last-child {
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 720px) {
+        #bt-bot-panel {
+          grid-template-columns: 1fr 1fr !important;
+          width: min(560px, calc(100vw - 16px)) !important;
+          max-width: calc(100vw - 16px);
+        }
+      }
+
       @media (max-width: 520px) {
         #bt-bot-panel {
           left: 8px !important;
           bottom: 8px !important;
           width: min(340px, calc(100vw - 16px)) !important;
+          grid-template-columns: 1fr !important;
           max-height: 54vh;
           max-height: min(440px, 54dvh);
           padding: 8px 10px 7px !important;
-          gap: 5px !important;
+          row-gap: 5px !important;
           overflow-y: auto;
+          resize: none;
           overscroll-behavior: contain;
           border-radius: 12px !important;
         }
@@ -2283,9 +2480,7 @@ self.onmessage = (event) => {
       'position:fixed',
       'bottom:22px',
       'left:22px',
-      'z-index:99999',
-      'display:flex',
-      'flex-direction:column'
+      'z-index:99999'
     ].join(';');
 
     const panelHead = document.createElement('div');
@@ -2322,6 +2517,8 @@ self.onmessage = (event) => {
     status.textContent = GM_getValue('btBotStatus', 'Kat botu hazir');
     panel.appendChild(status);
 
+    appendFloorShortcuts(panel);
+
     if (isBotEnabled()) {
       const modeLabel = document.createElement('div');
       modeLabel.className = 'bt-panel-mode';
@@ -2335,6 +2532,10 @@ self.onmessage = (event) => {
       };
       panel.appendChild(stopBtn);
     } else {
+      const startWrap = document.createElement('div');
+      startWrap.className = 'bt-panel-section bt-start-section';
+      startWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px';
+
       const row = document.createElement('div');
       row.className = 'bt-panel-row';
       row.style.cssText = 'display:flex;gap:6px;align-items:center';
@@ -2368,7 +2569,7 @@ self.onmessage = (event) => {
 
       row.appendChild(startInput);
       row.appendChild(stopInput);
-      panel.appendChild(row);
+      startWrap.appendChild(row);
 
       const startBtn = buildActionButton('Botu Baslat', 'padding:6px 12px;font-size:12px');
       startBtn.onclick = () => {
@@ -2380,7 +2581,8 @@ self.onmessage = (event) => {
         const stopStage = Number.parseInt(stopInput.value, 10);
         startBot(startStage, Number.isInteger(stopStage) && stopStage > 0 ? stopStage : 0);
       };
-      panel.appendChild(startBtn);
+      startWrap.appendChild(startBtn);
+      panel.appendChild(startWrap);
 
       // --- Oto kat modu ---
       const autoWrap = document.createElement('div');
@@ -2481,9 +2683,82 @@ self.onmessage = (event) => {
     reviveRow.append(reviveCheckbox, reviveLabel);
     panel.appendChild(reviveRow);
 
+    const reminderRow = document.createElement('label');
+    reminderRow.className = 'bt-panel-toggle';
+    reminderRow.style.cssText = 'display:flex;gap:5px;align-items:center;color:#c8b49a;font-size:11px;cursor:pointer';
+    const reminderCheckbox = document.createElement('input');
+    reminderCheckbox.type = 'checkbox';
+    reminderCheckbox.checked = isReminderEnabled();
+    reminderCheckbox.style.cssText = 'accent-color:#ffd700;margin:0';
+    reminderCheckbox.onchange = () => {
+      GM_setValue(REMINDER_ENABLED_KEY, reminderCheckbox.checked);
+      setBotStatus(reminderCheckbox.checked
+        ? 'Kat suresi dolunca Telegram bildirimi gonderilecek (kat 1/11/21/31)'
+        : 'Kat suresi bildirimi kapali');
+    };
+    const reminderLabel = document.createElement('span');
+    reminderLabel.textContent = 'Kat suresi dolunca Telegram bildirimi';
+    reminderRow.append(reminderCheckbox, reminderLabel);
+    panel.appendChild(reminderRow);
+
     appendWinRateSetting(panel);
     appendTimingSettings(panel);
     document.body.appendChild(panel);
+    applyAndTrackPanelSize(panel);
+  }
+
+  // Panelin kendi genisligine gore tek/cift sutun yerlesimini ayarlar.
+  function updateBotPanelDensity(panel, width) {
+    panel.classList.toggle('is-narrow', width > 0 && width < BOT_PANEL_NARROW_WIDTH);
+  }
+
+  // Kayitli genislik+yuksekligi uygular ve kullanicinin kenardan yaptigi
+  // yeniden boyutlandirmayi (iki yonde de) saklar. Sayfa gecislerinde son
+  // boyut korunur; boylece her seferinde yeniden ayarlamak gerekmez.
+  function applyAndTrackPanelSize(panel) {
+    const saved = getBotPanelSize();
+    const viewportWidthLimit = Math.max(BOT_PANEL_MIN_WIDTH, window.innerWidth - 36);
+    if (saved.width >= BOT_PANEL_MIN_WIDTH) {
+      const width = Math.min(saved.width, BOT_PANEL_MAX_DESKTOP_WIDTH, viewportWidthLimit);
+      // Inline (important DEGIL): resize tutacaginin sonradan tasiyabilmesi icin.
+      panel.style.width = `${width}px`;
+      updateBotPanelDensity(panel, width);
+    }
+    if (saved.height >= BOT_PANEL_MIN_HEIGHT) {
+      const viewportHeightLimit = Math.max(BOT_PANEL_MIN_HEIGHT, window.innerHeight - 44);
+      const height = Math.min(saved.height, viewportHeightLimit);
+      panel.style.height = `${height}px`;
+    }
+    if (typeof ResizeObserver !== 'function') {
+      return;
+    }
+    let saveTimer = 0;
+    // Acilis sirasindaki yerlesim oturana kadarki olcumleri kaydetme; yalnizca
+    // kullanicinin kenardan cekmesiyle olusan gercek boyut degisimlerini sakla.
+    const mountedAt = Date.now();
+    const observer = new ResizeObserver(() => {
+      const rect = panel.getBoundingClientRect();
+      // Sutun yerlesimini aninda guncelle (kaydetmeden bagimsiz).
+      updateBotPanelDensity(panel, rect.width);
+      if (Date.now() - mountedAt < 800) {
+        return;
+      }
+      if (saveTimer) {
+        clearTimeout(saveTimer);
+      }
+      // Kullanici tutup birakana kadar bekle, sonra son boyutu kaydet.
+      saveTimer = setTimeout(() => {
+        const finalRect = panel.getBoundingClientRect();
+        if (finalRect.width >= BOT_PANEL_MIN_WIDTH) {
+          const width = Math.min(finalRect.width, BOT_PANEL_MAX_DESKTOP_WIDTH);
+          // Yukseklik yalnizca kullanici elle ayarlamissa (inline stil varsa) kaydedilir;
+          // aksi halde icerige gore degisen yukseklik sabitlenmesin diye 0 saklanir.
+          const userSetHeight = panel.style.height ? finalRect.height : 0;
+          setBotPanelSize(width, userSetHeight);
+        }
+      }, 320);
+    });
+    observer.observe(panel);
   }
 
   // Panele "Kazanma orani" secimi ekler: bot yalnizca bu oranin uzerindeki
@@ -2671,6 +2946,46 @@ self.onmessage = (event) => {
     panel.appendChild(wrap);
   }
   // ====================== /KAT BOTU ======================
+
+  // Panele kat 1 / 11 / 21 / 31'e hizli gecis baglantilari ekler (yan yana).
+  // Tiklayinca ilgili katin sayfasina gider (buildFloorUrl ile dogru page+layerId).
+  function appendFloorShortcuts(panel) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bt-panel-section bt-floor-shortcuts';
+    wrap.style.cssText = 'display:flex;flex-direction:column;gap:4px';
+
+    const label = document.createElement('span');
+    label.textContent = 'Katlara git';
+    label.style.cssText = 'color:#c8b49a;font-size:10.5px';
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;align-items:center';
+
+    [1, 11, 21, 31].forEach((stage) => {
+      const link = document.createElement('a');
+      link.href = buildFloorUrl(stage);
+      link.textContent = `Kat ${stage}`;
+      link.title = `Kat ${stage} sayfasina git`;
+      link.style.cssText = [
+        'flex:1',
+        'text-align:center',
+        'background:#18120e',
+        'color:#f4e6c3',
+        'border:1px solid rgba(210,168,108,.42)',
+        'padding:6px 4px',
+        'border-radius:9px',
+        'font-size:11.5px',
+        'font-weight:700',
+        'cursor:pointer',
+        'text-decoration:none',
+        'white-space:nowrap'
+      ].join(';');
+      row.appendChild(link);
+    });
+
+    wrap.append(label, row);
+    panel.appendChild(wrap);
+  }
 
   function buildActionButton(label, extraStyle) {
     const button = document.createElement('button');

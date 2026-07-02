@@ -327,15 +327,58 @@
     return counts;
   }
 
+  function normalizeUnitName(value) {
+    return String(value || "")
+      .toLocaleLowerCase("tr-TR")
+      .replace(/ı/g, "i")
+      .replace(/ğ/g, "g")
+      .replace(/ü/g, "u")
+      .replace(/ş/g, "s")
+      .replace(/ö/g, "o")
+      .replace(/ç/g, "c")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function getAllyNameToKeyMap() {
+    const map = {};
+    getAllyUnits().forEach((unit) => {
+      const baseName = String(unit.label || "").replace(/\s*\(T\d+\)\s*$/i, "");
+      const normalized = normalizeUnitName(baseName);
+      if (normalized) {
+        map[normalized] = unit.key;
+      }
+    });
+    return map;
+  }
+
   function parseArchiveFallenLosses(text) {
     const counts = createEmptyCountMap(getAllyUnits());
     const normalized = String(text || "");
+
+    // Birincil format: "Yarasa Surusu(T1) x10" gibi acik tier etiketi.
+    let matchedTier = false;
     [...normalized.matchAll(/\(T(\d+)\)\s*x\s*(\d+)/gi)].forEach((match) => {
       const index = Number.parseInt(match[1], 10) - 1;
       const qty = Number.parseInt(match[2], 10);
       const unit = getAllyUnits()[index];
       if (unit && Number.isFinite(qty) && qty > 0) {
         counts[unit.key] += qty;
+        matchedTier = true;
+      }
+    });
+    if (matchedTier) {
+      return counts;
+    }
+
+    // Yedek format: "(T#)" etiketi olmadan kaydedilmis eski kayitlar icin
+    // birim adina gore eslestir, or. "Yarasa surusu x10".
+    const nameToKey = getAllyNameToKeyMap();
+    [...normalized.matchAll(/([^,\[\]]+?)\s*x\s*(\d+)/gi)].forEach((match) => {
+      const key = nameToKey[normalizeUnitName(match[1])];
+      const qty = Number.parseInt(match[2], 10);
+      if (key && Number.isFinite(qty) && qty > 0) {
+        counts[key] += qty;
       }
     });
     return counts;
@@ -353,7 +396,7 @@
     if ((lootText && lootText !== "-") || (expText && expText !== "-")) {
       return "ally";
     }
-    if (/\(T\d+\)\s*x\s*\d+/i.test(String(item?.fallenUnitsText || ""))) {
+    if (hasAnyPositiveCounts(parseArchiveFallenLosses(item?.fallenUnitsText || ""))) {
       return "ally";
     }
     return "unknown";
@@ -368,7 +411,7 @@
     if ((lootText && lootText !== "-") || (expText && expText !== "-")) {
       return true;
     }
-    return /\(T\d+\)\s*x\s*\d+/i.test(String(item?.fallenUnitsText || ""));
+    return hasAnyPositiveCounts(parseArchiveFallenLosses(item?.fallenUnitsText || ""));
   }
 
   function writePayload(payload) {
@@ -409,6 +452,7 @@
     buildArchiveBattleSignature,
     parseArchiveEnemyCounts,
     parseArchiveAllyCounts,
+    parseArchiveFallenLosses,
     getWrongSimulationCounts,
     extractOutcomeLine,
     inferWinnerFromOutcomeLine,

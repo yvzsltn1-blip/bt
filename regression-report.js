@@ -1184,7 +1184,8 @@ function buildArchiveTestPayload(result) {
     archiveId: String(item.id || ""),
     archiveSavedAt: String(item.savedAt || ""),
     enemyRosterText: String(item.enemyRosterText || ""),
-    allyRosterText: String(item.allyRosterText || "")
+    allyRosterText: String(item.allyRosterText || ""),
+    fallenUnitsText: String(item.fallenUnitsText || "")
   };
 }
 

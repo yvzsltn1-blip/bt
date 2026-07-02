@@ -146,7 +146,22 @@
       "Bash(gcloud auth *)",
       "Bash(awk 'NR>=380 && NR<=460 && /function |=>/{print NR\": \"$0}' archive.js)",
       "Bash(sed -i \"2d\" /tmp/analyze.js)",
-      "Bash(sed -i \"s|const dir = process.cwd\\(\\);|const dir = process.cwd\\(\\);|\" /tmp/analyze.js)"
+      "Bash(sed -i \"s|const dir = process.cwd\\(\\);|const dir = process.cwd\\(\\);|\" /tmp/analyze.js)",
+      "Bash(grep -oE \"PLAYER_UNITS=.{0,1200}\" init.js)",
+      "Bash(grep -oE \"function applyBansheeAutoCalc.{0,900}\" init.js)",
+      "Bash(grep -oE \"playerUnits:\\\\[.{0,1700}\" init.js)",
+      "Bash(awk -F: '$1>900 && $1<1300')",
+      "Bash(cat firestore.rules)",
+      "Bash(ls functions *)",
+      "Bash(node --version)",
+      "Bash(npm install *)",
+      "Bash(firebase functions:secrets:set TELEGRAM_BOT_TOKEN --data-file __TRACKED_VAR__/tok.txt --force)",
+      "Bash(firebase functions:secrets:set TELEGRAM_CHAT_ID --data-file __TRACKED_VAR__/chat.txt --force)",
+      "Bash(firebase functions:log --only onFloorCompleted)",
+      "Bash(which firebase *)",
+      "Bash(ls node_modules/.bin/firebase*)",
+      "Bash(cd *)",
+      "Bash(firebase functions:log --only onFloorCompleted,sendFloorReminders)"
     ]
   }
 }

@@ -1429,14 +1429,26 @@ function renderArchiveSelectionSummary() {
 function getArchiveFallenUnitsTotals(items) {
   const totals = Array(8).fill(0);
   const afterStoneTotals = Array(8).fill(0);
+  const BBR = window.BulkBattleRegression;
+  const allyUnits = (window.BattleCore && window.BattleCore.ALLY_UNITS) || [];
   (items || []).forEach((item) => {
     const itemTotals = Array(8).fill(0);
-    [...String(item?.fallenUnitsText || "").matchAll(/\(T(\d+)\)\s*x\s*(\d+)/gi)].forEach((match) => {
-      const index = Number.parseInt(match[1], 10) - 1;
-      if (index >= 0 && index < totals.length) {
-        itemTotals[index] += normalizeMetricNumber(match[2]);
-      }
-    });
+    if (BBR && typeof BBR.parseArchiveFallenLosses === "function" && allyUnits.length) {
+      // Hem "(T#) x N" hem de etiketsiz "Birim adi x N" formatlarini cozer.
+      const losses = BBR.parseArchiveFallenLosses(item?.fallenUnitsText || "");
+      allyUnits.forEach((unit, index) => {
+        if (index >= 0 && index < itemTotals.length) {
+          itemTotals[index] += normalizeMetricNumber(losses?.[unit.key]);
+        }
+      });
+    } else {
+      [...String(item?.fallenUnitsText || "").matchAll(/\(T(\d+)\)\s*x\s*(\d+)/gi)].forEach((match) => {
+        const index = Number.parseInt(match[1], 10) - 1;
+        if (index >= 0 && index < totals.length) {
+          itemTotals[index] += normalizeMetricNumber(match[2]);
+        }
+      });
+    }
     const hasReviveStone = getArchiveReviveStoneCount(item?.reviveStoneText) > 0;
     itemTotals.forEach((count, index) => {
       totals[index] += count;

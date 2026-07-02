@@ -36,7 +36,16 @@
     'kurt saman': 'T5',
     'mezar pencesi': 'T6',
     'kanli ay kahini': 'T7',
-    'cehennem ucurumu': 'T8'
+    'cehennem ucurumu': 'T8',
+    // Oyunda kullanilan guncel birim adlari (battle-core ALLY_UNITS ile ayni).
+    'yarasa surusu': 'T1',
+    'gulyabani': 'T2',
+    'vampir kolu': 'T3',
+    'banshee': 'T4',
+    'olu cagirici': 'T5',
+    'gargoyle': 'T6',
+    'kan cadisi': 'T7',
+    'curuk girtlak': 'T8'
   };
   const ENEMY_SLOT_LABELS = {
     1: 'R1',

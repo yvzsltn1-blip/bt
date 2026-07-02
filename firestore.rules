@@ -270,7 +270,7 @@ service cloud.firestore {
           'expectedWinner', 'expectedLostBlood', 'expectedAllyLosses',
           'actualWinner', 'actualLostBlood', 'actualAllyLosses',
           'differences', 'note', 'archiveId', 'archiveSavedAt',
-          'enemyRosterText', 'allyRosterText'
+          'enemyRosterText', 'allyRosterText', 'fallenUnitsText'
         ])
         && data.keys().hasAll([
           'matchSignature', 'result', 'testedAt', 'enemyCounts', 'allyCounts'
@@ -293,7 +293,8 @@ service cloud.firestore {
         && (!('archiveId' in data) || isTextString(data.archiveId, 120))
         && (!('archiveSavedAt' in data) || isTextString(data.archiveSavedAt, 40))
         && (!('enemyRosterText' in data) || isTextString(data.enemyRosterText, 160))
-        && (!('allyRosterText' in data) || isTextString(data.allyRosterText, 160));
+        && (!('allyRosterText' in data) || isTextString(data.allyRosterText, 160))
+        && (!('fallenUnitsText' in data) || isTextString(data.fallenUnitsText, 240));
     }
 
     function validGrotteArchive(data, documentId) {
@@ -374,6 +375,32 @@ service cloud.firestore {
     match /archiveHosts/{documentId} {
       allow read: if true;
       allow create, update: if validArchiveHost(request.resource.data, documentId);
+      allow delete: if isAdmin();
+    }
+
+    // Kat hatirlatmalari: otobirlik.user.js bant-basi kati (1/11/21/31) bitince
+    // dueAt (epoch ms) ile bir kayit yazar; sendFloorReminders fonksiyonu vakti
+    // gelince Telegram'a yollayip sent:true yapar (Admin SDK ile, kural disi).
+    function validFloorReminder(data, documentId) {
+      // Sunucu basina ayri kayit: floorrem_<sunucu>_<kat> (or. floorrem_s65_1).
+      // Geriye donuk uyumluluk icin eski floorrem_<kat> bicimi de kabul edilir.
+      return (documentId.matches('^floorrem_[a-z0-9-]+_[0-9]+$') || documentId.matches('^floorrem_[0-9]+$'))
+        && data.keys().hasOnly(['floor', 'bandLabel', 'dueAt', 'intervalSec', 'host', 'server', 'createdAt', 'sent', 'sentAt'])
+        && data.keys().hasAll(['floor', 'dueAt', 'sent', 'createdAt'])
+        && data.floor is int && data.floor >= 1 && data.floor <= 9999
+        && (!('bandLabel' in data) || isTextString(data.bandLabel, 20))
+        && isWideInt(data.dueAt, 99999999999999)
+        && (!('intervalSec' in data) || isWideInt(data.intervalSec, 999999))
+        && (!('host' in data) || isShortString(data.host, 120))
+        && (!('server' in data) || isShortString(data.server, 60))
+        && isShortString(data.createdAt, 40)
+        && data.sent is bool
+        && (!('sentAt' in data) || isShortString(data.sentAt, 40));
+    }
+
+    match /floorReminders/{documentId} {
+      allow read: if true;
+      allow create, update: if validFloorReminder(request.resource.data, documentId);
       allow delete: if isAdmin();
     }
 

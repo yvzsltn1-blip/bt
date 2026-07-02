@@ -20,6 +20,83 @@
     return Object.fromEntries((units || []).map((unit) => [unit.key, Number(source?.[unit.key] || 0)]));
   }
 
+  function getBloodByAllyKey() {
+    return getBattleCore().BLOOD_BY_ALLY_KEY || {};
+  }
+
+  function calculateLostBlood(losses) {
+    const bloodByKey = getBloodByAllyKey();
+    return getAllyUnits().reduce(
+      (sum, unit) => sum + Number(losses?.[unit.key] || 0) * Number(bloodByKey[unit.key] || 0),
+      0
+    );
+  }
+
+  function normalizeUnitName(value) {
+    return String(value || "")
+      .toLocaleLowerCase("tr-TR")
+      .replace(/ı/g, "i")
+      .replace(/ğ/g, "g")
+      .replace(/ü/g, "u")
+      .replace(/ş/g, "s")
+      .replace(/ö/g, "o")
+      .replace(/ç/g, "c")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function getAllyNameToKeyMap() {
+    const map = {};
+    getAllyUnits().forEach((unit) => {
+      const baseName = String(unit.label || "").replace(/\s*\(T\d+\)\s*$/i, "");
+      const normalized = normalizeUnitName(baseName);
+      if (normalized) {
+        map[normalized] = unit.key;
+      }
+    });
+    return map;
+  }
+
+  // Arsiv kaydindaki ham "Olenler" metnini cozer. Once "(T#) x N" etiketini
+  // dener; bulamazsa etiketsiz "Birim adi x N" formatini birim adina gore eslestirir.
+  function parseArchiveFallenLosses(text) {
+    const counts = cloneCounts({}, getAllyUnits());
+    const normalized = String(text || "");
+
+    let matchedTier = false;
+    [...normalized.matchAll(/\(T(\d+)\)\s*x\s*(\d+)/gi)].forEach((match) => {
+      const index = Number.parseInt(match[1], 10) - 1;
+      const qty = Number.parseInt(match[2], 10);
+      const unit = getAllyUnits()[index];
+      if (unit && Number.isFinite(qty) && qty > 0) {
+        counts[unit.key] += qty;
+        matchedTier = true;
+      }
+    });
+    if (matchedTier) {
+      return counts;
+    }
+
+    const nameToKey = getAllyNameToKeyMap();
+    [...normalized.matchAll(/([^,\[\]]+?)\s*x\s*(\d+)/gi)].forEach((match) => {
+      const key = nameToKey[normalizeUnitName(match[1])];
+      const qty = Number.parseInt(match[2], 10);
+      if (key && Number.isFinite(qty) && qty > 0) {
+        counts[key] += qty;
+      }
+    });
+    return counts;
+  }
+
+  function deriveExpectedLossesFromArchive(item) {
+    const text = String(item?.fallenUnitsText || "").trim();
+    if (!text || text === "-") {
+      return null;
+    }
+    const losses = parseArchiveFallenLosses(text);
+    return hasPositiveCounts(losses) ? losses : null;
+  }
+
   function hasPositiveCounts(counts) {
     return Object.values(counts || {}).some((value) => Number(value || 0) > 0);
   }
@@ -55,14 +132,20 @@
   }
 
   function getExpectedFingerprint(item) {
+    // Beklenen kaybi oncelikle arsivdeki ham "Olenler" metninden yeniden turet
+    // (kaynak gercek budur). Eski kayitlarda snapshot, hatali parser nedeniyle
+    // 0 kaydedilmis olabiliyor; bu durumda metinden cozmek dogru degeri verir.
+    const derivedLosses = deriveExpectedLossesFromArchive(item);
+    const allyLosses = derivedLosses || cloneCounts(item?.expectedAllyLosses || {}, getAllyUnits());
+    const lostBloodTotal = derivedLosses
+      ? calculateLostBlood(derivedLosses)
+      : (Number.isFinite(Number(item?.expectedLostBlood)) ? Number(item.expectedLostBlood) : 0);
     return {
       winner: item?.expectedWinner === "ally" || item?.expectedWinner === "enemy"
         ? item.expectedWinner
         : "unknown",
-      lostBloodTotal: Number.isFinite(Number(item?.expectedLostBlood))
-        ? Number(item.expectedLostBlood)
-        : 0,
-      allyLosses: cloneCounts(item?.expectedAllyLosses || {}, getAllyUnits())
+      lostBloodTotal,
+      allyLosses
     };
   }
 
@@ -211,6 +294,8 @@
       previousResult: item?.result || "skipped",
       result,
       testedAt,
+      expectedLostBlood: expected.lostBloodTotal,
+      expectedAllyLosses: expected.allyLosses,
       actualWinner: actual.winner,
       actualLostBlood: actual.lostBloodTotal,
       actualAllyLosses: actual.allyLosses,
@@ -222,7 +307,7 @@
   }
 
   function buildUpdatedPayload(item, audit) {
-    return {
+    const payload = {
       ...item,
       result: audit.result,
       testedAt: audit.testedAt,
@@ -232,6 +317,14 @@
       differences: audit.differences,
       note: audit.note
     };
+    // Beklenen kayip arsiv metninden yeniden turetildiyse duzeltilmis degeri kaydet.
+    if (Number.isFinite(Number(audit.expectedLostBlood))) {
+      payload.expectedLostBlood = Number(audit.expectedLostBlood);
+    }
+    if (audit.expectedAllyLosses) {
+      payload.expectedAllyLosses = cloneCounts(audit.expectedAllyLosses, getAllyUnits());
+    }
+    return payload;
   }
 
   function summarize(results) {

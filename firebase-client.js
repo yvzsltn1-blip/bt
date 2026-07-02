@@ -1294,7 +1294,8 @@
       archiveId: trimText(item?.archiveId || "", 120),
       archiveSavedAt: trimText(item?.archiveSavedAt || "", 40),
       enemyRosterText: trimText(item?.enemyRosterText || "", 160),
-      allyRosterText: trimText(item?.allyRosterText || "", 160)
+      allyRosterText: trimText(item?.allyRosterText || "", 160),
+      fallenUnitsText: trimText(item?.fallenUnitsText || "", 240)
     };
   }
 
