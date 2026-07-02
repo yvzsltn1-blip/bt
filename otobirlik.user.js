@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      5.8
+// @version      6.1
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
 // @updateURL    https://bt-analiz.web.app/otobirlik.user.js
 // @downloadURL  https://bt-analiz.web.app/otobirlik.user.js
-// @require      https://bt-analiz.web.app/battle-core.js?v=2.2
+// @require      https://bt-analiz.web.app/battle-core.js?v=20260702-1
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
@@ -623,6 +623,16 @@
   // Panelden secilebilir; GM'de saklanir. Varsayilan: %99.5.
   const BOT_MIN_WIN_RATE_DEFAULT = 0.995;
   const BOT_MIN_WIN_RATE_KEY = 'btBotMinWinRate';
+  const BOT_ROUNDING_MODE_KEY = 'btBotRoundingMode';
+  const BOT_UNIT_LIMITS_KEY = 'btBotUnitLimits';
+  const BOT_UNIT_LIMIT_DEFAULTS = [99, 99, 99, 99, 99, 99, 99, 1];
+  const BOT_ROUNDING_MODES = {
+    legacy: 'Degismemis',
+    exact: 'OG Mod',
+    safe: 'Guvenli',
+    extround: 'Extround',
+    simulat: 'Simulator'
+  };
   // Panel simge durumuna kucululdu mu (kullanici tercihi, GM'de saklanir).
   const BOT_PANEL_MINIMIZED_KEY = 'btBotPanelMinimized';
   // Kenardan tutup boyutlandirilan panelin son genisligi/yuksekligi (px).
@@ -927,6 +937,17 @@
     GM_setValue(BOT_MIN_WIN_RATE_KEY, Number.isFinite(clamped) ? clamped : BOT_MIN_WIN_RATE_DEFAULT);
   }
 
+  function getBotRoundingMode() {
+    const stored = String(GM_getValue(BOT_ROUNDING_MODE_KEY, 'legacy') || 'legacy');
+    return Object.prototype.hasOwnProperty.call(BOT_ROUNDING_MODES, stored) ? stored : 'legacy';
+  }
+
+  function setBotRoundingMode(mode) {
+    const normalized = Object.prototype.hasOwnProperty.call(BOT_ROUNDING_MODES, mode) ? mode : 'legacy';
+    GM_setValue(BOT_ROUNDING_MODE_KEY, normalized);
+    return normalized;
+  }
+
   // Nihai dogrulamada kullanilacak minimum deneme sayisi: yuksek esiklerde kucuk
   // orneklemde sansla "%100" gorunen adaylari gercek oranina ceker (battle-core
   // minVerifyTrials). Esik ne kadar yuksekse o kadar cok dogrulama denemesi.
@@ -991,6 +1012,27 @@
 
   function saveBotTiming(timing) {
     GM_setValue(BOT_TIMING_KEY, JSON.stringify(timing));
+  }
+
+  function loadBotUnitLimits() {
+    let stored = [];
+    try {
+      stored = JSON.parse(GM_getValue(BOT_UNIT_LIMITS_KEY, '') || '[]');
+    } catch {
+      stored = [];
+    }
+    return BOT_UNIT_LIMIT_DEFAULTS.map((fallback, index) => {
+      const value = Number(stored[index]);
+      return Number.isInteger(value) && value >= 0 ? value : fallback;
+    });
+  }
+
+  function saveBotUnitLimits(limits) {
+    const normalized = BOT_UNIT_LIMIT_DEFAULTS.map((fallback, index) => {
+      const value = Number(limits[index]);
+      return Number.isInteger(value) && value >= 0 ? value : fallback;
+    });
+    GM_setValue(BOT_UNIT_LIMITS_KEY, JSON.stringify(normalized));
   }
 
   // Verilen parametrenin araligindan rastgele bekleme (ms). Parametre yoksa sabit ms'e duser.
@@ -1269,12 +1311,13 @@ self.onmessage = (event) => {
   // quick.html varsayilan havuzu: acik kademelerde 99 (T8 icin 1), kapali kademelerde 0.
   function buildBotAllyPool() {
     const openTiers = new Set(getOpenAllyTiers());
+    const limits = loadBotUnitLimits();
     return Object.fromEntries(BOT_ALLY_KEYS.map((key, index) => {
       const tier = index + 1;
       if (!openTiers.has(tier)) {
         return [key, 0];
       }
-      return [key, tier === 8 ? 1 : 99];
+      return [key, limits[index]];
     }));
   }
 
@@ -1683,7 +1726,7 @@ self.onmessage = (event) => {
       stabilityTrials: runConfig.stabilityTrials,
       baseSeed: runConfig.baseSeed,
       objective: 'min_loss',
-      roundingMode: 'legacy',
+      roundingMode: getBotRoundingMode(),
       stoneMode: false,
       diversityMode: false,
       tekilMode: false,
@@ -2702,6 +2745,7 @@ self.onmessage = (event) => {
     panel.appendChild(reminderRow);
 
     appendWinRateSetting(panel);
+    appendRoundingModeSetting(panel);
     appendTimingSettings(panel);
     document.body.appendChild(panel);
     applyAndTrackPanelSize(panel);
@@ -2836,9 +2880,37 @@ self.onmessage = (event) => {
     panel.appendChild(wrap);
   }
 
+  function appendRoundingModeSetting(panel) {
+    const wrap = document.createElement('label');
+    wrap.className = 'bt-panel-section';
+    wrap.style.cssText = 'border-top:1px solid rgba(210,168,108,.18);padding-top:5px;margin-top:1px;display:flex;flex-direction:column;gap:4px';
+
+    const label = document.createElement('span');
+    label.textContent = 'Tarama hesap modu';
+    label.style.cssText = 'color:#c8b49a;font-size:10.5px';
+
+    const select = document.createElement('select');
+    select.style.cssText = 'width:100%;height:31px;padding:0 8px;border-radius:8px;border:1px solid rgba(210,168,108,.35);background:#18120e;color:#f5e9d2;font-size:11.5px';
+    Object.entries(BOT_ROUNDING_MODES).forEach(([value, text]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = text;
+      select.appendChild(option);
+    });
+    select.value = getBotRoundingMode();
+    select.onchange = () => {
+      const mode = setBotRoundingMode(select.value);
+      setBotStatus(`Tarama hesap modu: ${BOT_ROUNDING_MODES[mode]}`);
+    };
+
+    wrap.append(label, select);
+    panel.appendChild(wrap);
+  }
+
   // Panele acilip kapanan "Bekleme Ayarlari" bolumu: her parametre icin min-max (sn).
   function appendTimingSettings(panel) {
     const timing = loadBotTiming();
+    const unitLimits = loadBotUnitLimits();
     const wrap = document.createElement('div');
     wrap.className = 'bt-panel-section';
     wrap.style.cssText = 'border-top:1px solid rgba(210,168,108,.18);padding-top:5px;margin-top:1px;display:flex;flex-direction:column;gap:5px';
@@ -2894,6 +2966,33 @@ self.onmessage = (event) => {
       fieldInputs[field.key] = { minInput, maxInput };
     });
 
+    const unitLimitsLabel = document.createElement('span');
+    unitLimitsLabel.textContent = 'Kullanilabilecek birlik limiti';
+    unitLimitsLabel.style.cssText = 'color:#d8c6a6;font-size:10px;margin-top:3px';
+    body.appendChild(unitLimitsLabel);
+
+    const unitLimitGrid = document.createElement('div');
+    unitLimitGrid.style.cssText = 'display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px';
+    const unitLimitInputs = [];
+    BOT_UNIT_LIMIT_DEFAULTS.forEach((fallback, index) => {
+      const field = document.createElement('label');
+      field.style.cssText = 'display:flex;flex-direction:column;gap:2px;color:#c8b49a;font-size:9.5px';
+      const caption = document.createElement('span');
+      caption.textContent = `T${index + 1}`;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.step = '1';
+      input.className = 'bt-small-number';
+      input.style.cssText = 'width:100%;box-sizing:border-box';
+      input.value = String(unitLimits[index] ?? fallback);
+      input.title = `Bot T${index + 1} biriminden en fazla bu kadar kullanabilir`;
+      field.append(caption, input);
+      unitLimitGrid.appendChild(field);
+      unitLimitInputs.push(input);
+    });
+    body.appendChild(unitLimitGrid);
+
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex;gap:4px';
     const saveBtn = buildActionButton('Kaydet', 'padding:5px 10px;font-size:11px');
@@ -2930,8 +3029,12 @@ self.onmessage = (event) => {
         next[field.key] = { min, max };
       });
       saveBotTiming(next);
+      saveBotUnitLimits(unitLimitInputs.map((input, index) => {
+        const value = Number(input.value);
+        return Number.isInteger(value) && value >= 0 ? value : BOT_UNIT_LIMIT_DEFAULTS[index];
+      }));
       GM_setValue(BOT_SETTINGS_OPEN_KEY, false);
-      setBotStatus('Bekleme ayarlari kaydedildi');
+      setBotStatus('Bekleme ayarlari ve birlik limitleri kaydedildi');
       renderBotPanel();
     };
 
@@ -2939,6 +3042,9 @@ self.onmessage = (event) => {
       BOT_TIMING_FIELDS.forEach((field) => {
         fieldInputs[field.key].minInput.value = String(field.min);
         fieldInputs[field.key].maxInput.value = String(field.max);
+      });
+      BOT_UNIT_LIMIT_DEFAULTS.forEach((value, index) => {
+        unitLimitInputs[index].value = String(value);
       });
     };
 

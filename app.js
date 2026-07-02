@@ -96,8 +96,8 @@ function getRoundingModeLabel(mode) {
   if (normalizedMode === "legacy") {
     return "Degismemis";
   }
-  if (normalizedMode === "exact") {
-    return "Gercek";
+  if (normalizedMode === "extround") {
+    return "Extround";
   }
   if (normalizedMode === "simulat") {
     return "Simulator";
@@ -107,7 +107,8 @@ function getRoundingModeLabel(mode) {
 
 function loadStoredRoundingMode() {
   try {
-    return normalizeRoundingMode(window.localStorage.getItem(ROUNDING_MODE_STORAGE_KEY));
+    const storedMode = window.localStorage.getItem(ROUNDING_MODE_STORAGE_KEY);
+    return storedMode === "exact" ? "extround" : normalizeRoundingMode(storedMode);
   } catch (_error) {
     return "safe";
   }

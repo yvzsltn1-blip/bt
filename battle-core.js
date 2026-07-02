@@ -2743,6 +2743,12 @@
       if (left.addedUnits !== right.addedUnits) {
         return left.addedUnits - right.addedUnits;
       }
+      if ((left.result?.lostBloodTotal || 0) !== (right.result?.lostBloodTotal || 0)) {
+        return (left.result?.lostBloodTotal || 0) - (right.result?.lostBloodTotal || 0);
+      }
+      if ((left.result?.lostUnitsTotal || 0) !== (right.result?.lostUnitsTotal || 0)) {
+        return (left.result?.lostUnitsTotal || 0) - (right.result?.lostUnitsTotal || 0);
+      }
       return getCountSignature(left.counts, ALLY_UNITS).localeCompare(getCountSignature(right.counts, ALLY_UNITS));
     }
 
@@ -2753,71 +2759,133 @@
 
       const baseSearchCounts = cloneCounts(baseEntry.searchCounts || toSearchCounts(baseEntry.counts), ALLY_UNITS);
       const baseUsedPoints = calculateArmyPoints(baseSearchCounts);
-      const remainingPoints = Number.isFinite(maxPoints)
-        ? Math.max(0, maxPoints - baseUsedPoints)
-        : calculateArmyPoints(availableAllyCounts);
-      const seedOrder = getStrategicUnitOrder(availableAllyCounts, enemyCounts);
-      const expansionOrder = [
-        ...seedOrder,
-        ...ALLY_UNITS.filter((unit) => !seedOrder.some((candidate) => candidate.key === unit.key))
-      ].sort((left, right) => {
-        const pointDelta = POINTS_BY_ALLY_KEY[left.key] - POINTS_BY_ALLY_KEY[right.key];
-        if (pointDelta !== 0) {
-          return pointDelta;
-        }
-        return seedOrder.findIndex((unit) => unit.key === left.key) - seedOrder.findIndex((unit) => unit.key === right.key);
-      });
-      const queue = [{
-        counts: baseSearchCounts,
-        addedPoints: 0,
-        addedUnits: 0
-      }];
-      const seen = new Set([getCountSignature(baseSearchCounts, ALLY_UNITS)]);
-      const maxChecks = Math.max(120, Math.min(900, 90 + expansionOrder.length * 80));
-      let checked = 0;
+      const effectiveBaseCounts = toEffectiveCounts(baseSearchCounts);
+      const variants = new Map();
 
-      while (queue.length > 0 && checked < maxChecks) {
-        queue.sort(compareActualGuardStates);
-        const state = queue.shift();
-        checked += 1;
-
-        const quickSafe = evaluateCandidate(state.counts, trialCount, "safe");
-        if (quickSafe.feasible) {
-          const stableSafe = evaluateCandidate(state.counts, stabilityTrials, "safe");
-          if (stableSafe.feasible) {
-            stableSafe.actualGuard = {
-              sourceRoundingMode: "legacy",
-              verificationRoundingMode: "safe",
-              addedPoints: state.addedPoints,
-              addedUnits: state.addedUnits,
-              checkedCandidates: checked
-            };
-            return stableSafe;
-          }
-        }
-
-        for (const unit of expansionOrder) {
-          const currentCount = state.counts[unit.key] || 0;
-          const maxCount = availableAllyCounts[unit.key] || 0;
-          const unitPoints = POINTS_BY_ALLY_KEY[unit.key] || 0;
-          if (currentCount >= maxCount || state.addedPoints + unitPoints > remainingPoints) {
-            continue;
-          }
-          const nextCounts = cloneCounts(state.counts, ALLY_UNITS);
-          nextCounts[unit.key] = currentCount + 1;
-          const signature = getCountSignature(nextCounts, ALLY_UNITS);
-          if (seen.has(signature)) {
-            continue;
-          }
-          seen.add(signature);
-          queue.push({
-            counts: nextCounts,
-            addedPoints: calculateArmyPoints(nextCounts) - baseUsedPoints,
-            addedUnits: getAddedUnitCount(baseSearchCounts, nextCounts)
-          });
+      for (let seed = 1; seed <= 480; seed += 1) {
+        simulationRuns += 1;
+        const result = simulateBattle(enemyCounts, effectiveBaseCounts, {
+          seed,
+          collectLog: false,
+          roundingMode: "legacy"
+        });
+        const signature = JSON.stringify({
+          winner: result.winner,
+          lostBloodTotal: result.lostBloodTotal,
+          allyLosses: result.allyLosses
+        });
+        if (!variants.has(signature)) {
+          variants.set(signature, { seed, result });
         }
       }
 
+      const worstVariant = [...variants.values()].reduce((worst, variant) =>
+        !worst || variant.result.lostBloodTotal > worst.result.lostBloodTotal ? variant : worst, null);
+      let guardedSearchCounts = cloneCounts(baseSearchCounts, ALLY_UNITS);
+      let legacyAdvice = null;
+
+      if (variants.size > 1 && worstVariant) {
+        legacyAdvice = findNearbyGuardAdvice(
+          guardedSearchCounts,
+          worstVariant.result,
+          worstVariant.seed,
+          "legacy",
+          worstVariant.result.winner === "enemy" ? 5 : 3
+        );
+        if (legacyAdvice) {
+          guardedSearchCounts = legacyAdvice.counts;
+        }
+      }
+
+      const verificationSeed = worstVariant?.seed || 1;
+      simulationRuns += 1;
+      const safeBaseline = simulateBattle(enemyCounts, toEffectiveCounts(guardedSearchCounts), {
+        seed: verificationSeed,
+        collectLog: false,
+        roundingMode: "safe"
+      });
+      const safeAdvice = findNearbyGuardAdvice(
+        guardedSearchCounts,
+        safeBaseline,
+        verificationSeed,
+        "safe",
+        1
+      );
+      if (safeAdvice) {
+        guardedSearchCounts = safeAdvice.counts;
+      }
+
+      const stableSafe = evaluateCandidate(guardedSearchCounts, stabilityTrials, "safe");
+      stableSafe.actualGuard = {
+        sourceRoundingMode: "legacy",
+        verificationRoundingMode: "safe",
+        addedPoints: calculateArmyPoints(guardedSearchCounts) - baseUsedPoints,
+        addedUnits: getAddedUnitCount(baseSearchCounts, guardedSearchCounts),
+        variantCount: variants.size,
+        worstSeed: verificationSeed,
+        legacyAddedUnits: legacyAdvice?.addedUnits || 0,
+        safeAddedUnits: safeAdvice?.addedUnits || 0
+      };
+      return stableSafe;
+    }
+
+    function findNearbyGuardAdvice(baseSearchCounts, baselineResult, seed, candidateRoundingMode, maxExtraUnits) {
+      const effectiveCounts = toEffectiveCounts(baseSearchCounts);
+      const allowedUnits = ALLY_UNITS.filter((unit) => (effectiveCounts[unit.key] || 0) > 0);
+      const baselineLostBlood = Number(baselineResult?.lostBloodTotal || 0);
+      const baselineLossUnits = Number(baselineResult?.lostUnitsTotal || 0);
+      const baselineWinner = baselineResult?.winner === "enemy" ? "enemy" : "ally";
+      let suggestions = [];
+
+      function walk(remaining, startIndex, draft) {
+        if (remaining === 0) {
+          const nextCounts = cloneCounts(baseSearchCounts, ALLY_UNITS);
+          for (const unit of allowedUnits) {
+            nextCounts[unit.key] += draft[unit.key] || 0;
+            if (nextCounts[unit.key] > (availableAllyCounts[unit.key] || 0)) {
+              return;
+            }
+          }
+          if (calculateArmyPoints(nextCounts) > maxPoints) {
+            return;
+          }
+          simulationRuns += 1;
+          const result = simulateBattle(enemyCounts, toEffectiveCounts(nextCounts), {
+            seed,
+            collectLog: false,
+            roundingMode: candidateRoundingMode
+          });
+          const improvesVictory = baselineWinner === "ally" && result.winner === "ally" && (
+            result.lostBloodTotal < baselineLostBlood ||
+            (result.lostBloodTotal === baselineLostBlood && result.lostUnitsTotal < baselineLossUnits)
+          );
+          const recoversDefeat = baselineWinner === "enemy" && result.winner === "ally";
+          if (improvesVictory || recoversDefeat) {
+            suggestions.push({
+              counts: nextCounts,
+              result,
+              addedUnits: getAddedUnitCount(baseSearchCounts, nextCounts),
+              addedPoints: calculateArmyPoints(nextCounts) - calculateArmyPoints(baseSearchCounts)
+            });
+          }
+          return;
+        }
+        for (let index = startIndex; index < allowedUnits.length; index += 1) {
+          const unit = allowedUnits[index];
+          draft[unit.key] = (draft[unit.key] || 0) + 1;
+          walk(remaining - 1, index, draft);
+          draft[unit.key] -= 1;
+        }
+      }
+
+      for (let total = 1; total <= maxExtraUnits; total += 1) {
+        suggestions = [];
+        walk(total, 0, createEmptyAllyCounts());
+        if (suggestions.length > 0) {
+          suggestions.sort(compareActualGuardStates);
+          return suggestions[0];
+        }
+      }
       return null;
     }
 

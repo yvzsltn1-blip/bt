@@ -1556,15 +1556,21 @@ function getSummaryUnitName(key) {
 }
 
 function normalizeStoredRoundingMode(mode) {
-  if (mode === "legacy" || mode === "safe" || mode === "exact") {
+  if (mode === "legacy" || mode === "safe" || mode === "extround") {
     return mode;
+  }
+  if (mode === "exact") {
+    return "extround";
   }
   return null;
 }
 
 function normalizeAuditRoundingMode(mode) {
-  if (mode === "legacy" || mode === "safe" || mode === "exact") {
+  if (mode === "legacy" || mode === "safe" || mode === "extround") {
     return mode;
+  }
+  if (mode === "exact") {
+    return "extround";
   }
   return "legacy";
 }
@@ -1589,8 +1595,8 @@ function getRoundingModeLabel(mode) {
   if (mode === "legacy") {
     return "Degismemis";
   }
-  if (mode === "exact") {
-    return "Gercek";
+  if (mode === "extround") {
+    return "Extround";
   }
   if (mode === "safe") {
     return "Guvenli";

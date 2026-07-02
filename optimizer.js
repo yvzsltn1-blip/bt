@@ -328,11 +328,14 @@ function getRoundingModeLabel(mode) {
   if (normalizedMode === "legacy") {
     return "Degismemis";
   }
-  if (normalizedMode === "exact") {
-    return "Gercek";
+  if (normalizedMode === "extround") {
+    return "Extround";
   }
   if (normalizedMode === "simulat") {
     return "Simulator";
+  }
+  if (normalizedMode === "exact") {
+    return "OG Mod";
   }
   return "Guvenli";
 }
@@ -3996,7 +3999,10 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
   const lossRangeSummary = source ? formatOptimizerLossRangeSummary(source) : null;
   const progressLines = [
     `- profil: ${getModeLabel(meta.mode, meta.objective, meta.diversityMode, meta.tekilMode, meta.tekilV2Mode, meta.stoneMode, meta.roundingMode)}`,
-    ...(source?.actualGuard ? [`- gercek dogrulama: Guvenli modda +${source.actualGuard.addedPoints} puan / +${source.actualGuard.addedUnits} birlik`] : []),
+    ...(source?.actualGuard ? [
+      `- otomatik guvenlik: en kotu sonuc tavsiyesi +${source.actualGuard.legacyAddedUnits || 0} birlik, Guvenli tavsiyesi +${source.actualGuard.safeAddedUnits || 0} birlik`,
+      `- toplam takviye: +${source.actualGuard.addedPoints} puan / +${source.actualGuard.addedUnits} birlik`
+    ] : []),
     `- arama bandi: ${formatSearchRangeSummary(maxPoints, searchBandSettings, manualPointRangeSettings)}`,
     `- kazanma orani hedefi: %${Math.round(optimizerActiveMinWinRate * 100)}+`,
     ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),

@@ -18,8 +18,11 @@
   }
 
   function normalizeRoundingMode(mode) {
-    if (mode === "legacy" || mode === "safe" || mode === "exact") {
+    if (mode === "legacy" || mode === "safe" || mode === "extround") {
       return mode;
+    }
+    if (mode === "exact") {
+      return "extround";
     }
     return null;
   }
