@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      6.1
+// @version      6.4
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -984,13 +984,29 @@
     }
   }
 
-  function loadBotTiming() {
-    let stored = {};
-    try {
-      stored = JSON.parse(GM_getValue(BOT_TIMING_KEY, '') || '{}') || {};
-    } catch {
-      stored = {};
+  // Bazi yonetici/surum kombinasyonlarinda GM degeri yanlislikla iki kez JSON'lanip
+  // string olarak geri gelebiliyor (or. '"[99,99,...]"'). Bu durumda dizi/nesne elde
+  // edene kadar cozeriz; asla bir string'i karakter karakter indekslemeyiz (aksi halde
+  // '[' ve ',' konumlari sayiya donmeyip limitler bozuk okunur).
+  function parseStoredValue(raw) {
+    let value = raw;
+    for (let depth = 0; depth < 4 && typeof value === 'string'; depth += 1) {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return null;
+      }
+      try {
+        value = JSON.parse(trimmed);
+      } catch {
+        return null;
+      }
     }
+    return value;
+  }
+
+  function loadBotTiming() {
+    const parsed = parseStoredValue(GM_getValue(BOT_TIMING_KEY, ''));
+    const stored = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
     const result = {};
     BOT_TIMING_FIELDS.forEach((field) => {
       const entry = stored[field.key] || {};
@@ -1015,12 +1031,9 @@
   }
 
   function loadBotUnitLimits() {
-    let stored = [];
-    try {
-      stored = JSON.parse(GM_getValue(BOT_UNIT_LIMITS_KEY, '') || '[]');
-    } catch {
-      stored = [];
-    }
+    const parsed = parseStoredValue(GM_getValue(BOT_UNIT_LIMITS_KEY, ''));
+    // Yalnizca gercek bir dizi indekslenir; string ise (bozuk/cift JSON) yok sayilir.
+    const stored = Array.isArray(parsed) ? parsed : [];
     return BOT_UNIT_LIMIT_DEFAULTS.map((fallback, index) => {
       const value = Number(stored[index]);
       return Number.isInteger(value) && value >= 0 ? value : fallback;
@@ -2297,6 +2310,24 @@ self.onmessage = (event) => {
         width: 56px !important;
       }
 
+      #bt-bot-panel .bt-unit-limit-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px !important;
+      }
+
+      #bt-bot-panel .bt-unit-limit-grid > label {
+        min-width: 0;
+      }
+
+      #bt-bot-panel .bt-unit-limit-input {
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+        padding: 0 4px !important;
+        text-align: center;
+      }
+
       #bt-bot-panel .bt-timing-inputs {
         display: grid !important;
         grid-template-columns: 56px auto 56px;
@@ -2972,7 +3003,7 @@ self.onmessage = (event) => {
     body.appendChild(unitLimitsLabel);
 
     const unitLimitGrid = document.createElement('div');
-    unitLimitGrid.style.cssText = 'display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px';
+    unitLimitGrid.className = 'bt-unit-limit-grid';
     const unitLimitInputs = [];
     BOT_UNIT_LIMIT_DEFAULTS.forEach((fallback, index) => {
       const field = document.createElement('label');
@@ -2983,8 +3014,7 @@ self.onmessage = (event) => {
       input.type = 'number';
       input.min = '0';
       input.step = '1';
-      input.className = 'bt-small-number';
-      input.style.cssText = 'width:100%;box-sizing:border-box';
+      input.className = 'bt-unit-limit-input';
       input.value = String(unitLimits[index] ?? fallback);
       input.title = `Bot T${index + 1} biriminden en fazla bu kadar kullanabilir`;
       field.append(caption, input);
