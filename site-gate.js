@@ -1,21 +1,153 @@
 "use strict";
 
 (function initSiteGate(globalScope) {
-  const STORAGE_KEY = "btAnalyssSiteGateAuthedV1";
-  const GATE_USERNAME = "yavuz";
-  const GATE_PASSWORD = "12344321.yY";
+  // Oturum tokeni: surumu artirinca eski "1" tabanli kayitlar gecersiz olur.
+  const STORAGE_KEY = "btAnalyssSiteGateAuthedV2";
+  const ATTEMPT_KEY = "btAnalyssSiteGateAttemptsV1";
+
+  // Kimlik dogrulama artik acik metin sifreyle degil, PBKDF2-SHA256 tureviyle yapilir.
+  // Kaynak kodda yalnizca tuz ve beklenen turev (hash) durur; gercek sifre gorunmez.
+  // Turev = PBKDF2(kullaniciAdi + "\n" + sifre, GATE_SALT, GATE_ITERATIONS, 32 bayt).
+  const GATE_SALT = "9415f96d77a45c259dd75a2b7d0fbb49";
+  const GATE_ITERATIONS = 200000;
+  const GATE_HASH = "9430b471089b0687dd88ba9e915260a9049b0e453a1c795e95a914ab950bcb02";
+
+  // Oturum bu sure sonra otomatik duser (30 gun) -> sizan token kalici erisim vermez.
+  const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+  // Kaba kuvvet frenleme: art arda MAX_ATTEMPTS hatadan sonra artan sureli kilit.
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_BASE_MS = 30 * 1000;
+  const LOCKOUT_MAX_MS = 15 * 60 * 1000;
 
   const body = document.body;
   if (!body) {
     return;
   }
 
+  const subtle = globalScope.crypto?.subtle;
+
   function normalize(value) {
     return String(value || "").trim();
   }
 
+  // PBKDF2-SHA256 turevini (Node pbkdf2Sync ile ayni: tuz UTF-8 hex dizesi olarak)
+  // hex string dondurur. crypto.subtle yoksa null doner (asagida guvenli reddedilir).
+  async function deriveHash(username, password) {
+    if (!subtle) {
+      return null;
+    }
+    const enc = new TextEncoder();
+    const keyMaterial = await subtle.importKey(
+      "raw",
+      enc.encode(`${username}\n${password}`),
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits"]
+    );
+    const bits = await subtle.deriveBits(
+      { name: "PBKDF2", salt: enc.encode(GATE_SALT), iterations: GATE_ITERATIONS, hash: "SHA-256" },
+      keyMaterial,
+      256
+    );
+    return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  // Sabit sureli karsilastirma: hash uzunlugu ayni oldugundan zamanlama sizintisini onler.
+  function safeEqual(a, b) {
+    if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) {
+      return false;
+    }
+    let diff = 0;
+    for (let i = 0; i < a.length; i += 1) {
+      diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    }
+    return diff === 0;
+  }
+
+  function readSession() {
+    try {
+      const raw = globalScope.localStorage?.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function writeSession() {
+    try {
+      globalScope.localStorage?.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ h: GATE_HASH, exp: Date.now() + SESSION_TTL_MS })
+      );
+    } catch {
+      // localStorage yoksa oturum sadece bu sayfa icin gecerli olur.
+    }
+  }
+
   function isAuthed() {
-    return globalScope.localStorage?.getItem(STORAGE_KEY) === "1";
+    const session = readSession();
+    if (!session) return false;
+    if (!safeEqual(String(session.h || ""), GATE_HASH)) return false;
+    if (!Number.isFinite(session.exp) || Date.now() >= session.exp) {
+      try {
+        globalScope.localStorage?.removeItem(STORAGE_KEY);
+      } catch {
+        // yok say
+      }
+      return false;
+    }
+    return true;
+  }
+
+  // ---- Kaba kuvvet kilidi ----
+  function readAttempts() {
+    try {
+      const raw = globalScope.localStorage?.getItem(ATTEMPT_KEY);
+      if (!raw) return { count: 0, until: 0 };
+      const parsed = JSON.parse(raw);
+      return {
+        count: Number(parsed?.count) || 0,
+        until: Number(parsed?.until) || 0
+      };
+    } catch {
+      return { count: 0, until: 0 };
+    }
+  }
+
+  function writeAttempts(state) {
+    try {
+      globalScope.localStorage?.setItem(ATTEMPT_KEY, JSON.stringify(state));
+    } catch {
+      // yok say
+    }
+  }
+
+  function clearAttempts() {
+    try {
+      globalScope.localStorage?.removeItem(ATTEMPT_KEY);
+    } catch {
+      // yok say
+    }
+  }
+
+  function lockRemainingMs() {
+    const { until } = readAttempts();
+    return Math.max(0, until - Date.now());
+  }
+
+  function registerFailure() {
+    const state = readAttempts();
+    state.count += 1;
+    if (state.count >= MAX_ATTEMPTS) {
+      const over = state.count - MAX_ATTEMPTS;
+      const wait = Math.min(LOCKOUT_MAX_MS, LOCKOUT_BASE_MS * Math.pow(2, over));
+      state.until = Date.now() + wait;
+    }
+    writeAttempts(state);
+    return state;
   }
 
   function unlock() {
@@ -237,32 +369,106 @@
     button.className = "button button-primary site-gate-button";
     button.textContent = "Giris Yap";
 
-    function submit() {
+    const DEFAULT_BUTTON_LABEL = "Giris Yap";
+    let submitting = false;
+    let lockTimer = 0;
+
+    function showError(message) {
+      errorBox.hidden = false;
+      errorBox.textContent = message;
+    }
+
+    function refreshLockState() {
+      const remaining = lockRemainingMs();
+      if (remaining <= 0) {
+        if (lockTimer) {
+          clearInterval(lockTimer);
+          lockTimer = 0;
+        }
+        button.disabled = submitting;
+        button.textContent = submitting ? "Kontrol ediliyor..." : DEFAULT_BUTTON_LABEL;
+        return false;
+      }
+      button.disabled = true;
+      const seconds = Math.ceil(remaining / 1000);
+      button.textContent = `Kilitli (${seconds} sn)`;
+      showError(`Cok fazla hatali deneme. ${seconds} sn sonra tekrar dene.`);
+      if (!lockTimer) {
+        lockTimer = globalScope.setInterval(refreshLockState, 500);
+      }
+      return true;
+    }
+
+    async function submit() {
+      if (submitting) return;
+      if (refreshLockState()) return;
+
       const username = normalize(usernameField.input.value);
       const password = normalize(passwordField.input.value);
+      if (!username || !password) {
+        showError("Kullanici adi ve sifre gir.");
+        return;
+      }
 
-      if (username === GATE_USERNAME && password === GATE_PASSWORD) {
-        globalScope.localStorage?.setItem(STORAGE_KEY, "1");
+      submitting = true;
+      button.disabled = true;
+      button.textContent = "Kontrol ediliyor...";
+      errorBox.hidden = true;
+
+      let candidate = null;
+      try {
+        candidate = await deriveHash(username, password);
+      } catch {
+        candidate = null;
+      }
+
+      submitting = false;
+
+      if (candidate && safeEqual(candidate, GATE_HASH)) {
+        clearAttempts();
+        writeSession();
+        if (lockTimer) {
+          clearInterval(lockTimer);
+          lockTimer = 0;
+        }
         unlock();
         return;
       }
 
-      errorBox.hidden = false;
-      errorBox.textContent = "Kullanici adi veya sifre hatali.";
+      if (!subtle) {
+        button.disabled = false;
+        button.textContent = DEFAULT_BUTTON_LABEL;
+        showError("Tarayici guvenli dogrulamayi desteklemiyor (HTTPS gerekli).");
+        return;
+      }
+
+      const state = registerFailure();
       passwordField.input.focus();
       passwordField.input.select();
+      if (!refreshLockState()) {
+        button.disabled = false;
+        button.textContent = DEFAULT_BUTTON_LABEL;
+        const left = Math.max(0, MAX_ATTEMPTS - state.count);
+        showError(
+          left > 0
+            ? `Kullanici adi veya sifre hatali. Kalan deneme: ${left}.`
+            : "Kullanici adi veya sifre hatali."
+        );
+      }
     }
 
     [usernameField.input, passwordField.input].forEach((input) => {
       input.addEventListener("keydown", (event) => {
         if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
-          submit();
+          void submit();
         }
       });
     });
 
-    button.addEventListener("click", submit);
+    button.addEventListener("click", () => void submit());
+
+    refreshLockState();
 
     card.append(
       eyebrow,

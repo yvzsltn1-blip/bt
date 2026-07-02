@@ -1598,7 +1598,7 @@ async function runOptimizerSearch(batchRuns) {
       setOptimizeButtonLabel(batchRuns === 1 ? "Simule Ediliyor" : `${batchRuns} Tur (${step}/${batchRuns})`);
       await waitForNextFrame();
 
-      lastResult = optimizeArmyUsage(allyPool, enemy, {
+      lastResult = await runOptimizeSearch(allyPool, enemy, {
         maxPoints,
         minimumUsedPoints: searchBandRange.minUsedPoints,
         maximumUsedPoints: searchBandRange.maxUsedPoints,
@@ -1711,6 +1711,136 @@ async function runOptimizerSearch(batchRuns) {
     setOptimizerBusy(false);
     optimizerStopRequested = false;
   }
+}
+
+// --- Paralel arama (Web Worker portfoyu) ---
+// Arama, cekirdek sayisina gore birden fazla worker'da FARKLI seed
+// aileleriyle es zamanli kosturulur ve sonuclar pickBetterOptimizerResult ile
+// birlestirilir. Worker 0, senkron yolun birebir aynisini (ayni seed) kosar;
+// digerleri ek kesif saglar — yani sonuc, tek-thread sonucundan kotu olamaz.
+// Ek kazanc: arama ana thread disinda kostugu icin arayuz kilitlenmez.
+// Worker kurulamazsa (or. file:// veya CSP) senkron yola kalici dusulur.
+// Surum etiketi, HTML'deki battle-core.js surumuyle ayni tutulmali
+// (worker, battle-core.js'i bu parametreyle yukler).
+const OPTIMIZER_WORKER_SCRIPT = "optimizer-worker.js?v=20260702-2";
+const OPTIMIZER_PARALLEL_SEED_STRIDE = 104729;
+// file:// altinda tarayicilar worker kurulumunu engelliyor (unique origin);
+// hic denemeden senkron yola dus ki konsola hata dusmesin.
+let optimizerWorkerSupport = typeof window !== "undefined" &&
+  typeof window.Worker === "function" &&
+  window.location?.protocol !== "file:";
+let optimizerWorkerPool = [];
+
+function getOptimizerParallelWorkerCount() {
+  const cores = Number(window.navigator?.hardwareConcurrency) || 2;
+  return Math.max(1, Math.min(4, cores - 1));
+}
+
+function ensureOptimizerWorkerPool(count) {
+  while (optimizerWorkerPool.length < count) {
+    optimizerWorkerPool.push(new Worker(OPTIMIZER_WORKER_SCRIPT));
+  }
+  return optimizerWorkerPool.slice(0, count);
+}
+
+function terminateOptimizerWorkerPool() {
+  optimizerWorkerPool.forEach((worker) => {
+    try {
+      worker.terminate();
+    } catch (_error) {
+      // Sonlandirilamayan worker gorulmezden gelinir.
+    }
+  });
+  optimizerWorkerPool = [];
+}
+
+function runOptimizeJobOnWorker(worker, payload, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("Optimizer worker zaman asimina ugradi."));
+    }, timeoutMs);
+    function cleanup() {
+      window.clearTimeout(timer);
+      worker.onmessage = null;
+      worker.onerror = null;
+    }
+    worker.onmessage = (event) => {
+      cleanup();
+      const data = event.data || {};
+      if (data.ok) {
+        resolve(data.result);
+      } else {
+        reject(new Error(data.error || "Optimizer worker hatasi."));
+      }
+    };
+    worker.onerror = (event) => {
+      cleanup();
+      reject(new Error(event?.message || "Optimizer worker yuklenemedi."));
+    };
+    worker.postMessage(payload);
+  });
+}
+
+function mergeParallelOptimizerResults(results) {
+  let bestResult = results[0];
+  for (let index = 1; index < results.length; index += 1) {
+    bestResult = pickBetterOptimizerResult(bestResult, results[index]);
+  }
+  const merged = { ...bestResult };
+  merged.simulationRuns = results.reduce((sum, result) => sum + (result.simulationRuns || 0), 0);
+  merged.searchedCandidates = results.reduce((sum, result) => sum + (result.searchedCandidates || 0), 0);
+  const signatures = new Set();
+  results.forEach((result) => {
+    (result.uniqueCandidateSignatures || []).forEach((signature) => signatures.add(signature));
+  });
+  merged.uniqueCandidateSignatures = [...signatures];
+  merged.uniqueCandidateCount = signatures.size;
+  merged.topCandidates = results.reduce(
+    (accumulated, result) => (result === bestResult
+      ? accumulated
+      : mergeOptimizerCandidates(accumulated, result.topCandidates || [], { limit: 120 })),
+    bestResult.topCandidates || []
+  );
+  return merged;
+}
+
+async function runOptimizeSearchParallel(allyPool, enemyCounts, runOptions) {
+  const workers = ensureOptimizerWorkerPool(getOptimizerParallelWorkerCount());
+  const timeoutMs = Math.max(30000, (runOptions.timeBudgetMs || 0) * 3 + 30000);
+  const jobs = workers.map((worker, index) => {
+    const options = index === 0 ? runOptions : {
+      ...runOptions,
+      baseSeed: (runOptions.baseSeed || 0) + index * OPTIMIZER_PARALLEL_SEED_STRIDE,
+      alternateBaseSeeds: [
+        ...(runOptions.alternateBaseSeeds || []).map((seed) => seed + index * OPTIMIZER_PARALLEL_SEED_STRIDE),
+        runOptions.baseSeed || 0
+      ]
+    };
+    return runOptimizeJobOnWorker(worker, { allyPool, enemyCounts, options }, timeoutMs);
+  });
+  const settled = await Promise.allSettled(jobs);
+  const results = settled
+    .filter((entry) => entry.status === "fulfilled" && entry.value)
+    .map((entry) => entry.value);
+  if (results.length === 0) {
+    const firstFailure = settled.find((entry) => entry.status === "rejected");
+    throw (firstFailure?.reason || new Error("Optimizer worker'lari sonuc dondurmedi."));
+  }
+  return mergeParallelOptimizerResults(results);
+}
+
+async function runOptimizeSearch(allyPool, enemyCounts, runOptions) {
+  if (optimizerWorkerSupport) {
+    try {
+      return await runOptimizeSearchParallel(allyPool, enemyCounts, runOptions);
+    } catch (_error) {
+      // Worker'lar kullanilamiyor: bu oturum icin senkron yola dus.
+      optimizerWorkerSupport = false;
+      terminateOptimizerWorkerPool();
+    }
+  }
+  return optimizeArmyUsage(allyPool, enemyCounts, runOptions);
 }
 
 function createEmptySearchSession() {

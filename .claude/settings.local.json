@@ -161,7 +161,9 @@
       "Bash(which firebase *)",
       "Bash(ls node_modules/.bin/firebase*)",
       "Bash(cd *)",
-      "Bash(firebase functions:log --only onFloorCompleted,sendFloorReminders)"
+      "Bash(firebase functions:log --only onFloorCompleted,sendFloorReminders)",
+      "Bash(node bench.js --budget)",
+      "Bash(node bench.js --budget --engine \"C:\\\\Users\\\\YAVUZ\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-YAVUZ-Documents-BT-Analyss---v6\\\\1e88f7b3-46c3-4095-8748-320a32f176c5\\\\scratchpad\\\\battle-core-head.js\")"
     ]
   }
 }

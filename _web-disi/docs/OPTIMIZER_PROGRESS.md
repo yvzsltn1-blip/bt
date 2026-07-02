@@ -328,3 +328,76 @@ Hiçbir senaryoda gerileme yok. Duman testleri (min_army, safe_win, tekil, tekil
 ## Araçlar
 - `_web-disi/optimizer-research-20260610/bench.js` — gerçek katman verisiyle kalite/süre benchmark'ı (`--baseline` eski motorla koşar, `--budget` bütçeyi açar)
 - `_web-disi/optimizer-research-20260610/smoke.js` — tüm seçenek yollarının duman testi
+
+---
+
+# 02.07.2026 - Algoritma İyileştirme Turu (Sürüm 4): OG Mod Guard + Paralel Arama
+
+**Durum:** Tamamlandı
+
+## Uygulanan Değişiklikler
+
+### 1. OG Mod: Guard ilk 3 finaliste uygulanıyor (battle-core.js)
+Önceden `findMinimumSafeEvaluation` yalnızca aramanın tek kazananına uygulanıyordu.
+Guard birim ekleyerek maliyeti değiştirdiği için, legacy aramada 2. sıradaki aday
+guard SONRASI birinciden iyi çıkabiliyordu. Artık `searchFinalEvaluation` + en iyi 3
+benzersiz finalist guard'lanır ve guard'lı sonuçlar eşit koşulda ("safe", stabilityTrials)
+kıyaslanıp en iyisi seçilir.
+
+### 2. OG Mod: İteratif guard (battle-core.js)
+480-seed tarama artık birim ekledikten SONRA tekrarlanır (maks 3 geçiş): eklenen
+birimler başka bir seed'i "en kötü" haline getirebiliyordu. Öneri kalmayınca veya
+tek varyanta düşünce döngü biter.
+
+### 3. OG Mod: Guard dizilim dışı birim de ekleyebilir (battle-core.js)
+`findNearbyGuardAdvice` içindeki `allowedUnits` filtresi "dizilimde olan birimler"
+yerine "havuzda kalanı olan tüm birimler" oldu — bazen dış tipten 1 ucuz birim daha
+az puanla aynı korumayı sağlar.
+
+### 4. Final doğrulamada bağımsız seed ailesi ile kazanma oranı havuzu (battle-core.js)
+Finalistler CRN ailesine ek olarak bağımsız bir seed ailesiyle de koşulur
+(`baseSeed + 7654321 + trial*1013`, finalistler arasında ortak). YALNIZCA kazanma
+oranı havuzlanır (winner's curse esas olarak şanslı "%100" tahminlerinde zarar verir).
+Kayıp metrikleri CRN'de bırakılır: eşleştirilmiş kıyas kayıp sıralamasında daha
+isabetli; küçük bağımsız örneği kayıplara karıştırmak sıralamayı bozuyor (bench ile
+doğrulandı — tam havuzlama Kat 65'te 751→764 gerilemesi verdi, geri alındı).
+
+### 5. successiveHalving'e bütçe kontrolü (battle-core.js)
+Tier geçişlerinde `isPastHardDeadline()` kontrolü; aşılırsa eldeki sıralı sonuçla
+erken dönülür.
+
+### 6. Web Worker paralel arama (optimizer.js + optimizer-worker.js YENİ)
+Arama, çekirdek sayısına göre 1-4 worker'da FARKLI seed aileleriyle eş zamanlı koşar;
+sonuçlar `pickBetterOptimizerResult` ile birleştirilir. Worker 0 senkron yolun birebir
+aynısını (aynı seed) koşar → sonuç tek-thread'den kötü olamaz. Ek kazançlar: aynı süre
+bütçesinde 4× keşif ve arayüz artık kilitlenmiyor. Worker kurulamazsa (file://, CSP)
+senkron yola kalıcı düşülür. optimizer.html / optimizer-minimum.html / quick.html
+hepsi kapsanır (üçü de optimizer.js kullanır). Sürüm etiketleri 20260702-2'ye yükseltildi;
+worker, battle-core.js'i kendi URL'inin ?v parametresiyle yükler.
+
+### Denenip Geri Alınan
+"Eşit-trial kıyas" (best'i stabilite trial'ına yükseltip uzatma kıyaslarını eşitleme):
+teoride adil, pratikte arama yörüngesini değiştirip Kat 30'da 215 havzasını kaçırttı
+(bench: 215→256/265). Geri alındı; mevcut davranış korundu.
+
+## Doğrulama
+
+- **Deterministik bench (bütçesiz), Kat 30/48/65 × 3 mod:** yeni motor HEAD ile birebir
+  aynı dizilimler (sim farkı yalnız final bağımsız doğrulama maliyeti).
+- **Bütçeli bench (6 kat × 3 mod, 200-trial bağımsız doğrulama):** tüm katlar HEAD ile
+  eşit veya daha iyi. Kat 30 deep'te görülen 215/265 farkının zamanlama şansı olduğu
+  3'er tekrarla doğrulandı (HEAD de 3/3 koşuda 265 veriyor).
+- **OG Mod A/B (Kat 30/48/80, deep, 200-trial safe doğrulama):**
+  | Kat | HEAD OG (safe eB) | Yeni OG (safe eB) |
+  |-----|-------------------|--------------------|
+  | 30  | 265               | 265                |
+  | 48  | **885**           | **455 (%49 daha az)** |
+  | 80  | 2105              | 2105               |
+  Kat 48'de HEAD'in önerisi safe modda tutarsızdı (worst=885); iteratif guard +
+  çoklu finalist bunu yakaladı. Süreler aynı (~10,5 sn).
+- **Smoke (16 senaryo):** hepsi geçti (simulat-rounding hariç — Node ortamında motor
+  yüklenmiyor, önceden beri var).
+
+## Araç Düzeltmeleri
+- `bench.js`: `--engine <path>` parametresi eklendi (istenen motor dosyasıyla koşar);
+  layers_1_101_export.json yolu `_web-disi/sonuc-arsivi/` olarak düzeltildi.

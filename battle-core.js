@@ -2639,10 +2639,20 @@
         ? survivorsTier1.slice(0, Math.max(20, Math.ceil(survivorsTier1.length * 0.3)))
         : tier1.slice(0, Math.max(20, Math.ceil(tier1.length * 0.15)));
 
+      // Butce kontrolu: cok buyuk havuzlarda tier'lar sure tavanini asabiliyor;
+      // asildiysa eldeki siralamayla erken don (sonuclar zaten sirali).
+      if (isPastHardDeadline()) {
+        return tier1;
+      }
+
       // Tier 2: orta seviye dogrulama
       const tier2 = tier1Top
         .map((entry) => evaluateCandidate(entry.searchCounts || toSearchCounts(entry.counts), midTrials))
         .sort(compareEntries);
+
+      if (isPastHardDeadline()) {
+        return tier2;
+      }
 
       const tier2Top = tier2.slice(0, Math.max(beamWidth * 2, Math.ceil(tier2.length * 0.5)));
 
@@ -2759,45 +2769,55 @@
 
       const baseSearchCounts = cloneCounts(baseEntry.searchCounts || toSearchCounts(baseEntry.counts), ALLY_UNITS);
       const baseUsedPoints = calculateArmyPoints(baseSearchCounts);
-      const effectiveBaseCounts = toEffectiveCounts(baseSearchCounts);
-      const variants = new Map();
-
-      for (let seed = 1; seed <= 480; seed += 1) {
-        simulationRuns += 1;
-        const result = simulateBattle(enemyCounts, effectiveBaseCounts, {
-          seed,
-          collectLog: false,
-          roundingMode: "legacy"
-        });
-        const signature = JSON.stringify({
-          winner: result.winner,
-          lostBloodTotal: result.lostBloodTotal,
-          allyLosses: result.allyLosses
-        });
-        if (!variants.has(signature)) {
-          variants.set(signature, { seed, result });
-        }
-      }
-
-      const worstVariant = [...variants.values()].reduce((worst, variant) =>
-        !worst || variant.result.lostBloodTotal > worst.result.lostBloodTotal ? variant : worst, null);
       let guardedSearchCounts = cloneCounts(baseSearchCounts, ALLY_UNITS);
-      let legacyAdvice = null;
+      let legacyAddedUnits = 0;
+      let variantCount = 1;
+      let verificationSeed = 1;
 
-      if (variants.size > 1 && worstVariant) {
-        legacyAdvice = findNearbyGuardAdvice(
+      // Iteratif koruma: birim ekledikten sonra 480-seed taramasi TEKRARLANIR;
+      // eklenen birimler baska bir seed'i "en kotu" haline getirebilir. Oneri
+      // kalmayinca veya tek varyanta dusunce dongu biter (maks 3 gecis).
+      for (let guardPass = 0; guardPass < 3; guardPass += 1) {
+        const variants = new Map();
+        const effectiveGuardedCounts = toEffectiveCounts(guardedSearchCounts);
+        for (let seed = 1; seed <= 480; seed += 1) {
+          simulationRuns += 1;
+          const result = simulateBattle(enemyCounts, effectiveGuardedCounts, {
+            seed,
+            collectLog: false,
+            roundingMode: "legacy"
+          });
+          const signature = JSON.stringify({
+            winner: result.winner,
+            lostBloodTotal: result.lostBloodTotal,
+            allyLosses: result.allyLosses
+          });
+          if (!variants.has(signature)) {
+            variants.set(signature, { seed, result });
+          }
+        }
+
+        const worstVariant = [...variants.values()].reduce((worst, variant) =>
+          !worst || variant.result.lostBloodTotal > worst.result.lostBloodTotal ? variant : worst, null);
+        variantCount = variants.size;
+        verificationSeed = worstVariant?.seed || 1;
+
+        if (variants.size <= 1 || !worstVariant) {
+          break;
+        }
+        const legacyAdvice = findNearbyGuardAdvice(
           guardedSearchCounts,
           worstVariant.result,
           worstVariant.seed,
           "legacy",
           worstVariant.result.winner === "enemy" ? 5 : 3
         );
-        if (legacyAdvice) {
-          guardedSearchCounts = legacyAdvice.counts;
+        if (!legacyAdvice) {
+          break;
         }
+        guardedSearchCounts = legacyAdvice.counts;
+        legacyAddedUnits += legacyAdvice.addedUnits;
       }
-
-      const verificationSeed = worstVariant?.seed || 1;
       simulationRuns += 1;
       const safeBaseline = simulateBattle(enemyCounts, toEffectiveCounts(guardedSearchCounts), {
         seed: verificationSeed,
@@ -2821,17 +2841,22 @@
         verificationRoundingMode: "safe",
         addedPoints: calculateArmyPoints(guardedSearchCounts) - baseUsedPoints,
         addedUnits: getAddedUnitCount(baseSearchCounts, guardedSearchCounts),
-        variantCount: variants.size,
+        variantCount,
         worstSeed: verificationSeed,
-        legacyAddedUnits: legacyAdvice?.addedUnits || 0,
+        legacyAddedUnits,
         safeAddedUnits: safeAdvice?.addedUnits || 0
       };
       return stableSafe;
     }
 
     function findNearbyGuardAdvice(baseSearchCounts, baselineResult, seed, candidateRoundingMode, maxExtraUnits) {
-      const effectiveCounts = toEffectiveCounts(baseSearchCounts);
-      const allowedUnits = ALLY_UNITS.filter((unit) => (effectiveCounts[unit.key] || 0) > 0);
+      // Dizilimde olmayan ama havuzda kalani olan birimler de eklenebilir:
+      // bazen dis tipten 1 ucuz birim, mevcut tiplerden eklemekten daha az
+      // puanla ayni korumayi saglar. Havuzu dolmus birimler zaten walk
+      // icindeki kontrolde eleniyor.
+      const allowedUnits = ALLY_UNITS.filter((unit) =>
+        (baseSearchCounts[unit.key] || 0) < (availableAllyCounts[unit.key] || 0)
+      );
       const baselineLostBlood = Number(baselineResult?.lostBloodTotal || 0);
       const baselineLossUnits = Number(baselineResult?.lostUnitsTotal || 0);
       const baselineWinner = baselineResult?.winner === "enemy" ? "enemy" : "ally";
@@ -3369,22 +3394,79 @@
       }
     }
 
+    // Bagimsiz seed ailesiyle ek olcum: tum arama ayni CRN seed ailesini
+    // kullandigindan secilen aday "bu seed setinde sansli" olabilir (winner's
+    // curse). Finalistler ikinci, aramadan bagimsiz bir seed ailesiyle de
+    // olculur; siralama iki ailenin birlesik (trial-agirlikli) metrikleriyle
+    // yapilir. Ayni bagimsiz seed'ler tum finalistlerde ortaktir (CRN korunur).
+    function evaluateIndependentMetrics(counts, trials) {
+      const effectiveCounts = toEffectiveCounts(counts);
+      let wins = 0;
+      let totalLostBloodSum = 0;
+      let totalLostUnitsSum = 0;
+      let totalStoneAdjustedLostBloodSum = 0;
+      let totalStoneAdjustedLostUnitsSum = 0;
+      for (let trial = 0; trial < trials; trial += 1) {
+        simulationRuns += 1;
+        const seed = baseSeed + 7654321 + trial * 1013;
+        const result = simulateBattle(enemyCounts, effectiveCounts, {
+          seed,
+          collectLog: false,
+          roundingMode
+        });
+        totalLostBloodSum += result.lostBloodTotal;
+        totalLostUnitsSum += result.lostUnitsTotal;
+        const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
+        totalStoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
+        totalStoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
+        if (result.winner === "ally") {
+          wins += 1;
+        }
+      }
+      return {
+        trials,
+        wins,
+        expectedLostBlood: totalLostBloodSum / trials,
+        expectedLostUnits: totalLostUnitsSum / trials,
+        expectedStoneAdjustedLostBlood: totalStoneAdjustedLostBloodSum / trials,
+        expectedStoneAdjustedLostUnits: totalStoneAdjustedLostUnitsSum / trials
+      };
+    }
+
     // Final dogrulama: en iyi 6 benzersiz aday + mevcut en iyi, yuksek trial
     // sayisiyla yeniden olculur ve kazanan buna gore secilir. Dusuk trial'li
     // modlarda (Hizli) sansli tahminle one gecen adaylar burada elenir;
     // akumulator sayesinde maliyet sadece eksik denemeler kadardir.
     const finalVerifyTrials = Math.max(stabilityTrials, 32, minVerifyTrials);
     if (best) {
+      const independentTrials = Math.max(24, Math.round(finalVerifyTrials / 2));
       const finalists = [best, ...collectBestUniqueEvaluations(6)]
         .filter((entry) => entry?.counts || entry?.searchCounts);
       const verified = finalists
-        .map((entry) => evaluateCandidate(
-          entry.searchCounts || toSearchCounts(entry.counts),
-          finalVerifyTrials
-        ))
-        .sort(compareEntries);
+        .map((entry) => {
+          const searchCounts = entry.searchCounts || toSearchCounts(entry.counts);
+          const crnEvaluation = evaluateCandidate(searchCounts, finalVerifyTrials);
+          const independent = evaluateIndependentMetrics(searchCounts, independentTrials);
+          // Yalnizca kazanma orani havuzlanir: winner's curse esas olarak
+          // sansli "%100" tahminlerinde zarar verir. Kayip metrikleri CRN
+          // ailesinde birakilir — finalistler ayni seed'lerde eslestirilmis
+          // kiyaslandigi icin kayip SIRALAMASI orada daha isabetlidir; kucuk
+          // bagimsiz ornegi kayiplara karistirmak siralamayi bozabiliyor
+          // (bench ile dogrulandi).
+          const pooledTrials = crnEvaluation.trials + independent.trials;
+          const pooledWins = crnEvaluation.wins + independent.wins;
+          const combined = {
+            ...crnEvaluation,
+            trials: pooledTrials,
+            wins: pooledWins,
+            winRate: pooledWins / pooledTrials
+          };
+          combined.feasible = combined.winRate >= minWinRate && crnEvaluation.meetsRequiredLosses;
+          return { combined, evaluation: crnEvaluation };
+        })
+        .sort((left, right) => compareEntries(left.combined, right.combined));
       if (verified.length > 0) {
-        best = verified[0];
+        best = verified[0].evaluation;
       }
     }
 
@@ -3427,13 +3509,33 @@
       ? best
       : fallbackEvaluation;
     const searchFinalEvaluation = best.feasible ? best : bestEffortEvaluation;
-    const finalEvaluation = actualGuardMode
-      ? (findMinimumSafeEvaluation(searchFinalEvaluation) || evaluateCandidate(
-          searchFinalEvaluation.searchCounts || toSearchCounts(searchFinalEvaluation.counts),
-          stabilityTrials,
-          "safe"
-        ))
-      : searchFinalEvaluation;
+    let finalEvaluation = searchFinalEvaluation;
+    if (actualGuardMode) {
+      // Guard yalniz tek kazanana degil, en iyi finalistlere uygulanir: guard
+      // birim ekleyerek maliyeti degistirir; legacy aramada 2. siradaki aday,
+      // daha az koruma birimi gerektirip guard SONRASI birinciden iyi
+      // cikabilir. Guard'li sonuclar esit trial'da ("safe", stabilityTrials)
+      // kiyaslanir ve en iyisi secilir.
+      const guardSources = [];
+      const guardSeen = new Set();
+      [searchFinalEvaluation, ...collectBestUniqueEvaluations(3)].forEach((entry) => {
+        if (!entry || !entry.signature || guardSeen.has(entry.signature)) {
+          return;
+        }
+        guardSeen.add(entry.signature);
+        guardSources.push(entry);
+      });
+      const guardedResults = guardSources
+        .slice(0, 4)
+        .map((entry) => findMinimumSafeEvaluation(entry))
+        .filter(Boolean)
+        .sort(compareEntries);
+      finalEvaluation = guardedResults[0] || evaluateCandidate(
+        searchFinalEvaluation.searchCounts || toSearchCounts(searchFinalEvaluation.counts),
+        stabilityTrials,
+        "safe"
+      );
+    }
     const finalPossible = actualGuardMode ? finalEvaluation.feasible : best.feasible;
     const sampleRoundingMode = actualGuardMode ? "safe" : roundingMode;
 

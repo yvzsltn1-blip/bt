@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      6.4
+// @version      6.6
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
 // @updateURL    https://bt-analiz.web.app/otobirlik.user.js
 // @downloadURL  https://bt-analiz.web.app/otobirlik.user.js
-// @require      https://bt-analiz.web.app/battle-core.js?v=20260702-1
+// @require      https://bt-analiz.web.app/battle-core.js?v=20260702-2
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
@@ -624,6 +624,8 @@
   const BOT_MIN_WIN_RATE_DEFAULT = 0.995;
   const BOT_MIN_WIN_RATE_KEY = 'btBotMinWinRate';
   const BOT_ROUNDING_MODE_KEY = 'btBotRoundingMode';
+  // Tekil v2 (kayip deseni onceligi): varsayilan acik, panelden kapatilabilir.
+  const BOT_TEKIL_V2_KEY = 'btBotTekilV2Mode';
   const BOT_UNIT_LIMITS_KEY = 'btBotUnitLimits';
   const BOT_UNIT_LIMIT_DEFAULTS = [99, 99, 99, 99, 99, 99, 99, 1];
   const BOT_ROUNDING_MODES = {
@@ -946,6 +948,15 @@
     const normalized = Object.prototype.hasOwnProperty.call(BOT_ROUNDING_MODES, mode) ? mode : 'legacy';
     GM_setValue(BOT_ROUNDING_MODE_KEY, normalized);
     return normalized;
+  }
+
+  function isBotTekilV2Enabled() {
+    return GM_getValue(BOT_TEKIL_V2_KEY, true) !== false;
+  }
+
+  function setBotTekilV2Enabled(enabled) {
+    GM_setValue(BOT_TEKIL_V2_KEY, enabled === true);
+    return enabled === true;
   }
 
   // Nihai dogrulamada kullanilacak minimum deneme sayisi: yuksek esiklerde kucuk
@@ -1743,7 +1754,7 @@ self.onmessage = (event) => {
       stoneMode: false,
       diversityMode: false,
       tekilMode: false,
-      tekilV2Mode: true,
+      tekilV2Mode: isBotTekilV2Enabled(),
       exploratoryCandidateCount: runConfig.exploratoryCandidateCount,
       exhaustiveCandidateLimit: runConfig.exhaustiveCandidateLimit,
       timeBudgetMs: runConfig.timeBudgetMs,
@@ -2777,6 +2788,7 @@ self.onmessage = (event) => {
 
     appendWinRateSetting(panel);
     appendRoundingModeSetting(panel);
+    appendTekilV2Setting(panel);
     appendTimingSettings(panel);
     document.body.appendChild(panel);
     applyAndTrackPanelSize(panel);
@@ -2935,6 +2947,30 @@ self.onmessage = (event) => {
     };
 
     wrap.append(label, select);
+    panel.appendChild(wrap);
+  }
+
+  function appendTekilV2Setting(panel) {
+    const wrap = document.createElement('label');
+    wrap.className = 'bt-panel-section';
+    wrap.style.cssText = 'border-top:1px solid rgba(210,168,108,.18);padding-top:5px;margin-top:1px;display:flex;align-items:center;gap:6px;cursor:pointer';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = isBotTekilV2Enabled();
+    checkbox.style.cssText = 'width:14px;height:14px;accent-color:#c9a46d;cursor:pointer';
+
+    const label = document.createElement('span');
+    label.textContent = 'Tekil v2 modu';
+    label.style.cssText = 'color:#c8b49a;font-size:10.5px';
+    label.title = 'Acikken arama, kayip desenini oncelikli kiyaslar (quick.html Tekil v2 esdegeri). Kapatirsan duz en-az-kayip aramasi yapilir.';
+
+    checkbox.onchange = () => {
+      const enabled = setBotTekilV2Enabled(checkbox.checked);
+      setBotStatus(`Tekil v2 modu ${enabled ? 'acildi' : 'kapatildi'}`);
+    };
+
+    wrap.append(checkbox, label);
     panel.appendChild(wrap);
   }
 

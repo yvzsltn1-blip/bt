@@ -6,7 +6,10 @@
 //   pool = T1-T7 x99, band = %75-%100, objective = min_loss, rounding = legacy, runIndex = 1.
 
 const path = require("path");
-if (process.argv.includes("--baseline")) {
+const engineArgIndex = process.argv.indexOf("--engine");
+if (engineArgIndex >= 0 && process.argv[engineArgIndex + 1]) {
+  require(path.resolve(process.argv[engineArgIndex + 1]));
+} else if (process.argv.includes("--baseline")) {
   require(path.join(__dirname, "battle-core-baseline.js"));
 } else {
   require(path.join(__dirname, "..", "..", "battle-core.js"));
@@ -22,7 +25,7 @@ const {
 } = BC;
 
 const LAYERS = require(path.join(
-  __dirname, "..", "local-backups", "pre-bulk-regression-20260430-2205", "sonuc-arsivi", "layers_1_101_export.json"
+  __dirname, "..", "sonuc-arsivi", "layers_1_101_export.json"
 ));
 
 const ENEMY_NAME_MAP = [
