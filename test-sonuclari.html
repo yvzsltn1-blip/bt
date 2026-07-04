@@ -32,6 +32,7 @@
 
     <main class="single-layout">
       <section class="panel output-panel">
+        <div id="testsAdminContent" hidden>
         <div class="panel-head">
           <h2>Arsiv Toplu Test Sonuclari</h2>
           <div class="panel-head-tools">
@@ -117,11 +118,12 @@
         <section id="testsList" class="saved-list">
           <p class="summary-empty">Sonuclar yukleniyor...</p>
         </section>
+        </div>
 
         <section id="testsAdminPanel" class="admin-auth-panel admin-auth-panel-tight">
           <div class="admin-auth-copy">
             <strong>Admin Girisi</strong>
-            <span>Yeniden siniflandirma ve temizleme islemleri icin admin oturumu gerekli.</span>
+            <span>Test sonuclarini goruntulemek ve yonetmek icin admin oturumu gerekli.</span>
           </div>
           <div class="admin-auth-controls">
             <span id="testsAdminAuthStatus" class="admin-auth-status">Admin kapali</span>
@@ -139,10 +141,10 @@
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js" defer></script>
   <script src="site-gate.js?v=20260703-01" defer></script>
-  <script src="firebase-client.js?v=20260612-1" defer></script>
+  <script src="firebase-client.js?v=20260703-1" defer></script>
   <script src="admin-auth-ui.js?v=20260529-16" defer></script>
   <script src="battle-core.js?v=20260702-2" defer></script>
   <script src="archive-retest.js?v=20260612-2" defer></script>
-  <script src="test-sonuclari.js?v=20260612-1" defer></script>
+  <script src="test-sonuclari.js?v=20260703-1" defer></script>
 </body>
 </html>

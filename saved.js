@@ -7,6 +7,7 @@ const {
 } = window.BattleCore;
 
 const savedList = document.querySelector("#savedList");
+const savedAdminContent = document.querySelector("#savedAdminContent");
 const savedCountLabel = document.querySelector("#savedCountLabel");
 const clearSavedBtn = document.querySelector("#clearSavedBtn");
 const savedSearchInput = document.querySelector("#savedSearchInput");
@@ -52,7 +53,6 @@ let savedRemoteLoading = false;
 syncAdminActions();
 bindFilterControls();
 
-void renderSavedStrategies();
 void bindAdminAuth();
 
 clearSavedBtn.addEventListener("click", async () => {
@@ -108,9 +108,23 @@ async function bindAdminAuth() {
     loginButton: adminLoginBtn,
     logoutButton: adminLogoutBtn,
     onStateChange: async (isAdmin) => {
+      const becameAdmin = isAdmin && !isAdminSession;
       isAdminSession = isAdmin;
+      if (savedAdminContent) {
+        savedAdminContent.hidden = !isAdmin;
+      }
       syncAdminActions();
-      await renderSavedStrategies();
+      if (!isAdmin) {
+        allSavedItems = [];
+        filteredSavedItems = [];
+        savedCurrentPage = 0;
+        savedRemoteCursor = null;
+        savedRemoteHasMore = false;
+        return;
+      }
+      if (becameAdmin) {
+        await renderSavedStrategies();
+      }
     }
   });
 }

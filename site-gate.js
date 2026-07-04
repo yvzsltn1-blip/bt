@@ -2,7 +2,7 @@
 
 (function initSiteGate(globalScope) {
   // Oturum tokeni: surumu artirinca eski "1" tabanli kayitlar gecersiz olur.
-  const STORAGE_KEY = "btAnalyssSiteGateAuthedV2";
+  const STORAGE_KEY = "btAnalyssSiteGateAuthedV3";
   const ATTEMPT_KEY = "btAnalyssSiteGateAttemptsV1";
 
   // Kimlik dogrulama artik acik metin sifreyle degil, PBKDF2-SHA256 tureviyle yapilir.
@@ -12,13 +12,13 @@
   const GATE_ITERATIONS = 200000;
   const GATE_HASH = "9430b471089b0687dd88ba9e915260a9049b0e453a1c795e95a914ab950bcb02";
 
-  // Oturum bu sure sonra otomatik duser (30 gun) -> sizan token kalici erisim vermez.
-  const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+  // Oturum bu sure sonra otomatik duser (7 gun) -> sizan token uzun sureli erisim vermez.
+  const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
   // Kaba kuvvet frenleme: art arda MAX_ATTEMPTS hatadan sonra artan sureli kilit.
-  const MAX_ATTEMPTS = 5;
-  const LOCKOUT_BASE_MS = 30 * 1000;
-  const LOCKOUT_MAX_MS = 15 * 60 * 1000;
+  const MAX_ATTEMPTS = 3;
+  const LOCKOUT_BASE_MS = 2 * 60 * 1000;
+  const LOCKOUT_MAX_MS = 60 * 60 * 1000;
 
   const body = document.body;
   if (!body) {
@@ -319,18 +319,20 @@
     });
   }
 
-  function createField(labelText, placeholderText) {
+  function createField(labelText, placeholderText, type = "text") {
     const wrap = document.createElement("label");
     wrap.className = "site-gate-field";
 
     const label = document.createElement("span");
     label.textContent = labelText;
 
-    const input = document.createElement("textarea");
-    input.rows = 1;
+    const input = document.createElement("input");
+    input.type = type;
     input.className = "site-gate-textarea";
     input.placeholder = placeholderText;
     input.spellcheck = false;
+    input.autocomplete = type === "password" ? "current-password" : "username";
+    input.autocapitalize = "off";
 
     wrap.append(label, input);
     return { wrap, input };
@@ -358,7 +360,7 @@
     copy.textContent = "Devam etmek icin kullanici adi ve sifre gir.";
 
     const usernameField = createField("Kullanici Adi", "Kullanici adini yaz");
-    const passwordField = createField("Sifre", "Sifreyi yaz");
+    const passwordField = createField("Sifre", "Sifreyi yaz", "password");
 
     const errorBox = document.createElement("div");
     errorBox.className = "site-gate-error";

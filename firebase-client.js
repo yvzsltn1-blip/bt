@@ -10,6 +10,10 @@
     appId: "1:974000575553:web:17f915f8832a3b8f55a2c0"
   };
   const ADMIN_EMAIL = "yavuz@gmail.com";
+  const ADMIN_EMAILS = new Set([
+    ADMIN_EMAIL,
+    "yvzsltn61@gmail.com"
+  ]);
 
   const CACHE_KEY = "btAnalyssApprovedStrategiesCache";
   const WRONG_CACHE_KEY = "btAnalyssWrongReportsCache";
@@ -70,7 +74,7 @@
   }
 
   function isAdminUser(user) {
-    return !!(user && normalizeEmail(user.email) === ADMIN_EMAIL);
+    return !!(user && ADMIN_EMAILS.has(normalizeEmail(user.email)));
   }
 
   function readStorage(key) {
@@ -292,10 +296,16 @@
   }
 
   function readOverviewArchives() {
+    if (!isAdminUser(auth?.currentUser)) {
+      return [];
+    }
     return mergeOverviewArchives(readStorage(OVERVIEW_ARCHIVE_CACHE_KEY));
   }
 
   function writeOverviewArchives(items) {
+    if (!isAdminUser(auth?.currentUser)) {
+      return;
+    }
     let merged = sortByStringFieldDesc(mergeOverviewArchives(items), "savedAt");
     if (merged.length > OVERVIEW_ARCHIVE_CACHE_MAX_ITEMS) {
       merged = merged.slice(0, OVERVIEW_ARCHIVE_CACHE_MAX_ITEMS);
@@ -793,7 +803,7 @@
     };
     const response = await globalScope.fetch(
       `${firestoreRestBaseUrl}:runAggregationQuery?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+      { method: "POST", headers: await buildAdminJsonHeaders(), body: JSON.stringify(body) }
     );
     if (!response.ok) {
       const text = await response.text();
@@ -835,7 +845,7 @@
     };
     const response = await globalScope.fetch(
       `${firestoreRestBaseUrl}:runAggregationQuery?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+      { method: "POST", headers: await buildAdminJsonHeaders(), body: JSON.stringify(body) }
     );
     if (!response.ok) {
       const text = await response.text();
@@ -1300,10 +1310,16 @@
   }
 
   function readArchiveRegressionTests() {
+    if (!isAdminUser(auth?.currentUser)) {
+      return [];
+    }
     return readStorage(ARCHIVE_TEST_CACHE_KEY);
   }
 
   function writeArchiveRegressionTests(items) {
+    if (!isAdminUser(auth?.currentUser)) {
+      return;
+    }
     const list = Array.isArray(items) ? items : [];
     // localStorage 5MB sinirina takilmamak icin yalnizca arsiv ekraninin fallback'te
     // ihtiyac duydugu alanlari (kart sayaclari + untested filtre imzalari) ve sinirli
@@ -1322,6 +1338,33 @@
         lastSyncedAt: new Date().toISOString()
       });
     }
+  }
+
+  function clearPrivateArchiveCaches() {
+    [
+      OVERVIEW_ARCHIVE_CACHE_KEY,
+      OVERVIEW_ARCHIVE_CACHE_META_KEY,
+      ARCHIVE_TEST_CACHE_KEY,
+      ARCHIVE_TEST_CACHE_META_KEY
+    ].forEach((key) => {
+      try {
+        globalScope.localStorage?.removeItem(key);
+      } catch {
+        // Depolama kullanilamiyorsa temizlenecek yerel veri de yoktur.
+      }
+    });
+  }
+
+  async function buildAdminJsonHeaders() {
+    const user = auth?.currentUser;
+    if (!isAdminUser(user) || typeof user.getIdToken !== "function") {
+      return { "Content-Type": "application/json" };
+    }
+    const idToken = await user.getIdToken();
+    return {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${idToken}`
+    };
   }
 
   function isIntegerInRange(value, minValue, maxValue) {
@@ -2274,7 +2317,7 @@
               `Auth durum: ${activeUser ? "aktif" : "yok"}`,
               `Auth email: ${activeEmail}`,
               `Token email claim: ${claimEmail}`,
-              `Beklenen admin: ${ADMIN_EMAIL}`,
+              `Beklenen adminlerden biri: ${[...ADMIN_EMAILS].join(", ")}`,
               `Hata kodu: ${retryError?.code || error?.code || "bilinmiyor"}`,
               validationErrors.length > 0 ? `Yerel kural hatalari: ${validationErrors.join(" | ")}` : "Yerel kural dogrulamasi gecti.",
               "Admin paneli acik gorunse bile Firestore istegi yetkisiz kaldi. Sayfayi yenileyip yeniden admin girisi deneyin."
@@ -2477,7 +2520,7 @@
     }
 
     const currentUser = auth ? auth.currentUser : null;
-    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+    if (!isAdminUser(currentUser)) {
       throw new Error("Fav kaydetmek icin admin girisi zorunludur. Lutfen once admin olarak giris yapin.");
     }
 
@@ -2742,7 +2785,7 @@
       return;
     }
     const currentUser = auth ? auth.currentUser : null;
-    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+    if (!isAdminUser(currentUser)) {
       throw new Error("Arsiv test sonuclarini silmek icin admin girisi zorunludur.");
     }
     const snapshot = await db.collection(ARCHIVE_TEST_COLLECTION).get();
@@ -2763,7 +2806,7 @@
       return;
     }
     const currentUser = auth ? auth.currentUser : null;
-    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+    if (!isAdminUser(currentUser)) {
       throw new Error("Test kaydi silmek icin admin girisi zorunludur.");
     }
     await db.collection(ARCHIVE_TEST_COLLECTION).doc(docId).delete();
@@ -2797,7 +2840,7 @@
     }
 
     const currentUser = auth ? auth.currentUser : null;
-    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+    if (!isAdminUser(currentUser)) {
       throw new Error("Atlanan kayitlari silmek icin admin girisi zorunludur.");
     }
 
@@ -2936,7 +2979,7 @@
     };
     const response = await globalScope.fetch(
       `${firestoreRestBaseUrl}:runAggregationQuery?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+      { method: "POST", headers: await buildAdminJsonHeaders(), body: JSON.stringify(body) }
     );
     if (!response.ok) {
       const text = await response.text();
@@ -3261,7 +3304,7 @@
     }
 
     const currentUser = auth ? auth.currentUser : null;
-    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+    if (!isAdminUser(currentUser)) {
       throw new Error("Arsiv duzenlemek icin admin girisi zorunludur.");
     }
 
@@ -3285,7 +3328,7 @@
     }
 
     const currentUser = auth ? auth.currentUser : null;
-    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+    if (!isAdminUser(currentUser)) {
       throw new Error("Arsiv silmek icin admin girisi zorunludur.");
     }
 
@@ -3311,7 +3354,7 @@
     }
 
     const currentUser = auth ? auth.currentUser : null;
-    if (!currentUser || normalizeEmail(currentUser.email) !== ADMIN_EMAIL) {
+    if (!isAdminUser(currentUser)) {
       throw new Error("Arsiv silmek icin admin girisi zorunludur.");
     }
 
@@ -3357,7 +3400,7 @@
     }
 
     const normalizedEmail = normalizeEmail(email);
-    if (normalizedEmail !== ADMIN_EMAIL) {
+    if (!ADMIN_EMAILS.has(normalizedEmail)) {
       throw new Error("Bu panel sadece tanimli admin hesabi ile kullanilabilir.");
     }
     const rawPassword = String(password || "");
@@ -3420,12 +3463,14 @@
 
   globalScope.BTFirebase = {
     ADMIN_EMAIL,
+    ADMIN_EMAILS: [...ADMIN_EMAILS],
     getCurrentUser,
     isAdminSignedIn,
     onAdminStateChanged,
     signInAdmin,
     signOutAdmin,
     verifyAdminPassword,
+    clearPrivateArchiveCaches,
     buildApprovedOptimizerDocId: buildOptimizerDocId,
     buildApprovedSimulationDocId: buildSimulationDocId,
     loadApprovedStrategies,

@@ -6,6 +6,7 @@ const PAGE_SIZE = 10;
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 
 const testsCountLabel = document.querySelector("#testsCountLabel");
+const testsAdminContent = document.querySelector("#testsAdminContent");
 const testsHostFilter = document.querySelector("#testsHostFilter");
 const testsExportResultSelect = document.querySelector("#testsExportResultSelect");
 const testsExportStageInput = document.querySelector("#testsExportStageInput");
@@ -96,8 +97,6 @@ function initTestsPage() {
     }
   });
   void bindAdminAuth();
-  void refreshAll();
-  void refreshRetestStageCount();
 }
 
 function getActiveHost() {
@@ -258,7 +257,11 @@ async function bindAdminAuth() {
     loginButton: testsAdminLoginBtn,
     logoutButton: testsAdminLogoutBtn,
     onStateChange: (isAdmin) => {
+      const becameAdmin = isAdmin && !isAdminSession;
       isAdminSession = isAdmin;
+      if (testsAdminContent) {
+        testsAdminContent.hidden = !isAdmin;
+      }
       if (testsClearBtn) {
         testsClearBtn.hidden = !isAdmin;
       }
@@ -266,8 +269,18 @@ async function bindAdminAuth() {
         testsDeleteSkippedBtn.hidden = !isAdmin;
       }
       syncRetestControls();
-      // Kart basina silme butonlari admin durumuna gore gorunur/gizlenir.
-      renderList();
+      if (!isAdmin) {
+        loadedItems = [];
+        pageCursor = null;
+        pageHasMore = false;
+        counts = { pass: 0, fail: 0, skipped: 0, total: 0 };
+        window.BTFirebase?.clearPrivateArchiveCaches?.();
+        return;
+      }
+      if (becameAdmin) {
+        void refreshAll();
+        void refreshRetestStageCount();
+      }
     }
   });
 }

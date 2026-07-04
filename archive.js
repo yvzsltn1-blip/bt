@@ -1,6 +1,7 @@
 "use strict";
 
 const archiveList = document.querySelector("#archiveList");
+const archiveAdminContent = document.querySelector("#archiveAdminContent");
 const archiveCountLabel = document.querySelector("#archiveCountLabel");
 const archiveDataModeLabel = document.querySelector("#archiveDataModeLabel");
 const archivePagination = document.querySelector("#archivePagination");
@@ -241,9 +242,6 @@ let archiveTestResultsCache = [];
 bindArchiveControls();
 bindArchiveEditModal();
 void bindAdminAuth();
-void populateArchiveHostOptions();
-void refreshArchiveView();
-void refreshArchiveTestedStats();
 
 archivePrevPageBtn?.addEventListener("click", () => {
   archiveState.tailMode = false;
@@ -1900,11 +1898,29 @@ async function bindAdminAuth() {
     loginButton: adminLoginBtn,
     logoutButton: adminLogoutBtn,
     onStateChange: (isAdmin) => {
+      const becameAdmin = isAdmin && !isAdminSession;
       isAdminSession = isAdmin;
+      if (archiveAdminContent) {
+        archiveAdminContent.hidden = !isAdmin;
+      }
       if (!isAdminSession) {
         closeArchiveEditModal();
+        archiveState.loadedItems = [];
+        archiveState.tailItems = [];
+        archiveState.selectedIds.clear();
+        archiveState.expandedIds.clear();
+        archiveTestResultsCache = [];
+        window.BTFirebase?.clearPrivateArchiveCaches?.();
+        clearArchiveSummaryCache();
+        return;
       }
-      renderArchivePage();
+      if (becameAdmin) {
+        void Promise.all([
+          populateArchiveHostOptions(),
+          refreshArchiveView({ forceRemote: true }),
+          refreshArchiveTestedStats({ forceFresh: true })
+        ]);
+      }
     }
   });
 }
