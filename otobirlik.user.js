@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      6.6
+// @version      6.9
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -481,6 +481,40 @@
     return { docId, payload };
   }
 
+  function syncPendingArchiveRosterBeforeFight() {
+    const rawPayload = GM_getValue(LAST_ARCHIVE_PAYLOAD_KEY, '');
+    let payload = null;
+    if (rawPayload) {
+      try {
+        payload = JSON.parse(rawPayload);
+      } catch {
+        payload = null;
+      }
+    }
+
+    if (!payload || hasRecordedOutcome(payload)) {
+      GM_setValue(LAST_REVIVE_STONES_KEY, '');
+      savePendingArchivePayload(getOverviewPayload('manual'));
+      return;
+    }
+
+    GM_setValue(LAST_ARCHIVE_PAYLOAD_KEY, JSON.stringify({
+      ...payload,
+      updatedAt: new Date().toISOString(),
+      allyRosterText: getAllyRosterText(null, false),
+      armyPowerText: getArmyPowerText() || payload.armyPowerText || '-'
+    }));
+  }
+
+  function watchFightSubmission() {
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest('#fightBtn')) {
+        syncPendingArchiveRosterBeforeFight();
+      }
+    }, true);
+  }
+
   // Sonuc sayfasinda hem watchLootPage gozlemcisi hem de runBotTick (handleResultPage/
   // handleAutoResultPage) bu fonksiyonu cagirir ve sayfa kademeli yuklendiginden ayni
   // anda birden cok kez tetiklenebilir. Mukerrer kaydi onleyen imza ancak POST bittikten
@@ -644,6 +678,7 @@
   // Genislik bu degere kadar (varsayilan ~760px'in %80 kadarini) kisilabilir.
   const BOT_PANEL_MIN_WIDTH = 170;
   const BOT_PANEL_MIN_HEIGHT = 140;
+  const BOT_PANEL_TOUCH_MIN_WIDTH = 240;
   // Panel kendi genisligi bu esigin altina inince tek sutuna gecer (kompakt mod).
   const BOT_PANEL_NARROW_WIDTH = 380;
   // Panele konacak kazanma orani secenekleri (yuzde). 'custom' -> elle giris.
@@ -2037,8 +2072,7 @@ self.onmessage = (event) => {
     style.id = 'bt-bot-panel-styles';
     style.textContent = `
       #bt-bot-panel {
-        /* !important YOK: aksi halde tarayicinin resize tutacagi calismaz.
-           Min/max sinirlari araliği koruyor; varsayilan genislik buradan gelir. */
+        /* Boyutlandirma buyuk, dokunmatik uyumlu ozel kose tutamaciyla yapilir. */
         box-sizing: border-box;
         width: min(760px, calc(100vw - 36px));
         padding: 12px 14px 11px !important;
@@ -2047,8 +2081,7 @@ self.onmessage = (event) => {
         align-content: start;
         column-gap: 12px !important;
         row-gap: 8px !important;
-        /* Kenarlardan iki yonde de tutup boyutlandirilabilir; son boyut saklanir. */
-        resize: both;
+        resize: none;
         overflow-x: hidden;
         overflow-y: auto;
         min-width: ${BOT_PANEL_MIN_WIDTH}px !important;
@@ -2072,6 +2105,55 @@ self.onmessage = (event) => {
         -webkit-font-smoothing: antialiased;
         backdrop-filter: blur(22px);
         -webkit-backdrop-filter: blur(22px);
+      }
+
+      .bt-panel-resize-handle {
+        position: fixed;
+        width: 40px;
+        height: 40px;
+        z-index: 100000;
+        cursor: nwse-resize;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        border-radius: 14px 0 14px 0;
+        background: radial-gradient(circle at 100% 100%, rgba(210, 168, 108, .18), transparent 68%);
+        opacity: .72;
+        transition: opacity .16s ease, background-color .16s ease;
+      }
+
+      .bt-panel-resize-handle::before,
+      .bt-panel-resize-handle::after {
+        content: "";
+        position: absolute;
+        right: 8px;
+        bottom: 10px;
+        width: 18px;
+        height: 2px;
+        border-radius: 999px;
+        background: rgba(225, 190, 137, .9);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+        transform: rotate(-45deg);
+        transform-origin: right center;
+      }
+
+      .bt-panel-resize-handle::after {
+        bottom: 7px;
+        width: 10px;
+        opacity: .72;
+      }
+
+      .bt-panel-resize-handle:hover,
+      .bt-panel-resize-handle:focus-visible,
+      .bt-panel-resize-handle.is-active {
+        opacity: 1;
+        outline: none;
+        background-color: rgba(210, 168, 108, .08);
+      }
+
+      #bt-bot-panel.is-resizing {
+        border-color: rgba(225, 190, 137, .58) !important;
+        box-shadow: 0 24px 68px -16px rgba(0, 0, 0, .92), 0 0 0 1px rgba(210, 168, 108, .12) !important;
       }
 
       #bt-bot-panel::before {
@@ -2441,9 +2523,17 @@ self.onmessage = (event) => {
           padding: 8px 10px 7px !important;
           row-gap: 5px !important;
           overflow-y: auto;
-          resize: none;
           overscroll-behavior: contain;
           border-radius: 12px !important;
+        }
+
+        .bt-panel-resize-handle {
+          width: 48px;
+          height: 48px;
+        }
+
+        #bt-bot-panel.has-custom-size {
+          max-height: min(720px, calc(100dvh - 16px));
         }
 
         #bt-bot-panel .bt-panel-kicker {
@@ -2550,6 +2640,10 @@ self.onmessage = (event) => {
     const existingMini = document.querySelector('#bt-bot-panel-mini');
     if (existingMini) {
       existingMini.remove();
+    }
+    const existingResizeHandle = document.querySelector('#bt-bot-panel-resize-handle');
+    if (existingResizeHandle) {
+      existingResizeHandle.remove();
     }
     if (!isBattleSetupPage() && !isResultPage() && !isFloorPage() && !isBotEnabled()) {
       return;
@@ -2790,13 +2884,157 @@ self.onmessage = (event) => {
     appendRoundingModeSetting(panel);
     appendTekilV2Setting(panel);
     appendTimingSettings(panel);
+
+    const resizeHandle = document.createElement('div');
+    resizeHandle.id = 'bt-bot-panel-resize-handle';
+    resizeHandle.className = 'bt-panel-resize-handle';
+    resizeHandle.tabIndex = 0;
+    resizeHandle.setAttribute('role', 'button');
+    resizeHandle.setAttribute('aria-label', 'Paneli yeniden boyutlandir');
+    resizeHandle.title = 'Surukleyerek paneli boyutlandir';
+
     document.body.appendChild(panel);
+    document.body.appendChild(resizeHandle);
     applyAndTrackPanelSize(panel);
+    enableBotPanelResize(panel, resizeHandle);
   }
 
   // Panelin kendi genisligine gore tek/cift sutun yerlesimini ayarlar.
   function updateBotPanelDensity(panel, width) {
     panel.classList.toggle('is-narrow', width > 0 && width < BOT_PANEL_NARROW_WIDTH);
+  }
+
+  function enableBotPanelResize(panel, handle) {
+    let dragState = null;
+    let animationFrame = 0;
+    let pendingSize = null;
+
+    const updateHandlePosition = () => {
+      const rect = panel.getBoundingClientRect();
+      handle.style.left = `${Math.round(rect.right - handle.offsetWidth)}px`;
+      handle.style.top = `${Math.round(rect.bottom - handle.offsetHeight)}px`;
+    };
+
+    const limits = () => {
+      const rect = panel.getBoundingClientRect();
+      const coarsePointer = window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 520;
+      const maxWidth = Math.max(1, Math.min(BOT_PANEL_MAX_DESKTOP_WIDTH, window.innerWidth - rect.left - 8));
+      const maxHeight = Math.max(1, Math.min(720, rect.bottom - 8));
+      return {
+        minWidth: Math.min(coarsePointer ? BOT_PANEL_TOUCH_MIN_WIDTH : BOT_PANEL_MIN_WIDTH, maxWidth),
+        minHeight: Math.min(BOT_PANEL_MIN_HEIGHT, maxHeight),
+        maxWidth,
+        maxHeight
+      };
+    };
+
+    const applySize = (size) => {
+      panel.classList.add('has-custom-size');
+      panel.style.setProperty('width', `${Math.round(size.width)}px`, 'important');
+      panel.style.height = `${Math.round(size.height)}px`;
+      updateBotPanelDensity(panel, size.width);
+      updateHandlePosition();
+    };
+
+    const scheduleSize = (size) => {
+      pendingSize = size;
+      if (animationFrame) {
+        return;
+      }
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = 0;
+        if (pendingSize) {
+          applySize(pendingSize);
+          pendingSize = null;
+        }
+      });
+    };
+
+    const finishResize = (event) => {
+      if (!dragState || (event.pointerId !== undefined && event.pointerId !== dragState.pointerId)) {
+        return;
+      }
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
+      }
+      if (pendingSize) {
+        applySize(pendingSize);
+        pendingSize = null;
+      }
+      try {
+        if (typeof handle.releasePointerCapture === 'function') {
+          handle.releasePointerCapture(dragState.pointerId);
+        }
+      } catch {
+        // Pointer yakalama tarayici tarafindan zaten sonlandirilmis olabilir.
+      }
+      dragState = null;
+      panel.classList.remove('is-resizing');
+      handle.classList.remove('is-active');
+      const rect = panel.getBoundingClientRect();
+      setBotPanelSize(rect.width, rect.height);
+    };
+
+    handle.addEventListener('pointerdown', (event) => {
+      if (event.button !== undefined && event.button !== 0) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = panel.getBoundingClientRect();
+      dragState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        width: rect.width,
+        height: rect.height
+      };
+      if (typeof handle.setPointerCapture === 'function') {
+        handle.setPointerCapture(event.pointerId);
+      }
+      panel.classList.add('is-resizing');
+      handle.classList.add('is-active');
+    });
+
+    handle.addEventListener('pointermove', (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) {
+        return;
+      }
+      event.preventDefault();
+      const currentLimits = limits();
+      scheduleSize({
+        width: Math.min(currentLimits.maxWidth, Math.max(currentLimits.minWidth, dragState.width + event.clientX - dragState.startX)),
+        height: Math.min(currentLimits.maxHeight, Math.max(currentLimits.minHeight, dragState.height - event.clientY + dragState.startY))
+      });
+    });
+
+    handle.addEventListener('pointerup', finishResize);
+    handle.addEventListener('pointercancel', finishResize);
+
+    handle.addEventListener('keydown', (event) => {
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+        return;
+      }
+      event.preventDefault();
+      const rect = panel.getBoundingClientRect();
+      const currentLimits = limits();
+      const step = event.shiftKey ? 32 : 12;
+      const widthDelta = event.key === 'ArrowLeft' ? -step : (event.key === 'ArrowRight' ? step : 0);
+      const heightDelta = event.key === 'ArrowUp' ? step : (event.key === 'ArrowDown' ? -step : 0);
+      applySize({
+        width: Math.min(currentLimits.maxWidth, Math.max(currentLimits.minWidth, rect.width + widthDelta)),
+        height: Math.min(currentLimits.maxHeight, Math.max(currentLimits.minHeight, rect.height + heightDelta))
+      });
+      const finalRect = panel.getBoundingClientRect();
+      setBotPanelSize(finalRect.width, finalRect.height);
+    });
+
+    updateHandlePosition();
+    if (typeof ResizeObserver === 'function') {
+      const positionObserver = new ResizeObserver(updateHandlePosition);
+      positionObserver.observe(panel);
+    }
   }
 
   // Kayitli genislik+yuksekligi uygular ve kullanicinin kenardan yaptigi
@@ -2806,14 +3044,16 @@ self.onmessage = (event) => {
     const saved = getBotPanelSize();
     const viewportWidthLimit = Math.max(BOT_PANEL_MIN_WIDTH, window.innerWidth - 36);
     if (saved.width >= BOT_PANEL_MIN_WIDTH) {
-      const width = Math.min(saved.width, BOT_PANEL_MAX_DESKTOP_WIDTH, viewportWidthLimit);
-      // Inline (important DEGIL): resize tutacaginin sonradan tasiyabilmesi icin.
-      panel.style.width = `${width}px`;
+      const coarsePointer = window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 520;
+      const minimumWidth = Math.min(coarsePointer ? BOT_PANEL_TOUCH_MIN_WIDTH : BOT_PANEL_MIN_WIDTH, viewportWidthLimit);
+      const width = Math.max(minimumWidth, Math.min(saved.width, BOT_PANEL_MAX_DESKTOP_WIDTH, viewportWidthLimit));
+      panel.style.setProperty('width', `${width}px`, 'important');
       updateBotPanelDensity(panel, width);
     }
     if (saved.height >= BOT_PANEL_MIN_HEIGHT) {
       const viewportHeightLimit = Math.max(BOT_PANEL_MIN_HEIGHT, window.innerHeight - 44);
       const height = Math.min(saved.height, viewportHeightLimit);
+      panel.classList.add('has-custom-size');
       panel.style.height = `${height}px`;
     }
     if (typeof ResizeObserver !== 'function') {
@@ -3273,6 +3513,7 @@ self.onmessage = (event) => {
   }
 
   injectButtons();
+  watchFightSubmission();
   watchLootPage();
   new MutationObserver(injectButtons).observe(document.body, { childList: true, subtree: true });
 
