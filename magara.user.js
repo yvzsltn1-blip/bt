@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BiteFight Grotte Loop
 // @namespace    https://bt-analiz.web.app
-// @version      1.8
+// @version      2.0
 // @description  Magara ekraninda secilen zorlugu dongu halinde tekrarlar.
 // @match        https://*.bitefight.gameforge.com/city/grotte
 // @match        https://*.bitefight.gameforge.com/city/grotte/*
@@ -26,7 +26,8 @@
         maxRuns: null,
         minHealth: 0,
         minEnergy: 0,
-        minGold: 0
+        minGold: 0,
+        wakeHoldSec: 0
     };
     const DEBUG = true;
 
@@ -42,6 +43,7 @@
         const minHealth = Number.isFinite(merged.minHealth) ? Math.max(0, Math.floor(merged.minHealth)) : 0;
         const minEnergy = Number.isFinite(merged.minEnergy) ? Math.max(0, Math.floor(merged.minEnergy)) : 0;
         const minGold = Number.isFinite(merged.minGold) ? Math.max(0, Math.floor(merged.minGold)) : 0;
+        const wakeHoldSec = Number.isFinite(merged.wakeHoldSec) ? Math.max(0, Math.floor(merged.wakeHoldSec)) : 0;
 
         return {
             minDelay,
@@ -49,7 +51,8 @@
             maxRuns,
             minHealth,
             minEnergy,
-            minGold
+            minGold,
+            wakeHoldSec
         };
     }
 
@@ -109,13 +112,29 @@
     let wakeFallbackTimer = null;
     let wakeAudioContext = null;
     let wakeHeartbeatTimer = null;
+    let wakeReleaseTimer = null;
+    let wakeLockRequestPending = false;
 
     function isLoopEnabled() {
         return loadState().enabled === true;
     }
 
+    // Bot acikken veya bot durduktan sonra "wakeHoldSec" penceresi icindeyken
+    // ekran uyanik tutulur; pencere kapaninca kilit birakilir ve telefonun
+    // kendi ekran zaman asimi devreye girer.
+    function shouldHoldWakeLock() {
+        const state = loadState();
+        if (state.enabled === true) {
+            return true;
+        }
+        const holdMs = getConfig(state).wakeHoldSec * 1000;
+        return holdMs > 0
+            && Number.isFinite(state.lastStoppedAt)
+            && Date.now() - state.lastStoppedAt < holdMs;
+    }
+
     function startWakeFallbacks() {
-        if (!isLoopEnabled() || document.visibilityState !== 'visible') {
+        if (!shouldHoldWakeLock() || document.visibilityState !== 'visible') {
             return;
         }
 
@@ -128,7 +147,7 @@
                 let tick = 0;
 
                 wakeFallbackTimer = window.setInterval(() => {
-                    if (!isLoopEnabled()) {
+                    if (!shouldHoldWakeLock()) {
                         releaseWakeLock();
                         return;
                     }
@@ -183,7 +202,7 @@
             return;
         }
         wakeHeartbeatTimer = window.setInterval(() => {
-            if (!isLoopEnabled()) {
+            if (!shouldHoldWakeLock()) {
                 releaseWakeLock();
                 return;
             }
@@ -199,7 +218,7 @@
     }
 
     async function acquireWakeLock() {
-        if (!loadState().enabled || document.visibilityState !== 'visible') {
+        if (!shouldHoldWakeLock() || document.visibilityState !== 'visible') {
             return;
         }
         startWakeFallbacks();
@@ -207,22 +226,38 @@
         if (!navigator.wakeLock || typeof navigator.wakeLock.request !== 'function') {
             return;
         }
-        if (wakeLockSentinel && !wakeLockSentinel.released) {
+        if (wakeLockRequestPending || (wakeLockSentinel && !wakeLockSentinel.released)) {
             return;
         }
 
+        wakeLockRequestPending = true;
         try {
-            wakeLockSentinel = await navigator.wakeLock.request('screen');
+            const sentinel = await navigator.wakeLock.request('screen');
+            // Istek beklerken bot durmus olabilir; eskimis kilidi hemen birak,
+            // yoksa script kapaliyken ekran sonsuza kadar acik kalir.
+            if (!shouldHoldWakeLock() || (wakeLockSentinel && !wakeLockSentinel.released)) {
+                try {
+                    void sentinel.release();
+                } catch {
+                    // Kilit zaten birakilmis olabilir.
+                }
+                return;
+            }
+            wakeLockSentinel = sentinel;
             wakeLockSentinel.addEventListener?.('release', () => {
-                wakeLockSentinel = null;
-                // Sistem kilidi dusurdu; bot hala acik ve sayfa gorunurse hemen
-                // geri al. Kisa gecikme art arda istek dongusunu onler.
-                if (isLoopEnabled() && document.visibilityState === 'visible') {
+                if (wakeLockSentinel === sentinel) {
+                    wakeLockSentinel = null;
+                }
+                // Sistem kilidi dusurdu; kilit hala tutulmali ve sayfa gorunurse
+                // hemen geri al. Kisa gecikme art arda istek dongusunu onler.
+                if (shouldHoldWakeLock() && document.visibilityState === 'visible') {
                     window.setTimeout(() => { void acquireWakeLock(); }, 500);
                 }
             });
         } catch (error) {
             console.warn('[Grotte Loop] Ekran uyanik tutulamadi.', error);
+        } finally {
+            wakeLockRequestPending = false;
         }
     }
 
@@ -234,6 +269,10 @@
         }
         wakeLockSentinel = null;
 
+        if (wakeReleaseTimer) {
+            window.clearTimeout(wakeReleaseTimer);
+            wakeReleaseTimer = null;
+        }
         if (wakeHeartbeatTimer) {
             window.clearInterval(wakeHeartbeatTimer);
             wakeHeartbeatTimer = null;
@@ -262,14 +301,14 @@
     });
 
     window.addEventListener('online', () => {
-        if (loadState().enabled) {
+        if (shouldHoldWakeLock()) {
             void acquireWakeLock();
         }
     });
 
     ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(eventName => {
         document.addEventListener(eventName, () => {
-            if (loadState().enabled) {
+            if (shouldHoldWakeLock()) {
                 startWakeFallbacks();
                 void acquireWakeLock();
             }
@@ -278,6 +317,12 @@
 
     function delay(ms, callback) {
         window.setTimeout(() => {
+            if (!isLoopEnabled()) {
+                if (!shouldHoldWakeLock()) {
+                    releaseWakeLock();
+                }
+                return;
+            }
             void acquireWakeLock();
             callback();
         }, ms);
@@ -412,8 +457,31 @@
             stopReason: reason,
             lastStoppedAt: Date.now()
         });
-        releaseWakeLock();
+        scheduleWakeLockRelease();
         debugLog(`Dongu durduruldu. Sebep: ${reason}`);
+    }
+
+    // Bot durunca kilidi ya hemen ya da ayarlanan sure sonunda birakir; boylece
+    // telefonun kendi ekran zaman asimi yeniden devreye girer.
+    function scheduleWakeLockRelease() {
+        if (wakeReleaseTimer) {
+            window.clearTimeout(wakeReleaseTimer);
+            wakeReleaseTimer = null;
+        }
+
+        const holdMs = getConfig().wakeHoldSec * 1000;
+        if (holdMs <= 0) {
+            releaseWakeLock();
+            return;
+        }
+
+        debugLog(`Ekran kilidi ${holdMs / 1000} sn sonra birakilacak.`);
+        wakeReleaseTimer = window.setTimeout(() => {
+            wakeReleaseTimer = null;
+            if (!isLoopEnabled()) {
+                releaseWakeLock();
+            }
+        }, holdMs);
     }
 
     function startLoop(difficulty) {
@@ -545,6 +613,9 @@
         }
         if (Object.prototype.hasOwnProperty.call(options, 'minGold')) {
             patch.minGold = Math.max(0, Math.floor(Number(options.minGold) || 0));
+        }
+        if (Object.prototype.hasOwnProperty.call(options, 'wakeHoldSec')) {
+            patch.wakeHoldSec = Math.max(0, Math.floor(Number(options.wakeHoldSec) || 0));
         }
 
         if (Object.keys(patch).length === 0) {
@@ -898,6 +969,7 @@
         const minHealth = Number(panel.querySelector('[data-role="minHealth"]')?.value || 0);
         const minEnergy = Number(panel.querySelector('[data-role="minEnergy"]')?.value || 0);
         const minGold = Number(panel.querySelector('[data-role="minGold"]')?.value || 0);
+        const wakeHoldSec = Number(panel.querySelector('[data-role="wakeHoldSec"]')?.value || 0);
 
         configure({
             minDelay,
@@ -905,7 +977,8 @@
             maxRuns: maxRunsValue === '' ? null : Number(maxRunsValue),
             minHealth,
             minEnergy,
-            minGold
+            minGold,
+            wakeHoldSec
         });
 
         updateState({ difficulty });
@@ -975,6 +1048,13 @@
         minGoldInput.min = '0';
         panel.appendChild(createField('Min altin', minGoldInput));
 
+        const wakeHoldInput = document.createElement('input');
+        wakeHoldInput.dataset.role = 'wakeHoldSec';
+        wakeHoldInput.type = 'number';
+        wakeHoldInput.min = '0';
+        wakeHoldInput.placeholder = '0 = hemen';
+        panel.appendChild(createField('Durunca ekran (sn)', wakeHoldInput));
+
         const buttonRow = document.createElement('div');
         buttonRow.className = 'bf-row';
 
@@ -1036,6 +1116,7 @@
         const minHealthInput = panel.querySelector('[data-role="minHealth"]');
         const minEnergyInput = panel.querySelector('[data-role="minEnergy"]');
         const minGoldInput = panel.querySelector('[data-role="minGold"]');
+        const wakeHoldInput = panel.querySelector('[data-role="wakeHoldSec"]');
         const status = panel.querySelector('[data-role="status"]');
         const currentHealth = findCurrentHealth();
         const currentEnergy = findCurrentEnergy();
@@ -1060,6 +1141,9 @@
         }
         if (minGoldInput && document.activeElement !== minGoldInput) {
             minGoldInput.value = String(config.minGold);
+        }
+        if (wakeHoldInput && document.activeElement !== wakeHoldInput) {
+            wakeHoldInput.value = String(config.wakeHoldSec);
         }
 
         if (status) {
@@ -1168,13 +1252,18 @@
             }
         }
 
-        if (state.enabled && config.minEnergy > 0) {
-            if (currentEnergy !== null && currentEnergy < config.minEnergy) {
+        if (state.enabled) {
+            if (currentEnergy !== null && currentEnergy <= 0) {
+                stopLoop(`enerji bitti (${currentEnergy})`);
+                return;
+            }
+
+            if (config.minEnergy > 0 && currentEnergy !== null && currentEnergy < config.minEnergy) {
                 stopLoop(`enerji esiginin altina indi (${currentEnergy} < ${config.minEnergy})`);
                 return;
             }
 
-            if (currentEnergy === null) {
+            if (config.minEnergy > 0 && currentEnergy === null) {
                 debugLog('Enerji okunamadi, enerji kontrolu atlandi.');
             }
         }
