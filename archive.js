@@ -71,9 +71,9 @@ const archiveEditPageTitleInput = document.querySelector("#archiveEditPageTitleI
 
 const DEFAULT_PAGE_SIZE = 40;
 const PAGE_SIZE_OPTIONS = new Set([20, 40, 80]);
-// Sunucu filtresi: bos = tum sunucular. Varsayilan s66. Liste sabit degil;
+// Sunucu filtresi: bos = tum sunucular (varsayilan). Liste sabit degil;
 // archiveHosts meta koleksiyonundan okunan sunucular acilista dropdown'a eklenir.
-const ARCHIVE_DEFAULT_HOST = "s66-tr.bitefight.gameforge.com";
+const ARCHIVE_DEFAULT_HOST = "";
 const ARCHIVE_HOST_OPTIONS = new Set(["", "s66-tr.bitefight.gameforge.com", "s62-tr.bitefight.gameforge.com"]);
 function normalizeArchiveHost(value) {
   return ARCHIVE_HOST_OPTIONS.has(value) ? value : ARCHIVE_DEFAULT_HOST;

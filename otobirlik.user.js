@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      6.9
+// @version      8.4
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -702,22 +702,109 @@
   const AUTO_INTERVAL_MAX_KEY = 'btAutoIntervalMaxSec';
   const AUTO_START_FLOOR_KEY = 'btAutoStartFloor';
   const AUTO_END_FLOOR_KEY = 'btAutoEndFloor';
+  const AUTO_ACTIVE_START_KEY = 'btAutoActiveStart';
+  const AUTO_ACTIVE_END_KEY = 'btAutoActiveEnd';
+  // Baslama/bitis saatine eklenecek rastgele surenin ust siniri (dk). 0 = kapali.
+  const AUTO_ACTIVE_EXTRA_KEY = 'btAutoActiveExtraMin';
+  // Gunun rastgele kaymasi ({date, extra, start, end}); gun boyunca sabit kalir.
+  const AUTO_ACTIVE_OFFSETS_KEY = 'btAutoActiveOffsetsV1';
+  const AUTO_BAND_RANGES_KEY = 'btAutoBandExtraRangesV2';
+  const AUTO_BAND_DUE_KEY = 'btAutoBandDueV2';
+  // Oto ayarlar tek kayit halinde de tutulur. Boylece panel yeniden cizilirken
+  // ayarlarin bir kismi eski anahtarlardan/varsayilanlardan okunup ezilmez.
+  const AUTO_SETTINGS_KEY = 'btAutoSettingsV1';
+  const ORB_COORDINATION_KEY = 'BFOrbFloorCoordinator';
   const AUTO_DEFAULT_INTERVAL_SEC = 180;
   const AUTO_MIN_INTERVAL_SEC = 10;
   const AUTO_MIN_FLOOR = 1;
   const AUTO_MAX_FLOOR = 40;
+  const AUTO_DEFAULT_ACTIVE_START = '07:02';
+  const AUTO_DEFAULT_ACTIVE_END = '23:44';
+  const AUTO_DEFAULT_BAND_RANGES = [
+    { min: 2, max: 5 },
+    { min: 2, max: 6 },
+    { min: 2, max: 7 },
+    { min: 5, max: 15 }
+  ];
 
   function isAutoEnabled() {
     return GM_getValue(AUTO_ENABLED_KEY, false) === true;
   }
 
+  // Kilit kalp atisi: bot aktifken busy kilidinin updatedAt'ini tazele. Orb botu
+  // 10 dk tazelenmeyen kilidi bayat sayip yok sayar; boylece sekme coker/kapanirsa
+  // orb sonsuza dek "kat botu calisiyor" diye beklemez.
+  window.setInterval(() => {
+    try {
+      if (GM_getValue(AUTO_ENABLED_KEY, false) !== true && GM_getValue(BOT_ENABLED_KEY, false) !== true) return;
+      const coordinator = JSON.parse(localStorage.getItem(ORB_COORDINATION_KEY) || '{}');
+      if (coordinator.busy !== true) return;
+      coordinator.updatedAt = Date.now();
+      localStorage.setItem(ORB_COORDINATION_KEY, JSON.stringify(coordinator));
+    } catch { /* localStorage kapaliysa eski bagimsiz davranis surer */ }
+  }, 60 * 1000);
+
+  function setOrbFloorBusy(busy, resumeAt = 0, orbPriority = false, floorUrl = '') {
+    try {
+      localStorage.setItem(ORB_COORDINATION_KEY, JSON.stringify({
+        busy: Boolean(busy),
+        resumeAt: Number(resumeAt) || 0,
+        orbPriority: Boolean(orbPriority),
+        floorUrl: String(floorUrl || ''),
+        updatedAt: Date.now()
+      }));
+    } catch {
+      // localStorage kapaliysa botlar eski bagimsiz davranislarini surdurur.
+    }
+  }
+
+  function orbHasPriority() {
+    try {
+      return JSON.parse(localStorage.getItem(ORB_COORDINATION_KEY) || '{}').orbPriority === true;
+    } catch {
+      return false;
+    }
+  }
+
+  function isOrbHuntEnabled() {
+    try {
+      return JSON.parse(localStorage.getItem('BFOrbSettings') || '{}').running === true;
+    } catch {
+      return false;
+    }
+  }
+
+  function orbCollectionIsDue() {
+    try {
+      const orb = JSON.parse(localStorage.getItem('BFOrbSettings') || '{}');
+      if (orb.running !== true) return false;
+      const collectAt = Number(orb.orbCollectAt || 0);
+      return collectAt <= 0 || collectAt <= Date.now();
+    } catch {
+      return false;
+    }
+  }
+
+  function startOrbPriorityTurn(floor) {
+    const target = Number(floor) || autoFloorRange().start;
+    GM_setValue(BOT_NEXT_STAGE_KEY, target);
+    setOrbFloorBusy(false, 0, true, buildFloorUrl(target));
+    setBotStatus(`Orb oncelikli: Kat ${target} baslamadan once orb turu tamamlanacak`);
+    location.assign(robberyIndexUrl());
+  }
+
+  function robberyIndexUrl() {
+    return `${location.origin}/robbery/index`;
+  }
+
   function autoIntervalRange() {
+    const snapshot = autoSettingsSnapshot();
     const legacy = Number(GM_getValue(AUTO_INTERVAL_KEY, AUTO_DEFAULT_INTERVAL_SEC));
     const fallback = Number.isFinite(legacy) && legacy >= AUTO_MIN_INTERVAL_SEC
       ? Math.round(legacy)
       : AUTO_DEFAULT_INTERVAL_SEC;
-    const savedMin = Number(GM_getValue(AUTO_INTERVAL_MIN_KEY, fallback));
-    const savedMax = Number(GM_getValue(AUTO_INTERVAL_MAX_KEY, fallback));
+    const savedMin = Number(snapshot.intervalMin ?? GM_getValue(AUTO_INTERVAL_MIN_KEY, fallback));
+    const savedMax = Number(snapshot.intervalMax ?? GM_getValue(AUTO_INTERVAL_MAX_KEY, fallback));
     const min = Number.isFinite(savedMin) && savedMin >= AUTO_MIN_INTERVAL_SEC
       ? Math.round(savedMin)
       : fallback;
@@ -730,9 +817,179 @@
     return Math.round(min + Math.random() * (max - min));
   }
 
+  function parseStoredJson(key, fallback) {
+    try {
+      const parsed = JSON.parse(GM_getValue(key, ''));
+      return parsed && typeof parsed === 'object' ? parsed : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function autoSettingsSnapshot() {
+    const gmSettings = parseStoredJson(AUTO_SETTINGS_KEY, {});
+    let localSettings = {};
+    try {
+      localSettings = JSON.parse(localStorage.getItem(AUTO_SETTINGS_KEY) || '{}') || {};
+    } catch (_) { /* localStorage kullanilamiyorsa GM kaydi yeterlidir */ }
+    return Number(localSettings.savedAt || 0) > Number(gmSettings.savedAt || 0)
+      ? localSettings
+      : gmSettings;
+  }
+
+  function saveAutoSettingsSnapshot(settings) {
+    const snapshot = { ...settings, savedAt: Date.now() };
+    GM_setValue(AUTO_SETTINGS_KEY, JSON.stringify(snapshot));
+    try {
+      localStorage.setItem(AUTO_SETTINGS_KEY, JSON.stringify(snapshot));
+    } catch (_) { /* localStorage kullanilamiyorsa GM kaydi yeterlidir */ }
+    return snapshot;
+  }
+
+  function autoActiveHours() {
+    const snapshot = autoSettingsSnapshot();
+    const valid = (value, fallback) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value)) ? String(value) : fallback;
+    return {
+      start: valid(snapshot.activeStart ?? GM_getValue(AUTO_ACTIVE_START_KEY, AUTO_DEFAULT_ACTIVE_START), AUTO_DEFAULT_ACTIVE_START),
+      end: valid(snapshot.activeEnd ?? GM_getValue(AUTO_ACTIVE_END_KEY, AUTO_DEFAULT_ACTIVE_END), AUTO_DEFAULT_ACTIVE_END)
+    };
+  }
+
+  function istanbulMinuteOfDay(now = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    }).formatToParts(now);
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return Number(values.hour) * 60 + Number(values.minute);
+  }
+
+  function timeTextToMinutes(value) {
+    const [hour, minute] = value.split(':').map(Number);
+    return hour * 60 + minute;
+  }
+
+  function autoActiveExtraMinutes() {
+    const snapshot = autoSettingsSnapshot();
+    const value = Number(snapshot.activeExtra ?? GM_getValue(AUTO_ACTIVE_EXTRA_KEY, 0));
+    return Number.isFinite(value) && value > 0 ? Math.min(180, Math.round(value)) : 0;
+  }
+
+  function istanbulDateText(now = new Date()) {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(now);
+  }
+
+  // Gunluk rastgele kayma: baslama ve bitis saatine ayri ayri 0..extra dk eklenir.
+  // Kayma gun icinde sabit kalsin diye tarihiyle birlikte GM'de saklanir; her
+  // kontrolde yeni rastgele deger uretilse pencere sinirinda gel-git yasanirdi.
+  // Gun degisince veya +dk ayari degisince yeni kayma cekilir.
+  function autoActiveOffsets(now = new Date()) {
+    const extra = autoActiveExtraMinutes();
+    if (extra <= 0) return { start: 0, end: 0 };
+    const today = istanbulDateText(now);
+    const saved = parseStoredJson(AUTO_ACTIVE_OFFSETS_KEY, {});
+    if (saved.date === today && saved.extra === extra
+      && Number.isInteger(saved.start) && saved.start >= 0 && saved.start <= extra
+      && Number.isInteger(saved.end) && saved.end >= 0 && saved.end <= extra) {
+      return { start: saved.start, end: saved.end };
+    }
+    const offsets = {
+      date: today,
+      extra,
+      start: Math.floor(Math.random() * (extra + 1)),
+      end: Math.floor(Math.random() * (extra + 1))
+    };
+    GM_setValue(AUTO_ACTIVE_OFFSETS_KEY, JSON.stringify(offsets));
+    return { start: offsets.start, end: offsets.end };
+  }
+
+  function minutesToTimeText(totalMinutes) {
+    const wrapped = ((totalMinutes % 1440) + 1440) % 1440;
+    return `${String(Math.floor(wrapped / 60)).padStart(2, '0')}:${String(wrapped % 60).padStart(2, '0')}`;
+  }
+
+  // Gunun rastgele kaymasi eklenmis fiili baslama/bitis saatleri (durum mesaji icin).
+  function effectiveActiveHoursText(now = new Date()) {
+    const { start, end } = autoActiveHours();
+    const offsets = autoActiveOffsets(now);
+    return {
+      start: minutesToTimeText(timeTextToMinutes(start) + offsets.start),
+      end: minutesToTimeText(timeTextToMinutes(end) + offsets.end)
+    };
+  }
+
+  function isInsideAutoActiveHours(now = new Date()) {
+    const { start, end } = autoActiveHours();
+    const offsets = autoActiveOffsets(now);
+    const current = istanbulMinuteOfDay(now);
+    const startMinute = (timeTextToMinutes(start) + offsets.start) % 1440;
+    const endMinute = (timeTextToMinutes(end) + offsets.end) % 1440;
+    if (startMinute === endMinute) return true;
+    return startMinute < endMinute
+      ? current >= startMinute && current <= endMinute
+      : current >= startMinute || current <= endMinute;
+  }
+
+  function autoBandRanges() {
+    const snapshot = autoSettingsSnapshot();
+    const saved = Array.isArray(snapshot.bandRanges)
+      ? snapshot.bandRanges
+      : parseStoredJson(AUTO_BAND_RANGES_KEY, AUTO_DEFAULT_BAND_RANGES);
+    return AUTO_DEFAULT_BAND_RANGES.map((fallback, index) => {
+      const item = Array.isArray(saved) ? saved[index] : null;
+      const min = Number.isInteger(item?.min) && item.min >= 1 ? item.min : fallback.min;
+      const max = Number.isInteger(item?.max) && item.max >= min ? item.max : Math.max(min, fallback.max);
+      return { min, max };
+    });
+  }
+
+  function floorBandIndex(floor) {
+    return Math.min(3, Math.max(0, Math.floor((floor - 1) / 10)));
+  }
+
+  function autoBandDueTimes() {
+    const saved = parseStoredJson(AUTO_BAND_DUE_KEY, {});
+    return saved && !Array.isArray(saved) ? saved : {};
+  }
+
+  function markAutoBandCompleted(floor) {
+    const band = floorBandIndex(floor);
+    const ranges = autoBandRanges();
+    const range = ranges[band];
+    const extraMinutes = Math.round(range.min + Math.random() * (range.max - range.min));
+    const renewalSeconds = FLOOR_REMINDERS[band]?.intervalSec || 0;
+    const due = autoBandDueTimes();
+    due[band] = Date.now() + renewalSeconds * 1000 + extraMinutes * 60 * 1000;
+    GM_setValue(AUTO_BAND_DUE_KEY, JSON.stringify(due));
+    return extraMinutes;
+  }
+
+  function scheduleBandFromRemaining(floor, remainingSeconds) {
+    const band = floorBandIndex(floor);
+    const range = autoBandRanges()[band];
+    const extraMinutes = Math.round(range.min + Math.random() * (range.max - range.min));
+    const due = autoBandDueTimes();
+    due[band] = Date.now() + Math.max(0, remainingSeconds) * 1000 + extraMinutes * 60 * 1000;
+    GM_setValue(AUTO_BAND_DUE_KEY, JSON.stringify(due));
+    return { extraMinutes, dueAt: due[band] };
+  }
+
+  function nextDueFloor(fromFloor, endFloor) {
+    const due = autoBandDueTimes();
+    let floor = fromFloor;
+    while (floor <= endFloor) {
+      const band = floorBandIndex(floor);
+      // Grubun ilk kati gecildiyse ayni turdaki kalan katlari zaman kilidine takma.
+      if (floor % 10 !== 1) return floor;
+      if (Number(due[band] || 0) <= Date.now()) return floor;
+      floor = Math.min(endFloor + 1, (band + 1) * 10 + 1);
+    }
+    return 0;
+  }
+
   function autoFloorRange() {
-    const savedStart = Number(GM_getValue(AUTO_START_FLOOR_KEY, AUTO_MIN_FLOOR));
-    const savedEnd = Number(GM_getValue(AUTO_END_FLOOR_KEY, AUTO_MAX_FLOOR));
+    const snapshot = autoSettingsSnapshot();
+    const savedStart = Number(snapshot.start ?? GM_getValue(AUTO_START_FLOOR_KEY, AUTO_MIN_FLOOR));
+    const savedEnd = Number(snapshot.end ?? GM_getValue(AUTO_END_FLOOR_KEY, AUTO_MAX_FLOOR));
     const start = Math.min(AUTO_MAX_FLOOR, Math.max(AUTO_MIN_FLOOR,
       Number.isInteger(savedStart) ? savedStart : AUTO_MIN_FLOOR));
     const end = Math.min(AUTO_MAX_FLOOR, Math.max(start,
@@ -747,12 +1004,15 @@
     GM_setValue(AUTO_WAIT_UNTIL_KEY, Date.now() + waitSeconds * 1000);
     GM_setValue(BOT_NEXT_STAGE_KEY, start);
     GM_setValue(BOT_SKIP_COUNT_KEY, 0);
-    location.assign(buildFloorUrl(start));
+    const resumeAt = Date.now() + waitSeconds * 1000;
+    setOrbFloorBusy(false, resumeAt, false, buildFloorUrl(start));
+    location.assign(isOrbHuntEnabled() ? robberyIndexUrl() : buildFloorUrl(start));
   }
 
   function startAuto(startFloor, endFloor) {
     GM_setValue(AUTO_START_FLOOR_KEY, startFloor);
     GM_setValue(AUTO_END_FLOOR_KEY, endFloor);
+    saveAutoSettingsSnapshot({ ...autoSettingsSnapshot(), start: startFloor, end: endFloor });
     GM_setValue(AUTO_ENABLED_KEY, true);
     GM_setValue(BOT_ENABLED_KEY, true);
     GM_setValue(BOT_NEXT_STAGE_KEY, startFloor);
@@ -765,6 +1025,11 @@
     setBotStatus(`Oto kat modu basladi: Kat ${startFloor}-${endFloor} taraniyor`);
     renderBotPanel();
     botTickStarted = false;
+    if (orbCollectionIsDue()) {
+      startOrbPriorityTurn(startFloor);
+      return;
+    }
+    setOrbFloorBusy(true);
     // Kat sayfasinda degilsek tarama secilen ilk kattan baslasin diye oraya git.
     if (!isFloorPage()) {
       location.assign(buildFloorUrl(startFloor));
@@ -813,8 +1078,20 @@
   // Oto mod kat sayfasi: once bekleme penceresi, sonra hedef kati ac/atla/gir.
   async function handleAutoFloorPage() {
     const { start, end } = autoFloorRange();
+    if (!isInsideAutoActiveHours()) {
+      const effective = effectiveActiveHoursText();
+      setBotStatus(`Oto mod saat penceresi disinda. Istanbul ${effective.start}-${effective.end} bekleniyor (bugunun rastgele kaymasi dahil)`);
+      await sleep(30000);
+      if (isAutoEnabled()) location.reload();
+      return;
+    }
     const waitUntil = GM_getValue(AUTO_WAIT_UNTIL_KEY, 0);
     if (waitUntil && Date.now() < waitUntil) {
+      setOrbFloorBusy(false, waitUntil);
+      if (isOrbHuntEnabled()) {
+        location.assign(robberyIndexUrl());
+        return;
+      }
       while (Date.now() < waitUntil) {
         if (!isAutoEnabled()) {
           return;
@@ -827,6 +1104,7 @@
         return;
       }
       GM_setValue(AUTO_WAIT_UNTIL_KEY, 0);
+      setOrbFloorBusy(true);
       GM_setValue(BOT_NEXT_STAGE_KEY, start);
       if (!(await ensureOnline('Yeniden deneme'))) {
         return;
@@ -837,7 +1115,16 @@
     }
 
     const savedTarget = Number(GM_getValue(BOT_NEXT_STAGE_KEY, start));
-    const target = savedTarget >= start && savedTarget <= end ? savedTarget : start;
+    const candidate = savedTarget >= start && savedTarget <= end ? savedTarget : start;
+    const target = nextDueFloor(candidate, end) || nextDueFloor(start, Math.min(end, candidate - 1));
+    if (!target) {
+      const dueValues = Object.values(autoBandDueTimes()).map(Number).filter((value) => value > Date.now());
+      const waitSeconds = dueValues.length ? Math.max(10, Math.ceil((Math.min(...dueValues) - Date.now()) / 1000)) : randomAutoIntervalSeconds();
+      setBotStatus(`Tum kat gruplari beklemede. ${waitSeconds} sn sonra tekrar kontrol edilecek`);
+      beginAutoWait(waitSeconds);
+      return;
+    }
+    if (target !== candidate) GM_setValue(BOT_NEXT_STAGE_KEY, target);
     const targetPage = Math.ceil(target / 10);
     // Dogru 10'luk dilimde miyiz? (Kart numaralarina gore.) Degilse o dilime git.
     if (currentFloorPage() !== targetPage) {
@@ -863,6 +1150,25 @@
     }
 
     if (!available) {
+      // Grup basindaki kat kapaliysa oyunun gosterdigi gercek kalan sureyi oku.
+      // Grup, sayaç bittikten sonra paneldeki rastgele ek gecikme kadar daha bekler.
+      if (target % 10 === 1) {
+        const remainingSeconds = floorCooldownSeconds(target);
+        if (remainingSeconds != null && remainingSeconds > 0) {
+          const scheduled = scheduleBandFromRemaining(target, remainingSeconds);
+          const totalMinutes = Math.ceil((remainingSeconds + scheduled.extraMinutes * 60) / 60);
+          const nextBandStart = target + 10;
+          if (nextBandStart <= end) {
+            GM_setValue(BOT_NEXT_STAGE_KEY, nextBandStart);
+            setBotStatus(`Kat ${target}: ${Math.ceil(remainingSeconds / 60)} dk kaldi; +${scheduled.extraMinutes} dk gecikme. Kat ${nextBandStart} kontrol ediliyor`);
+            location.assign(buildFloorUrl(nextBandStart));
+            return;
+          }
+          setBotStatus(`Kat ${target}: yenilenme + ek gecikme sonrasi yaklasik ${totalMinutes} dk sonra tekrar kontrol edilecek`);
+          beginAutoWait(Math.max(10, Math.ceil((scheduled.dueAt - Date.now()) / 1000)));
+          return;
+        }
+      }
       // Hedef kat girise kapali: siradaki kati kontrol et. Secilen son kat da kapaliysa
       // turun tamaminda girilebilen baska kat kalmadigindan beklemeye gir.
       if (target >= end) {
@@ -917,14 +1223,45 @@
     // hatirlatmasini planla. (Diger katlar icin kayit yazilmaz.)
     await scheduleFloorReminder(stage);
 
+    // Her grubun ilk kati referanstir. Rastgele sonraki tur zamani kalici olarak saklanir.
+    if (stage % 10 === 1) {
+      markAutoBandCompleted(stage);
+    }
+
+    // Baslamis 10'lu kat serisini asla bolme. Orb ancak 10/20/30/40 sinirinda
+    // devralabilir; hem sonraki kat grubu hem orb hazirsa oncelik orbundur.
+    if (stage % 10 === 0 && orbCollectionIsDue()) {
+      const nextAfterBlock = nextDueFloor(stage + 1, end)
+        || nextDueFloor(start, Math.min(end, stage));
+      startOrbPriorityTurn(nextAfterBlock || start);
+      return;
+    }
+
     if (stage >= end) {
-      const waitSeconds = randomAutoIntervalSeconds();
+      // Aktif 10'lu grup tamamen bitti. Bu sirada suresi dolan daha onceki bir grup
+      // varsa genel beklemeye girmeden ona don; grup ortasinda asla gecis yapilmaz.
+      const readyFloor = nextDueFloor(start, end);
+      if (readyFloor) {
+        GM_setValue(BOT_NEXT_STAGE_KEY, readyFloor);
+        setBotStatus(`Kat ${stage} tamam (${done} kat). Hazir bekleyen Kat ${readyFloor}-${Math.min(end, Math.ceil(readyFloor / 10) * 10)} grubuna geciliyor`);
+        await timedSleep('button');
+        location.assign(buildFloorUrl(readyFloor));
+        return;
+      }
+      const dueValues = Object.values(autoBandDueTimes()).map(Number).filter((value) => value > Date.now());
+      const waitSeconds = dueValues.length ? Math.max(10, Math.ceil((Math.min(...dueValues) - Date.now()) / 1000)) : randomAutoIntervalSeconds();
       setBotStatus(`Kat ${stage} tamam (${done} kat). Kat ${start}-${end} taramasi bitti, ${waitSeconds} sn sonra Kat ${start}'den tekrar`);
       beginAutoWait(waitSeconds);
       return;
     }
 
-    const next = stage + 1;
+    const next = nextDueFloor(stage + 1, end) || nextDueFloor(start, Math.min(end, stage));
+    if (!next) {
+      const dueValues = Object.values(autoBandDueTimes()).map(Number).filter((value) => value > Date.now());
+      const waitSeconds = dueValues.length ? Math.max(10, Math.ceil((Math.min(...dueValues) - Date.now()) / 1000)) : randomAutoIntervalSeconds();
+      beginAutoWait(waitSeconds);
+      return;
+    }
     GM_setValue(BOT_NEXT_STAGE_KEY, next);
 
     // Katlar arasi bekleme: saniyelik geri sayim; Durdur bu sirada da calisir.
@@ -1462,6 +1799,24 @@ self.onmessage = (event) => {
     return container ? container.querySelector('a.layerEntryBtn') : null;
   }
 
+  // Kapali kat kartindaki oyun sayacini saniyeye cevirir. Ornekler: "40m 24s",
+  // "1h 20m 5s" veya "01:20:05". Sayac bulunamazsa null doner.
+  function floorCooldownSeconds(stage) {
+    const container = findFloorContainer(stage) || document.querySelector('.layerInfoContainer[style*="block"]');
+    const text = cleanText(container?.textContent || '').toLowerCase();
+    const clock = text.match(/\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b/);
+    if (clock) {
+      return clock[3]
+        ? Number(clock[1]) * 3600 + Number(clock[2]) * 60 + Number(clock[3])
+        : Number(clock[1]) * 60 + Number(clock[2]);
+    }
+    const hours = text.match(/(\d+)\s*(?:h|sa(?:at)?)/)?.[1];
+    const minutes = text.match(/(\d+)\s*(?:m|dk|dak(?:ika)?)/)?.[1];
+    const seconds = text.match(/(\d+)\s*(?:s|sn|san(?:iye)?)/)?.[1];
+    if (hours == null && minutes == null && seconds == null) return null;
+    return Number(hours || 0) * 3600 + Number(minutes || 0) * 60 + Number(seconds || 0);
+  }
+
   // Hedef kati aktif edip giris butonuna tiklar.
   async function clickFloorEntry(stage) {
     await activateFloor(stage);
@@ -1638,12 +1993,14 @@ self.onmessage = (event) => {
     GM_setValue(BOT_ENABLED_KEY, false);
     GM_setValue(AUTO_ENABLED_KEY, false);
     GM_setValue(AUTO_WAIT_UNTIL_KEY, 0);
+    setOrbFloorBusy(false);
     releaseWakeLock();
     setBotStatus(`Durdu: ${reason}`);
     renderBotPanel();
   }
 
   function startBot(startStage, stopStage) {
+    setOrbFloorBusy(true);
     GM_setValue(BOT_ENABLED_KEY, true);
     GM_setValue(AUTO_ENABLED_KEY, false);
     GM_setValue(AUTO_WAIT_UNTIL_KEY, 0);
@@ -1657,6 +2014,31 @@ self.onmessage = (event) => {
     renderBotPanel();
     botTickStarted = false;
     void runBotTick();
+  }
+
+  // Sureleri yeniden kontrol et: GM'de saklanan bekleme sayaclari (bant yenilenme,
+  // tur bekleme) sunucular arasinda ortak oldugundan sunucu degisince eski sunucunun
+  // sureleri gecerli sanilir. Bu fonksiyon sayaclari sifirlar; oto mod acikken secilen
+  // ilk kata gidip gercek sureleri bu sunucunun sayfasindan yeniden okutur ve kat
+  // musaitse girer, degilse yeni sureleri kaydedip beklemeye gecer.
+  function recheckFloorTimers() {
+    GM_setValue(AUTO_BAND_DUE_KEY, '');
+    GM_setValue(AUTO_WAIT_UNTIL_KEY, 0);
+    GM_setValue(BOT_SKIP_COUNT_KEY, 0);
+    if (isAutoEnabled()) {
+      const { start } = autoFloorRange();
+      GM_setValue(BOT_NEXT_STAGE_KEY, start);
+      if (orbCollectionIsDue()) {
+        startOrbPriorityTurn(start);
+        return;
+      }
+      setOrbFloorBusy(true);
+      setBotStatus(`Sureler sifirlandi; Kat ${start}'den bu sunucunun guncel sureleri okunuyor...`);
+      location.assign(buildFloorUrl(start));
+      return;
+    }
+    setBotStatus('Kat sureleri sifirlandi; bot baslatilinca bu sunucudaki guncel surelerle taranacak.');
+    renderBotPanel();
   }
 
   async function handleBattlePage() {
@@ -1990,6 +2372,35 @@ self.onmessage = (event) => {
     }
   }
 
+  // Oto mod beklerken kullanicinin magara, sehir, market vb. sayfalarda kalmasina
+  // izin verir. Kayitli kontrol zamani gelince hedef kata otomatik doner.
+  function scheduleAutoReturnFromOtherPage() {
+    if (orbHasPriority()) {
+      setBotStatus('Orb oncelikli calisiyor; kat botu teslimi bekliyor');
+      return;
+    }
+    const now = Date.now();
+    const waitUntil = Number(GM_getValue(AUTO_WAIT_UNTIL_KEY, 0));
+    const futureDueTimes = Object.values(autoBandDueTimes())
+      .map(Number)
+      .filter((value) => value > now);
+    const target = Number(GM_getValue(BOT_NEXT_STAGE_KEY, autoFloorRange().start));
+    const nextCheckAt = waitUntil > now
+      ? waitUntil
+      : (target % 10 !== 1 ? now : (futureDueTimes.length ? Math.min(...futureDueTimes) : now));
+    const delay = Math.max(500, Math.min(2147480000, nextCheckAt - now));
+    const remaining = Math.max(0, Math.ceil((nextCheckAt - now) / 1000));
+    setOrbFloorBusy(remaining <= 0, nextCheckAt);
+    setBotStatus(remaining > 0
+      ? `Oto mod arka planda bekliyor. Kat kontrolune ${remaining} sn kaldi`
+      : 'Oto mod: kat kontrolu baslatiliyor');
+    window.setTimeout(() => {
+      if (!isAutoEnabled()) return;
+      setOrbFloorBusy(true);
+      location.assign(buildFloorUrl(target || autoFloorRange().start));
+    }, delay);
+  }
+
   async function runBotTick() {
     if (botTickStarted || !isBotEnabled()) {
       return;
@@ -2008,6 +2419,9 @@ self.onmessage = (event) => {
         await (isAutoEnabled() ? handleAutoResultPage() : handleResultPage());
       } else if (isFloorPage()) {
         await (isAutoEnabled() ? handleAutoFloorPage() : handleFloorPage());
+      } else if (isAutoEnabled()) {
+        // Normal oyun sayfasi kullanici gezintisidir; bekleme bitene kadar dokunma.
+        scheduleAutoReturnFromOtherPage();
       } else if (isBotEnabled()) {
         // Bot acik ama sayfa taninmiyor: yarim yuklenmis sayfa, gecici sunucu hatasi
         // veya kisa internet kesintisinin ardindan gelen bos/hata sayfasi olabilir.
@@ -2188,8 +2602,53 @@ self.onmessage = (event) => {
       #bt-bot-panel .bt-panel-head,
       #bt-bot-status,
       #bt-bot-panel .bt-floor-shortcuts,
-      #bt-bot-panel .bt-panel-mode {
+      #bt-bot-panel .bt-panel-mode,
+      #bt-bot-panel .bt-auto-countdowns {
         grid-column: 1 / -1 !important;
+      }
+
+      #bt-bot-panel .bt-auto-countdowns {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        padding: 7px;
+        border: 1px solid rgba(210, 168, 108, .12);
+        border-radius: 12px;
+        background: linear-gradient(145deg, rgba(212, 168, 108, .055), rgba(255, 255, 255, .012));
+      }
+
+      #bt-bot-panel .bt-auto-countdown-card {
+        min-width: 0;
+        padding: 7px 8px;
+        border-left: 2px solid rgba(212, 168, 108, .38);
+        border-radius: 7px;
+        background: rgba(0, 0, 0, .22);
+      }
+
+      #bt-bot-panel .bt-auto-countdown-card.is-ready {
+        border-left-color: #5fc89a;
+        background: rgba(55, 125, 91, .10);
+      }
+
+      #bt-bot-panel .bt-auto-countdown-card.bt-orb-countdown-card {
+        grid-column: 1 / -1;
+        border-left-color: #dca52f;
+      }
+
+      #bt-bot-panel .bt-auto-countdown-floor {
+        color: #a99373;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+      }
+
+      #bt-bot-panel .bt-auto-countdown-value {
+        margin-top: 3px;
+        color: #f5e9d2;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.25;
       }
 
       #bt-bot-panel .bt-floor-shortcuts > div:last-child {
@@ -2504,6 +2963,10 @@ self.onmessage = (event) => {
         flex-wrap: wrap;
       }
 
+      #bt-bot-panel.is-narrow .bt-auto-countdowns {
+        grid-template-columns: 1fr 1fr;
+      }
+
       @media (max-width: 720px) {
         #bt-bot-panel {
           grid-template-columns: 1fr 1fr !important;
@@ -2579,6 +3042,11 @@ self.onmessage = (event) => {
           width: 52px !important;
         }
 
+        #bt-bot-panel .bt-auto-countdowns {
+          grid-template-columns: 1fr 1fr;
+          padding: 5px;
+        }
+
         #bt-bot-panel .bt-timing-inputs {
           grid-template-columns: 52px auto 52px;
           gap: 4px !important;
@@ -2631,8 +3099,110 @@ self.onmessage = (event) => {
     document.body.appendChild(icon);
   }
 
+  let autoCountdownTimer = 0;
+
+  // Oto ayar girdilerini depodaki guncel degerlerle esitleyen kanca. Panel her
+  // cizimde yeniden atanir; bot calisirken veya panel yokken null kalir. Amac:
+  // bfcache'ten donen ya da arka planda beklemis bir panelin bayat degerleri
+  // gostermesini (ve sonraki kayitta depoyu bu bayat degerlerle ezmesini) onlemek.
+  let refreshAutoPanelInputs = null;
+
+  function formatAutoCountdown(milliseconds) {
+    const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes} dk ${String(seconds).padStart(2, '0')} sn sonra girilecek`;
+  }
+
+  function formatOrbCountdown(milliseconds) {
+    const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return [hours, minutes, seconds]
+      .map((value) => String(value).padStart(2, '0'))
+      .join(':');
+  }
+
+  function appendAutoCountdowns(panel) {
+    if (!isAutoEnabled()) return;
+    const selectedRange = autoFloorRange();
+    const wrap = document.createElement('section');
+    wrap.className = 'bt-auto-countdowns';
+    wrap.setAttribute('aria-label', 'Kat grubu giris zamanlari');
+    const cards = [];
+
+    for (let band = 0; band < 4; band += 1) {
+      const floorStart = band * 10 + 1;
+      const floorEnd = floorStart + 9;
+      if (floorEnd < selectedRange.start || floorStart > selectedRange.end) continue;
+      const card = document.createElement('div');
+      card.className = 'bt-auto-countdown-card';
+      const floor = document.createElement('div');
+      floor.className = 'bt-auto-countdown-floor';
+      floor.textContent = `Kat ${Math.max(floorStart, selectedRange.start)}-${Math.min(floorEnd, selectedRange.end)}`;
+      const value = document.createElement('div');
+      value.className = 'bt-auto-countdown-value';
+      card.append(floor, value);
+      wrap.appendChild(card);
+      cards.push({ card, value, band });
+    }
+
+    const orbCard = document.createElement('div');
+    orbCard.className = 'bt-auto-countdown-card bt-orb-countdown-card';
+    const orbLabel = document.createElement('div');
+    orbLabel.className = 'bt-auto-countdown-floor';
+    orbLabel.textContent = 'Kure toplamaya';
+    const orbValue = document.createElement('div');
+    orbValue.className = 'bt-auto-countdown-value';
+    orbCard.append(orbLabel, orbValue);
+    wrap.appendChild(orbCard);
+
+    const update = () => {
+      const due = autoBandDueTimes();
+      cards.forEach(({ card, value, band }) => {
+        const dueAt = Number(due[band] || 0);
+        const remaining = dueAt - Date.now();
+        card.classList.toggle('is-ready', dueAt > 0 && remaining <= 0);
+        if (!dueAt) {
+          value.textContent = 'Ilk kontrol bekleniyor';
+        } else if (remaining <= 0) {
+          value.textContent = 'Simdi kontrol ediliyor';
+        } else {
+          value.textContent = formatAutoCountdown(remaining);
+        }
+      });
+      try {
+        const orb = JSON.parse(localStorage.getItem('BFOrbSettings') || '{}');
+        const collectAt = Number(orb.orbCollectAt || 0);
+        if (orb.running !== true) {
+          orbValue.textContent = 'Orb botu kapali';
+          orbCard.classList.remove('is-ready');
+        } else if (collectAt > Date.now()) {
+          orbValue.textContent = formatOrbCountdown(collectAt - Date.now());
+          orbCard.classList.remove('is-ready');
+        } else {
+          orbValue.textContent = 'Hazir - ilk uygun anda kontrol edilecek';
+          orbCard.classList.add('is-ready');
+        }
+      } catch {
+        orbValue.textContent = 'Orb zamani okunamadi';
+        orbCard.classList.remove('is-ready');
+      }
+    };
+
+    update();
+    panel.appendChild(wrap);
+    autoCountdownTimer = window.setInterval(update, 1000);
+  }
+
   function renderBotPanel() {
     injectBotPanelStyles();
+    refreshAutoPanelInputs = null;
+    if (autoCountdownTimer) {
+      window.clearInterval(autoCountdownTimer);
+      autoCountdownTimer = 0;
+    }
     const existing = document.querySelector('#bt-bot-panel');
     if (existing) {
       existing.remove();
@@ -2667,7 +3237,7 @@ self.onmessage = (event) => {
     const panelHeading = document.createElement('div');
     const panelKicker = document.createElement('div');
     panelKicker.className = 'bt-panel-kicker';
-    panelKicker.textContent = 'BiteFight otomasyon';
+    panelKicker.textContent = `BiteFight otomasyon v${(typeof GM_info !== 'undefined' && GM_info?.script?.version) || '?'}`;
     const panelTitle = document.createElement('div');
     panelTitle.className = 'bt-panel-title';
     panelTitle.textContent = 'Kat Kontrolü';
@@ -2696,7 +3266,16 @@ self.onmessage = (event) => {
     status.textContent = GM_getValue('btBotStatus', 'Kat botu hazir');
     panel.appendChild(status);
 
+    appendAutoCountdowns(panel);
+
     appendFloorShortcuts(panel);
+
+    const recheckBtn = buildActionButton('Sureleri yeniden kontrol et', 'padding:6px 12px;font-size:12px;background:#1a2f4f');
+    recheckBtn.title = 'Kayitli bekleme sayaclarini sifirlar ve kat surelerini bu sunucudan yeniden okur (sunucu degistirince kullan)';
+    recheckBtn.onclick = () => {
+      recheckFloorTimers();
+    };
+    panel.appendChild(recheckBtn);
 
     if (isBotEnabled()) {
       const modeLabel = document.createElement('div');
@@ -2793,6 +3372,57 @@ self.onmessage = (event) => {
       autoFloorRow.append(autoFloorText, autoStartInput, autoEndInput);
       autoWrap.appendChild(autoFloorRow);
 
+      const activeHours = autoActiveHours();
+      const autoHoursRow = document.createElement('label');
+      autoHoursRow.className = 'bt-inline-field';
+      autoHoursRow.style.cssText = autoFloorRow.style.cssText;
+      const autoHoursText = document.createElement('span');
+      autoHoursText.textContent = 'Istanbul saati:';
+      const autoHoursStartInput = document.createElement('input');
+      autoHoursStartInput.type = 'time';
+      autoHoursStartInput.value = activeHours.start;
+      autoHoursStartInput.style.cssText = 'width:76px';
+      const autoHoursEndInput = document.createElement('input');
+      autoHoursEndInput.type = 'time';
+      autoHoursEndInput.value = activeHours.end;
+      autoHoursEndInput.style.cssText = autoHoursStartInput.style.cssText;
+      const autoHoursExtraText = document.createElement('span');
+      autoHoursExtraText.textContent = '+dk:';
+      const autoHoursExtraInput = document.createElement('input');
+      autoHoursExtraInput.type = 'number';
+      autoHoursExtraInput.min = '0';
+      autoHoursExtraInput.max = '180';
+      autoHoursExtraInput.step = '1';
+      autoHoursExtraInput.className = 'bt-small-number';
+      autoHoursExtraInput.value = String(autoActiveExtraMinutes());
+      autoHoursExtraInput.title = 'Baslama ve bitis saatine gunluk 0-bu deger dk arasi rastgele sure eklenir (or. 10 -> 07:02 yerine 07:02-07:12 arasi baslar). 0 = kapali';
+      autoHoursRow.append(autoHoursText, autoHoursStartInput, autoHoursEndInput, autoHoursExtraText, autoHoursExtraInput);
+      autoWrap.appendChild(autoHoursRow);
+
+      const savedBandRanges = autoBandRanges();
+      const bandInputs = [];
+      savedBandRanges.forEach((range, index) => {
+        const bandStart = index * 10 + 1;
+        const bandRow = document.createElement('label');
+        bandRow.className = 'bt-inline-field';
+        bandRow.style.cssText = autoFloorRow.style.cssText;
+        const bandText = document.createElement('span');
+        bandText.textContent = `${bandStart}-${bandStart + 9} yenilenme sonrasi (dk):`;
+        const minInput = document.createElement('input');
+        minInput.type = 'number';
+        minInput.min = '1';
+        minInput.value = String(range.min);
+        minInput.className = 'bt-small-number';
+        const maxInput = document.createElement('input');
+        maxInput.type = 'number';
+        maxInput.min = '1';
+        maxInput.value = String(range.max);
+        maxInput.className = 'bt-small-number';
+        bandInputs.push({ minInput, maxInput });
+        bandRow.append(bandText, minInput, maxInput);
+        autoWrap.appendChild(bandRow);
+      });
+
       const autoIntervalRow = document.createElement('label');
       autoIntervalRow.className = 'bt-inline-field';
       autoIntervalRow.style.cssText = 'display:flex;gap:4px;align-items:center;color:#c8b49a;font-size:10.5px';
@@ -2818,27 +3448,173 @@ self.onmessage = (event) => {
       autoIntervalRow.append(autoIntervalText, autoIntervalMinInput, autoIntervalMaxInput);
       autoWrap.appendChild(autoIntervalRow);
 
-      const autoBtn = buildActionButton('Oto Kat Modu Baslat', 'padding:6px 12px;font-size:12px;background:#0a3a1a');
-      autoBtn.classList.add('bt-auto-button');
-      autoBtn.title = 'Secilen kat araligini sirayla tarar; girilebilen katlari tamamlar, tur bitince bekleyip ilk kattan tekrar dener';
-      autoBtn.onclick = () => {
+      // Oto ayarlarini degisiklik aninda ALAN BAZINDA kaydet. Eski surum her tus
+      // vurusunda TUM alanlari girdilerden okuyup yaziyordu; panel bayatsa
+      // (bfcache'ten geri donus, ikinci sekme, yeniden cizim) diger alanlarin
+      // eski degerleri depoyu eziyordu. Ayrica yalnizca eski tekil anahtarlara
+      // yazip snapshot'i guncellemedigi icin panel yeniden cizilince yazilanlar
+      // geri donuyordu (okuma snapshot'i tercih eder). Simdi her dinleyici
+      // sadece kendi alanini dogrular ve guncel snapshot'in ustune isler.
+      const persistAutoField = (field) => {
+        const patch = {};
+        if (field === 'floors') {
+          const autoStart = Number.parseInt(autoStartInput.value, 10);
+          const autoEnd = Number.parseInt(autoEndInput.value, 10);
+          if (!Number.isInteger(autoStart) || !Number.isInteger(autoEnd)
+            || autoStart < AUTO_MIN_FLOOR || autoEnd > AUTO_MAX_FLOOR || autoStart > autoEnd) return;
+          GM_setValue(AUTO_START_FLOOR_KEY, autoStart);
+          GM_setValue(AUTO_END_FLOOR_KEY, autoEnd);
+          patch.start = autoStart;
+          patch.end = autoEnd;
+        } else if (field === 'hours') {
+          if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(autoHoursStartInput.value)
+            || !/^([01]\d|2[0-3]):[0-5]\d$/.test(autoHoursEndInput.value)) return;
+          GM_setValue(AUTO_ACTIVE_START_KEY, autoHoursStartInput.value);
+          GM_setValue(AUTO_ACTIVE_END_KEY, autoHoursEndInput.value);
+          patch.activeStart = autoHoursStartInput.value;
+          patch.activeEnd = autoHoursEndInput.value;
+        } else if (field === 'extra') {
+          const extraMinutes = Number.parseInt(autoHoursExtraInput.value, 10);
+          if (!Number.isInteger(extraMinutes) || extraMinutes < 0 || extraMinutes > 180) return;
+          GM_setValue(AUTO_ACTIVE_EXTRA_KEY, extraMinutes);
+          patch.activeExtra = extraMinutes;
+        } else if (field === 'interval') {
+          const intervalMin = Number.parseInt(autoIntervalMinInput.value, 10);
+          const intervalMax = Number.parseInt(autoIntervalMaxInput.value, 10);
+          if (!Number.isInteger(intervalMin) || !Number.isInteger(intervalMax)
+            || intervalMin < AUTO_MIN_INTERVAL_SEC || intervalMin > intervalMax) return;
+          GM_setValue(AUTO_INTERVAL_MIN_KEY, intervalMin);
+          GM_setValue(AUTO_INTERVAL_MAX_KEY, intervalMax);
+          patch.intervalMin = intervalMin;
+          patch.intervalMax = intervalMax;
+        } else if (typeof field === 'number') {
+          const { minInput, maxInput } = bandInputs[field];
+          const min = Number.parseInt(minInput.value, 10);
+          const max = Number.parseInt(maxInput.value, 10);
+          if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || min > max) return;
+          // Diger bantlari depodaki guncel degerlerinden al; yalnizca duzenlenen
+          // banti degistir. Boylece bayat girdiler diger bantlari ezemez.
+          const merged = autoBandRanges();
+          merged[field] = { min, max };
+          GM_setValue(AUTO_BAND_RANGES_KEY, JSON.stringify(merged));
+          patch.bandRanges = merged;
+        }
+        saveAutoSettingsSnapshot({ ...autoSettingsSnapshot(), ...patch });
+      };
+      const bindPersist = (input, field) => {
+        // 'change' blur bekler; panel bot akisinda her an yeniden cizilebildigi
+        // icin yazilan deger blur'dan once kaybolabiliyordu. 'input' ile her tus
+        // vurusunda kaydet (gecersiz ara degerler persistAutoField'da elenir).
+        input.addEventListener('change', () => persistAutoField(field));
+        input.addEventListener('input', () => persistAutoField(field));
+      };
+      bindPersist(autoStartInput, 'floors');
+      bindPersist(autoEndInput, 'floors');
+      bindPersist(autoHoursStartInput, 'hours');
+      bindPersist(autoHoursEndInput, 'hours');
+      bindPersist(autoHoursExtraInput, 'extra');
+      bindPersist(autoIntervalMinInput, 'interval');
+      bindPersist(autoIntervalMaxInput, 'interval');
+      bandInputs.forEach(({ minInput, maxInput }, index) => {
+        bindPersist(minInput, index);
+        bindPersist(maxInput, index);
+      });
+
+      // Panel gorunur olunca girdileri depodaki guncel degerlerle esitle.
+      // Kullanici panel icinde yaziyorsa dokunma; yazilani ezmeyelim.
+      refreshAutoPanelInputs = () => {
+        const active = document.activeElement;
+        if (active && panel.contains(active)) return;
+        const range = autoFloorRange();
+        autoStartInput.value = String(range.start);
+        autoEndInput.value = String(range.end);
+        const hours = autoActiveHours();
+        autoHoursStartInput.value = hours.start;
+        autoHoursEndInput.value = hours.end;
+        autoHoursExtraInput.value = String(autoActiveExtraMinutes());
+        autoBandRanges().forEach((band, index) => {
+          bandInputs[index].minInput.value = String(band.min);
+          bandInputs[index].maxInput.value = String(band.max);
+        });
+        const interval = autoIntervalRange();
+        autoIntervalMinInput.value = String(interval.min);
+        autoIntervalMaxInput.value = String(interval.max);
+      };
+
+      // Tum oto ayarlarini dogrulayip GM'e yazar. Gecersiz alan varsa durum
+      // mesajiyla bildirir ve null doner; gecerliyse {start, end} doner.
+      const saveAutoSettingsFromInputs = () => {
         const autoStart = Number.parseInt(autoStartInput.value, 10);
         const autoEnd = Number.parseInt(autoEndInput.value, 10);
         if (!Number.isInteger(autoStart) || !Number.isInteger(autoEnd)
           || autoStart < AUTO_MIN_FLOOR || autoEnd > AUTO_MAX_FLOOR || autoStart > autoEnd) {
           setBotStatus(`Oto kat araligi ${AUTO_MIN_FLOOR}-${AUTO_MAX_FLOOR} icinde ve baslangic bitisten kucuk olmali`);
-          return;
+          return null;
         }
         const intervalMin = Number.parseInt(autoIntervalMinInput.value, 10);
         const intervalMax = Number.parseInt(autoIntervalMaxInput.value, 10);
         if (!Number.isInteger(intervalMin) || !Number.isInteger(intervalMax)
           || intervalMin < AUTO_MIN_INTERVAL_SEC || intervalMin > intervalMax) {
           setBotStatus(`Yeniden deneme araligi en az ${AUTO_MIN_INTERVAL_SEC} sn olmali ve minimum maksimumdan buyuk olmamali`);
-          return;
+          return null;
         }
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(autoHoursStartInput.value)
+          || !/^([01]\d|2[0-3]):[0-5]\d$/.test(autoHoursEndInput.value)) {
+          setBotStatus('Gecerli Istanbul baslangic ve bitis saati gir');
+          return null;
+        }
+        const bandRanges = bandInputs.map(({ minInput, maxInput }) => ({
+          min: Number.parseInt(minInput.value, 10), max: Number.parseInt(maxInput.value, 10)
+        }));
+        if (bandRanges.some((range) => !Number.isInteger(range.min) || !Number.isInteger(range.max)
+          || range.min < 1 || range.min > range.max)) {
+          setBotStatus('Kat grubu beklemelerinde minimum 1 dk olmali ve maksimum minimumdan kucuk olmamali');
+          return null;
+        }
+        const extraMinutes = Number.parseInt(autoHoursExtraInput.value, 10);
+        GM_setValue(AUTO_START_FLOOR_KEY, autoStart);
+        GM_setValue(AUTO_END_FLOOR_KEY, autoEnd);
         GM_setValue(AUTO_INTERVAL_MIN_KEY, intervalMin);
         GM_setValue(AUTO_INTERVAL_MAX_KEY, intervalMax);
-        startAuto(autoStart, autoEnd);
+        GM_setValue(AUTO_ACTIVE_START_KEY, autoHoursStartInput.value);
+        GM_setValue(AUTO_ACTIVE_END_KEY, autoHoursEndInput.value);
+        GM_setValue(AUTO_ACTIVE_EXTRA_KEY, Number.isInteger(extraMinutes) && extraMinutes >= 0 && extraMinutes <= 180 ? extraMinutes : 0);
+        GM_setValue(AUTO_BAND_RANGES_KEY, JSON.stringify(bandRanges));
+        // Guncel snapshot'in ustune isle: formda olmayan/ileride eklenecek
+        // alanlar kaybolmasin, baska sekmenin yazdiklari silinmesin.
+        saveAutoSettingsSnapshot({
+          ...autoSettingsSnapshot(),
+          start: autoStart,
+          end: autoEnd,
+          intervalMin,
+          intervalMax,
+          activeStart: autoHoursStartInput.value,
+          activeEnd: autoHoursEndInput.value,
+          activeExtra: Number.isInteger(extraMinutes) && extraMinutes >= 0 && extraMinutes <= 180 ? extraMinutes : 0,
+          bandRanges
+        });
+        return { start: autoStart, end: autoEnd };
+      };
+
+      const saveBtn = buildActionButton('Ayarlari Kaydet', 'padding:6px 12px;font-size:12px');
+      saveBtn.title = 'Yukaridaki oto kat ayarlarini botu baslatmadan kaydeder';
+      saveBtn.onclick = () => {
+        const saved = saveAutoSettingsFromInputs();
+        if (saved) {
+          setBotStatus(`Oto kat ayarlari kaydedildi (kat ${saved.start}-${saved.end})`);
+        }
+      };
+      autoWrap.appendChild(saveBtn);
+
+      const autoBtn = buildActionButton('Oto Kat Modu Baslat', 'padding:6px 12px;font-size:12px;background:#0a3a1a');
+      autoBtn.classList.add('bt-auto-button');
+      autoBtn.title = 'Secilen kat araligini sirayla tarar; girilebilen katlari tamamlar, tur bitince bekleyip ilk kattan tekrar dener';
+      autoBtn.onclick = () => {
+        const saved = saveAutoSettingsFromInputs();
+        if (!saved) {
+          return;
+        }
+        startAuto(saved.start, saved.end);
       };
       autoWrap.appendChild(autoBtn);
       panel.appendChild(autoWrap);
@@ -3516,6 +4292,15 @@ self.onmessage = (event) => {
   watchFightSubmission();
   watchLootPage();
   new MutationObserver(injectButtons).observe(document.body, { childList: true, subtree: true });
+
+  // Sekme one gelince / bfcache'ten geri donunce oto ayar girdilerini depoyla
+  // esitle: bot gezinirken ya da baska sekmede kaydedilen degerler, bayat
+  // girdiler uzerinden bir sonraki kayitta ezilmesin.
+  window.addEventListener('pageshow', () => { refreshAutoPanelInputs?.(); });
+  window.addEventListener('focus', () => { refreshAutoPanelInputs?.(); });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshAutoPanelInputs?.();
+  });
 
   // Kat botu: panel + sayfa yerlestikten sonra tek tetik.
   window.setTimeout(() => {

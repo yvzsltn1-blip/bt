@@ -1,11 +1,9 @@
 // ==UserScript==
 // @name         BiteFight Sehir Orb Toplayici
 // @namespace    av-analiz
-// @version      2.1.0
-// @description  Sehir avini otomatik tekrarlar; panelden secilen S/A/B sinifi iksirlerde, belirlenen gecikme sonrasi Cikarmak tiklar veya otomatik alma kapaliysa durup kullaniciya birakir. 0/3 kaldiginda durur. Bot calisirken telefon ekran/tus kilidi kapanmaz.
-// @match        https://*.bitefight.gameforge.com/robbery/index*
-// @match        https://*.bitefight.gameforge.com/robbery/humanhunt/*
-// @match        https://*.bitefight.gameforge.com/report/fightreport/*
+// @version      2.9.6
+// @description  Sehir avini otomatik tekrarlar; panelden secilen S/A/B sinifi iksirlerde, belirlenen gecikme sonrasi Cikarmak tiklar veya otomatik alma kapaliysa durup kullaniciya birakir. 0/3 kaldiginda yenilenmeyi bekler. Bot calisirken telefon ekran/tus kilidi kapanmaz. Diger sayfalarda bekci modunda calisir: orb suresi gelince robbery sayfasina kendisi gider.
+// @match        https://*.bitefight.gameforge.com/*
 // @downloadURL  https://bt-analiz.web.app/orb.user.js
 // @updateURL    https://bt-analiz.web.app/orb.user.js
 // @grant        none
@@ -21,7 +19,9 @@
   window.__BFOrbHarvestLoaded = true;
 
   const SCRIPT_TAG = "[BF Orb]";
-  const SCRIPT_VERSION = "2.1.0";
+  const SCRIPT_VERSION = "2.9.6";
+  const FIREBASE_API_KEY = "AIzaSyB6_mwliHgUXjCSidzZIBiQj_8hLkYvZV4";
+  const ORB_NOTIFICATIONS_URL = "https://firestore.googleapis.com/v1/projects/bt-analiz/databases/(default)/documents/orbNotifications";
   const LOCATIONS = [
     { id: "1", label: "Ciftlik" },
     { id: "2", label: "Koy" },
@@ -35,6 +35,12 @@
   const EXTRACT_TIMEOUT_MS = 12000;
   const EXTRACT_POLL_MS = 400;
   const SETTINGS_KEY = "BFOrbSettings";
+  const FLOOR_COORDINATION_KEY = "BFOrbFloorCoordinator";
+  // Kat botu kilidi bu sureden uzun tazelenmezse bayat sayilir (sekme kapandi/cokme).
+  const FLOOR_LOCK_STALE_MS = 10 * 60 * 1000;
+  // "Uygun aksiyon bulunamadi" durumunda robbery uzerinden kac kez yeniden denenir.
+  const NO_ACTION_RETRY_KEY = "BFOrbNoActionRetries";
+  const NO_ACTION_MAX_RETRIES = 3;
 
   const DEFAULT_SETTINGS = {
     classes: { S: true, A: true, B: true }, // toplanacak siniflar
@@ -46,6 +52,13 @@
     panelPos: null, // { left, top } - panelin surukle-birak konumu
     repeatMinSec: 0.3, // "Yeniden" basislari arasi gecikme alt sinir (sn)
     repeatMaxSec: 0.6, // "Yeniden" basislari arasi gecikme ust sinir (sn)
+    orbReadyDelayMinMinutes: 3,
+    orbReadyDelayMaxMinutes: 5,
+    orbReadyAt: 0,
+    orbCollectAt: 0,
+    // Kat botuna teslimde yazilan sayaclar gecicidir; robbery sayfasinda
+    // gercek sayac okunana kadar true kalir (bkz. updateOrbScheduleFromPage).
+    orbTimersProvisional: false,
   };
 
   const settings = loadSettings();
@@ -292,6 +305,15 @@
       merged.repeatMaxSec = merged.repeatMinSec;
     }
 
+    merged.orbReadyDelayMinMinutes = clampNumber(merged.orbReadyDelayMinMinutes, 0, 180, DEFAULT_SETTINGS.orbReadyDelayMinMinutes);
+    merged.orbReadyDelayMaxMinutes = clampNumber(merged.orbReadyDelayMaxMinutes, 0, 180, DEFAULT_SETTINGS.orbReadyDelayMaxMinutes);
+    if (merged.orbReadyDelayMaxMinutes < merged.orbReadyDelayMinMinutes) {
+      merged.orbReadyDelayMaxMinutes = merged.orbReadyDelayMinMinutes;
+    }
+    merged.orbReadyAt = Math.max(0, Number(merged.orbReadyAt) || 0);
+    merged.orbCollectAt = Math.max(0, Number(merged.orbCollectAt) || 0);
+    merged.orbTimersProvisional = merged.orbTimersProvisional === true;
+
     return merged;
   }
 
@@ -318,7 +340,7 @@
       startHunt();
     },
     stop() {
-      stopHunt("Script manuel olarak durduruldu.");
+      stopHunt("Script manuel olarak durduruldu.", false);
     },
     settings,
     debug() {
@@ -356,7 +378,9 @@
     scheduleMain(50);
   }
 
-  function stopHunt(message) {
+  // notify=false: kullanicinin kendi durdurmasi gibi bildirim gerektirmeyen durumlar.
+  function stopHunt(message, notify = true) {
+    const wasRunning = settings.running === true;
     settings.running = false;
     saveSettings();
     releaseWakeLock();
@@ -366,6 +390,27 @@
       setStatus(message, "warn");
       log(message);
     }
+    if (notify && wasRunning && message) {
+      void sendOrbEventNotification(message);
+    }
+  }
+
+  // "Uygun aksiyon yok" yeniden deneme sayaci sekmeye ozeldir (sessionStorage):
+  // navigasyonlar arasinda korunur, yeni sekmede sifirdan baslar.
+  function getNoActionRetries() {
+    return Number(window.sessionStorage.getItem(NO_ACTION_RETRY_KEY) || 0);
+  }
+
+  function setNoActionRetries(value) {
+    try {
+      window.sessionStorage.setItem(NO_ACTION_RETRY_KEY, String(value));
+    } catch { /* yoksayilir */ }
+  }
+
+  function clearNoActionRetries() {
+    try {
+      window.sessionStorage.removeItem(NO_ACTION_RETRY_KEY);
+    } catch { /* yoksayilir */ }
   }
 
   function clearCountdown() {
@@ -391,6 +436,13 @@
     return randomInt(Math.min(minMs, maxMs), Math.max(minMs, maxMs));
   }
 
+  // Robbery sayfasi her acildiginda sayaclari sayfadan tazele (bot kapali olsa da).
+  // Kayitli sure ile sayfadaki gercek sayac 5 sn'den fazla ayrisirsa (or. sunucu
+  // degisti) kayit guncellenir; boylece panel eski sunucunun suresini gostermez.
+  if (isRobberyIndexPage(location.href)) {
+    updateOrbScheduleFromPage();
+  }
+
   // Sayfa yuklendiginde, av aciksa devam et (ve ekran kilidini hemen geri al)
   if (settings.running) {
     void acquireWakeLock();
@@ -406,14 +458,135 @@
     }, delayMs);
   }
 
+  function floorBotIsBusy() {
+    try {
+      const coordinator = JSON.parse(window.localStorage.getItem(FLOOR_COORDINATION_KEY) || "{}");
+      if (coordinator.busy !== true) {
+        return false;
+      }
+      // Kat botu bir sonraki kontrol zamanini bekliyorsa aktif bir kat serisi
+      // yurutmuyor demektir. Eski/yarista kalmis busy=true bayragi orb'un zamani
+      // geldiginde robbery sayfasina gecmesini engellemesin.
+      const resumeAt = Number(coordinator.resumeAt || 0);
+      if (resumeAt > Date.now()) {
+        return false;
+      }
+      // Kat botu calisirken kilidi periyodik tazeler; tazelenmeyen kilit
+      // (sekme kapandi, tarayici coktu) orb'u sonsuza dek bekletmesin.
+      const updatedAt = Number(coordinator.updatedAt || 0);
+      if (!updatedAt || Date.now() - updatedAt > FLOOR_LOCK_STALE_MS) {
+        log("Kat botu kilidi bayat (tazelenmiyor), yok sayiliyor.");
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function orbPriorityCoordinator() {
+    try {
+      return JSON.parse(window.localStorage.getItem(FLOOR_COORDINATION_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+
+  function claimOrbPriority() {
+    const coordinator = orbPriorityCoordinator();
+    if (!coordinator.floorUrl) return;
+    coordinator.busy = false;
+    coordinator.orbPriority = true;
+    coordinator.updatedAt = Date.now();
+    window.localStorage.setItem(FLOOR_COORDINATION_KEY, JSON.stringify(coordinator));
+  }
+
+  function handoffToFloorBot(message) {
+    const coordinator = orbPriorityCoordinator();
+    const floorUrl = coordinator.floorUrl;
+    if (!coordinator.orbPriority || !floorUrl) {
+      stopHunt(message);
+      return;
+    }
+    coordinator.busy = true;
+    coordinator.orbPriority = false;
+    coordinator.updatedAt = Date.now();
+    window.localStorage.setItem(FLOOR_COORDINATION_KEY, JSON.stringify(coordinator));
+    // Kat serisi devam ederken Orb'un zamani tekrar "bilinmiyor/hazir" sayilmasin.
+    // Sayfadan taze okunmus gercek bir sayac varsa ona dokunma; yoksa gecici
+    // (orbTimersProvisional=true) bir kilit yaz — ilk robbery/index ziyaretinde
+    // gercek sayacla degistirilir (kureler hazirsa aninda sifirlanir).
+    if (settings.orbCollectAt <= Date.now()) {
+      settings.orbReadyAt = Date.now() + 2 * 60 * 60 * 1000;
+      settings.orbCollectAt = settings.orbReadyAt;
+      settings.orbTimersProvisional = true;
+    }
+    saveSettings();
+    clearCountdown();
+    setStatus(`${message} Kat botuna geciliyor...`, "ok");
+    log(message);
+    window.location.assign(floorUrl);
+  }
+
+  function waitForOrbRenewal(message) {
+    const coordinator = orbPriorityCoordinator();
+    if (coordinator.orbPriority && coordinator.floorUrl) {
+      handoffToFloorBot(message);
+      return;
+    }
+
+    const waitMs = updateOrbScheduleFromPage();
+    clearCountdown();
+    updateOrbSchedulePanel();
+    const statusMessage = waitMs > 0
+      ? `${message} Yenilenme bekleniyor: ${formatDuration(waitMs)}`
+      : `${message} Yenilenme suresi yeniden kontrol ediliyor...`;
+    setStatus(statusMessage, "warn");
+    log(statusMessage);
+
+    if (!isRobberyIndexPage(location.href)) {
+      window.location.assign(`${location.origin}/robbery/index`);
+      return;
+    }
+    scheduleMain(waitMs > 0 ? Math.min(1000, waitMs) : 3000);
+  }
+
   async function main() {
     if (state.busy || !settings.running) {
+      return;
+    }
+
+    if (floorBotIsBusy()) {
+      setStatus("Kat botu calisiyor; orb bekliyor...", "warn");
+      scheduleMain(1000);
+      return;
+    }
+
+    // Bekci modu: orb sayfalarinin disindaki herhangi bir bitefight sayfasi.
+    // Burada av mantigi calismaz; sadece orb suresi dolunca (kat botu bosken)
+    // robbery sayfasina gidilir. Sure dolmadiysa beklemeye devam edilir.
+    if (!isOrbWorkPage(location.href)) {
+      const waitMs = settings.orbCollectAt - Date.now();
+      if (waitMs > 0) {
+        scheduleMain(Math.min(waitMs, 15000));
+        return;
+      }
+      log("Orb suresi geldi, robbery sayfasina gidiliyor.");
+      window.location.assign(`${location.origin}/robbery/index`);
       return;
     }
 
     state.busy = true;
     try {
       if (isRobberyIndexPage(location.href)) {
+        const waitMs = updateOrbScheduleFromPage();
+        if (waitMs > 0) {
+          updateOrbSchedulePanel();
+          setStatus(`Kureler icin bekleniyor: ${formatDuration(waitMs)}`, "warn");
+          scheduleMain(Math.min(1000, waitMs));
+          return;
+        }
+        claimOrbPriority();
         const locLabel = getLocationLabel(settings.location);
         log(`${locLabel} avi baslatiliyor.`);
         setStatus(`${locLabel} avi baslatiliyor...`, "ok");
@@ -423,17 +596,38 @@
 
       const harvestBox = findHarvestBox(document);
       if (harvestBox) {
+        clearNoActionRetries();
         await handleHarvestBox(harvestBox);
         return;
       }
 
       const repeatRequest = buildRepeatRequest(document, location.href);
       if (!repeatRequest) {
-        log("Bu sayfada uygun bir tekrar aksiyonu bulunamadi. Script beklemede.");
-        setStatus("Uygun aksiyon bulunamadi, beklemede.", "warn");
+        if (orbPriorityCoordinator().orbPriority) {
+          handoffToFloorBot("Av enerjisi veya tekrar aksiyonu kalmadi.");
+          return;
+        }
+        // Eskiden burada sessizce askida kaliniyordu (running=true ama is yok).
+        // Simdi robbery/index uzerinden birkac kez yeniden denenir; olmazsa
+        // bildirimli sekilde durulur.
+        const attempts = getNoActionRetries() + 1;
+        if (attempts > NO_ACTION_MAX_RETRIES) {
+          clearNoActionRetries();
+          stopHunt(`Uygun tekrar aksiyonu ${NO_ACTION_MAX_RETRIES} denemede bulunamadi (enerji bitmis olabilir). Script durdu.`);
+          return;
+        }
+        setNoActionRetries(attempts);
+        log(`Uygun aksiyon yok; robbery sayfasindan yeniden denenecek (${attempts}/${NO_ACTION_MAX_RETRIES}).`);
+        setStatus(`Uygun aksiyon yok, yeniden deneniyor (${attempts}/${NO_ACTION_MAX_RETRIES})...`, "warn");
+        window.setTimeout(() => {
+          if (settings.running) {
+            window.location.assign(`${location.origin}/robbery/index`);
+          }
+        }, 3000 + Math.round(Math.random() * 3000));
         return;
       }
 
+      clearNoActionRetries();
       log("Yeniden butonu bulundu, av devam ediyor.");
       navigateWithRequest(repeatRequest);
     } finally {
@@ -454,7 +648,9 @@
     }
 
     if (orbInfo.total > 0 && orbInfo.available === 0) {
-      stopHunt("0/3 kure dolu. Script durdu.");
+      // Av sayfasindaki slot sayaclarindan gercek yenilenme suresini oku ki
+      // panel 00:00:00 gostermesin ve bot hazir sanip bosuna ava girmesin.
+      waitForOrbRenewal("3/3 kure doldu.");
       return;
     }
 
@@ -472,7 +668,15 @@
     if (!targetClasses.has(potionClass)) {
       const repeatRequest = buildRepeatRequest(document, location.href);
       if (!repeatRequest) {
-        stopHunt(`${potionClass} sinifi bulundu ama Yeniden butonu bulunamadi.`);
+        // Enerji bittiyse mevcut kurelerin sayaçlarini oku. En uzun süre,
+        // bir sonraki orb turunun baslangici olarak kabul edilir; bot kapanmaz.
+        const waitMs = updateOrbScheduleFromPage();
+        const message = waitMs > 0
+          ? `${potionClass} sinifi bulundu; enerji bekleniyor (${formatDuration(waitMs)}).`
+          : `${potionClass} sinifi bulundu; bot hazirda bekliyor.`;
+        log(message);
+        setStatus(message, "warn");
+        window.location.assign(`${location.origin}/robbery/index`);
         return;
       }
       log(`${potionClass} sinifi bulundu (hedef disi), tekrar deneniyor.`);
@@ -526,6 +730,8 @@
       return;
     }
 
+    await sendOrbCollectedNotification(potionClass);
+
     const refreshedHarvestBox = findHarvestBox(document);
     const refreshedOrbInfo = getOrbInfo(refreshedHarvestBox);
     if (refreshedOrbInfo.total > 0) {
@@ -533,7 +739,7 @@
     }
 
     if (refreshedOrbInfo.total > 0 && refreshedOrbInfo.available === 0) {
-      stopHunt("0/3 kure dolu. Script durdu.");
+      waitForOrbRenewal("3/3 kure doldu.");
       return;
     }
 
@@ -701,6 +907,120 @@
     };
   }
 
+  function pageOrbRemainingSeconds() {
+    const values = [];
+    for (const node of document.querySelectorAll("#content span, #content div, #content p")) {
+      const text = normalizeText(node.textContent || "");
+      // Kure sayaci 1 saatin ustunde "1:03:47" (S:DD:SS), altinda "28:40" (DD:SS)
+      // bicimindedir; iki bicim de okunmali yoksa kureler "hazir" sanilir.
+      const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      if (!match) continue;
+      const seconds = match[3] !== undefined
+        ? Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3])
+        : Number(match[1]) * 60 + Number(match[2]);
+      if (seconds > 0) values.push(seconds);
+    }
+    return values.length >= 1 ? Math.max(...values) : 0;
+  }
+
+  function updateOrbScheduleFromPage() {
+    // Kat botuna teslimde yazilan sayaclar geciciydi; robbery sayfasindayiz,
+    // gercek durumu sayfadan okuyacagiz. Geciciyi sil ki kureler hazirken
+    // (sayfada geri sayim yokken) sahte sure yuzunden saatlerce beklenmesin.
+    if (settings.orbTimersProvisional) {
+      settings.orbReadyAt = 0;
+      settings.orbCollectAt = 0;
+      settings.orbTimersProvisional = false;
+      saveSettings();
+    }
+    // Av yalnizca tum kureler kullanilabilir durumdaysa baslasin. 1/3 veya 2/3
+    // durumunda en son yenilenecek kurenin (en buyuk) sayacina gore beklenir.
+    const orbInfo = getOrbInfo(document);
+    if (orbInfo.total > 0 && orbInfo.available === orbInfo.total) {
+      if (settings.orbCollectAt || settings.orbReadyAt) {
+        settings.orbReadyAt = 0;
+        settings.orbCollectAt = 0;
+        saveSettings();
+      }
+      return 0;
+    }
+    const remainingSeconds = pageOrbRemainingSeconds();
+    if (remainingSeconds > 0) {
+      const detectedReadyAt = Date.now() + remainingSeconds * 1000;
+      if (!settings.orbReadyAt || !settings.orbCollectAt || Math.abs(settings.orbReadyAt - detectedReadyAt) > 5000) {
+        const min = settings.orbReadyDelayMinMinutes;
+        const max = settings.orbReadyDelayMaxMinutes;
+        const delayMinutes = min + Math.random() * (max - min);
+        settings.orbReadyAt = detectedReadyAt;
+        settings.orbCollectAt = detectedReadyAt + Math.round(delayMinutes * 60000);
+        saveSettings();
+      }
+    }
+    if (settings.orbCollectAt > Date.now()) {
+      return settings.orbCollectAt - Date.now();
+    }
+    if (settings.orbCollectAt || settings.orbReadyAt) {
+      settings.orbReadyAt = 0;
+      settings.orbCollectAt = 0;
+      saveSettings();
+    }
+    return 0;
+  }
+
+  function formatDuration(milliseconds) {
+    const total = Math.max(0, Math.ceil(Number(milliseconds || 0) / 1000));
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const seconds = total % 60;
+    return [hours, minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":");
+  }
+
+  // Bot kendiliginden durunca Telegram'a haber ver (gece sessizce durmasin).
+  async function sendOrbEventNotification(message) {
+    const docId = `orbstop_${Date.now()}_${Math.random().toString(36).slice(2, 9) || "0"}`;
+    try {
+      const response = await fetch(`${ORB_NOTIFICATIONS_URL}?documentId=${docId}&key=${FIREBASE_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: {
+            kind: { stringValue: "stopped" },
+            message: { stringValue: String(message).slice(0, 300) },
+            host: { stringValue: location.host },
+            createdAt: { stringValue: new Date().toISOString() }
+          }
+        })
+      });
+      if (!response.ok) throw new Error(`Firestore ${response.status}: ${await response.text()}`);
+      log(`Telegram bildirimi planlandi: Bot durdu (${message})`);
+    } catch (error) {
+      console.error(SCRIPT_TAG, "Durus Telegram bildirimi gonderilemedi.", error);
+    }
+  }
+
+  async function sendOrbCollectedNotification(orbClass) {
+    const normalizedClass = String(orbClass || "").toUpperCase();
+    if (!["S", "A", "B"].includes(normalizedClass)) return;
+    const docId = `orb_${Date.now()}_${Math.random().toString(36).slice(2, 9) || "0"}`;
+    try {
+      const response = await fetch(`${ORB_NOTIFICATIONS_URL}?documentId=${encodeURIComponent(docId)}&key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: {
+            orbClass: { stringValue: normalizedClass },
+            host: { stringValue: location.host },
+            createdAt: { stringValue: new Date().toISOString() }
+          }
+        })
+      });
+      if (!response.ok) throw new Error(`Firestore ${response.status}: ${await response.text()}`);
+      log(`Telegram bildirimi planlandi: Orb alindi ${normalizedClass}`);
+    } catch (error) {
+      console.error(SCRIPT_TAG, "Orb Telegram bildirimi gonderilemedi.", error);
+    }
+  }
+
   function findExtractButton(harvestBox) {
     if (!harvestBox) {
       return null;
@@ -711,6 +1031,12 @@
 
   function isRobberyIndexPage(url) {
     return /\/robbery\/index(?:[?#]|$)/i.test(String(url || ""));
+  }
+
+  // Orb botunun asil is yaptigi sayfalar (eski @match kapsami). Bunlarin
+  // disindaki sayfalarda script yalnizca bekci modunda calisir.
+  function isOrbWorkPage(url) {
+    return /\/robbery\/index(?:[?#]|$)|\/robbery\/humanhunt\/|\/report\/fightreport\//i.test(String(url || ""));
   }
 
   function findLocationButton(locationId) {
@@ -731,7 +1057,16 @@
     const locationId = settings.location || DEFAULT_LOCATION_ID;
     const button = findLocationButton(locationId);
     if (!button) {
+      if (orbPriorityCoordinator().orbPriority) {
+        handoffToFloorBot("Av enerjisi veya av butonu kalmadi.");
+        return;
+      }
       throw new Error(`${getLocationLabel(locationId)} hunt butonu bulunamadi.`);
+    }
+
+    if (button.disabled || button.getAttribute("aria-disabled") === "true") {
+      handoffToFloorBot("Av enerjisi bitti.");
+      return;
     }
 
     if (typeof window.doHunt === "function") {
@@ -923,6 +1258,10 @@
     delayMaxInput: null,
     repeatMinInput: null,
     repeatMaxInput: null,
+    orbWaitMinInput: null,
+    orbWaitMaxInput: null,
+    orbReadyCountdown: null,
+    orbCollectCountdown: null,
     startStopBtn: null,
     status: null,
   };
@@ -969,25 +1308,44 @@
           <div class="bf-orb-hint" id="bf-orb-auto-hint"></div>
         </div>
 
-        <div class="bf-orb-section" id="bf-orb-delay-section">
-          <div class="bf-orb-label">Alma gecikmesi (sn)</div>
-          <div class="bf-orb-range">
-            <input type="number" id="bf-orb-delay-min" min="0" max="120" step="0.1" title="En az">
-            <span class="bf-orb-range-sep">–</span>
-            <input type="number" id="bf-orb-delay-max" min="0" max="120" step="0.1" title="En cok">
+        <div class="bf-orb-section">
+          <button type="button" class="bf-orb-timing-toggle" id="bf-orb-timing-toggle">
+            <span>Bekleme sureleri</span><span class="bf-orb-caret">▸</span>
+          </button>
+          <div class="bf-orb-timing" id="bf-orb-timing" style="display:none">
+            <div class="bf-orb-section" id="bf-orb-delay-section" title="Hedef gelince bu aralikta rastgele beklenip alinir.">
+              <div class="bf-orb-label">Alma gecikmesi (sn)</div>
+              <div class="bf-orb-range">
+                <input type="number" id="bf-orb-delay-min" min="0" max="120" step="0.1" title="En az">
+                <span class="bf-orb-range-sep">–</span>
+                <input type="number" id="bf-orb-delay-max" min="0" max="120" step="0.1" title="En cok">
+              </div>
+            </div>
+            <div class="bf-orb-section" title="Her &quot;Yeniden&quot; basisindan once bu aralikta rastgele beklenir.">
+              <div class="bf-orb-label">Yeniden gecikmesi (sn)</div>
+              <div class="bf-orb-range">
+                <input type="number" id="bf-orb-repeat-min" min="0" max="60" step="0.1" title="En az">
+                <span class="bf-orb-range-sep">–</span>
+                <input type="number" id="bf-orb-repeat-max" min="0" max="60" step="0.1" title="En cok">
+              </div>
+            </div>
+            <div class="bf-orb-section" title="En son kure hazir olduktan sonra rastgele beklenir.">
+              <div class="bf-orb-label">Kure hazir gecikmesi (dk)</div>
+              <div class="bf-orb-range">
+                <input type="number" id="bf-orb-wait-min" min="0" max="180" step="0.1" title="En az">
+                <span class="bf-orb-range-sep">–</span>
+                <input type="number" id="bf-orb-wait-max" min="0" max="180" step="0.1" title="En cok">
+              </div>
+            </div>
           </div>
-          <div class="bf-orb-hint">Hedef gelince bu aralikta rastgele beklenip alinir.</div>
         </div>
 
-        <div class="bf-orb-section">
-          <div class="bf-orb-label">Yeniden gecikmesi (sn)</div>
-          <div class="bf-orb-range">
-            <input type="number" id="bf-orb-repeat-min" min="0" max="60" step="0.1" title="En az">
-            <span class="bf-orb-range-sep">–</span>
-            <input type="number" id="bf-orb-repeat-max" min="0" max="60" step="0.1" title="En cok">
-          </div>
-          <div class="bf-orb-hint">Her "Yeniden" basisindan once bu aralikta rastgele beklenir.</div>
+        <div class="bf-orb-schedule">
+          <div>Kurelerin hazir olmasina: <strong id="bf-orb-ready-countdown">--:--:--</strong></div>
+          <div>Orb toplamaya: <strong id="bf-orb-collect-countdown">--:--:--</strong></div>
         </div>
+
+        <button type="button" class="bf-orb-recheck" id="bf-orb-recheck" title="Kayitli sayaclari sifirlar ve sureyi bu sunucudaki sayfadan yeniden okur (sunucu degistirince kullan)">Sureyi yeniden kontrol et</button>
 
         <button type="button" class="bf-orb-start" id="bf-orb-startstop">Baslat</button>
 
@@ -1004,6 +1362,11 @@
     ui.delayMaxInput = root.querySelector("#bf-orb-delay-max");
     ui.repeatMinInput = root.querySelector("#bf-orb-repeat-min");
     ui.repeatMaxInput = root.querySelector("#bf-orb-repeat-max");
+    ui.orbWaitMinInput = root.querySelector("#bf-orb-wait-min");
+    ui.orbWaitMaxInput = root.querySelector("#bf-orb-wait-max");
+    ui.orbReadyCountdown = root.querySelector("#bf-orb-ready-countdown");
+    ui.orbCollectCountdown = root.querySelector("#bf-orb-collect-countdown");
+    ui.recheckBtn = root.querySelector("#bf-orb-recheck");
     ui.startStopBtn = root.querySelector("#bf-orb-startstop");
     ui.status = root.querySelector("#bf-orb-status");
 
@@ -1067,10 +1430,44 @@
     ui.repeatMinInput.addEventListener("change", onRepeatChange);
     ui.repeatMaxInput.addEventListener("change", onRepeatChange);
 
+    const onOrbWaitChange = () => {
+      let minVal = clampNumber(ui.orbWaitMinInput.value, 0, 180, DEFAULT_SETTINGS.orbReadyDelayMinMinutes);
+      let maxVal = clampNumber(ui.orbWaitMaxInput.value, 0, 180, DEFAULT_SETTINGS.orbReadyDelayMaxMinutes);
+      if (maxVal < minVal) maxVal = minVal;
+      settings.orbReadyDelayMinMinutes = minVal;
+      settings.orbReadyDelayMaxMinutes = maxVal;
+      saveSettings();
+      syncPanel();
+    };
+    ui.orbWaitMinInput.addEventListener("change", onOrbWaitChange);
+    ui.orbWaitMaxInput.addEventListener("change", onOrbWaitChange);
+
+    // sureyi yeniden kontrol et: kayitli sayaclari sifirla ve sayfadan tekrar oku.
+    // Sunucu degisiminde eski sunucunun sayaclarinin kullanilmasini duzeltir.
+    ui.recheckBtn.addEventListener("click", () => {
+      settings.orbReadyAt = 0;
+      settings.orbCollectAt = 0;
+      saveSettings();
+      if (!isRobberyIndexPage(location.href)) {
+        setStatus("Sureler sifirlandi; robbery sayfasindan okunuyor...", "warn");
+        window.location.assign(`${location.origin}/robbery/index`);
+        return;
+      }
+      const waitMs = updateOrbScheduleFromPage();
+      updateOrbSchedulePanel();
+      if (waitMs > 0) {
+        setStatus(`Sureler yeniden okundu. Kureler icin bekleme: ${formatDuration(waitMs)}`, "warn");
+      } else if (settings.running) {
+        setStatus("Sureler yeniden okundu, kureler hazir. Av basliyor...", "ok");
+      } else {
+        setStatus("Sureler yeniden okundu, kureler hazir.", "ok");
+      }
+    });
+
     // baslat / durdur
     ui.startStopBtn.addEventListener("click", () => {
       if (settings.running) {
-        stopHunt("Durduruldu.");
+        stopHunt("Durduruldu.", false);
       } else {
         startHunt();
       }
@@ -1081,7 +1478,18 @@
       root.classList.toggle("bf-orb-collapsed");
     });
 
+    // bekleme sureleri ac / kapa
+    const timingToggle = root.querySelector("#bf-orb-timing-toggle");
+    const timingBox = root.querySelector("#bf-orb-timing");
+    timingToggle.addEventListener("click", () => {
+      const open = timingBox.style.display === "none";
+      timingBox.style.display = open ? "" : "none";
+      timingToggle.querySelector(".bf-orb-caret").textContent = open ? "▾" : "▸";
+    });
+
     syncPanel();
+    updateOrbSchedulePanel();
+    window.setInterval(updateOrbSchedulePanel, 1000);
   }
 
   function syncPanel() {
@@ -1112,6 +1520,8 @@
     if (ui.repeatMaxInput) {
       ui.repeatMaxInput.value = settings.repeatMaxSec;
     }
+    if (ui.orbWaitMinInput) ui.orbWaitMinInput.value = settings.orbReadyDelayMinMinutes;
+    if (ui.orbWaitMaxInput) ui.orbWaitMaxInput.value = settings.orbReadyDelayMaxMinutes;
 
     const autoHint = ui.root.querySelector("#bf-orb-auto-hint");
     const delaySection = ui.root.querySelector("#bf-orb-delay-section");
@@ -1130,6 +1540,14 @@
       ui.startStopBtn.textContent = "Baslat";
       ui.startStopBtn.classList.remove("running");
     }
+  }
+
+  function updateOrbSchedulePanel() {
+    if (!ui.orbReadyCountdown || !ui.orbCollectCountdown) return;
+    ui.orbReadyCountdown.textContent = settings.orbReadyAt > Date.now()
+      ? formatDuration(settings.orbReadyAt - Date.now()) : "00:00:00";
+    ui.orbCollectCountdown.textContent = settings.orbCollectAt > Date.now()
+      ? formatDuration(settings.orbCollectAt - Date.now()) : "00:00:00";
   }
 
   function setStatus(message, type) {
@@ -1255,7 +1673,7 @@
         position: fixed;
         top: 90px;
         right: 16px;
-        width: 230px;
+        width: 205px;
         z-index: 999999;
         background: linear-gradient(160deg, #1c1410, #2a1d14);
         border: 1px solid #5a3d22;
@@ -1285,15 +1703,25 @@
         background: transparent; border: none; color: #ffcf80;
         font-size: 16px; line-height: 1; cursor: pointer; padding: 0 4px;
       }
-      .bf-orb-body { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+      .bf-orb-body { padding: 10px; display: flex; flex-direction: column; gap: 9px; }
       #bf-orb-panel.bf-orb-collapsed .bf-orb-body { display: none; }
-      .bf-orb-section { display: flex; flex-direction: column; gap: 6px; }
+      .bf-orb-section { display: flex; flex-direction: column; gap: 5px; }
+      .bf-orb-timing-toggle {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%; padding: 7px 9px; border-radius: 8px; cursor: pointer;
+        border: 1px solid #5a3d22; background: #241a12; color: #c8a47a;
+        font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+        transition: all .15s ease;
+      }
+      .bf-orb-timing-toggle:hover { border-color: #8a5d33; color: #ffcf80; }
+      .bf-orb-caret { font-size: 12px; color: #ffcf80; }
+      .bf-orb-timing { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
       .bf-orb-label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #c8a47a; }
       .bf-orb-classes { display: flex; gap: 8px; }
       .bf-orb-class {
-        flex: 1; padding: 9px 0; border-radius: 8px; cursor: pointer;
+        flex: 1; padding: 7px 0; border-radius: 8px; cursor: pointer;
         border: 1px solid #5a3d22; background: #241a12; color: #b9a489;
-        font-weight: 700; font-size: 15px; transition: all .15s ease;
+        font-weight: 700; font-size: 14px; transition: all .15s ease;
       }
       .bf-orb-class:hover { border-color: #8a5d33; }
       .bf-orb-class.active {
@@ -1336,6 +1764,12 @@
         font-size: 14px; text-align: center;
       }
       .bf-orb-range-sep { color: #c8a47a; font-weight: 700; }
+      .bf-orb-recheck {
+        width: 100%; padding: 8px 0; border-radius: 8px; cursor: pointer;
+        border: 1px solid #5a3d22; background: #241a12; color: #ffcf80;
+        font-weight: 600; font-size: 12px; transition: all .15s ease;
+      }
+      .bf-orb-recheck:hover { border-color: #8a5d33; background: #2e2118; }
       .bf-orb-start {
         width: 100%; padding: 11px 0; border: none; border-radius: 8px;
         cursor: pointer; font-weight: 700; font-size: 14px; letter-spacing: .3px;
@@ -1351,16 +1785,24 @@
         background: #1a120c; border: 1px solid #3a2818; color: #c8b79f;
         min-height: 32px; line-height: 1.35; word-break: break-word;
       }
+      .bf-orb-schedule {
+        padding: 8px 10px; border-radius: 8px; background: #1a120c;
+        border: 1px solid #5a3d22; color: #c8b79f; font-size: 11px; line-height: 1.7;
+      }
+      .bf-orb-schedule strong { color: #ffcf80; float: right; font-variant-numeric: tabular-nums; }
       .bf-orb-status-ok { border-color: #2f9e44; color: #8ce99a; }
       .bf-orb-status-warn { border-color: #e8a317; color: #ffd479; }
     `;
     document.head.appendChild(style);
   }
 
-  // Panel'i kur
-  if (document.body) {
-    buildPanel();
-  } else {
-    window.addEventListener("DOMContentLoaded", buildPanel);
+  // Panel'i kur (yalnizca orb sayfalarinda; bekci modunda panel gosterilmez,
+  // boylece diger sayfalardaki kat botu paneliyle cakismaz)
+  if (isOrbWorkPage(location.href)) {
+    if (document.body) {
+      buildPanel();
+    } else {
+      window.addEventListener("DOMContentLoaded", buildPanel);
+    }
   }
 })();

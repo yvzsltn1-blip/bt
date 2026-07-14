@@ -165,7 +165,11 @@
       "Bash(node bench.js --budget)",
       "Bash(node bench.js --budget --engine \"C:\\\\Users\\\\YAVUZ\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-YAVUZ-Documents-BT-Analyss---v6\\\\1e88f7b3-46c3-4095-8748-320a32f176c5\\\\scratchpad\\\\battle-core-head.js\")",
       "PowerShell(node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\magara.user.js\")",
-      "PowerShell(\\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/magara.user.js\" -UseBasicParsing\\).Content.Substring\\(0, 400\\))"
+      "PowerShell(\\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/magara.user.js\" -UseBasicParsing\\).Content.Substring\\(0, 400\\))",
+      "PowerShell(node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\orb.user.js\")",
+      "PowerShell(node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\orb.user.js\"; node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\otobirlik.user.js\")",
+      "PowerShell(\\(Invoke-WebRequest -UseBasicParsing \"https://bt-analiz.web.app/orb.user.js\"\\).Content.Split\\(\"`n\"\\) | Select-String \"@version\"; \\(Invoke-WebRequest -UseBasicParsing \"https://bt-analiz.web.app/otobirlik.user.js\"\\).Content.Split\\(\"`n\"\\) | Select-String \"@version\")",
+      "Bash(npx firebase-tools *)"
     ]
   }
 }

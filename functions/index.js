@@ -14,7 +14,7 @@
 //   firebase functions:secrets:set TELEGRAM_CHAT_ID
 
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { onDocumentWritten } = require('firebase-functions/v2/firestore');
+const { onDocumentWritten, onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
@@ -51,6 +51,45 @@ async function sendTelegramMessage(token, chatId, text) {
     throw new Error(`Telegram ${response.status}: ${await response.text()}`);
   }
 }
+
+exports.onOrbCollected = onDocumentCreated(
+  {
+    document: 'orbNotifications/{docId}',
+    region: 'europe-west1',
+    secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID]
+  },
+  async (event) => {
+    const data = event.data?.data();
+    if (!data) return;
+    const token = TELEGRAM_BOT_TOKEN.value();
+    const chatId = TELEGRAM_CHAT_ID.value();
+    if (!token || !chatId) {
+      logger.error('TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID secret tanimli degil.');
+      return;
+    }
+
+    // Orb botu kendiliginden durdu (enerji bitti, dogrulama hatasi vb.)
+    if (String(data.kind || '') === 'stopped') {
+      const message = String(data.message || '').slice(0, 300) || 'Sebep belirtilmedi.';
+      try {
+        await sendTelegramMessage(token, chatId, withServerPrefix(data.host, `⚠️ Orb botu durdu: ${message}`));
+        logger.info('Orb durus bildirimi gonderildi.');
+      } catch (error) {
+        logger.error('Orb durus bildirimi gonderilemedi.', error);
+      }
+      return;
+    }
+
+    const orbClass = String(data.orbClass || '').toUpperCase();
+    if (!['S', 'A', 'B'].includes(orbClass)) return;
+    try {
+      await sendTelegramMessage(token, chatId, withServerPrefix(data.host, `🔮 Orb alındı: ${orbClass}`));
+      logger.info(`Orb bildirimi gonderildi: ${orbClass}`);
+    } catch (error) {
+      logger.error(`Orb bildirimi gonderilemedi: ${orbClass}`, error);
+    }
+  }
+);
 
 // Kat tamamlanma bildirimi (anlik). Script bant-basi bir kati bitirince
 // floorReminders/floorrem_<kat> dokumanini taze createdAt ile yazar; bu tetik

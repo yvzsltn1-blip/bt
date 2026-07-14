@@ -439,6 +439,7 @@
     cursor = null,
     sortDirection = "desc",
     filterLocalItems = null,
+    filterRemoteItems = null,
     buildRemoteQuery = null,
     allowLegacyFirstPageFallback = true,
     preferCache = false,
@@ -468,19 +469,52 @@
     }
 
     try {
-      let query = typeof buildRemoteQuery === "function"
-        ? buildRemoteQuery(db.collection(collectionName), {
-          cursor,
-          sortDirection: normalizedSortDirection
-        })
-        : db.collection(collectionName).orderBy(orderField, normalizedSortDirection);
-      if (cursor?.id) {
-        query = query.startAfter(cursor);
-      }
-      const snapshot = await query.limit(normalizedPageSize + 1).get();
-      const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
-      const hasMore = docs.length > normalizedPageSize;
-      const pageDocs = hasMore ? docs.slice(0, normalizedPageSize) : docs;
+      const buildQuery = (afterDoc) => {
+        let query = typeof buildRemoteQuery === "function"
+          ? buildRemoteQuery(db.collection(collectionName), {
+            cursor,
+            sortDirection: normalizedSortDirection
+          })
+          : db.collection(collectionName).orderBy(orderField, normalizedSortDirection);
+        if (afterDoc?.id) {
+          query = query.startAfter(afterDoc);
+        }
+        return query;
+      };
+      // filterRemoteItems verildiyse: sunucu sorgusunun ifade edemedigi kosul
+      // istemci tarafinda uygulanir; sayfa dolana kadar ham sayfalar taranir.
+      // Maliyet korumasi: cagri basina en fazla remoteScanCap ham dokuman okunur.
+      const remoteScanCap = normalizedPageSize * 8;
+      let scanCursor = cursor;
+      let rawHasMore = false;
+      let scannedCount = 0;
+      const keptDocs = [];
+      do {
+        const snapshot = await buildQuery(scanCursor).limit(normalizedPageSize + 1).get();
+        const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+        rawHasMore = docs.length > normalizedPageSize;
+        const rawPageDocs = rawHasMore ? docs.slice(0, normalizedPageSize) : docs;
+        scannedCount += rawPageDocs.length;
+        rawPageDocs.forEach((doc) => {
+          if (typeof filterRemoteItems !== "function" || filterRemoteItems({ ...doc.data(), id: doc.id })) {
+            keptDocs.push(doc);
+          }
+        });
+        if (rawPageDocs.length === 0) {
+          break;
+        }
+        scanCursor = rawPageDocs[rawPageDocs.length - 1];
+      } while (
+        typeof filterRemoteItems === "function"
+        && keptDocs.length < normalizedPageSize
+        && rawHasMore
+        && scannedCount < remoteScanCap
+      );
+      // Suzulmus liste sayfayi asarsa cursor dondurulen SON dokumandir; kalan
+      // eslesenler bir sonraki sayfada ayni noktadan tekrar taranir.
+      const overflow = keptDocs.length > normalizedPageSize;
+      const pageDocs = overflow ? keptDocs.slice(0, normalizedPageSize) : keptDocs;
+      const hasMore = overflow || rawHasMore;
       const items = mergeItems(pageDocs.map((doc) => ({ ...doc.data(), id: doc.id })));
       if (!cursor && allowLegacyFirstPageFallback && items.length === 0) {
         return loadLegacyFirstPageFallback({
@@ -500,7 +534,11 @@
       }
       return {
         items,
-        cursor: pageDocs.length ? pageDocs[pageDocs.length - 1] : cursor || null,
+        // overflow yoksa taranan son HAM dokuman cursor olur; boylece hic
+        // eslesme cikmayan taramalarda bile sayfalama ileri gider.
+        cursor: overflow
+          ? pageDocs[pageDocs.length - 1]
+          : (scanCursor?.id ? scanCursor : cursor || null),
         hasMore,
         readSource: "server"
       };
@@ -577,6 +615,20 @@
     const slash = buildOverviewArchiveKatStorageValue(value);
     const legacySlash = direct ? `${direct}/${(Number.parseInt(direct, 10) * 10) + 10}` : "";
     return [...new Set([direct, slash, legacySlash].filter(Boolean))];
+  }
+
+  // Kat filtresi icin istemci tarafi eslestirici. armyPowerText depoda "N/M"
+  // (pay serbest, payda = kat*10+10) veya duz sayi olarak durur; sunucudaki
+  // "in" varyant listesi payi farkli kayitlari kacirdigi icin kat suzmesi
+  // istemci tarafinda yapilmali. Kat filtresi yoksa null doner.
+  function buildOverviewArchiveKatPredicate(filters) {
+    if (filters.armyPowerText) {
+      return (item) => extractOverviewArchiveKatValue(item?.armyPowerText || "") === filters.armyPowerText;
+    }
+    if (filters.armyPowerTextIn.length > 0) {
+      return (item) => filters.armyPowerTextIn.includes(extractOverviewArchiveKatValue(item?.armyPowerText || ""));
+    }
+    return null;
   }
 
   function normalizeOverviewArchiveNumericFilterList(values) {
@@ -697,7 +749,10 @@
     if (filters.host) {
       query = query.where("host", "==", filters.host);
     }
-    if (filters.armyPowerText) {
+    if (options.skipArmyPowerText) {
+      // Kat suzmesi istemci tarafinda yapilacak (bkz. buildOverviewArchiveKatPredicate);
+      // sunucuya armyPowerText kosulu eklenmez.
+    } else if (filters.armyPowerText) {
       query = query.where("armyPowerText", "in", buildOverviewArchiveKatStorageVariants(filters.armyPowerText));
     } else if (filters.armyPowerTextIn.length > 0) {
       const variants = [];
@@ -894,6 +949,16 @@
     const filters = normalizeOverviewArchiveFilters(options.filters || {});
     const localItems = filterOverviewArchiveItems(readOverviewArchives(), filters);
 
+    // Kat filtresi sunucu tarafinda ifade edilemiyor (bkz.
+    // buildOverviewArchiveKatPredicate); REST/SDK aggregate kayit kacirir.
+    // Yaklasik cache degeri don; archive.js capli sayfali tam-taramayla dogrular.
+    if (buildOverviewArchiveKatPredicate(filters)) {
+      return buildOverviewArchiveAggregateFromItems(localItems, {
+        exact: false,
+        readSource: "cache-fallback"
+      });
+    }
+
     let resourceExhausted = false;
 
     // 1) REST aggregate: count + sum(loot) + sum(exp) tek okumada (uzanti engellemiyorsa).
@@ -991,12 +1056,15 @@
   }
 
   async function findOverviewArchiveLevelBound(collection, filters, sortDirection) {
+    // Kat filtresi sunucu sorgusuna eklenmez; adaylar istemci tarafinda elenir.
+    const katPredicate = buildOverviewArchiveKatPredicate(filters);
     let cursor = null;
     let safety = 0;
     while (safety < 20) {
       let query = applyOverviewArchiveFiltersToQuery(collection, filters, {
         includeOrderBy: true,
-        sortDirection
+        sortDirection,
+        skipArmyPowerText: Boolean(katPredicate)
       });
       if (cursor) {
         query = query.startAfter(cursor);
@@ -1006,7 +1074,13 @@
       const pageLimit = safety === 0 ? 1 : 50;
       const snapshot = await query.limit(pageLimit).get();
       const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
-      const foundDoc = docs.find((doc) => getOverviewArchiveLevelNumber(doc?.data?.()) > 0);
+      const foundDoc = docs.find((doc) => {
+        const data = doc?.data?.();
+        if (getOverviewArchiveLevelNumber(data) <= 0) {
+          return false;
+        }
+        return katPredicate ? katPredicate(data) : true;
+      });
       if (foundDoc) {
         return { ...foundDoc.data(), id: foundDoc.id };
       }
@@ -3201,6 +3275,10 @@
   async function loadOverviewArchivesPage(options = {}) {
     const filters = normalizeOverviewArchiveFilters(options.filters || {});
     const sortDirection = normalizeSortDirection(options.sortDirection);
+    // Kat filtresi sunucudaki "in" varyantlariyla guvenilir eslesmiyor (depodaki
+    // "N/M" degerinin payi serbest); kat kosulu sunucu sorgusundan cikarilip
+    // istemci tarafinda uygulanir. Host/tarih/tested sunucuda kalir.
+    const katPredicate = buildOverviewArchiveKatPredicate(filters);
     return loadCollectionPage({
       collectionName: OVERVIEW_ARCHIVE_COLLECTION,
       orderField: "savedAt",
@@ -3211,9 +3289,11 @@
       cursor: options.cursor || null,
       sortDirection,
       filterLocalItems: (items) => filterOverviewArchiveItems(items, filters),
+      filterRemoteItems: katPredicate,
       buildRemoteQuery: (collection) => applyOverviewArchiveFiltersToQuery(collection, filters, {
         includeOrderBy: true,
-        sortDirection
+        sortDirection,
+        skipArmyPowerText: Boolean(katPredicate)
       }),
       allowLegacyFirstPageFallback: isOverviewArchiveFilterEmpty(filters),
       preferCache: Boolean(options.preferCache),

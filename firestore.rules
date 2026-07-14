@@ -404,6 +404,28 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    function validOrbNotification(data, documentId) {
+      return (documentId.matches('^orb_[0-9]+_[a-z0-9]+$')
+        && data.keys().hasOnly(['orbClass', 'host', 'createdAt'])
+        && data.keys().hasAll(['orbClass', 'host', 'createdAt'])
+        && data.orbClass in ['S', 'A', 'B']
+        && isShortString(data.host, 120)
+        && isShortString(data.createdAt, 40))
+        // Orb botu kendiliginden durunca yazilan durus bildirimi
+        || (documentId.matches('^orbstop_[0-9]+_[a-z0-9]+$')
+        && data.keys().hasOnly(['kind', 'message', 'host', 'createdAt'])
+        && data.keys().hasAll(['kind', 'message', 'host', 'createdAt'])
+        && data.kind == 'stopped'
+        && isShortString(data.message, 300)
+        && isShortString(data.host, 120)
+        && isShortString(data.createdAt, 40));
+    }
+
+    match /orbNotifications/{documentId} {
+      allow create: if validOrbNotification(request.resource.data, documentId);
+      allow read, update, delete: if isAdmin();
+    }
+
     match /archiveRegressionTests/{documentId} {
       allow read: if isAdmin();
       allow create, update: if validArchiveRegressionTest(request.resource.data, documentId);
