@@ -169,7 +169,12 @@
       "PowerShell(node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\orb.user.js\")",
       "PowerShell(node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\orb.user.js\"; node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\otobirlik.user.js\")",
       "PowerShell(\\(Invoke-WebRequest -UseBasicParsing \"https://bt-analiz.web.app/orb.user.js\"\\).Content.Split\\(\"`n\"\\) | Select-String \"@version\"; \\(Invoke-WebRequest -UseBasicParsing \"https://bt-analiz.web.app/otobirlik.user.js\"\\).Content.Split\\(\"`n\"\\) | Select-String \"@version\")",
-      "Bash(npx firebase-tools *)"
+      "Bash(npx firebase-tools *)",
+      "PowerShell(node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\bt-birlik-magara-orb.user.js\"; node --check \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\functions\\\\index.js\")",
+      "PowerShell(\\(Invoke-WebRequest -UseBasicParsing \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\"\\).Content.Substring\\(0, 400\\))",
+      "PowerShell(\\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\" -UseBasicParsing\\).Content.Substring\\(0, 400\\))",
+      "PowerShell($remote = \\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\" -UseBasicParsing\\).Content; $local = [IO.File]::ReadAllText\\(\"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\bt-birlik-magara-orb.user.js\"\\); \"remote len: $\\($remote.Length\\)\"; \"local len: $\\($local.Length\\)\"; \"remote has notifyCaveStarted: $\\($remote.Contains\\('notifyCaveStarted'\\)\\)\"; $r2 = $remote.Replace\\(\"`r\",\"\"\\); $l2 = $local.Replace\\(\"`r\",\"\"\\); \"same \\(ignoring CRLF\\): $\\($r2 -eq $l2\\)\")",
+      "PowerShell(\\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\" -UseBasicParsing\\).Content.Substring\\(0, 150\\))"
     ]
   }
 }

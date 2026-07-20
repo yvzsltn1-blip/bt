@@ -68,6 +68,20 @@ exports.onOrbCollected = onDocumentCreated(
       return;
     }
 
+    // Durum takibi bilgi mesajlari (kure bekleme suresi, magara basladi/durdu vb.)
+    // Emoji istemci tarafinda eklenir; mesaj oldugu gibi iletilir.
+    if (String(data.kind || '') === 'info') {
+      const message = String(data.message || '').slice(0, 300);
+      if (!message) return;
+      try {
+        await sendTelegramMessage(token, chatId, withServerPrefix(data.host, message));
+        logger.info('Bilgi bildirimi gonderildi.');
+      } catch (error) {
+        logger.error('Bilgi bildirimi gonderilemedi.', error);
+      }
+      return;
+    }
+
     // Orb botu kendiliginden durdu (enerji bitti, dogrulama hatasi vb.)
     if (String(data.kind || '') === 'stopped') {
       const message = String(data.message || '').slice(0, 300) || 'Sebep belirtilmedi.';

@@ -418,6 +418,14 @@ service cloud.firestore {
         && data.kind == 'stopped'
         && isShortString(data.message, 300)
         && isShortString(data.host, 120)
+        && isShortString(data.createdAt, 40))
+        // Durum takibi bilgi mesajlari (kure bekleme suresi, magara basladi/durdu)
+        || (documentId.matches('^orbinfo_[0-9]+_[a-z0-9]+$')
+        && data.keys().hasOnly(['kind', 'message', 'host', 'createdAt'])
+        && data.keys().hasAll(['kind', 'message', 'host', 'createdAt'])
+        && data.kind == 'info'
+        && isShortString(data.message, 300)
+        && isShortString(data.host, 120)
         && isShortString(data.createdAt, 40));
     }
 
