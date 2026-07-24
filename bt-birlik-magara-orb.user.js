@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BiteFight Birlik + Magara + Orb
 // @namespace    https://bt-analiz.web.app
-// @version      1.0.7
+// @version      1.1.0
 // @description  Birlik, magara ve orb otomasyonunu tek sekmeli panelde birlestirir.
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -2167,11 +2167,20 @@
   // Kat hatirlatmalari: bu katlar bitince ilgili bant suresi kadar sonra Telegram
   // bildirimi planlanir (timer'i sunucu tutar -> telefon kilitliyken de gelir).
   const REMINDER_ENABLED_KEY = 'btReminderEnabled';
+  // Her bant onceki banttan 30 dk daha uzun yenilenme suresine sahip (oyun kurali).
+  // 41-50 ve sonrasi bantlar bu oruntunun devami varsayilarak eklendi (kat 101'e kadar).
   const FLOOR_REMINDERS = [
-    { floor: 1, bandLabel: '1-10', intervalSec: 60 * 60 },    // 1 saat
-    { floor: 11, bandLabel: '11-20', intervalSec: 90 * 60 },  // 1.5 saat
-    { floor: 21, bandLabel: '21-30', intervalSec: 120 * 60 }, // 2 saat
-    { floor: 31, bandLabel: '31-40', intervalSec: 150 * 60 }  // 2.5 saat
+    { floor: 1, bandLabel: '1-10', intervalSec: 60 * 60 },     // 1 saat
+    { floor: 11, bandLabel: '11-20', intervalSec: 90 * 60 },   // 1.5 saat
+    { floor: 21, bandLabel: '21-30', intervalSec: 120 * 60 },  // 2 saat
+    { floor: 31, bandLabel: '31-40', intervalSec: 150 * 60 },  // 2.5 saat
+    { floor: 41, bandLabel: '41-50', intervalSec: 180 * 60 },  // 3 saat
+    { floor: 51, bandLabel: '51-60', intervalSec: 210 * 60 },  // 3.5 saat
+    { floor: 61, bandLabel: '61-70', intervalSec: 240 * 60 },  // 4 saat
+    { floor: 71, bandLabel: '71-80', intervalSec: 270 * 60 },  // 4.5 saat
+    { floor: 81, bandLabel: '81-90', intervalSec: 300 * 60 },  // 5 saat
+    { floor: 91, bandLabel: '91-100', intervalSec: 330 * 60 }, // 5.5 saat
+    { floor: 101, bandLabel: '101', intervalSec: 360 * 60 }    // 6 saat
   ];
   const LAST_ARCHIVE_ID_KEY = 'btLastArchiveId';
   const REGISTERED_HOST_KEY = 'btArchiveRegisteredHost';
@@ -2704,7 +2713,7 @@
     // Bot aktifken, diriltme acikken ve henuz diriltilmemis olen birim varsa,
     // harcanan cehennem tasi sayisi netlesene kadar (diriltme butonu kaybolana
     // kadar) kaydi beklet. Diriltme kapaliyken buton kalici oldugundan beklenmez.
-    if (isBotEnabled() && isReviveEnabled() && document.querySelector('#showReviveBtn')) {
+    if (isBotEnabled() && isReviveEnabledForFloor(detectSelectedStage()) && document.querySelector('#showReviveBtn')) {
       return false;
     }
 
@@ -2829,6 +2838,8 @@
   const BOT_MODE_LABELS = { fast: 'hizli', balanced: 'dengeli', deep: 'derin' };
   // Sonuc sayfasinda olen birimleri hayata dondurme tercihi (varsayilan: acik).
   const BOT_REVIVE_KEY = 'btBotReviveEnabled';
+  // Diriltmenin hangi 10'luk kat bantlarinda aktif oldugu (varsayilan: hepsi acik).
+  const BOT_REVIVE_BANDS_KEY = 'btBotReviveBands';
   const BATTLE_CORE_URL = 'https://bt-analiz.web.app/battle-core.js';
 
   // ====================== OTO KAT MODU ======================
@@ -2857,13 +2868,24 @@
   const AUTO_DEFAULT_INTERVAL_SEC = 180;
   const AUTO_MIN_INTERVAL_SEC = 10;
   const AUTO_MIN_FLOOR = 1;
-  const AUTO_MAX_FLOOR = 40;
+  const AUTO_MAX_FLOOR = 101;
   const AUTO_DEFAULT_ACTIVE_START = '07:02';
   const AUTO_DEFAULT_ACTIVE_END = '23:44';
+  // Bant basina "yenilenme sonrasi" rastgele ek bekleme (dk) varsayilanlari. Index = bant
+  // no (0 = kat 1-10, 1 = kat 11-20, ...). 41-50 ve sonrasi icin ozel bir varsayilan
+  // belirtilmedigi surece son bilinen bant (31-40) ile ayni varsayilan kullanilir;
+  // panelden kat basina ayrica ayarlanabilir.
   const AUTO_DEFAULT_BAND_RANGES = [
     { min: 2, max: 5 },
     { min: 2, max: 6 },
     { min: 2, max: 7 },
+    { min: 2, max: 7 },
+    { min: 2, max: 7 },
+    { min: 5, max: 15 },
+    { min: 5, max: 15 },
+    { min: 5, max: 15 },
+    { min: 5, max: 15 },
+    { min: 5, max: 15 },
     { min: 5, max: 15 }
   ];
 
@@ -3082,8 +3104,20 @@
     });
   }
 
+  function totalAutoBands() {
+    return Math.ceil(AUTO_MAX_FLOOR / 10);
+  }
+
   function floorBandIndex(floor) {
-    return Math.min(3, Math.max(0, Math.floor((floor - 1) / 10)));
+    const maxBand = totalAutoBands() - 1;
+    return Math.min(maxBand, Math.max(0, Math.floor((floor - 1) / 10)));
+  }
+
+  // Bir bandin kapsadigi kat araligi (son bant AUTO_MAX_FLOOR'da kirpilir, or. 101-101).
+  function bandFloorRange(bandIndex) {
+    const start = bandIndex * 10 + 1;
+    const end = Math.min(AUTO_MAX_FLOOR, start + 9);
+    return { start, end };
   }
 
   function autoBandDueTimes() {
@@ -3181,7 +3215,7 @@
   // Sonuc sayfasindaki olen birimleri (panelde aciksa) hayata dondurur. Manuel ve
   // oto sonuc isleyicilerinin ortak yardimcisi.
   async function reviveFallenIfNeeded(stage) {
-    const reviveOpener = isReviveEnabled()
+    const reviveOpener = isReviveEnabledForFloor(stage)
       ? (document.querySelector('#showReviveBtn') || await waitForElement('#showReviveBtn', 2500))
       : null;
     if (!reviveOpener) {
@@ -4010,6 +4044,27 @@ self.onmessage = (event) => {
 
   function isReviveEnabled() {
     return GM_getValue(BOT_REVIVE_KEY, true) !== false;
+  }
+
+  // Bant bazli diriltme bayraklari (index = floorBandIndex). Kayitli olmayan/
+  // bozuk girdiler acik kabul edilir, boylece eski kullanicilar icin davranis degismez.
+  function reviveBandFlags() {
+    let stored = null;
+    try {
+      const parsed = JSON.parse(GM_getValue(BOT_REVIVE_BANDS_KEY, ''));
+      stored = Array.isArray(parsed) ? parsed : null;
+    } catch (_) { /* kayit yok/bozuk: tumu acik varsayilir */ }
+    const source = stored || [false];   // index 0 = 1-10 bandı, varsayılan kapalı
+    return Array.from({ length: totalAutoBands() }, (_, i) => source[i] !== false);
+  }
+
+  function isReviveBandEnabled(floor) {
+    if (!Number.isInteger(floor)) return true;
+    return reviveBandFlags()[floorBandIndex(floor)] !== false;
+  }
+
+  function isReviveEnabledForFloor(floor) {
+    return isReviveEnabled() && isReviveBandEnabled(floor);
   }
 
   function isReminderEnabled() {
@@ -5295,9 +5350,8 @@ self.onmessage = (event) => {
     wrap.setAttribute('aria-label', 'Kat grubu giris zamanlari');
     const cards = [];
 
-    for (let band = 0; band < 4; band += 1) {
-      const floorStart = band * 10 + 1;
-      const floorEnd = floorStart + 9;
+    for (let band = 0; band < totalAutoBands(); band += 1) {
+      const { start: floorStart, end: floorEnd } = bandFloorRange(band);
       if (floorEnd < selectedRange.start || floorStart > selectedRange.end) continue;
       const card = document.createElement('div');
       card.className = 'bt-auto-countdown-card';
@@ -5562,29 +5616,56 @@ self.onmessage = (event) => {
       autoHoursRow.append(autoHoursText, autoHoursStartInput, autoHoursEndInput, autoHoursExtraText, autoHoursExtraInput);
       autoWrap.appendChild(autoHoursRow);
 
-      const savedBandRanges = autoBandRanges();
-      const bandInputs = [];
-      savedBandRanges.forEach((range, index) => {
-        const bandStart = index * 10 + 1;
-        const bandRow = document.createElement('label');
-        bandRow.className = 'bt-inline-field';
-        bandRow.style.cssText = autoFloorRow.style.cssText;
-        const bandText = document.createElement('span');
-        bandText.textContent = `${bandStart}-${bandStart + 9} yenilenme sonrasi (dk):`;
-        const minInput = document.createElement('input');
-        minInput.type = 'number';
-        minInput.min = '1';
-        minInput.value = String(range.min);
-        minInput.className = 'bt-small-number';
-        const maxInput = document.createElement('input');
-        maxInput.type = 'number';
-        maxInput.min = '1';
-        maxInput.value = String(range.max);
-        maxInput.className = 'bt-small-number';
-        bandInputs.push({ minInput, maxInput });
-        bandRow.append(bandText, minInput, maxInput);
-        autoWrap.appendChild(bandRow);
-      });
+      // Bant satirlari (yenilenme sonrasi rastgele ek dk) yalnizca su an secili kat
+      // araligina denk gelen bantlar icin gosterilir (or. 1-50 secince 1-10..41-50
+      // gorunur). bandInputs bant NO'suna gore anahtarlanir (dizideki konuma gore degil)
+      // ki gizli bantlarin ayarlari kaybolmasin/ezilmesin.
+      const bandRowsWrap = document.createElement('div');
+      bandRowsWrap.style.cssText = 'display:flex;flex-direction:column;gap:4px';
+      autoWrap.appendChild(bandRowsWrap);
+      let bandInputs = {};
+
+      const visibleBandRange = () => {
+        const typedStart = Number.parseInt(autoStartInput.value, 10);
+        const typedEnd = Number.parseInt(autoEndInput.value, 10);
+        const fallback = autoFloorRange();
+        const start = Number.isInteger(typedStart)
+          ? Math.min(AUTO_MAX_FLOOR, Math.max(AUTO_MIN_FLOOR, typedStart)) : fallback.start;
+        const end = Number.isInteger(typedEnd)
+          ? Math.min(AUTO_MAX_FLOOR, Math.max(AUTO_MIN_FLOOR, typedEnd)) : fallback.end;
+        return { start, end: Math.max(start, end) };
+      };
+
+      const renderBandRows = () => {
+        bandRowsWrap.innerHTML = '';
+        bandInputs = {};
+        const { start, end } = visibleBandRange();
+        const currentRanges = autoBandRanges();
+        for (let band = floorBandIndex(start); band <= floorBandIndex(end); band += 1) {
+          const { start: bandStart, end: bandEnd } = bandFloorRange(band);
+          const range = currentRanges[band] || { min: 5, max: 15 };
+          const bandRow = document.createElement('label');
+          bandRow.className = 'bt-inline-field';
+          bandRow.style.cssText = autoFloorRow.style.cssText;
+          const bandText = document.createElement('span');
+          bandText.textContent = `${bandStart}-${bandEnd} yenilenme sonrasi (dk):`;
+          const minInput = document.createElement('input');
+          minInput.type = 'number';
+          minInput.min = '1';
+          minInput.value = String(range.min);
+          minInput.className = 'bt-small-number';
+          const maxInput = document.createElement('input');
+          maxInput.type = 'number';
+          maxInput.min = '1';
+          maxInput.value = String(range.max);
+          maxInput.className = 'bt-small-number';
+          bandInputs[band] = { minInput, maxInput };
+          bandRow.append(bandText, minInput, maxInput);
+          bandRowsWrap.appendChild(bandRow);
+          bindPersist(minInput, band);
+          bindPersist(maxInput, band);
+        }
+      };
 
       const autoIntervalRow = document.createElement('label');
       autoIntervalRow.className = 'bt-inline-field';
@@ -5678,10 +5759,12 @@ self.onmessage = (event) => {
       bindPersist(autoHoursExtraInput, 'extra');
       bindPersist(autoIntervalMinInput, 'interval');
       bindPersist(autoIntervalMaxInput, 'interval');
-      bandInputs.forEach(({ minInput, maxInput }, index) => {
-        bindPersist(minInput, index);
-        bindPersist(maxInput, index);
-      });
+      // Ilk cizim: su anki kat araligina denk gelen bant satirlarini olustur.
+      renderBandRows();
+      // Kat araligi degistikce (or. 40 -> 50) gorunur bant listesini de guncelle,
+      // boylece yeni acilan 41-50 bandi icin de rastgele bekleme alani belirir.
+      autoStartInput.addEventListener('input', renderBandRows);
+      autoEndInput.addEventListener('input', renderBandRows);
 
       // Panel gorunur olunca girdileri depodaki guncel degerlerle esitle.
       // Kullanici panel icinde yaziyorsa dokunma; yazilani ezmeyelim.
@@ -5695,10 +5778,7 @@ self.onmessage = (event) => {
         autoHoursStartInput.value = hours.start;
         autoHoursEndInput.value = hours.end;
         autoHoursExtraInput.value = String(autoActiveExtraMinutes());
-        autoBandRanges().forEach((band, index) => {
-          bandInputs[index].minInput.value = String(band.min);
-          bandInputs[index].maxInput.value = String(band.max);
-        });
+        renderBandRows();
         const interval = autoIntervalRange();
         autoIntervalMinInput.value = String(interval.min);
         autoIntervalMaxInput.value = String(interval.max);
@@ -5726,13 +5806,17 @@ self.onmessage = (event) => {
           setBotStatus('Gecerli Istanbul baslangic ve bitis saati gir');
           return null;
         }
-        const bandRanges = bandInputs.map(({ minInput, maxInput }) => ({
-          min: Number.parseInt(minInput.value, 10), max: Number.parseInt(maxInput.value, 10)
-        }));
-        if (bandRanges.some((range) => !Number.isInteger(range.min) || !Number.isInteger(range.max)
-          || range.min < 1 || range.min > range.max)) {
-          setBotStatus('Kat grubu beklemelerinde minimum 1 dk olmali ve maksimum minimumdan kucuk olmamali');
-          return null;
+        // Yalnizca su an ekranda gorunen bantlari guncelle; gizli bantlarin kayitli
+        // degerleri (autoBandRanges() ile alinan tam liste) korunur.
+        const bandRanges = autoBandRanges();
+        for (const [bandKey, { minInput, maxInput }] of Object.entries(bandInputs)) {
+          const min = Number.parseInt(minInput.value, 10);
+          const max = Number.parseInt(maxInput.value, 10);
+          if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || min > max) {
+            setBotStatus('Kat grubu beklemelerinde minimum 1 dk olmali ve maksimum minimumdan kucuk olmamali');
+            return null;
+          }
+          bandRanges[Number(bandKey)] = { min, max };
         }
         const extraMinutes = Number.parseInt(autoHoursExtraInput.value, 10);
         GM_setValue(AUTO_START_FLOOR_KEY, autoStart);
@@ -5800,6 +5884,31 @@ self.onmessage = (event) => {
     reviveLabel.textContent = 'Olen birimleri hayata dondur';
     reviveRow.append(reviveCheckbox, reviveLabel);
     panel.appendChild(reviveRow);
+
+    const reviveBandsWrap = document.createElement('div');
+    reviveBandsWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 4px 18px';
+    reviveBandsWrap.title = 'Isaretli olmayan kat gruplarinda olen birimler hayata dondurulmez';
+    const reviveBandFlagsNow = reviveBandFlags();
+    for (let band = 0; band < totalAutoBands(); band += 1) {
+      const { start: bandStart, end: bandEnd } = bandFloorRange(band);
+      const bandLabel = document.createElement('label');
+      bandLabel.style.cssText = 'display:flex;gap:3px;align-items:center;color:#c8b49a;font-size:10px;cursor:pointer;background:#2a2118;border:1px solid #4a3d2a;border-radius:3px;padding:2px 5px';
+      const bandCheckbox = document.createElement('input');
+      bandCheckbox.type = 'checkbox';
+      bandCheckbox.checked = reviveBandFlagsNow[band] !== false;
+      bandCheckbox.style.cssText = 'accent-color:#ffd700;margin:0';
+      bandCheckbox.onchange = () => {
+        const flags = reviveBandFlags();
+        flags[band] = bandCheckbox.checked;
+        GM_setValue(BOT_REVIVE_BANDS_KEY, JSON.stringify(flags));
+        setBotStatus(`Kat ${bandStart}-${bandEnd}: diriltme ${bandCheckbox.checked ? 'acik' : 'kapali'}`);
+      };
+      const bandText = document.createElement('span');
+      bandText.textContent = `${bandStart}-${bandEnd}`;
+      bandLabel.append(bandCheckbox, bandText);
+      reviveBandsWrap.appendChild(bandLabel);
+    }
+    panel.appendChild(reviveBandsWrap);
 
     const reminderRow = document.createElement('label');
     reminderRow.className = 'bt-panel-toggle';
