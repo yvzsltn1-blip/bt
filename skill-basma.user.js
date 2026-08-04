@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BiteFight Skill Basma Paneli
 // @namespace    https://bt-analiz.web.app
-// @version      1.2.0
+// @version      1.2.1
 // @description  Skill maliyetini hesaplar ve secilen araliklarla otomatik egitim basar.
 // @match        https://*.bitefight.gameforge.com/profile/*
 // @match        http://*.bitefight.gameforge.com/profile/*
@@ -510,7 +510,21 @@
     refreshEstimate();
   }
 
-  injectStyles();
-  createPanel();
-  resumeTraining();
+  // bt-birlik-magara-orb.user.js icinde skill basma sekmesi varsa (Kontrol paneli)
+  // bu bagimsiz panel acilmaz: ayni localStorage anahtarlarini paylastiklari icin
+  // iki panel birbirinin basimini bozar.
+  function integratedTrainerActive() {
+    return window.__BFSkillTrainerIntegrated === true || Boolean(document.getElementById('bf-skill-panel'));
+  }
+
+  function boot() {
+    if (integratedTrainerActive()) return;
+    injectStyles();
+    createPanel();
+    resumeTraining();
+  }
+
+  // Script yukleme sirasi garanti degil; birlesik panel biraz sonra kurulursa
+  // yakalayabilmek icin kisa bir gecikmeyle baslatilir.
+  window.setTimeout(boot, 400);
 })();

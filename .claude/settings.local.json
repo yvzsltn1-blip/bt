@@ -174,7 +174,11 @@
       "PowerShell(\\(Invoke-WebRequest -UseBasicParsing \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\"\\).Content.Substring\\(0, 400\\))",
       "PowerShell(\\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\" -UseBasicParsing\\).Content.Substring\\(0, 400\\))",
       "PowerShell($remote = \\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\" -UseBasicParsing\\).Content; $local = [IO.File]::ReadAllText\\(\"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\bt-birlik-magara-orb.user.js\"\\); \"remote len: $\\($remote.Length\\)\"; \"local len: $\\($local.Length\\)\"; \"remote has notifyCaveStarted: $\\($remote.Contains\\('notifyCaveStarted'\\)\\)\"; $r2 = $remote.Replace\\(\"`r\",\"\"\\); $l2 = $local.Replace\\(\"`r\",\"\"\\); \"same \\(ignoring CRLF\\): $\\($r2 -eq $l2\\)\")",
-      "PowerShell(\\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\" -UseBasicParsing\\).Content.Substring\\(0, 150\\))"
+      "PowerShell(\\(Invoke-WebRequest -Uri \"https://bt-analiz.web.app/bt-birlik-magara-orb.user.js\" -UseBasicParsing\\).Content.Substring\\(0, 150\\))",
+      "PowerShell($src = \"C:\\\\Users\\\\YAVUZ\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-YAVUZ-Documents-BT-Analyss---v6\\\\f3ef1bf0-946a-4375-9ec1-bcf9893e49d0\\\\scratchpad\\\\skill-module.js\"; $dst = \"C:\\\\Users\\\\YAVUZ\\\\Documents\\\\BT-Analyss - v6\\\\bt-birlik-magara-orb.user.js\"; $content = [System.IO.File]::ReadAllText\\($src\\); [System.IO.File]::AppendAllText\\($dst, $content, \\(New-Object System.Text.UTF8Encoding $false\\)\\); node --check $dst; if \\($?\\) { \"SYNTAX OK\" })",
+      "Bash(grep -n \"u0300\\\\|replace\\(/\\\\[\" bt-birlik-magara-orb.user.js)",
+      "Bash(npm init *)",
+      "Bash(npm i *)"
     ]
   }
 }

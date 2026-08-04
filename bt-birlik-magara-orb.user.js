@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         BiteFight Birlik + Magara + Orb
 // @namespace    https://bt-analiz.web.app
-// @version      1.1.0
-// @description  Birlik, magara ve orb otomasyonunu tek sekmeli panelde birlestirir.
+// @version      1.2.1
+// @description  Birlik, magara, orb ve skill basmayi tek panelde birlestirir; oncelikli tek tus baslatma.
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
@@ -2672,21 +2672,34 @@
   // calisan isleme baglar; islem bitince imza/temizlik yazildigindan sonraki cagrilar erken cikar.
   let lootSyncInFlight = null;
 
-  function syncLootResultToLastArchive() {
-    if (lootSyncInFlight) {
+  // force=true: diriltme beklemesini atlar. Bot sonuc sayfasindan ayrilmadan
+  // hemen once kullanilir; aksi halde ertelenen kayit sonraki savasin payload'i
+  // tarafindan ezilip tamamen kaybolur.
+  function syncLootResultToLastArchive(options = {}) {
+    const force = options.force === true;
+    if (lootSyncInFlight && !force) {
       return lootSyncInFlight;
     }
-    lootSyncInFlight = (async () => {
+    const previous = lootSyncInFlight;
+    const run = (async () => {
+      if (previous) {
+        // Devam eden (ertelenmis) cagri bitsin ki ayni kayit iki kez yazilmasin.
+        try { await previous; } catch { /* onceki deneme hatasi bunu engellemesin */ }
+      }
       try {
-        return await runLootResultSync();
+        return await runLootResultSync(options);
       } finally {
-        lootSyncInFlight = null;
+        if (lootSyncInFlight === run) {
+          lootSyncInFlight = null;
+        }
       }
     })();
-    return lootSyncInFlight;
+    lootSyncInFlight = run;
+    return run;
   }
 
-  async function runLootResultSync() {
+  async function runLootResultSync(options = {}) {
+    const force = options.force === true;
     const lootGoldText = getLootGoldText();
     const expText = getLootExpText();
     const fallenUnitsText = getFallenUnitsText();
@@ -2713,7 +2726,14 @@
     // Bot aktifken, diriltme acikken ve henuz diriltilmemis olen birim varsa,
     // harcanan cehennem tasi sayisi netlesene kadar (diriltme butonu kaybolana
     // kadar) kaydi beklet. Diriltme kapaliyken buton kalici oldugundan beklenmez.
-    if (isBotEnabled() && isReviveEnabledForFloor(detectSelectedStage()) && document.querySelector('#showReviveBtn')) {
+    //
+    // Kat numarasi sonuc sayfasindan okunamaz (URL'de layerId, DOM'da kat karti
+    // yok) -> detectSelectedStage() null doner ve isReviveBandEnabled null'i
+    // "acik" sayar. Bu yuzden diriltmenin KAPALI oldugu bantlarda buton hic
+    // kaybolmadigindan kayit sonsuza dek ertelenip sonraki savasta kayboluyordu.
+    // Gate, diriltmenin kullandigi kayitli kat ile ayni kaynagi kullanir.
+    const resultStage = Number(GM_getValue(BOT_NEXT_STAGE_KEY, 0)) || detectSelectedStage();
+    if (!force && isBotEnabled() && isReviveEnabledForFloor(resultStage) && document.querySelector('#showReviveBtn')) {
       return false;
     }
 
@@ -2936,8 +2956,33 @@
     }
   }
 
+  // Ana kontrol panelinden secilen oncelik sirasi (varsayilan: orb > birlik > magara).
+  const MASTER_CONTROL_KEY = 'BFMasterControlV1';
+  const MASTER_DEFAULT_PRIORITY = ['orb', 'birlik', 'magara'];
+
+  function masterPriorityOrder() {
+    try {
+      const list = JSON.parse(localStorage.getItem(MASTER_CONTROL_KEY) || '{}').priority;
+      return Array.isArray(list) && list.length === 3 ? list : MASTER_DEFAULT_PRIORITY;
+    } catch {
+      return MASTER_DEFAULT_PRIORITY;
+    }
+  }
+
+  // Orb, kat botundan once mi? Once ise kat botu 10'luk sinirlarda sirayi orb'a
+  // devreder (eski davranis). Degilse kat botu turunu bolmez; orb, kat botu
+  // bekleme penceresine girince (setOrbFloorBusy(false, ...)) calisir.
+  function orbOutranksFloorBot() {
+    const order = masterPriorityOrder();
+    const orbIndex = order.indexOf('orb');
+    const botIndex = order.indexOf('birlik');
+    if (orbIndex < 0 || botIndex < 0) return true;
+    return orbIndex < botIndex;
+  }
+
   function orbCollectionIsDue() {
     try {
+      if (!orbOutranksFloorBot()) return false;
       const orb = JSON.parse(localStorage.getItem('BFOrbSettings') || '{}');
       if (orb.running !== true) return false;
       const collectAt = Number(orb.orbCollectAt || 0);
@@ -3212,6 +3257,44 @@
     void runBotTick();
   }
 
+  // Oto kat modunu navigasyon yapmadan acar. Ana kontrol paneli once tum
+  // modullerin bayraklarini yazar, sonra sayfayi yeniler (F5); her modul kendi
+  // sayfa acilis rutininde kaldigi yerden devam eder.
+  function enableAutoWithoutNavigation(startFloor, endFloor) {
+    const range = autoFloorRange();
+    const start = Number.isInteger(Number(startFloor)) ? Number(startFloor) : range.start;
+    const end = Number.isInteger(Number(endFloor)) ? Number(endFloor) : range.end;
+    GM_setValue(AUTO_START_FLOOR_KEY, start);
+    GM_setValue(AUTO_END_FLOOR_KEY, end);
+    saveAutoSettingsSnapshot({ ...autoSettingsSnapshot(), start, end });
+    GM_setValue(AUTO_ENABLED_KEY, true);
+    GM_setValue(BOT_ENABLED_KEY, true);
+    GM_setValue(BOT_NEXT_STAGE_KEY, start);
+    GM_setValue(BOT_STOP_STAGE_KEY, 0);
+    GM_setValue(BOT_DONE_KEY, 0);
+    GM_setValue(BOT_SKIP_COUNT_KEY, 0);
+    GM_setValue(BOT_RECOVER_KEY, '');
+    GM_setValue(AUTO_WAIT_UNTIL_KEY, 0);
+    setBotStatus(`Oto kat modu kuyruga alindi: Kat ${start}-${end}`);
+    return { start, end };
+  }
+
+  // Ana kontrol paneli (Kontrol sekmesi) ve skill modulu bu API'yi kullanir.
+  window.BFFloorBot = {
+    startAuto: (startFloor, endFloor) => {
+      const range = autoFloorRange();
+      startAuto(Number(startFloor) || range.start, Number(endFloor) || range.end);
+    },
+    enableAuto: enableAutoWithoutNavigation,
+    startManual: (startStage, stopStage) => startBot(Number(startStage) || 1, Number(stopStage) || 0),
+    stop: (reason) => stopBot(reason || 'ana kontrol panelinden durduruldu'),
+    isRunning: () => isBotEnabled() === true,
+    isAutoRunning: () => isAutoEnabled() === true,
+    range: () => autoFloorRange(),
+    floorUrl: (stage) => buildFloorUrl(Number(stage) || autoFloorRange().start),
+    status: () => String(GM_getValue('btBotStatus', ''))
+  };
+
   // Sonuc sayfasindaki olen birimleri (panelde aciksa) hayata dondurur. Manuel ve
   // oto sonuc isleyicilerinin ortak yardimcisi.
   async function reviveFallenIfNeeded(stage) {
@@ -3379,7 +3462,11 @@
 
     await reviveFallenIfNeeded(stage);
     try {
-      await syncLootResultToLastArchive();
+      // Diriltme denemesi bitti ve bot bu sayfadan ayrilmak uzere. Diriltme
+      // butonu hala duruyorsa (bant kapali, diriltme basarisiz, kullanici elle
+      // diriltiyor) beklemenin anlami yok: beklenirse kayit sonraki savasin
+      // payload'i tarafindan ezilip tamamen kaybolur.
+      await syncLootResultToLastArchive({ force: true });
     } catch (error) {
       console.error('Diriltme sonrasi arsiv kaydi guncellenemedi.', error);
     }
@@ -4426,7 +4513,11 @@ self.onmessage = (event) => {
     // tas varsa kurtarmaya calis). Diriltme kapaliysa buton hic tiklanmaz.
     await reviveFallenIfNeeded(stage);
     try {
-      await syncLootResultToLastArchive();
+      // Diriltme denemesi bitti ve bot bu sayfadan ayrilmak uzere. Diriltme
+      // butonu hala duruyorsa (bant kapali, diriltme basarisiz, kullanici elle
+      // diriltiyor) beklemenin anlami yok: beklenirse kayit sonraki savasin
+      // payload'i tarafindan ezilip tamamen kaybolur.
+      await syncLootResultToLastArchive({ force: true });
     } catch (error) {
       console.error('Diriltme sonrasi arsiv kaydi guncellenemedi.', error);
     }
@@ -7958,6 +8049,8 @@ self.onmessage = (event) => {
 
   const ROOT_ID = 'bf-automation-suite';
   const STYLE_ID = 'bf-automation-suite-styles';
+  // Panel basliginda gosterilir; deploy sonrasi dogru surumun yuklendigini dogrular.
+  const SUITE_VERSION = '1.2.1';
   const SETTINGS_KEY = 'BFAutomationSuiteSettingsV1';
   const ORB_KEY = 'BFOrbSettings';
   const CAVE_KEY = 'bfGrotteLoopStateV1';
@@ -7970,7 +8063,7 @@ self.onmessage = (event) => {
   const DEFAULTS = {
     rulesVersion: 2,
     autoEnabled: true,
-    activeTab: 'birlik',
+    activeTab: 'kontrol',
     collapsed: false,
     panelPos: null,
     blockHours: 2,
@@ -8035,8 +8128,8 @@ self.onmessage = (event) => {
       #${ROOT_ID} .bf-suite-title{font-size:12px;font-weight:800;letter-spacing:.3px;color:#f4dfbd}
       #${ROOT_ID} .bf-suite-sub{font-size:9px;color:#9e8566;margin-left:7px}
       #${ROOT_ID} .bf-suite-collapse{border:1px solid #65482e;background:#21170f;color:#e8c794;border-radius:6px;width:25px;height:22px;cursor:pointer}
-      #${ROOT_ID} .bf-suite-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px;background:#15100d;border-bottom:1px solid #403020}
-      #${ROOT_ID} .bf-suite-tab{border:1px solid #4e3824;background:#1c1510;color:#a9957b;border-radius:7px;padding:6px;cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+      #${ROOT_ID} .bf-suite-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px;background:#15100d;border-bottom:1px solid #403020}
+      #${ROOT_ID} .bf-suite-tab{border:1px solid #4e3824;background:#1c1510;color:#a9957b;border-radius:7px;padding:6px 3px;cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
       #${ROOT_ID} .bf-suite-tab.is-active{color:#181008;background:#d3aa6b;border-color:#e6c48c}
       #${ROOT_ID} .bf-suite-content{max-height:min(530px,calc(72dvh - 82px));overflow:auto;padding:6px;background:#0f0c0a;scrollbar-width:thin;scrollbar-color:#6d5133 transparent}
       #${ROOT_ID} .bf-suite-pane{display:none}
@@ -8051,6 +8144,35 @@ self.onmessage = (event) => {
       #${ROOT_ID} .bf-suite-cave-toggle{width:100%;margin-top:8px;padding:7px;border:1px solid #8b3b2f;border-radius:7px;background:#5a211b;color:#ffe3d5;font-size:10px;font-weight:800;cursor:pointer}
       #${ROOT_ID} .bf-suite-cave-toggle.is-paused{border-color:#3f7859;background:#183d2b;color:#c9f4d9}
       #${ROOT_ID} .bf-suite-status{margin-top:9px;padding:8px;border-radius:7px;background:#0d0a08;border:1px solid #352719;color:#c9b497;min-height:34px}
+      #${ROOT_ID} .bf-master{padding:11px;border:1px solid #503a25;border-radius:10px;background:#18120e}
+      #${ROOT_ID} .bf-master-top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+      #${ROOT_ID} .bf-master-badge{padding:3px 8px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:.6px;background:#3a2c1c;color:#d9bd90;border:1px solid #5c4429}
+      #${ROOT_ID} .bf-master-badge.is-running{background:#123a20;color:#8ce9a4;border-color:#2f7a48}
+      #${ROOT_ID} .bf-master-badge.is-paused{background:#3d3210;color:#ffd479;border-color:#8a6f22}
+      #${ROOT_ID} .bf-master-hint{font-size:9px;color:#9e8566;line-height:1.3}
+      #${ROOT_ID} .bf-master-list{display:flex;flex-direction:column;gap:5px}
+      #${ROOT_ID} .bf-master-row{display:flex;align-items:center;gap:7px;padding:6px 8px;border:1px solid #4a3521;border-radius:8px;background:#120e0a}
+      #${ROOT_ID} .bf-master-row.is-off{opacity:.5}
+      #${ROOT_ID} .bf-master-rank{width:17px;height:17px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:5px;background:#d3aa6b;color:#191008;font-size:9px;font-weight:800}
+      #${ROOT_ID} .bf-master-row input[type=checkbox]{width:15px;height:15px;accent-color:#c89a54;margin:0}
+      #${ROOT_ID} .bf-master-name{flex:1;font-size:11px;font-weight:700;color:#f0d7ae}
+      #${ROOT_ID} .bf-master-note{font-size:9px;color:#9e8566;font-weight:400}
+      #${ROOT_ID} .bf-master-move{width:22px;height:22px;border:1px solid #5c4429;border-radius:6px;background:#231a12;color:#e8c794;cursor:pointer;font-size:10px;line-height:1;padding:0}
+      #${ROOT_ID} .bf-master-move:disabled{opacity:.3;cursor:default}
+      #${ROOT_ID} .bf-master-actions{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;margin-top:9px}
+      #${ROOT_ID} .bf-master-btn{padding:9px 4px;border-radius:8px;border:1px solid #5c4429;background:#241a12;color:#f0d7ae;font-size:10px;font-weight:800;cursor:pointer}
+      #${ROOT_ID} .bf-master-btn.is-start{background:linear-gradient(160deg,#2f9e44,#40c057);border-color:#49b45c;color:#06220e}
+      #${ROOT_ID} .bf-master-btn.is-pause{background:#4a3a12;border-color:#8a6f22;color:#ffd479}
+      #${ROOT_ID} .bf-master-btn.is-stop{background:#5a211b;border-color:#8b3b2f;color:#ffe3d5}
+      #${ROOT_ID} .bf-master-btn:disabled{opacity:.42;cursor:default}
+      #${ROOT_ID} .bf-master-check{display:flex;align-items:center;gap:6px;margin:10px 0 6px;font-size:10px;color:#c9b497;cursor:pointer}
+      #${ROOT_ID} .bf-master-check input{width:15px;height:15px;accent-color:#c89a54;margin:0}
+      #${ROOT_ID} .bf-master-keys{display:flex;flex-direction:column;gap:4px}
+      #${ROOT_ID} .bf-master-key{display:flex;align-items:center;gap:7px;font-size:10px;color:#a99273}
+      #${ROOT_ID} .bf-master-key span{flex:1}
+      #${ROOT_ID} .bf-master-key kbd{min-width:96px;text-align:center;padding:4px 6px;border:1px solid #594027;border-radius:6px;background:#100c09;color:#f2dfc1;font:700 10px/1 monospace}
+      #${ROOT_ID} .bf-master-key button{padding:4px 8px;border:1px solid #5c4429;border-radius:6px;background:#231a12;color:#e8c794;font-size:9px;cursor:pointer}
+      #${ROOT_ID} .bf-master-key.is-capturing kbd{border-color:#d3aa6b;color:#ffd479}
       #${ROOT_ID} #bt-bot-panel,#${ROOT_ID} #bf-grotte-loop-panel,#${ROOT_ID} #bf-orb-panel,#${ROOT_ID} #bt-bot-panel-mini{position:static!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:100%!important;min-width:0!important;max-width:none!important;max-height:none!important;height:auto!important;margin:0!important;z-index:auto!important;box-shadow:none!important}
       #${ROOT_ID} #bt-bot-panel{padding:7px 8px!important;column-gap:7px!important;row-gap:5px!important;border-radius:10px!important;font-size:10px!important}
       #${ROOT_ID} #bt-bot-panel .bt-panel-head{padding-bottom:0!important}
@@ -8073,15 +8195,34 @@ self.onmessage = (event) => {
     root.id = ROOT_ID;
     root.innerHTML = `
       <div class="bf-suite-head">
-        <div><span class="bf-suite-title">BiteFight Otomasyon</span><span class="bf-suite-sub">Birlik · Mağara · Orb</span></div>
+        <div><span class="bf-suite-title">BiteFight Otomasyon</span><span class="bf-suite-sub">Kontrol · Birlik · Mağara · Orb · Skill — v${SUITE_VERSION}</span></div>
         <button class="bf-suite-collapse" type="button" title="Küçült / büyüt">—</button>
       </div>
       <nav class="bf-suite-tabs" aria-label="Otomasyon bölümleri">
+        <button class="bf-suite-tab" type="button" data-tab="kontrol">Kontrol</button>
         <button class="bf-suite-tab" type="button" data-tab="birlik">Birlik</button>
         <button class="bf-suite-tab" type="button" data-tab="magara">Mağara</button>
         <button class="bf-suite-tab" type="button" data-tab="orb">Orb</button>
+        <button class="bf-suite-tab" type="button" data-tab="skill">Skill</button>
       </nav>
       <div class="bf-suite-content">
+        <div class="bf-suite-pane" data-pane="kontrol">
+          <div class="bf-master">
+            <div class="bf-master-top">
+              <span class="bf-master-badge" data-master="badge">BOŞTA</span>
+              <span class="bf-master-hint">Öncelik sırası: üstteki modül sırayı ilk alır.</span>
+            </div>
+            <div class="bf-master-list" data-master="list"></div>
+            <div class="bf-master-actions">
+              <button class="bf-master-btn is-start" data-master="start" type="button">▶ Tek Tuşla Başlat</button>
+              <button class="bf-master-btn is-pause" data-master="pause" type="button">⏸ Duraklat</button>
+              <button class="bf-master-btn is-stop" data-master="stop" type="button">⏹ Durdur</button>
+            </div>
+            <label class="bf-master-check"><input data-master="hotkeys" type="checkbox"><span>Klavye kısayolları aktif</span></label>
+            <div class="bf-master-keys" data-master="keys"></div>
+            <div class="bf-suite-status" data-master="status">Hazır.</div>
+          </div>
+        </div>
         <div class="bf-suite-pane" data-pane="birlik"><div data-slot="birlik"></div></div>
         <div class="bf-suite-pane" data-pane="magara">
           <div class="bf-suite-auto">
@@ -8097,6 +8238,7 @@ self.onmessage = (event) => {
           <div data-slot="magara"></div>
         </div>
         <div class="bf-suite-pane" data-pane="orb"><div data-slot="orb"></div></div>
+        <div class="bf-suite-pane" data-pane="skill"><div data-slot="skill"></div></div>
       </div>
     `;
     document.body.appendChild(root);
@@ -8164,6 +8306,7 @@ self.onmessage = (event) => {
       stopAutoCave('mağara panelinden durduruldu');
       setSuiteStatus('Otomatik mağara durduruldu. Devam Ettir düğmesine kadar yeniden başlamayacak.');
     }, true);
+    bindMasterPanel(root);
     enableDrag(root.querySelector('.bf-suite-head'), root);
   }
 
@@ -8179,7 +8322,7 @@ self.onmessage = (event) => {
   function selectTab(tab) {
     const root = document.getElementById(ROOT_ID);
     if (!root) return;
-    const valid = ['birlik', 'magara', 'orb'].includes(tab) ? tab : 'birlik';
+    const valid = ['kontrol', 'birlik', 'magara', 'orb', 'skill'].includes(tab) ? tab : 'kontrol';
     settings.activeTab = valid;
     saveSettings();
     root.querySelectorAll('[data-tab]').forEach(el => el.classList.toggle('is-active', el.dataset.tab === valid));
@@ -8193,7 +8336,8 @@ self.onmessage = (event) => {
       ['#bt-bot-panel', 'birlik'],
       ['#bt-bot-panel-mini', 'birlik'],
       ['#bf-grotte-loop-panel', 'magara'],
-      ['#bf-orb-panel', 'orb']
+      ['#bf-orb-panel', 'orb'],
+      ['#bf-skill-panel', 'skill']
     ];
     for (const [selector, slotName] of targets) {
       const panel = document.querySelector(selector);
@@ -8234,6 +8378,403 @@ self.onmessage = (event) => {
     handle.addEventListener('pointerup', finish);
     handle.addEventListener('pointercancel', finish);
   }
+
+  // ===================== ANA KONTROL (tek tusla baslat) =====================
+  // Uc modulun ortak anahtari. Birlik botu da bu anahtardaki oncelik sirasini
+  // okur (orbCollectionIsDue -> orbOutranksFloorBot).
+  const MASTER_KEY = 'BFMasterControlV1';
+  const MASTER_MODULES = [
+    { id: 'orb', label: 'Orb Toplayıcı', note: 'küre avı' },
+    { id: 'birlik', label: 'Birlik · Oto Kat', note: 'atalar katları' },
+    { id: 'magara', label: 'Mağara · Zor', note: 'artan enerji' }
+  ];
+  const MASTER_DEFAULTS = {
+    priority: ['orb', 'birlik', 'magara'],
+    modules: { orb: true, birlik: true, magara: true },
+    state: 'idle',
+    pendingBirlik: false,
+    pendingSince: 0,
+    caveWasActive: false,
+    resumeAfterSkill: false,
+    hotkeysEnabled: true,
+    hotkeys: { start: 'Ctrl+Alt+S', pause: 'Ctrl+Alt+P', stop: 'Ctrl+Alt+X' },
+    updatedAt: 0
+  };
+  // Magara onceligi birligi bu sureden uzun bekletemez (kilitlenme emniyeti).
+  const MASTER_PENDING_MAX_MS = 30 * 60 * 1000;
+
+  let master = normalizeMaster(loadJson(MASTER_KEY, {}));
+  let hotkeyCapture = '';
+  // Liste/kisayol satirlari innerHTML ile cizildigi icin yalnizca icerik
+  // degistiginde yeniden cizilir (5 sn'lik tick odagi bozmasin).
+  let masterListSignature = '';
+  let masterKeysSignature = '';
+
+  function normalizeMaster(raw) {
+    const source = raw && typeof raw === 'object' ? raw : {};
+    const next = { ...MASTER_DEFAULTS, ...source };
+    next.modules = { ...MASTER_DEFAULTS.modules, ...(source.modules || {}) };
+    next.hotkeys = { ...MASTER_DEFAULTS.hotkeys, ...(source.hotkeys || {}) };
+    const ids = MASTER_MODULES.map(item => item.id);
+    const ordered = Array.isArray(source.priority) ? source.priority.filter(id => ids.includes(id)) : [];
+    next.priority = [...new Set(ordered)].concat(ids.filter(id => !ordered.includes(id)));
+    if (!['idle', 'running', 'paused'].includes(next.state)) next.state = 'idle';
+    return next;
+  }
+
+  function saveMaster() {
+    master.updatedAt = Date.now();
+    localStorage.setItem(MASTER_KEY, JSON.stringify(master));
+  }
+
+  function masterRank(id) {
+    const index = master.priority.indexOf(id);
+    return index < 0 ? 99 : index;
+  }
+
+  function masterSelected(id) {
+    return master.modules[id] !== false;
+  }
+
+  function isGameHost() {
+    return /bitefight/i.test(location.host);
+  }
+
+  function setMasterStatus(message) {
+    const status = document.querySelector(`#${ROOT_ID} [data-master="status"]`);
+    if (status) status.textContent = message;
+  }
+
+  function moduleStates() {
+    let botRunning = false;
+    try { botRunning = window.BFFloorBot?.isRunning?.() === true; } catch { botRunning = false; }
+    return {
+      orb: loadJson(ORB_KEY).running === true,
+      birlik: botRunning,
+      magara: caveState().enabled === true
+    };
+  }
+
+  function moduleStateText() {
+    const states = moduleStates();
+    return master.priority
+      .filter(id => masterSelected(id))
+      .map(id => `${MASTER_MODULES.find(item => item.id === id).label.split(' ')[0]} ${states[id] ? '✔' : '⏳'}`)
+      .join(' · ');
+  }
+
+  function renderMaster() {
+    const root = document.getElementById(ROOT_ID);
+    if (!root) return;
+
+    const list = root.querySelector('[data-master="list"]');
+    const listSignature = master.priority.map(id => `${id}:${masterSelected(id) ? 1 : 0}`).join('|');
+    if (list && listSignature !== masterListSignature) {
+      masterListSignature = listSignature;
+      list.innerHTML = master.priority.map((id, index) => {
+        const item = MASTER_MODULES.find(entry => entry.id === id);
+        const on = masterSelected(id);
+        return `<div class="bf-master-row${on ? '' : ' is-off'}">
+          <span class="bf-master-rank">${index + 1}</span>
+          <input type="checkbox" data-master-module="${id}"${on ? ' checked' : ''}>
+          <span class="bf-master-name">${item.label} <span class="bf-master-note">${item.note}</span></span>
+          <button class="bf-master-move" type="button" data-master-move="up" data-module="${id}"${index === 0 ? ' disabled' : ''}>▲</button>
+          <button class="bf-master-move" type="button" data-master-move="down" data-module="${id}"${index === master.priority.length - 1 ? ' disabled' : ''}>▼</button>
+        </div>`;
+      }).join('');
+    }
+
+    const keys = root.querySelector('[data-master="keys"]');
+    const keysSignature = `${hotkeyCapture}|${master.hotkeys.start}|${master.hotkeys.pause}|${master.hotkeys.stop}`;
+    if (keys && keysSignature !== masterKeysSignature) {
+      masterKeysSignature = keysSignature;
+      keys.innerHTML = [['start', 'Başlat'], ['pause', 'Duraklat'], ['stop', 'Durdur']].map(([action, label]) => {
+        const capturing = hotkeyCapture === action;
+        const combo = master.hotkeys[action] || '—';
+        return `<div class="bf-master-key${capturing ? ' is-capturing' : ''}">
+          <span>${label}</span><kbd>${capturing ? 'Tuşa bas…' : combo}</kbd>
+          <button type="button" data-master-key="${action}">${capturing ? 'Vazgeç' : 'Değiştir'}</button>
+        </div>`;
+      }).join('');
+    }
+
+    const badge = root.querySelector('[data-master="badge"]');
+    if (badge) {
+      badge.textContent = master.state === 'running' ? 'ÇALIŞIYOR' : master.state === 'paused' ? 'DURAKLADI' : 'BOŞTA';
+      badge.classList.toggle('is-running', master.state === 'running');
+      badge.classList.toggle('is-paused', master.state === 'paused');
+    }
+
+    const hotkeyBox = root.querySelector('[data-master="hotkeys"]');
+    if (hotkeyBox) hotkeyBox.checked = master.hotkeysEnabled !== false;
+
+    const startBtn = root.querySelector('[data-master="start"]');
+    const pauseBtn = root.querySelector('[data-master="pause"]');
+    const stopBtn = root.querySelector('[data-master="stop"]');
+    if (startBtn) startBtn.textContent = master.state === 'paused' ? '▶ Devam Et' : '▶ Tek Tuşla Başlat';
+    if (startBtn) startBtn.disabled = master.state === 'running';
+    if (pauseBtn) pauseBtn.disabled = master.state !== 'running';
+    if (stopBtn) stopBtn.disabled = master.state === 'idle';
+
+    const enabledBox = root.querySelector('[data-suite="enabled"]');
+    if (enabledBox) enabledBox.checked = settings.autoEnabled === true;
+  }
+
+  function moveModule(id, direction) {
+    const index = master.priority.indexOf(id);
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (index < 0 || target < 0 || target >= master.priority.length) return;
+    const next = [...master.priority];
+    next.splice(target, 0, next.splice(index, 1)[0]);
+    master.priority = next;
+    saveMaster();
+    renderMaster();
+    setMasterStatus(`Öncelik sırası: ${master.priority.join(' > ')}. ${master.state === 'running' ? 'Yeni sıra için tekrar başlat.' : 'Başlat’a basınca uygulanır.'}`);
+  }
+
+  function comboFromEvent(event) {
+    const parts = [];
+    if (event.ctrlKey) parts.push('Ctrl');
+    if (event.altKey) parts.push('Alt');
+    if (event.shiftKey) parts.push('Shift');
+    if (event.metaKey) parts.push('Meta');
+    const key = event.key.length === 1 ? event.key.toUpperCase() : event.key;
+    parts.push(key);
+    return parts.join('+');
+  }
+
+  function isModifierKey(key) {
+    return ['Control', 'Alt', 'Shift', 'Meta'].includes(key);
+  }
+
+  function handleHotkey(event) {
+    if (hotkeyCapture) {
+      if (isModifierKey(event.key)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.key === 'Escape') {
+        hotkeyCapture = '';
+        renderMaster();
+        return;
+      }
+      master.hotkeys[hotkeyCapture] = comboFromEvent(event);
+      hotkeyCapture = '';
+      saveMaster();
+      renderMaster();
+      setMasterStatus('Kısayol kaydedildi.');
+      return;
+    }
+    if (master.hotkeysEnabled === false || isModifierKey(event.key)) return;
+    const target = event.target;
+    if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName || ''))) return;
+    const combo = comboFromEvent(event).toLowerCase();
+    const action = ['start', 'pause', 'stop']
+      .find(name => String(master.hotkeys[name] || '').toLowerCase() === combo);
+    if (!action) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (action === 'start') void masterStart();
+    else if (action === 'pause') void masterPause('klavye kısayolu');
+    else void masterStop('klavye kısayolu');
+  }
+
+  function bindMasterPanel(root) {
+    const pane = root.querySelector('[data-pane="kontrol"]');
+    if (!pane) return;
+    pane.addEventListener('click', event => {
+      const move = event.target.closest('[data-master-move]');
+      if (move) {
+        moveModule(move.dataset.module, move.dataset.masterMove);
+        return;
+      }
+      const keyButton = event.target.closest('[data-master-key]');
+      if (keyButton) {
+        hotkeyCapture = hotkeyCapture === keyButton.dataset.masterKey ? '' : keyButton.dataset.masterKey;
+        renderMaster();
+        return;
+      }
+      const action = event.target.closest('button[data-master]')?.dataset.master;
+      if (action === 'start') void masterStart();
+      else if (action === 'pause') void masterPause('kullanıcı duraklattı');
+      else if (action === 'stop') void masterStop('kullanıcı durdurdu');
+    });
+    pane.addEventListener('change', event => {
+      const moduleBox = event.target.closest('[data-master-module]');
+      if (moduleBox) {
+        master.modules[moduleBox.dataset.masterModule] = moduleBox.checked;
+        saveMaster();
+        renderMaster();
+        setMasterStatus(master.state === 'running'
+          ? 'Modül seçimi değişti; yeni seçim için tekrar başlat.'
+          : 'Modül seçimi kaydedildi.');
+        return;
+      }
+      if (event.target.matches('[data-master="hotkeys"]')) {
+        master.hotkeysEnabled = event.target.checked;
+        saveMaster();
+        setMasterStatus(master.hotkeysEnabled ? 'Klavye kısayolları açık.' : 'Klavye kısayolları kapalı.');
+      }
+    });
+    renderMaster();
+  }
+
+  // Secilen modullerin bayraklarini yazar; navigasyon yapmaz. Sayfa yenilendikten
+  // sonra her modul kendi acilis rutininde kaldigi yerden devam eder.
+  function applyMasterModules() {
+    const wantOrb = masterSelected('orb');
+    const wantBot = masterSelected('birlik');
+    const wantCave = masterSelected('magara');
+    const orbFirst = masterRank('orb') < masterRank('birlik');
+    const caveBeforeBot = masterRank('magara') < masterRank('birlik');
+
+    const orb = loadJson(ORB_KEY);
+    orb.running = wantOrb;
+    if (wantOrb) orb.retryAt = 0;
+    localStorage.setItem(ORB_KEY, JSON.stringify(orb));
+
+    // Magara birlikten oncelikliyse: once magara enerjiyi rezerve kadar harcar,
+    // sonra birlik devreye girer (masterTick serbest birakir).
+    const holdBot = wantBot && wantCave && caveBeforeBot;
+    master.pendingBirlik = holdBot;
+    master.pendingSince = holdBot ? Date.now() : 0;
+    master.caveWasActive = false;
+    if (wantBot && !holdBot) {
+      try { window.BFFloorBot?.enableAuto?.(); } catch (error) { console.error('[BF Suite] Birlik başlatılamadı', error); }
+    } else {
+      try { window.BFFloorBot?.stop?.(holdBot ? 'mağara önceliği bekleniyor' : 'ana kontrol: birlik kapalı'); } catch { /* bot modulu yoksa gec */ }
+    }
+
+    settings.autoEnabled = wantCave;
+    if (wantCave) settings.manualCavePaused = false;
+    saveSettings();
+    updateCavePauseButton();
+
+    const botActive = wantBot && !holdBot;
+    const start = Number(window.BFFloorBot?.range?.().start) || 1;
+    localStorage.setItem(COORD_KEY, JSON.stringify({
+      busy: botActive && (!wantOrb || !orbFirst),
+      resumeAt: 0,
+      orbPriority: wantOrb && botActive && orbFirst,
+      floorUrl: window.BFFloorBot?.floorUrl?.(start) || '',
+      updatedAt: Date.now()
+    }));
+  }
+
+  async function masterStopModules(reason) {
+    try { window.BFOrbHunter?.stop?.(); } catch { /* orb modulu yoksa gec */ }
+    try {
+      const orb = loadJson(ORB_KEY);
+      orb.running = false;
+      localStorage.setItem(ORB_KEY, JSON.stringify(orb));
+    } catch { /* localStorage kapali */ }
+    try { window.BFFloorBot?.stop?.(reason); } catch { /* bot modulu yoksa gec */ }
+    settings.autoEnabled = false;
+    saveSettings();
+    await stopAutoCave(reason);
+    localStorage.setItem(COORD_KEY, JSON.stringify({
+      busy: false, resumeAt: 0, orbPriority: false, floorUrl: '', updatedAt: Date.now()
+    }));
+    updateCavePauseButton();
+  }
+
+  async function masterStart() {
+    const selected = master.priority.filter(id => masterSelected(id));
+    if (!selected.length) {
+      setMasterStatus('En az bir modül seçmelisin.');
+      return;
+    }
+    if (!isGameHost()) {
+      setMasterStatus('Bu sayfa oyun sitesi değil. Oyun sekmesinde başlat.');
+      return;
+    }
+    master.state = 'running';
+    applyMasterModules();
+    saveMaster();
+    renderMaster();
+    setMasterStatus(`Başlatılıyor: ${selected.join(' > ')}. Sayfa yenileniyor…`);
+    // Kullanicinin elle F5 atmasina gerek kalmasin: bayraklar yazildiktan sonra
+    // sayfa yenilenir, her modul acilis rutininde devreye girer.
+    window.setTimeout(() => location.reload(), 400);
+  }
+
+  async function masterPause(reason) {
+    if (master.state !== 'running') return;
+    await masterStopModules(reason);
+    master.state = 'paused';
+    master.pendingBirlik = false;
+    saveMaster();
+    renderMaster();
+    setMasterStatus(`Duraklatıldı (${reason}). Devam Et’e basınca kaldığı yerden sürer.`);
+  }
+
+  async function masterStop(reason) {
+    await masterStopModules(reason);
+    master.state = 'idle';
+    master.pendingBirlik = false;
+    master.pendingSince = 0;
+    master.caveWasActive = false;
+    master.resumeAfterSkill = false;
+    saveMaster();
+    renderMaster();
+    setMasterStatus(`Durduruldu (${reason}).`);
+  }
+
+  // Magara onceligi: magara enerjiyi rezerve kadar harcayinca birlik devralir.
+  function masterTick() {
+    renderMaster();
+    if (master.state !== 'running') return;
+    if (!master.pendingBirlik || !masterSelected('birlik')) {
+      setMasterStatus(`Çalışıyor · Sıra: ${master.priority.filter(id => masterSelected(id)).join(' > ')} · ${moduleStateText()}`);
+      return;
+    }
+    if (settings.drainActive) {
+      if (!master.caveWasActive) {
+        master.caveWasActive = true;
+        saveMaster();
+      }
+      return;
+    }
+    const waitedTooLong = master.pendingSince > 0 && Date.now() - master.pendingSince > MASTER_PENDING_MAX_MS;
+    if (!master.caveWasActive && !waitedTooLong) {
+      setMasterStatus(`Birlik bekliyor: mağara sırası. ${moduleStateText()}`);
+      return;
+    }
+    master.pendingBirlik = false;
+    master.pendingSince = 0;
+    saveMaster();
+    try { window.BFFloorBot?.enableAuto?.(); } catch (error) { console.error('[BF Suite] Birlik devralamadı', error); }
+    setMasterStatus(waitedTooLong
+      ? 'Mağara sırası zaman aşımına uğradı; birlik devraldı.'
+      : 'Mağara turu bitti; birlik (oto kat) devraldı.');
+  }
+
+  // Skill basma modulu botlari gecici durdurup sonra geri acmak icin kullanir.
+  window.BFMasterControl = {
+    start: () => void masterStart(),
+    pause: reason => void masterPause(reason || 'skill basma'),
+    stop: reason => void masterStop(reason || 'dış istek'),
+    status: () => ({ ...master, moduleStates: moduleStates() }),
+    isRunning: () => master.state === 'running',
+    // Skill basma sirasinda botlari durdurur; bitince resume() geri acar.
+    async suspendForSkill() {
+      if (master.state !== 'running') return false;
+      await masterStopModules('skill basma sırası');
+      master.state = 'paused';
+      master.resumeAfterSkill = true;
+      master.pendingBirlik = false;
+      saveMaster();
+      renderMaster();
+      setMasterStatus('Skill basma için botlar duraklatıldı.');
+      return true;
+    },
+    resumeAfterSkill() {
+      if (!master.resumeAfterSkill) return false;
+      master.resumeAfterSkill = false;
+      saveMaster();
+      void masterStart();
+      return true;
+    }
+  };
 
   function energyInfo() {
     const source = document.getElementById('infobar')?.textContent || document.body?.innerText || '';
@@ -8470,6 +9011,7 @@ self.onmessage = (event) => {
 
   async function automationTick() {
     attachNativePanels();
+    masterTick();
     if (loadJson(ITEM_DISCARD_KEY).running === true) {
       setSuiteStatus('Profil item temizligi tamamlanana kadar otomasyon bekliyor.');
       return;
@@ -8485,14 +9027,19 @@ self.onmessage = (event) => {
     }
     const remaining = orbRemainingMs();
     const energy = energyInfo();
-    const blockMs = settings.blockHours * 3600000;
+    // Magara orb'dan oncelikliyse "orb korumasi" penceresi uygulanmaz: magara
+    // ancak orb gercekten sirayi devraldiginda (orbPriority) durur.
+    const caveOverOrb = masterRank('magara') < masterRank('orb');
+    const blockMs = caveOverOrb ? 0 : settings.blockHours * 3600000;
     const conditionalMs = settings.conditionalHours * 3600000;
     const energyText = energy ? `${energy.current}/${energy.max} (%${Math.round(energy.percent)})` : 'okunamadı';
     const orb = loadJson(ORB_KEY);
     const coord = coordinator();
 
     if (coord.orbPriority === true || (remaining !== null && remaining <= blockMs)) {
-      const reason = coord.orbPriority ? 'orb önceliği başladı' : `orb süresi ${settings.blockHours} saatin altına indi`;
+      const reason = coord.orbPriority
+        ? 'orb önceliği başladı'
+        : (caveOverOrb ? 'orb küreleri hazır' : `orb süresi ${settings.blockHours} saatin altına indi`);
       await stopAutoCave(reason, orb.running === true ? `${location.origin}/robbery/index` : '');
       setSuiteStatus(`Mağara kapalı: ${reason}. Orb: ${formatTime(remaining)} · Enerji: ${energyText}`);
       return;
@@ -8546,10 +9093,567 @@ self.onmessage = (event) => {
   function init() {
     normalizeSettings();
     buildPanel();
+    window.addEventListener('keydown', handleHotkey, true);
+    // Baska sekmede yapilan ana kontrol degisikligi bu paneli de tazelesin.
+    window.addEventListener('storage', event => {
+      if (event.key !== MASTER_KEY) return;
+      master = normalizeMaster(loadJson(MASTER_KEY, {}));
+      masterListSignature = '';
+      masterKeysSignature = '';
+      renderMaster();
+    });
     observer = new MutationObserver(() => attachNativePanels());
     observer.observe(document.body, { childList: true, subtree: true });
     window.setTimeout(() => { void automationTick(); }, 1200);
     window.setInterval(() => { void automationTick(); }, 5000);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
+})();
+
+
+// =============================================================================
+// SKILL BASMA (Kontrol panelindeki "Skill" sekmesi)
+// Kaynak: skill-basma.user.js. Ayni localStorage anahtarlarini kullanir; ayri
+// script kuruluysa cift panel olmasin diye asagidaki bayrak set edilir.
+// =============================================================================
+(function () {
+  'use strict';
+
+  if (window.__BFSkillTrainerIntegrated) return;
+  window.__BFSkillTrainerIntegrated = true;
+
+  const PANEL_ID = 'bf-skill-panel';
+  const STYLE_ID = 'bf-skill-panel-styles';
+  const STORAGE_KEY = 'btSkillTrainerConfigV1';
+  const RUN_STATE_KEY = 'btSkillTrainerRunV1';
+  const TAB_ID_KEY = 'btSkillTrainerTabIdV1';
+  const SKILLS = [
+    { id: 1, name: 'Güç', keys: ['guc', 'strength', 'starke'] },
+    { id: 2, name: 'Savunma', keys: ['savunma', 'defense', 'verteidigung'] },
+    { id: 3, name: 'Beceri', keys: ['beceri', 'dexterity', 'geschicklichkeit'] },
+    { id: 4, name: 'Dayanıklılık', keys: ['dayaniklilik', 'endurance', 'ausdauer'] },
+    { id: 5, name: 'Karizma', keys: ['karizma', 'charisma'] }
+  ];
+  const DISCOUNTS = {
+    none: { label: 'İndirim yok', multiplier: 1 },
+    30: { label: '%30', multiplier: 0.7 },
+    60: { label: '%60', multiplier: 0.4 }
+  };
+  const DEFAULTS = { skillId: 1, count: 300, minDelay: 1, maxDelay: 3, discount: '60' };
+
+  let tabId = sessionStorage.getItem(TAB_ID_KEY);
+  if (!tabId) {
+    tabId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+    sessionStorage.setItem(TAB_ID_KEY, tabId);
+  }
+  let running = false;
+  let cycleTimer = null;
+  let completed = 0;
+  let spent = 0;
+
+  function isProfilePage() {
+    return /^\/profile\/index(?:\/|$)/.test(location.pathname);
+  }
+
+  function profileUrl() {
+    return `${location.origin}/profile/index`;
+  }
+
+  function normalize(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/ı/g, 'i')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function parseNumber(value) {
+    const digits = String(value || '').replace(/\D/g, '');
+    return digits ? Number.parseInt(digits, 10) : 0;
+  }
+
+  function parseFirstNumber(value) {
+    const match = String(value || '').match(/\d[\d.,]*/);
+    return match ? parseNumber(match[0]) : 0;
+  }
+
+  function formatNumber(value) {
+    return new Intl.NumberFormat('tr-TR').format(Math.max(0, Math.floor(Number(value) || 0)));
+  }
+
+  function loadConfig() {
+    try {
+      return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') };
+    } catch {
+      return { ...DEFAULTS };
+    }
+  }
+
+  function loadRunState() {
+    try {
+      return JSON.parse(localStorage.getItem(RUN_STATE_KEY) || 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  function saveRunState(state) {
+    localStorage.setItem(RUN_STATE_KEY, JSON.stringify(state));
+    return state;
+  }
+
+  function saveConfig() {
+    const panel = document.getElementById(PANEL_ID);
+    if (!panel || !panel.querySelector('#bfs-skill')) return;
+    const stored = loadConfig();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...stored,
+      skillId: Number(panel.querySelector('#bfs-skill').value),
+      count: Math.max(1, parseNumber(panel.querySelector('#bfs-count').value)),
+      minDelay: Math.max(0, Number(panel.querySelector('#bfs-min').value) || 0),
+      maxDelay: Math.max(0, Number(panel.querySelector('#bfs-max').value) || 0),
+      discount: panel.querySelector('[name="bfs-discount"]:checked')?.value || 'none'
+    }));
+  }
+
+  function getGold(doc = document) {
+    const goldBox = doc.querySelector('div.gold, .gold');
+    if (goldBox) {
+      for (const node of goldBox.childNodes) {
+        if (node.nodeType !== Node.TEXT_NODE) continue;
+        const value = parseFirstNumber(node.textContent);
+        if (value) return value;
+      }
+      const labelled = goldBox.textContent.match(/(?:altın|altin|gold)\D*([\d.,]+)/i);
+      const fallbackValue = parseFirstNumber(labelled ? labelled[1] : goldBox.textContent);
+      if (fallbackValue) return fallbackValue;
+    }
+    const direct = doc.querySelector('#gold_value, #gold_amount');
+    return direct ? parseFirstNumber(direct.textContent) : 0;
+  }
+
+  function findTrainingLink(doc, skillId) {
+    return [...doc.querySelectorAll(`a[href*="/profile/training/${skillId}"]`)]
+      .find((link) => link.querySelector('img[src*="iconplus" i]')) ||
+      doc.querySelector(`a[href*="/profile/training/${skillId}"]`);
+  }
+
+  function findRow(doc, skill) {
+    const link = findTrainingLink(doc, skill.id);
+    if (link?.closest('tr')) return link.closest('tr');
+    return [...doc.querySelectorAll('tr')].find((row) => {
+      const label = normalize(row.cells?.[0]?.textContent);
+      return skill.keys.some((key) => label.includes(key));
+    }) || null;
+  }
+
+  function getLevel(doc, skill) {
+    const row = findRow(doc, skill);
+    if (!row) return 0;
+    for (const tooltip of [...row.querySelectorAll('.tooltip')]) {
+      const match = normalize(tooltip.textContent).match(/(?:temel deger|base value|grundwert)\s*[:：]?\s*(\d[\d.]*)/i);
+      if (match) return parseNumber(match[1]);
+    }
+    const levelCell = row.querySelector('td[nowrap]') || row.cells?.[1];
+    if (!levelCell) return 0;
+    const ownText = [...levelCell.childNodes]
+      .filter((node) => node.nodeType === Node.TEXT_NODE)
+      .map((node) => node.textContent)
+      .join(' ');
+    const ownNumbers = ownText.match(/\d[\d.]*/g);
+    if (ownNumbers?.length) return parseNumber(ownNumbers[0]);
+    const numbers = levelCell.textContent.match(/\d[\d.]*/g) || [];
+    return numbers.length ? parseNumber(numbers[0]) : 0;
+  }
+
+  function getTooltipCost(doc, skillId) {
+    const link = findTrainingLink(doc, skillId);
+    const cell = link?.closest('td');
+    const tooltip = cell?.querySelector('.tooltip') || link?.parentElement?.querySelector('.tooltip');
+    if (!tooltip) return 0;
+    const text = tooltip.textContent || '';
+    const labelled = text.match(/(?:fiyat|price|kosten)\s*[:：]?\s*([\d.,]+)/i);
+    return parseNumber(labelled ? labelled[1] : text);
+  }
+
+  function skillCost(level, multiplier) {
+    return Math.floor(Math.pow(Math.max(5, level) - 4, 2.4) * multiplier);
+  }
+
+  function totalCost(level, count, multiplier) {
+    let total = 0;
+    for (let index = 0; index < count; index += 1) total += skillCost(level + index, multiplier);
+    return total;
+  }
+
+  // Eldeki altinla kac basim yapilabilir? (Her basimda maliyet arttigi icin
+  // adim adim toplanir.)
+  function affordableCount(level, gold, multiplier) {
+    if (!level || !gold) return 0;
+    let total = 0;
+    let count = 0;
+    while (count < 50000) {
+      const next = total + skillCost(level + count, multiplier);
+      if (next > gold) break;
+      total = next;
+      count += 1;
+    }
+    return count;
+  }
+
+  function selectedSkill() {
+    const id = Number(document.querySelector('#bfs-skill')?.value || 1);
+    return SKILLS.find((skill) => skill.id === id) || SKILLS[0];
+  }
+
+  function readForm() {
+    const min = Math.max(0, Number(document.querySelector('#bfs-min').value) || 0);
+    const max = Math.max(min, Number(document.querySelector('#bfs-max').value) || 0);
+    return {
+      skill: selectedSkill(),
+      count: Math.min(50000, Math.max(1, parseNumber(document.querySelector('#bfs-count').value))),
+      minDelay: min,
+      maxDelay: max,
+      discount: document.querySelector('[name="bfs-discount"]:checked')?.value || 'none'
+    };
+  }
+
+  function setStatus(text, tone = '') {
+    const el = document.querySelector('#bfs-status');
+    if (!el) return;
+    el.textContent = text;
+    el.dataset.tone = tone;
+  }
+
+  function updateProgress(total) {
+    const bar = document.querySelector('#bfs-progress-bar');
+    if (!bar) return;
+    const percent = total ? Math.min(100, (completed / total) * 100) : 0;
+    bar.style.width = `${percent}%`;
+    document.querySelector('#bfs-progress-text').textContent = `${formatNumber(completed)} / ${formatNumber(total)}`;
+    document.querySelector('#bfs-spent').textContent = `${formatNumber(spent)} altın`;
+  }
+
+  function formatDuration(seconds) {
+    const rounded = Math.max(0, Math.round(seconds));
+    const hours = Math.floor(rounded / 3600);
+    const minutes = Math.floor((rounded % 3600) / 60);
+    const secs = rounded % 60;
+    return [hours ? `${hours} sa` : '', minutes ? `${minutes} dk` : '', `${secs} sn`].filter(Boolean).join(' ');
+  }
+
+  function refreshEstimate() {
+    const panel = document.getElementById(PANEL_ID);
+    if (!panel || !panel.querySelector('#bfs-skill') || running) return;
+    const form = readForm();
+    const level = getLevel(document, form.skill);
+    const gold = getGold(document);
+    const multiplier = DISCOUNTS[form.discount].multiplier;
+    const estimate = level ? totalCost(level, form.count, multiplier) : 0;
+    const secondsMin = form.count > 1 ? (form.count - 1) * form.minDelay : 0;
+    const secondsMax = form.count > 1 ? (form.count - 1) * form.maxDelay : 0;
+    const enough = Boolean(estimate) && Boolean(gold) && estimate <= gold;
+
+    panel.querySelector('#bfs-current').textContent = level ? formatNumber(level) : 'Bulunamadı';
+    panel.querySelector('#bfs-gold').textContent = gold ? `${formatNumber(gold)} altın` : 'Bulunamadı';
+    panel.querySelector('#bfs-cost').textContent = estimate ? `${formatNumber(estimate)} altın` : 'Hesaplanamadı';
+    panel.querySelector('#bfs-remaining').textContent = estimate && gold
+      ? `${formatNumber(Math.max(0, gold - estimate))} altın${enough ? '' : ' · yetersiz'}`
+      : '—';
+    panel.querySelector('#bfs-duration').textContent = `${formatDuration(secondsMin)} – ${formatDuration(secondsMax)}`;
+    panel.querySelector('#bfs-max-count').textContent = level && gold
+      ? `${formatNumber(affordableCount(level, gold, multiplier))} basım`
+      : '—';
+
+    if (!level) setStatus('Skill tablosu bulunamadı; Profil > Özellikler sekmesini aç.', 'error');
+    else if (!enough) setStatus('Altın tahmini maliyetin altında; basım altın bitince durur.', 'warn');
+    else setStatus('Hazır · altın yeterli.', 'ready');
+    saveConfig();
+  }
+
+  function randomDelay(min, max) {
+    return (min + Math.random() * (max - min)) * 1000;
+  }
+
+  function renderRunState(state) {
+    const owned = state?.owner === tabId;
+    running = Boolean(state?.active && owned);
+    completed = Math.max(0, Number(state?.completed) || 0);
+    spent = Math.max(0, Number(state?.spent) || 0);
+    updateProgress(Math.max(0, Number(state?.count) || 0));
+
+    const panel = document.getElementById(PANEL_ID);
+    if (!panel || !panel.querySelector('#bfs-start')) return;
+    panel.querySelector('#bfs-start').disabled = Boolean(state?.active);
+    panel.querySelector('#bfs-stop').disabled = !running;
+    panel.querySelectorAll('input, select').forEach((input) => {
+      input.disabled = running;
+    });
+
+    if (state?.active && !owned) setStatus('Basım başka sekmede çalışıyor.', 'warn');
+    else if (state?.status) setStatus(state.status, state.tone || '');
+  }
+
+  // Basim bitince/durunca ana kontrol panelinde duraklatilan botlari geri ac.
+  function resumeMasterIfNeeded(state) {
+    if (state?.pausedMaster !== true) return;
+    try { window.BFMasterControl?.resumeAfterSkill?.(); } catch { /* ana kontrol yoksa gec */ }
+  }
+
+  function finishTraining(state, status, tone) {
+    clearTimeout(cycleTimer);
+    const next = saveRunState({ ...state, active: false, pending: null, status, tone });
+    renderRunState(next);
+    resumeMasterIfNeeded(next);
+  }
+
+  function performNavigationStep() {
+    const state = loadRunState();
+    if (!state?.active || state.owner !== tabId || state.pending) return;
+    const skill = SKILLS.find((item) => item.id === Number(state.skillId)) || SKILLS[0];
+    const link = findTrainingLink(document, skill.id);
+    if (!link) {
+      finishTraining(state, `${skill.name} basma bağlantısı bulunamadı`, 'error');
+      return;
+    }
+
+    const actualCost = getTooltipCost(document, skill.id);
+    const currentGold = getGold(document);
+    const currentLevel = getLevel(document, skill);
+    if (actualCost && currentGold && actualCost > currentGold) {
+      finishTraining(state, `Altın yetersiz · gereken ${formatNumber(actualCost)}`, 'error');
+      return;
+    }
+
+    const actionUrl = new URL(link.getAttribute('href'), location.origin);
+    if (!actionUrl.searchParams.get('__token')) {
+      finishTraining(state, 'Güncel token bulunamadı', 'error');
+      return;
+    }
+
+    const pendingState = saveRunState({
+      ...state,
+      pending: { level: currentLevel, gold: currentGold, cost: actualCost },
+      status: `${state.completed + 1}. ${skill.name} basılıyor…`,
+      tone: 'running'
+    });
+    renderRunState(pendingState);
+    location.assign(actionUrl.href);
+  }
+
+  function scheduleNextNavigation(state) {
+    clearTimeout(cycleTimer);
+    const tick = () => {
+      const current = loadRunState();
+      if (!current?.active || current.owner !== tabId || current.pending) return;
+      const remaining = Math.max(0, (current.nextAt || 0) - Date.now());
+      if (remaining <= 0) {
+        performNavigationStep();
+        return;
+      }
+      setStatus(`Sonraki basım ${(remaining / 1000).toFixed(1)} sn · ${current.completed + 1}/${current.count}`, 'running');
+      cycleTimer = window.setTimeout(tick, 100);
+    };
+    renderRunState(state);
+    tick();
+  }
+
+  function resumeTraining() {
+    let state = loadRunState();
+    if (!state) return;
+    renderRunState(state);
+    if (!state.active || state.owner !== tabId) return;
+
+    if (state.pending) {
+      const skill = SKILLS.find((item) => item.id === Number(state.skillId)) || SKILLS[0];
+      const currentLevel = getLevel(document, skill);
+      const currentGold = getGold(document);
+      const succeeded = (currentLevel > 0 && currentLevel > state.pending.level) ||
+        (currentGold > 0 && state.pending.gold > 0 && currentGold < state.pending.gold);
+      if (!succeeded) {
+        finishTraining(state, 'Basım doğrulanamadı; işlem durduruldu', 'error');
+        return;
+      }
+
+      state = saveRunState({
+        ...state,
+        completed: state.completed + 1,
+        spent: state.spent + (state.pending.cost || 0),
+        pending: null
+      });
+      if (state.completed >= state.count) {
+        finishTraining(state, `Tamamlandı · ${state.completed} basım`, 'success');
+        return;
+      }
+      state = saveRunState({
+        ...state,
+        nextAt: Date.now() + randomDelay(state.minDelay, state.maxDelay),
+        status: 'Sayfa yenilendi · sonraki basım bekleniyor',
+        tone: 'running'
+      });
+    }
+    scheduleNextNavigation(state);
+  }
+
+  async function startTraining() {
+    if (running) return;
+    const form = readForm();
+    if (!findTrainingLink(document, form.skill.id)) {
+      setStatus('Önce Profil > Özellikler sekmesini aç.', 'error');
+      return;
+    }
+
+    saveConfig();
+    // Basim sayfa yenilemeleriyle ilerledigi icin botlar ayni sekmede gezinemez:
+    // calisiyorlarsa duraklatilir, basim bitince otomatik geri acilir.
+    let pausedMaster = false;
+    try {
+      pausedMaster = (await window.BFMasterControl?.suspendForSkill?.()) === true;
+    } catch (error) {
+      console.error('[BF Skill] Botlar duraklatılamadı', error);
+    }
+
+    const state = saveRunState({
+      active: true,
+      owner: tabId,
+      skillId: form.skill.id,
+      count: form.count,
+      minDelay: form.minDelay,
+      maxDelay: form.maxDelay,
+      completed: 0,
+      spent: 0,
+      pending: null,
+      pausedMaster,
+      nextAt: Date.now(),
+      status: pausedMaster ? 'Botlar duraklatıldı · basım başlıyor…' : 'Basım başlatılıyor…',
+      tone: 'running'
+    });
+    scheduleNextNavigation(state);
+  }
+
+  function stopTraining() {
+    const state = loadRunState();
+    if (!state?.active || state.owner !== tabId) return;
+    finishTraining(state, `Durduruldu · ${state.completed} basım tamamlandı`, 'stopped');
+  }
+
+  function injectStyles() {
+    if (document.getElementById(STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      #${PANEL_ID}{color:#eadbc5;font:11px/1.35 Arial,sans-serif}
+      #${PANEL_ID} *{box-sizing:border-box}
+      #${PANEL_ID} .bfs-box{padding:11px;border:1px solid #503a25;border-radius:10px;background:#18120e}
+      #${PANEL_ID} .bfs-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+      #${PANEL_ID} label{display:grid;gap:4px;color:#a99273;font-size:10px}
+      #${PANEL_ID} input,#${PANEL_ID} select{width:100%;height:29px;padding:0 8px;color:#f2dfc1;background:#100c09;border:1px solid #594027;border-radius:7px;outline:none;font:inherit}
+      #${PANEL_ID} input:focus,#${PANEL_ID} select:focus{border-color:#d3aa6b}
+      #${PANEL_ID} .bfs-discounts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:9px 0}
+      #${PANEL_ID} .bfs-discounts label{display:block}
+      #${PANEL_ID} .bfs-discounts input{position:absolute;opacity:0;pointer-events:none}
+      #${PANEL_ID} .bfs-discounts span{display:block;padding:6px 3px;text-align:center;border:1px solid #4a3521;border-radius:7px;background:#120e0a;color:#a9957b;cursor:pointer;font-weight:700}
+      #${PANEL_ID} .bfs-discounts input:checked+span{color:#191008;background:#d3aa6b;border-color:#e6c48c}
+      #${PANEL_ID} .bfs-metrics{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#3b2c1c;border:1px solid #3b2c1c;border-radius:8px;overflow:hidden;margin:9px 0}
+      #${PANEL_ID} .bfs-metric{padding:7px 8px;background:#120e0a}
+      #${PANEL_ID} .bfs-metric small{display:block;color:#8d7a5f;font-size:9px;text-transform:uppercase;letter-spacing:.4px}
+      #${PANEL_ID} .bfs-metric strong{display:block;margin-top:2px;font-size:11px;color:#f0d7ae}
+      #${PANEL_ID} .bfs-progress{height:5px;background:#291f14;border-radius:99px;overflow:hidden}
+      #${PANEL_ID} .bfs-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#bf6c25,#f1bd62);transition:width .2s}
+      #${PANEL_ID} .bfs-progress-row{display:flex;justify-content:space-between;color:#9e8566;font-size:10px;margin:6px 0 9px}
+      #${PANEL_ID} .bfs-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+      #${PANEL_ID} .bfs-actions button,#${PANEL_ID} .bfs-fill{padding:9px 4px;border-radius:8px;border:1px solid #5c4429;font-size:10px;font-weight:800;cursor:pointer;background:#241a12;color:#f0d7ae}
+      #${PANEL_ID} .bfs-fill{width:100%;margin-bottom:7px}
+      #${PANEL_ID} #bfs-start{background:linear-gradient(160deg,#2f9e44,#40c057);border-color:#49b45c;color:#06220e}
+      #${PANEL_ID} #bfs-stop{background:#5a211b;border-color:#8b3b2f;color:#ffe3d5}
+      #${PANEL_ID} button:disabled{opacity:.42;cursor:default}
+      #${PANEL_ID} #bfs-status{margin-top:9px;padding:8px;border-radius:7px;background:#0d0a08;border:1px solid #352719;border-left-width:3px;color:#c9b497;min-height:32px}
+      #${PANEL_ID} #bfs-status[data-tone=running]{border-left-color:#d89a3d;color:#efc982}
+      #${PANEL_ID} #bfs-status[data-tone=success]{border-left-color:#4daa72;color:#8ed6aa}
+      #${PANEL_ID} #bfs-status[data-tone=warn]{border-left-color:#e8a317;color:#ffd479}
+      #${PANEL_ID} #bfs-status[data-tone=error]{border-left-color:#c94d4d;color:#ef9999}
+      #${PANEL_ID} .bfs-note{padding:11px;border:1px solid #503a25;border-radius:10px;background:#18120e;color:#c9b497;line-height:1.5}
+      #${PANEL_ID} .bfs-note button{margin-top:9px;width:100%;padding:9px 4px;border-radius:8px;border:1px solid #5c4429;background:#241a12;color:#f0d7ae;font-size:10px;font-weight:800;cursor:pointer}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function buildPanel() {
+    if (!document.body || document.getElementById(PANEL_ID)) return;
+    injectStyles();
+    const panel = document.createElement('div');
+    panel.id = PANEL_ID;
+
+    if (!isProfilePage()) {
+      panel.innerHTML = `<div class="bfs-note">
+        Skill basma yalnızca <strong>Profil &gt; Özellikler</strong> sayfasında çalışır.
+        Basım sırasında botlar otomatik duraklatılır, bitince geri açılır.
+        <button type="button" id="bfs-goto">Profil sayfasını aç</button>
+      </div>`;
+      document.body.appendChild(panel);
+      panel.querySelector('#bfs-goto').addEventListener('click', () => location.assign(profileUrl()));
+      return;
+    }
+
+    const config = loadConfig();
+    panel.innerHTML = `
+      <div class="bfs-box">
+        <div class="bfs-grid">
+          <label>Skill<select id="bfs-skill">${SKILLS.map((skill) => `<option value="${skill.id}"${skill.id === Number(config.skillId) ? ' selected' : ''}>${skill.name}</option>`).join('')}</select></label>
+          <label>Basım adedi<input id="bfs-count" type="number" min="1" max="50000" value="${config.count}"></label>
+          <label>Min. bekleme (sn)<input id="bfs-min" type="number" min="0" step="0.1" value="${config.minDelay}"></label>
+          <label>Maks. bekleme (sn)<input id="bfs-max" type="number" min="0" step="0.1" value="${config.maxDelay}"></label>
+        </div>
+        <div class="bfs-discounts" role="radiogroup" aria-label="Skill indirimi">
+          ${Object.entries(DISCOUNTS).map(([value, item]) => `<label><input type="radio" name="bfs-discount" value="${value}"${String(config.discount) === value ? ' checked' : ''}><span>${item.label}</span></label>`).join('')}
+        </div>
+        <div class="bfs-metrics">
+          <div class="bfs-metric"><small>Mevcut skill</small><strong id="bfs-current">—</strong></div>
+          <div class="bfs-metric"><small>Mevcut altın</small><strong id="bfs-gold">—</strong></div>
+          <div class="bfs-metric"><small>Tahmini maliyet</small><strong id="bfs-cost">—</strong></div>
+          <div class="bfs-metric"><small>Tahmini kalan</small><strong id="bfs-remaining">—</strong></div>
+          <div class="bfs-metric"><small>Süre aralığı</small><strong id="bfs-duration">—</strong></div>
+          <div class="bfs-metric"><small>Altın yeter</small><strong id="bfs-max-count">—</strong></div>
+        </div>
+        <button class="bfs-fill" id="bfs-max-btn" type="button">Altının yettiği kadar bas</button>
+        <div class="bfs-progress"><i id="bfs-progress-bar"></i></div>
+        <div class="bfs-progress-row"><span>İlerleme</span><strong id="bfs-progress-text">0 / 0</strong></div>
+        <div class="bfs-progress-row"><span>Gerçek harcama</span><strong id="bfs-spent">0 altın</strong></div>
+        <div class="bfs-actions">
+          <button id="bfs-start" type="button">Basmayı başlat</button>
+          <button id="bfs-stop" type="button" disabled>Durdur</button>
+        </div>
+        <div id="bfs-status" data-tone="ready">Hazır</div>
+      </div>`;
+    document.body.appendChild(panel);
+
+    panel.querySelectorAll('input, select').forEach((input) => input.addEventListener('input', refreshEstimate));
+    panel.querySelector('#bfs-start').addEventListener('click', () => void startTraining());
+    panel.querySelector('#bfs-stop').addEventListener('click', stopTraining);
+    panel.querySelector('#bfs-max-btn').addEventListener('click', () => {
+      const form = readForm();
+      const level = getLevel(document, form.skill);
+      const gold = getGold(document);
+      const max = affordableCount(level, gold, DISCOUNTS[form.discount].multiplier);
+      if (!max) {
+        setStatus('Altın tek basıma bile yetmiyor.', 'error');
+        return;
+      }
+      panel.querySelector('#bfs-count').value = max;
+      refreshEstimate();
+    });
+    refreshEstimate();
+  }
+
+  function init() {
+    // Ayri kurulu skill-basma.user.js paneli varsa cift panel olusmasin.
+    document.getElementById('bt-skill-trainer')?.remove();
+    buildPanel();
+    resumeTraining();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
