@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      8.4
+// @version      8.5
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -1876,6 +1876,210 @@ self.onmessage = (event) => {
     return GM_getValue(REMINDER_ENABLED_KEY, true) !== false;
   }
 
+  // ---------------------------------------------------------------------------
+  // Otomatik klan bagisi
+  // Altin esigi asinca bot kat sayfasindan klan sayfasina gider, kutuya miktari
+  // tusla tusla yazar, "Hibe et"e basar ve ayrildigi kat sayfasina geri doner.
+  // Adimlar arasinda rastgele beklemeler var; akis GM'de tutulan durumla surer.
+  // ---------------------------------------------------------------------------
+  const CLAN_DONATE_ENABLED_KEY = 'btClanDonateEnabled';
+  const CLAN_DONATE_LAST_KEY = 'btClanDonateLastAt';
+  const CLAN_DONATE_STATE_KEY = 'btClanDonateStateV1';
+  const CLAN_DONATE_THRESHOLD = 8000000;   // bu altinin uzerine cikinca bagis yapilir
+  const CLAN_DONATE_MIN = 7000000;         // bagis alt siniri
+  const CLAN_DONATE_MAX = 8000000;         // bagis ust siniri
+  const CLAN_DONATE_COOLDOWN_MS = 60 * 1000; // ard arda denemeleri sinirlar
+  const CLAN_DONATE_STATE_TTL_MS = 5 * 60 * 1000; // yarim kalan akis bu surede iptal
+  let clanDonateBusy = false;
+
+  function isClanDonateEnabled() {
+    return GM_getValue(CLAN_DONATE_ENABLED_KEY, false) === true;
+  }
+
+  // "4.483.273" / "4,483,273" -> 4483273. Okunamazsa null doner.
+  function parseGoldNumber(text) {
+    const digits = String(text || '').replace(/[^\d]/g, '');
+    if (!digits) return null;
+    const value = Number(digits);
+    return Number.isFinite(value) ? value : null;
+  }
+
+  // Infobar'daki div.gold icindeki ilk metin dugumu altin miktaridir.
+  function getCurrentGold(root = document) {
+    const goldEl = root.querySelector('div.gold');
+    if (!goldEl) return null;
+    for (const node of goldEl.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const value = parseGoldNumber(node.textContent);
+        if (value !== null) return value;
+      }
+    }
+    return null;
+  }
+
+  function clanIndexUrl() {
+    return `${location.origin}/clan/index`;
+  }
+
+  function isClanPage() {
+    return /^\/clan\//.test(location.pathname);
+  }
+
+  // Insan gibi davranmak icin adimlar arasi rastgele bekleme.
+  function humanPause(minMs, maxMs) {
+    return sleep(Math.round(minMs + Math.random() * (maxMs - minMs)));
+  }
+
+  function loadClanDonateState() {
+    try {
+      const state = JSON.parse(GM_getValue(CLAN_DONATE_STATE_KEY, '') || 'null');
+      if (!state || typeof state !== 'object') return null;
+      if (Date.now() - Number(state.startedAt || 0) > CLAN_DONATE_STATE_TTL_MS) {
+        clearClanDonateState();
+        return null;
+      }
+      return state;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveClanDonateState(state) {
+    GM_setValue(CLAN_DONATE_STATE_KEY, JSON.stringify(state));
+  }
+
+  function clearClanDonateState() {
+    GM_setValue(CLAN_DONATE_STATE_KEY, '');
+  }
+
+  // Kutuya rakamlari tek tek, degisken hizla yazar; oyunun dinledigi olaylari da
+  // uretir ki elle yazilmis gibi gorunsun.
+  async function typeLikeHuman(input, text) {
+    input.focus();
+    input.click();
+    await humanPause(180, 520);
+    input.value = '';
+    for (const char of String(text)) {
+      input.value += char;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: char, bubbles: true }));
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keyup', { key: char, bubbles: true }));
+      await sleep(70 + Math.random() * 190);
+    }
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  // Butonun uzerine gelip tiklama; hover olaylari da gonderilir.
+  async function clickLikeHuman(el) {
+    el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+    await humanPause(200, 600);
+    el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await sleep(40 + Math.random() * 110);
+    el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    el.click();
+  }
+
+  function randomDonationAmount(gold) {
+    const max = Math.min(CLAN_DONATE_MAX, gold);
+    const min = Math.min(CLAN_DONATE_MIN, max);
+    return Math.floor(min + Math.random() * (max - min + 1));
+  }
+
+  // Bagis akisinin sayfa basina tek adimi. Donus true ise sayfa devralindi
+  // (yonlendirme yapiliyor) ve normal bot akisi bu turda calismamali.
+  // Akis: kat sayfasi -> /clan/index -> kutuya yaz + Hibe et -> kat sayfasina don.
+  async function handleClanDonationFlow() {
+    if (clanDonateBusy) {
+      return true;
+    }
+    const state = loadClanDonateState();
+
+    if (isClanPage()) {
+      if (!state) {
+        // Kullanici klan sayfasini kendi actiysa dokunma.
+        return false;
+      }
+      clanDonateBusy = true;
+      try {
+        if (state.phase === 'done') {
+          // Bagis gonderildi, kat sayfasina geri donuluyor.
+          clearClanDonateState();
+          setBotStatus('Klan bagisi tamam, kata geri donuluyor');
+          await humanPause(1500, 4000);
+          location.assign(state.returnUrl);
+          return true;
+        }
+        const input = document.querySelector('input[name="donation"]')
+          || await waitForElement('input[name="donation"]', 4000);
+        const button = document.querySelector('input[type="submit"][name="donate"]')
+          || document.querySelector('.btn-right input[type="submit"]');
+        if (!input || !button) {
+          clearClanDonateState();
+          setBotStatus('Klan bagisi: bagis formu bulunamadi, kata donuluyor');
+          await humanPause(1000, 2500);
+          location.assign(state.returnUrl);
+          return true;
+        }
+        // Sayfayi "okuyormus" gibi kisa bir duraklama.
+        await humanPause(1200, 3500);
+        const pageGold = getCurrentGold();
+        const amount = pageGold !== null && pageGold < Number(state.amount)
+          ? randomDonationAmount(pageGold)
+          : Number(state.amount);
+        if (!Number.isFinite(amount) || amount <= 0) {
+          clearClanDonateState();
+          location.assign(state.returnUrl);
+          return true;
+        }
+        setBotStatus(`Klan bagisi yaziliyor: ${amount.toLocaleString('tr-TR')} altin`);
+        await typeLikeHuman(input, amount);
+        await humanPause(600, 2200);
+        saveClanDonateState({ ...state, phase: 'done', amount });
+        await clickLikeHuman(button);
+        // Form gonderimi sayfayi yeniden yukler; sonraki turda 'done' dalina girilir.
+        return true;
+      } finally {
+        clanDonateBusy = false;
+      }
+    }
+
+    if (state) {
+      // Klan disinda beklenmedik bir sayfadayiz (yonlendirme sasmis olabilir).
+      clearClanDonateState();
+      if (state.returnUrl && state.returnUrl !== location.href) {
+        setBotStatus('Klan bagisi akisi yarim kaldi, kata geri donuluyor');
+        await humanPause(800, 2000);
+        location.assign(state.returnUrl);
+        return true;
+      }
+      return false;
+    }
+
+    if (!isClanDonateEnabled() || !isFloorPage()) {
+      return false;
+    }
+    const gold = getCurrentGold();
+    if (gold === null || gold <= CLAN_DONATE_THRESHOLD) {
+      return false;
+    }
+    const lastAt = Number(GM_getValue(CLAN_DONATE_LAST_KEY, 0)) || 0;
+    if (Date.now() - lastAt < CLAN_DONATE_COOLDOWN_MS) {
+      return false;
+    }
+    GM_setValue(CLAN_DONATE_LAST_KEY, Date.now());
+    saveClanDonateState({
+      phase: 'form',
+      returnUrl: location.href,
+      amount: randomDonationAmount(gold),
+      startedAt: Date.now()
+    });
+    setBotStatus(`Klan bagisi: altin ${gold.toLocaleString('tr-TR')}, klan sayfasina gidiliyor`);
+    await humanPause(900, 2800);
+    location.assign(clanIndexUrl());
+    return true;
+  }
+
   // Oyun host'undan sunucu etiketini cikarir (ornek: "s65.bitefight.gameforge.com"
   // -> "s65"). Taninmazsa dokuman id'sinde guvenli kullanilacak sekilde host'u
   // sadelestirir.
@@ -2408,6 +2612,11 @@ self.onmessage = (event) => {
     botTickStarted = true;
     void acquireWakeLock();
     try {
+      // Klan bagisi akisi (esik asimi / klan sayfasindaki adimlar / geri donus)
+      // sayfayi devraldiysa bu turda kat isleyicilerine girme.
+      if (await handleClanDonationFlow()) {
+        return;
+      }
       const recognized = isBattleSetupPage() || isResultPage() || isFloorPage();
       if (recognized) {
         // Bilinen bir sayfaya ulasildi; toparlanma sayacini sifirla.
@@ -3655,6 +3864,28 @@ self.onmessage = (event) => {
     reminderLabel.textContent = 'Kat suresi dolunca Telegram bildirimi';
     reminderRow.append(reminderCheckbox, reminderLabel);
     panel.appendChild(reminderRow);
+
+    const donateRow = document.createElement('label');
+    donateRow.className = 'bt-panel-toggle';
+    donateRow.style.cssText = 'display:flex;gap:5px;align-items:center;color:#c8b49a;font-size:11px;cursor:pointer';
+    donateRow.title = 'Altin 8.000.000 uzerine ciktiginda klan kasasina 7-8 milyon arasi rastgele bagis yapar; bot durmadan devam eder';
+    const donateCheckbox = document.createElement('input');
+    donateCheckbox.type = 'checkbox';
+    donateCheckbox.checked = isClanDonateEnabled();
+    donateCheckbox.style.cssText = 'accent-color:#ffd700;margin:0';
+    donateCheckbox.onchange = () => {
+      GM_setValue(CLAN_DONATE_ENABLED_KEY, donateCheckbox.checked);
+      setBotStatus(donateCheckbox.checked
+        ? 'Oto klan bagisi acik: 8M ustu altinda 7-8M arasi bagis yapilacak'
+        : 'Oto klan bagisi kapali');
+      if (!donateCheckbox.checked) {
+        clearClanDonateState();
+      }
+    };
+    const donateLabel = document.createElement('span');
+    donateLabel.textContent = 'Oto klan bagisi (8M ustu)';
+    donateRow.append(donateCheckbox, donateLabel);
+    panel.appendChild(donateRow);
 
     appendWinRateSetting(panel);
     appendRoundingModeSetting(panel);

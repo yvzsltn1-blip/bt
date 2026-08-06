@@ -1101,6 +1101,121 @@ body[data-optimizer-variant="minimum"] .layout {
   margin-top: 10px;
 }
 
+.variant-cause-toggle {
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+
+.variant-cause-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 214, 102, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 214, 102, 0.045);
+}
+
+.variant-cause-summary[hidden] {
+  display: none;
+}
+
+.variant-cause-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.variant-cause-head strong {
+  color: #ffe7a8;
+  font-size: 0.8rem;
+}
+
+.variant-cause-head span,
+.variant-cause-intro,
+.variant-cause-note,
+.variant-cause-empty {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.variant-cause-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.variant-cause-list li {
+  display: grid;
+  gap: 2px;
+  color: var(--text);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.variant-cause-list li strong {
+  color: #f5e9cc;
+}
+
+.variant-cause-list li span {
+  color: var(--muted);
+}
+
+.variant-cause-list li .variant-cause-detail {
+  display: block;
+}
+
+.variant-cause-list li .cause-unit-ally {
+  color: #8fd0ff;
+}
+
+.variant-cause-list li .cause-unit-enemy {
+  color: #ff9f9f;
+}
+
+.variant-cause-list li .cause-unit-neutral {
+  color: #f5e9cc;
+}
+
+.variant-cause-list li .cause-arrow,
+.variant-cause-list li .cause-sep {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.variant-cause-list li .cause-value-own {
+  color: #79e3a5;
+  font-weight: 600;
+}
+
+.variant-cause-list li .cause-value-rival {
+  color: #ffbf66;
+  font-weight: 600;
+}
+
+.variant-cause-list li .cause-tag {
+  color: #ffe7a8;
+  font-weight: 600;
+}
+
+.variant-cause-list li .cause-tag-value {
+  color: #ffe7a8;
+}
+
+.variant-cause-list li .cause-plain {
+  color: var(--muted);
+}
+
+.variant-cause-note,
+.variant-cause-intro,
+.variant-cause-empty {
+  margin: 0;
+}
+
 .variant-more-actions {
   display: flex;
   justify-content: center;

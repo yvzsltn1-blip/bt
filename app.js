@@ -1939,6 +1939,9 @@ function renderVariantDetails(analysis) {
       showVariantInMainResult(analysis, variant);
     });
     card.addEventListener("keydown", (event) => {
+      if (event.target.closest("button")) {
+        return;
+      }
       if (event.key !== "Enter" && event.key !== " ") {
         return;
       }
@@ -1986,6 +1989,27 @@ function renderVariantDetails(analysis) {
     const actions = document.createElement("div");
     actions.className = "variant-actions";
 
+    const causePanel = document.createElement("div");
+    causePanel.className = "variant-cause-summary";
+    causePanel.hidden = !variant.causeExpanded;
+
+    const causeButton = document.createElement("button");
+    causeButton.type = "button";
+    causeButton.className = "button button-ghost variant-cause-toggle";
+    causeButton.setAttribute("aria-expanded", String(Boolean(variant.causeExpanded)));
+    causeButton.textContent = variant.causeExpanded ? "Nedeni Gizle" : "Neden?";
+    causeButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      variant.causeExpanded = !variant.causeExpanded;
+      if (variant.causeExpanded) {
+        variant.causeSummary = variant.causeSummary || buildVariantCauseSummary(analysis, variant);
+        renderVariantCauseSummary(causePanel, variant.causeSummary, variant, analysis);
+      }
+      causePanel.hidden = !variant.causeExpanded;
+      causeButton.setAttribute("aria-expanded", String(Boolean(variant.causeExpanded)));
+      causeButton.textContent = variant.causeExpanded ? "Nedeni Gizle" : "Neden?";
+    });
+
     if (isAdminSession) {
       const saveButton = document.createElement("button");
       saveButton.type = "button";
@@ -1997,9 +2021,11 @@ function renderVariantDetails(analysis) {
       actions.appendChild(saveButton);
     }
 
-    card.append(headRow, losses, note);
-    if (actions.childElementCount > 0) {
-      card.appendChild(actions);
+    actions.appendChild(causeButton);
+
+    card.append(headRow, losses, note, actions, causePanel);
+    if (variant.causeExpanded && variant.causeSummary) {
+      renderVariantCauseSummary(causePanel, variant.causeSummary, variant, analysis);
     }
     list.appendChild(card);
   }
@@ -2203,6 +2229,653 @@ function buildVariantLossChips(lossesByKey) {
     chips.push(`${unit.label}: ${count}`);
   });
   return chips;
+}
+
+const VARIANT_CAUSE_SEED_LIMIT = 40;
+const VARIANT_CAUSE_RIVAL_SEED_LIMIT = 60;
+const VARIANT_CAUSE_MIN_LIFT = 0.2;
+
+function pickSpreadSeeds(seeds, limit) {
+  const list = Array.isArray(seeds) ? seeds : [];
+  if (list.length <= limit) {
+    return [...list];
+  }
+  const step = list.length / limit;
+  const picked = [];
+  for (let index = 0; index < limit; index += 1) {
+    picked.push(list[Math.floor(index * step)]);
+  }
+  return picked;
+}
+
+function collectRivalVariantSeeds(analysis, variant, limit) {
+  const others = (analysis?.variants || []).filter(
+    (item) => item !== variant && Array.isArray(item.seeds) && item.seeds.length > 0
+  );
+  if (others.length === 0) {
+    return [];
+  }
+  const perVariant = Math.max(1, Math.floor(limit / others.length));
+  const pool = [];
+  others.forEach((item) => {
+    pool.push(...pickSpreadSeeds(item.seeds, perVariant));
+  });
+  return pickSpreadSeeds(pool, limit);
+}
+
+function collectVariantRouteStats(analysis, seeds) {
+  const roundingMode = normalizeRoundingMode(
+    currentSimulationResult?.roundingMode || currentSimulationReport?.roundingMode
+  );
+  const byRoute = new Map();
+  let scanned = 0;
+
+  seeds.forEach((seed) => {
+    const result = simulateBattle(analysis.enemyCounts, analysis.allyCounts, {
+      seed,
+      collectLog: true,
+      roundingMode
+    });
+    const events = extractVariantCauseEvents(result.logText);
+    if (events.length === 0) {
+      return;
+    }
+
+    scanned += 1;
+    const routesSeenInSeed = new Set();
+    events.forEach((event) => {
+      const entry = byRoute.get(event.route) || {
+        route: event.route,
+        attacker: event.attacker,
+        target: event.target,
+        seedCount: 0,
+        damages: new Set(),
+        seedDamages: new Map(),
+        breakdowns: new Map(),
+        reasons: new Map()
+      };
+      if (!routesSeenInSeed.has(event.route)) {
+        entry.seedCount += 1;
+        routesSeenInSeed.add(event.route);
+      }
+      if (event.damage) {
+        entry.damages.add(event.damage);
+        const damageValue = Number(event.damage);
+        if (Number.isFinite(damageValue)) {
+          const seedValues = entry.seedDamages.get(seed) || new Set();
+          seedValues.add(damageValue);
+          entry.seedDamages.set(seed, seedValues);
+
+          if (Number.isFinite(event.unitCount)) {
+            const breakdown = entry.breakdowns.get(damageValue) || {
+              unitCounts: new Set(),
+              multipliers: new Set(),
+              attackValue: event.attackValue
+            };
+            breakdown.unitCounts.add(event.unitCount);
+            if (Number.isFinite(event.multiplier)) {
+              breakdown.multipliers.add(event.multiplier);
+            }
+            entry.breakdowns.set(damageValue, breakdown);
+          }
+        }
+      }
+      event.reasons.forEach((reason) => {
+        const reasonSeeds = entry.reasons.get(reason) || new Set();
+        reasonSeeds.add(seed);
+        entry.reasons.set(reason, reasonSeeds);
+      });
+      byRoute.set(event.route, entry);
+    });
+  });
+
+  return { scanned, byRoute };
+}
+
+function groupRouteStatsByAttacker(byRoute) {
+  const grouped = new Map();
+  byRoute.forEach((entry) => {
+    const list = grouped.get(entry.attacker) || [];
+    list.push(entry);
+    grouped.set(entry.attacker, list);
+  });
+  return grouped;
+}
+
+function normalizeRouteDamages(damages) {
+  return [...damages]
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value))
+    .sort((left, right) => left - right);
+}
+
+function topRouteReasons(reasons, limit) {
+  return [...reasons.entries()]
+    .sort((left, right) => right[1].size - left[1].size)
+    .slice(0, limit)
+    .map(([reason, seedSet]) => ({ reason, count: seedSet.size }));
+}
+
+function summarizeRouteDamageSplit(ownEntry, rivalEntry, rivalSample) {
+  if (!rivalEntry || rivalSample <= 0) {
+    return null;
+  }
+
+  const ownValues = normalizeRouteDamages(ownEntry.damages);
+  if (ownValues.length === 0) {
+    return null;
+  }
+
+  const ownMin = ownValues[0];
+  const ownMax = ownValues[ownValues.length - 1];
+  const outsideValues = [];
+  let outsideSeedCount = 0;
+
+  rivalEntry.seedDamages.forEach((seedValues) => {
+    let outside = false;
+    seedValues.forEach((value) => {
+      if (value < ownMin || value > ownMax) {
+        outside = true;
+        outsideValues.push(value);
+      }
+    });
+    if (outside) {
+      outsideSeedCount += 1;
+    }
+  });
+
+  const rate = outsideSeedCount / rivalSample;
+  if (rate < VARIANT_CAUSE_MIN_LIFT) {
+    return null;
+  }
+
+  const ownUnitCounts = new Set();
+  const ownMultipliers = new Set();
+  let attackValue = null;
+  ownEntry.breakdowns.forEach((breakdown) => {
+    breakdown.unitCounts.forEach((value) => ownUnitCounts.add(value));
+    breakdown.multipliers.forEach((value) => ownMultipliers.add(value));
+    if (attackValue === null && Number.isFinite(breakdown.attackValue)) {
+      attackValue = breakdown.attackValue;
+    }
+  });
+
+  const rivalUnitCounts = new Set();
+  const outsideSet = new Set(outsideValues);
+  rivalEntry.breakdowns.forEach((breakdown, damageValue) => {
+    if (!outsideSet.has(damageValue)) {
+      return;
+    }
+    breakdown.unitCounts.forEach((value) => rivalUnitCounts.add(value));
+  });
+
+  const sharedUnitCount = [...rivalUnitCounts].some((value) => ownUnitCounts.has(value));
+  const driver = ownUnitCounts.size === 0 || rivalUnitCounts.size === 0
+    ? "unknown"
+    : sharedUnitCount
+      ? "rounding"
+      : "units";
+
+  return {
+    ownMin,
+    ownMax,
+    rate,
+    below: outsideValues.filter((value) => value < ownMin).sort((left, right) => left - right),
+    above: outsideValues.filter((value) => value > ownMax).sort((left, right) => left - right),
+    driver,
+    attackValue,
+    ownUnitCounts: [...ownUnitCounts].sort((left, right) => left - right),
+    rivalUnitCounts: [...rivalUnitCounts].sort((left, right) => left - right),
+    multipliers: [...ownMultipliers].sort((left, right) => left - right)
+  };
+}
+
+function buildVariantCauseSummary(analysis, variant) {
+  const ownSeeds = pickSpreadSeeds(variant?.seeds, VARIANT_CAUSE_SEED_LIMIT);
+  const own = collectVariantRouteStats(analysis, ownSeeds);
+  const rivalSeeds = collectRivalVariantSeeds(analysis, variant, VARIANT_CAUSE_RIVAL_SEED_LIMIT);
+  const rival = collectVariantRouteStats(analysis, rivalSeeds);
+
+  const ownSample = Math.max(1, own.scanned);
+  const rivalSample = rival.scanned;
+  const ownByAttacker = groupRouteStatsByAttacker(own.byRoute);
+  const rivalByAttacker = groupRouteStatsByAttacker(rival.byRoute);
+
+  const decisive = [];
+  if (rivalSample > 0) {
+    ownByAttacker.forEach((routes, attacker) => {
+      const rivalRoutes = rivalByAttacker.get(attacker) || [];
+      routes.forEach((entry) => {
+        const rivalEntry = rivalRoutes.find((item) => item.route === entry.route);
+        const ownRate = entry.seedCount / ownSample;
+        const rivalRate = rivalEntry ? rivalEntry.seedCount / rivalSample : 0;
+        const lift = ownRate - rivalRate;
+        const base = {
+          route: entry.route,
+          attacker,
+          target: entry.target,
+          seedCount: entry.seedCount,
+          sampleCount: ownSample,
+          probability: ownRate,
+          rivalSampleCount: rivalSample,
+          damages: normalizeRouteDamages(entry.damages),
+          reasons: topRouteReasons(entry.reasons, 1)
+        };
+
+        if (lift >= VARIANT_CAUSE_MIN_LIFT) {
+          const alternatives = rivalRoutes
+            .filter((item) => item.route !== entry.route)
+            .sort((left, right) => right.seedCount - left.seedCount)
+            .slice(0, 2)
+            .map((item) => ({
+              target: item.target,
+              probability: item.seedCount / rivalSample
+            }));
+
+          decisive.push({
+            ...base,
+            kind: "target",
+            rivalProbability: rivalRate,
+            lift,
+            alternatives
+          });
+          return;
+        }
+
+        if (ownRate < 0.5) {
+          return;
+        }
+
+        const damageSplit = summarizeRouteDamageSplit(entry, rivalEntry, rivalSample);
+        if (!damageSplit) {
+          return;
+        }
+
+        decisive.push({
+          ...base,
+          kind: "damage",
+          lift: damageSplit.rate,
+          damageSplit
+        });
+      });
+    });
+  }
+
+  decisive.sort((left, right) =>
+    right.lift - left.lift ||
+    right.probability - left.probability ||
+    left.route.localeCompare(right.route, "tr")
+  );
+
+  const targetCountByAttacker = new Map();
+  ownByAttacker.forEach((routes, attacker) => {
+    targetCountByAttacker.set(attacker, routes.length);
+  });
+
+  const entries = [...own.byRoute.values()]
+    .map((entry) => ({
+      route: entry.route,
+      seedCount: entry.seedCount,
+      sampleCount: ownSample,
+      probability: entry.seedCount / ownSample,
+      damages: normalizeRouteDamages(entry.damages),
+      reasons: topRouteReasons(entry.reasons, 2),
+      variationScore:
+        entry.seedCount < ownSample ? 3 : targetCountByAttacker.get(entry.attacker) > 1 ? 2 : 0
+    }))
+    .sort((left, right) =>
+      right.variationScore - left.variationScore ||
+      right.seedCount - left.seedCount ||
+      left.route.localeCompare(right.route, "tr")
+    )
+    .slice(0, 6);
+
+  return {
+    scannedSeedCount: own.scanned,
+    rivalSeedCount: rival.scanned,
+    decisive: decisive.slice(0, 6),
+    entries
+  };
+}
+
+function extractVariantCauseEvents(logText) {
+  const lines = String(logText || "").split("\n");
+  const events = [];
+  let currentEvent = null;
+
+  const flushEvent = () => {
+    if (currentEvent?.route) {
+      events.push(currentEvent);
+    }
+    currentEvent = null;
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (/^Hamle\s+\d+/.test(trimmed)) {
+      flushEvent();
+      currentEvent = {
+        reasons: [],
+        route: "",
+        attacker: "",
+        target: "",
+        damage: "",
+        unitCount: null,
+        attackValue: null,
+        multiplier: null
+      };
+      return;
+    }
+    if (!currentEvent) {
+      return;
+    }
+
+    if (trimmed.startsWith("- ") && !currentEvent.hasAttack) {
+      currentEvent.reasons.push(trimmed.slice(2).trim());
+      return;
+    }
+
+    const attackMatch = trimmed.match(/^(.+?)\s+→\s+(.+?)\s*$/);
+    if (attackMatch) {
+      currentEvent.attacker = attackMatch[1].trim();
+      currentEvent.target = attackMatch[2].trim();
+      currentEvent.route = `${currentEvent.attacker} → ${currentEvent.target}`;
+      currentEvent.hasAttack = true;
+      return;
+    }
+
+    if (trimmed.startsWith("Hesap:")) {
+      const damageMatch = trimmed.match(/=\s*([\d.]+)\s+hasar/);
+      currentEvent.damage = damageMatch?.[1] || "";
+      const breakdownMatch = trimmed.match(/Hesap:\s*([\d.]+)\s+birim\s*×\s*([\d.]+)\s+atk(?:\s*×\s*([\d.]+)\s+carpan)?/);
+      if (breakdownMatch) {
+        currentEvent.unitCount = Number(breakdownMatch[1]);
+        currentEvent.attackValue = Number(breakdownMatch[2]);
+        currentEvent.multiplier = breakdownMatch[3] ? Number(breakdownMatch[3]) : null;
+      }
+    }
+  });
+  flushEvent();
+  return events;
+}
+
+function renderVariantCauseSummary(target, causeSummary, variant, analysis) {
+  target.innerHTML = "";
+
+  const head = document.createElement("div");
+  head.className = "variant-cause-head";
+
+  const title = document.createElement("strong");
+  title.textContent = "Bu sonuç hangi koşullarda oluşuyor?";
+
+  const meta = document.createElement("span");
+  meta.textContent = `${variant.count}/${analysis.sampleCount} seed (%${formatProbability(variant.probability)}) · ${variant.winner === "ally" ? "Zafer" : "Mağlubiyet"} · ${variant.lostBloodTotal} kan kaybı`;
+  head.append(title, meta);
+  target.appendChild(head);
+
+  if (!causeSummary.entries.length) {
+    const empty = document.createElement("p");
+    empty.className = "variant-cause-empty";
+    empty.textContent = "Bu sonuç grubu için özetlenebilir bir saldırı akışı bulunamadı.";
+    target.appendChild(empty);
+    return;
+  }
+
+  if (causeSummary.decisive?.length) {
+    renderVariantCauseDecisiveList(target, causeSummary, variant);
+    return;
+  }
+
+  const intro = document.createElement("p");
+  intro.className = "variant-cause-intro";
+  intro.textContent = `Bu sonuç grubundaki ${causeSummary.scannedSeedCount} seed içinde en sık görülen akışlar:`;
+  target.appendChild(intro);
+
+  const list = document.createElement("ul");
+  list.className = "variant-cause-list";
+  causeSummary.entries.forEach((entry) => {
+    const item = document.createElement("li");
+    const route = document.createElement("strong");
+    route.textContent = entry.route;
+    item.appendChild(route);
+
+    const details = [];
+    details.push(`${entry.seedCount}/${entry.sampleCount} seed (%${formatProbability(entry.probability)})`);
+    if (entry.damages.length) {
+      const minDamage = entry.damages[0];
+      const maxDamage = entry.damages[entry.damages.length - 1];
+      details.push(`hasar: ${minDamage === maxDamage ? minDamage : `${minDamage}–${maxDamage}`}`);
+    }
+    if (entry.reasons.length) {
+      details.push(`koşul: ${entry.reasons.map((item) => `${item.reason} (${item.count}/${entry.sampleCount})`).join("; ")}`);
+    }
+
+    const detail = document.createElement("span");
+    detail.textContent = details.join(" · ");
+    item.appendChild(detail);
+    list.appendChild(item);
+  });
+  target.appendChild(list);
+
+  const note = document.createElement("p");
+  note.className = "variant-cause-note";
+  note.textContent = "Ana yüzde sonuç grubunun oranıdır; satır yüzdeleri yalnızca bu grubun içindeki akışların görülme oranını gösterir. Bu satırlar tek başına kesin neden değil, sonucu ayıran öne çıkan koşullardır.";
+  target.appendChild(note);
+}
+
+function formatDamageRangeText(minValue, maxValue) {
+  return minValue === maxValue ? `${minValue}` : `${minValue}–${maxValue}`;
+}
+
+function formatUnitCountListText(values) {
+  if (!values.length) {
+    return "";
+  }
+  const isContiguous = values.every((value, index) => index === 0 || value === values[index - 1] + 1);
+  if (values.length > 2 && isContiguous) {
+    return `${values[0]}–${values[values.length - 1]}`;
+  }
+  return values.join(" / ");
+}
+
+function formatCauseNumber(value) {
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
+}
+
+function causeUnitClassName(name) {
+  if (/\(T\d+\)/.test(name)) {
+    return "cause-unit-ally";
+  }
+  if (/\(R\d+\)/.test(name)) {
+    return "cause-unit-enemy";
+  }
+  return "cause-unit-neutral";
+}
+
+function appendCausePieces(parent, pieces) {
+  pieces.forEach((piece) => {
+    if (!piece || !piece.text) {
+      return;
+    }
+    const span = document.createElement("span");
+    span.className = piece.className || "cause-plain";
+    span.textContent = piece.text;
+    parent.appendChild(span);
+  });
+  return parent;
+}
+
+function buildCauseDetailRow(groups) {
+  const row = document.createElement("span");
+  row.className = "variant-cause-detail";
+  groups
+    .filter((pieces) => pieces && pieces.length)
+    .forEach((pieces, index) => {
+      if (index > 0) {
+        appendCausePieces(row, [{ text: " · ", className: "cause-sep" }]);
+      }
+      appendCausePieces(row, pieces);
+    });
+  return row;
+}
+
+function buildDamageDriverPieces(split) {
+  const attackText = Number.isFinite(split.attackValue) ? `${split.attackValue} atk` : "atk";
+  const multiplierText = split.multipliers.length
+    ? ` × ${split.multipliers.map((value) => value.toFixed(2)).join("/")} çarpan`
+    : "";
+
+  if (split.driver === "units") {
+    return [
+      { text: "sebep: ", className: "cause-tag" },
+      { text: "hayattaki birim sayısı", className: "cause-tag-value" },
+      { text: " — bu sonuçta ", className: "cause-plain" },
+      {
+        text: `${formatUnitCountListText(split.ownUnitCounts)} birim × ${attackText}${multiplierText}`,
+        className: "cause-value-own"
+      },
+      { text: ", diğer sonuçlarda ", className: "cause-plain" },
+      { text: `${formatUnitCountListText(split.rivalUnitCounts)} birim`, className: "cause-value-rival" },
+      { text: " kalıyor", className: "cause-plain" }
+    ];
+  }
+
+  if (split.driver === "rounding") {
+    const perUnitDamage = Number.isFinite(split.attackValue) && split.multipliers.length <= 1
+      ? split.attackValue * (split.multipliers[0] ?? 1)
+      : null;
+    return [
+      { text: "sebep: ", className: "cause-tag" },
+      { text: "yarım kesir yuvarlaması", className: "cause-tag-value" },
+      { text: " — birim sayısı aynı (", className: "cause-plain" },
+      {
+        text: `${formatUnitCountListText(split.ownUnitCounts)} birim × ${attackText}${multiplierText}`,
+        className: "cause-value-own"
+      },
+      {
+        text: perUnitDamage === null
+          ? "), birim başına kalan .5 kesir her birim için ayrı yazı-tura ile yuvarlanıyor"
+          : `), birim başına ${formatCauseNumber(perUnitDamage)} hasarın .5 kesri her birim için ayrı yazı-tura ile yuvarlanıyor`,
+        className: "cause-plain"
+      }
+    ];
+  }
+
+  return [];
+}
+
+function buildTargetReasonPieces(entry) {
+  return [
+    { text: "koşul: ", className: "cause-tag" },
+    { text: entry.reasons.map((reason) => reason.reason).join("; "), className: "cause-plain" }
+  ];
+}
+
+function renderVariantCauseDecisiveList(target, causeSummary, variant) {
+  const intro = document.createElement("p");
+  intro.className = "variant-cause-intro";
+  intro.textContent = `Bu sonuç şu koşullar sağlandığında çıkıyor (bu grubun ${causeSummary.scannedSeedCount} seedi, diğer sonuçların ${causeSummary.rivalSeedCount} seedi ile karşılaştırıldı):`;
+  target.appendChild(intro);
+
+  const list = document.createElement("ul");
+  list.className = "variant-cause-list";
+
+  causeSummary.decisive.forEach((entry) => {
+    const item = document.createElement("li");
+    const headline = document.createElement("strong");
+    const detailGroups = [];
+
+    appendCausePieces(headline, [
+      { text: entry.attacker, className: causeUnitClassName(entry.attacker) },
+      { text: " → ", className: "cause-arrow" },
+      { text: entry.target, className: causeUnitClassName(entry.target) }
+    ]);
+
+    if (entry.kind === "damage") {
+      const split = entry.damageSplit;
+      appendCausePieces(headline, [
+        { text: ": ", className: "cause-plain" },
+        { text: `${formatDamageRangeText(split.ownMin, split.ownMax)} hasar`, className: "cause-value-own" },
+        { text: " vurursa", className: "cause-plain" }
+      ]);
+
+      detailGroups.push([
+        { text: `${entry.seedCount}/${entry.sampleCount} seed`, className: "cause-value-own" },
+        { text: " hep bu aralıkta", className: "cause-plain" }
+      ]);
+
+      const otherBands = [];
+      if (split.below.length) {
+        otherBands.push(formatDamageRangeText(split.below[0], split.below[split.below.length - 1]));
+      }
+      if (split.above.length) {
+        otherBands.push(formatDamageRangeText(split.above[0], split.above[split.above.length - 1]));
+      }
+      detailGroups.push([
+        { text: "diğer sonuçların ", className: "cause-plain" },
+        { text: `%${formatProbability(split.rate)}`, className: "cause-value-rival" },
+        { text: " kadarında dışında", className: "cause-plain" },
+        otherBands.length ? { text: ` (${otherBands.join(" veya ")})`, className: "cause-value-rival" } : null
+      ].filter(Boolean));
+
+      detailGroups.push(buildDamageDriverPieces(split));
+    } else {
+      appendCausePieces(headline, [{ text: " hedefini seçerse", className: "cause-plain" }]);
+
+      detailGroups.push([
+        { text: `${entry.seedCount}/${entry.sampleCount} seed`, className: "cause-value-own" },
+        { text: ` (%${formatProbability(entry.probability)})`, className: "cause-value-own" }
+      ]);
+      detailGroups.push([
+        { text: "diğer sonuçlarda ", className: "cause-plain" },
+        { text: `%${formatProbability(entry.rivalProbability)}`, className: "cause-value-rival" },
+        { text: ` (${entry.rivalSampleCount} seed)`, className: "cause-plain" }
+      ]);
+      if (entry.damages.length) {
+        detailGroups.push([
+          { text: "hasar: ", className: "cause-plain" },
+          {
+            text: formatDamageRangeText(entry.damages[0], entry.damages[entry.damages.length - 1]),
+            className: "cause-value-own"
+          }
+        ]);
+      }
+      if (entry.alternatives.length) {
+        const alternativePieces = [{ text: "sebep: ", className: "cause-tag" }, { text: "hedef seçimi", className: "cause-tag-value" }, { text: " — bunun yerine ", className: "cause-plain" }];
+        entry.alternatives.forEach((alternative, index) => {
+          if (index > 0) {
+            alternativePieces.push({ text: ", ", className: "cause-plain" });
+          }
+          alternativePieces.push({ text: alternative.target, className: "cause-value-rival" });
+          alternativePieces.push({
+            text: ` (%${formatProbability(alternative.probability)})`,
+            className: "cause-plain"
+          });
+        });
+        alternativePieces.push({ text: " hedeflenirse başka sonuç çıkıyor", className: "cause-plain" });
+        detailGroups.push(alternativePieces);
+      } else {
+        detailGroups.push([
+          { text: "diğer sonuçlarda bu birim bu hedefi seçmiyor", className: "cause-plain" }
+        ]);
+      }
+    }
+
+    if (entry.reasons.length) {
+      detailGroups.push(buildTargetReasonPieces(entry));
+    }
+
+    item.appendChild(headline);
+    item.appendChild(buildCauseDetailRow(detailGroups));
+    list.appendChild(item);
+  });
+
+  target.appendChild(list);
+
+  const note = document.createElement("p");
+  note.className = "variant-cause-note";
+  note.textContent = `Bu koşullar birlikte gerçekleştiğinde %${formatProbability(variant.probability)} olasılıklı bu sonuç (${variant.lostBloodTotal} kan kaybı) çıkıyor. Bu adımlardan biri farklı geliştiğinde (başka hedef seçildiğinde veya hasar bu aralığın dışına çıktığında) sonuç başka bir senaryoya kayıyor.`;
+  target.appendChild(note);
 }
 
 function getMostLikelyOutcomeVariant(analysis, winner) {
