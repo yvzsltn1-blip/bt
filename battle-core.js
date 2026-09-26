@@ -47,7 +47,9 @@
     ["Kan Cadısı (T7)", "ally", "occult", "rear", 14, 8, 3, 18, 90],
     ["Çürük Gırtlak (T8)", "ally", "monster", "front", 30, 90, 1, 30, 150],
     ["Diriltilmiş Zombiler", "enemy", "brute", "front", 2, 1, 2, 0, 0],
-    ["Örümcekler", "enemy", "monster", "rear", 1, 1, 6, 0, 0]
+    // Orumcek yavrulari tipsizdir: tip avantaji/dezavantaji almaz
+    // (2026-09 oyun raporu 2127: 64 Gece avcisi x 6 = 384, +%50 uygulanmadi).
+    ["Örümcekler", "enemy", "none", "rear", 1, 1, 6, 0, 0]
   ];
 
   const NAME_INDEX = 0;
@@ -249,6 +251,38 @@
     };
   }
 
+  // Kemik kanat (R4) ile Mezar dehseti (R6) oyunda tam esit (ayni taraf, saf ve hiz); siralari
+  // tur basinda sahadaki sag kita sayisina gore degisiyor. 2026-09 raporlari: onlardan hizli sag
+  // birim yokken sayi tekse R4, ciftse R6 once vurur (10/10 tur, orn. rapor 2133: 9 kita -> R4).
+  // Daha hizli birim varken 26/26 turda R6 once; buildOrders zaten bu sirayi uretir.
+  function applyBonewingsWraithsTieOrder(attackerOrder, unitNumbers, unitSpeed) {
+    if (unitNumbers[BONEWINGS_INDEX] <= 0 || unitNumbers[WRAITHS_INDEX] <= 0) {
+      return;
+    }
+    const tieSpeed = unitSpeed[BONEWINGS_INDEX];
+    if (unitSpeed[WRAITHS_INDEX] !== tieSpeed) {
+      return;
+    }
+    let aliveStacks = 0;
+    for (let i = 0; i < unitNumbers.length; i += 1) {
+      if (unitNumbers[i] > 0) {
+        if (unitSpeed[i] > tieSpeed) {
+          return;
+        }
+        aliveStacks += 1;
+      }
+    }
+    if (aliveStacks % 2 === 0) {
+      return;
+    }
+    const bonewingsPos = attackerOrder.indexOf(BONEWINGS_INDEX);
+    const wraithsPos = attackerOrder.indexOf(WRAITHS_INDEX);
+    if (bonewingsPos > wraithsPos) {
+      attackerOrder[bonewingsPos] = WRAITHS_INDEX;
+      attackerOrder[wraithsPos] = BONEWINGS_INDEX;
+    }
+  }
+
   function getDefenderOrderForAttacker(attackerIndex, unitNumbers, unitHealth, defenderOrderFrontFirst, defenderOrderRearFirst, roundCount) {
     if (attackerIndex === BONEWINGS_INDEX || attackerIndex === BANSHEES_INDEX) {
       return defenderOrderRearFirst;
@@ -339,73 +373,17 @@
     return Math.floor(rng() * max);
   }
 
-  function ceilCombatValue(value) {
-    return Math.ceil(Math.max(0, value) - 1e-9);
+  // Tek savas modeli: 2026-09 oyun savas raporlariyla eylem eylem dogrulanan kurallar.
+  // Eski cagrilar roundingMode gecirebilir; deger yok sayilir, sonuc hep bu modeldir.
+  const BATTLE_MODEL = "extround";
+
+  function normalizeRoundingMode(_mode) {
+    return BATTLE_MODEL;
   }
 
-  function roundCombatValue(value) {
-    return Math.round(Math.max(0, value) + 1e-3);
-  }
-
-  function floorCombatValue(value) {
-    return Math.floor(Math.max(0, value) + 1e-9);
-  }
-
-  function normalizeRoundingMode(mode) {
-    if (mode === "legacy" || mode === "exact" || mode === "simulat" || mode === "extround") {
-      return mode;
-    }
-    return "safe";
-  }
-
-  function roundDamageByMode(mode, side, value, context = {}) {
-    const normalizedMode = normalizeRoundingMode(mode);
-    const normalizedValue = Math.max(0, Number(value) || 0);
-    if (normalizedMode === "extround") {
-      // Uzanti motoru (Master Auto Adventure) yuvarlamasi: tum hasarlarda
-      // yarimdan yukari (floor(x+0.5)). 2026-06-12 olcumu: 1946 dogru arsiv
-      // kaydinin tamamini koruyor, 21 yanlisin 14'unu birebir yakaliyor.
-      return Math.floor(normalizedValue + 0.5);
-    }
-    if (normalizedMode === "exact") {
-      return normalizedValue;
-    }
-    if (normalizedMode === "legacy") {
-      const { attackerIndex, defenderIndex, roundCount, unitNumbers, rng } = context;
-      const attackerCount = attackerIndex >= 0 ? (unitNumbers?.[attackerIndex] || 0) : 0;
-      const shouldRound =
-        (attackerIndex === WRAITHS_INDEX && attackerCount % 2 === 1) ||
-        (attackerIndex === BATS_INDEX && defenderIndex === GIANTS_INDEX && roundCount === 1);
-      if (shouldRound) {
-        return roundCombatValue(normalizedValue);
-      }
-      // Birim basina tam .5 kesirli hasar gercek oyunda deterministik degil:
-      // ayni 3.5'lik banshee vurusu bir savasta 4, digerinde 3 olarak
-      // gerceklesiyor (arsiv kat2#5 vs fail kat8); 7 banshee'nin 24.5'i bir
-      // savasta 23 kultisti silerken digerinde sag birakiyor (fail kat19).
-      // Dusman tarafi da ayni: kat10'da iskeletin 8 x 1.5'lik vuruslari ust
-      // uste yuksek gelerek rotmaw'i olduruyor. Her birim icin bagimsiz
-      // seed'li yazi-tura (binom dagilimi) iki dunyayi da kapsar; n=1'de
-      // tekil yazi-turaya indirgenir. Mezar Dehşeti hariç (özel round kuralı).
-      if (rng && attackerIndex !== WRAITHS_INDEX) {
-        const unitCount = attackerIndex >= 0 ? (unitNumbers?.[attackerIndex] || 0) : 0;
-        if (unitCount > 0) {
-          const perUnitDamage = normalizedValue / unitCount;
-          const perUnitFraction = perUnitDamage - Math.floor(perUnitDamage);
-          if (Math.abs(perUnitFraction - 0.5) < 1e-9) {
-            let total = Math.floor(perUnitDamage) * unitCount;
-            for (let u = 0; u < unitCount; u += 1) {
-              if (rng() >= 0.5) {
-                total += 1;
-              }
-            }
-            return total;
-          }
-        }
-      }
-      return ceilCombatValue(normalizedValue);
-    }
-    return side === "ally" ? floorCombatValue(normalizedValue) : ceilCombatValue(normalizedValue);
+  function roundDamageByMode(_mode, _side, value) {
+    // Oyun her hasari toplam uzerinden yarimdan yukari yuvarliyor (16.5->17, 8.25->8, 52.5->53).
+    return Math.floor(Math.max(0, Number(value) || 0) + 0.5);
   }
 
   function formatCombatNumber(value) {
@@ -429,6 +407,7 @@
     if (type === "occult") return "O";
     if (type === "monster") return "G";
     if (type === "brute") return "B";
+    if (type === "none") return "-";
     return "?";
   }
 
@@ -480,14 +459,7 @@
 
   function simulateBattle(enemyCounts, allyCounts, options = {}) {
     const collectLog = options.collectLog !== false;
-    const roundingMode = normalizeRoundingMode(options.roundingMode);
-    if (roundingMode === "simulat") {
-      const simulatEngine = globalScope.SimulatEngine;
-      if (!simulatEngine || typeof simulatEngine.simulateBattle !== "function") {
-        throw new Error("Simulat motoru yuklenemedi.");
-      }
-      return simulatEngine.simulateBattle(enemyCounts, allyCounts, options);
-    }
+    const roundingMode = BATTLE_MODEL;
     const rng = createRng(options.seed);
     const logs = [];
     const log = (line = "") => {
@@ -598,6 +570,7 @@
         defenderOrderFrontFirst = orders.defenderOrderFrontFirst;
         defenderOrderRearFirst = orders.defenderOrderRearFirst;
       }
+      applyBonewingsWraithsTieOrder(attackerOrder, unitNumbers, unitSpeed);
 
       for (let j = 0; j < attackerOrder.length; j += 1) {
         let attackerIndex = -1;
@@ -691,6 +664,7 @@
         }
 
         const unitNumbersBefore = unitNumbers.slice();
+        const cultistsHealthBefore = unitHealth[CULTISTS_INDEX];
 
         if (attackerIndex === BONEWINGS_INDEX && turnCount === 1) {
           damageMultiplier *= 1.2;
@@ -719,7 +693,9 @@
           log(`- ${UNIT_DESC[BATS_INDEX][NAME_INDEX]}, ilk turda +%25 hasarla saldiriyor`);
         }
 
-        if (attackerIndex === THRALLS_INDEX && unitSpeed[defenderIndex] < 3) {
+        // Vampir kolu bonusu hedefin TEMEL hizina bakar; Gargoyle'un -2 yavaslatmasi sayilmaz
+        // (2026-09 oyun raporu 46193: yavaslatilmis Mezar dehsetine 28 x 6 = 168, +%33 yok).
+        if (attackerIndex === THRALLS_INDEX && UNIT_DESC[defenderIndex][SPEED_INDEX] < 3) {
           damageMultiplier *= 1.33;
           log(`- ${UNIT_DESC[THRALLS_INDEX][NAME_INDEX]}, yavas dusmana +%33 hasarla saldiriyor`);
         }
@@ -729,14 +705,28 @@
           bansheesReduceTarget = defenderIndex;
           log(`- ${UNIT_DESC[BANSHEES_INDEX][NAME_INDEX]}, ${UNIT_DESC[bansheesReduceTarget][NAME_INDEX]} hasarini %25 azaltti`);
         }
-        if (bansheesReduceRound === roundCount && attackerIndex === bansheesReduceTarget) {
+        // Banshee zombileri hedef aldiysa -%25, ayni raund dirilen zombilere de gecer
+        // (2026-09 oyun raporu 2101: 36 dirilen x 2 x 0.5 x 0.75 = 27).
+        if (
+          bansheesReduceRound === roundCount &&
+          (attackerIndex === bansheesReduceTarget ||
+            (attackerIndex === REVIVED_INDEX && bansheesReduceTarget === ZOMBIES_INDEX))
+        ) {
           damageMultiplier *= 0.75;
           log(`- ${UNIT_DESC[attackerIndex][NAME_INDEX]}, -%25 azalmis hasarla saldiriyor`);
         }
 
         if (attackerIndex === NECROMANCERS_INDEX) {
-          const necromancersMultiplyPercent = Math.trunc(unitBuffs[NECROMANCERS_INDEX] * 100);
-          log(`- ${UNIT_DESC[NECROMANCERS_INDEX][NAME_INDEX]}, +%${necromancersMultiplyPercent} hasarla saldiriyor`);
+          // Ruh hasadi: sahada sag kalan her kita (iki taraf, kendisi dahil) icin +%10.
+          // 2026-09 oyun raporu 2085: 7 kita %70, Kultistler olunce %60, Iskelet olunce %50.
+          let aliveStacks = 0;
+          for (let m = 0; m < unitNumbers.length; m += 1) {
+            if (unitNumbers[m] > 0) {
+              aliveStacks += 1;
+            }
+          }
+          unitBuffs[NECROMANCERS_INDEX] = 1 + aliveStacks * 0.1;
+          log(`- ${UNIT_DESC[NECROMANCERS_INDEX][NAME_INDEX]}, sahadaki ${aliveStacks} kita icin +%${aliveStacks * 10} hasarla saldiriyor`);
         }
 
         if (attackerIndex === GIANTS_INDEX) {
@@ -786,10 +776,13 @@
 
         const witchesSplashEligible = attackerIndex === WITCHES_INDEX && unitNumbers[WITCHES_INDEX] > 0 && roundCount % 2 === 0;
         if (witchesSplashEligible) {
+          // Hortlak sahadayken "Dehset felci" -%15 yayilmaya da isler (2026-09 raporlari 46277/46279:
+          // 1 cadi x 14 x 0.25 x 0.85 = 2.975 -> 3; Hortlaksiz 107 yayilmada %15 yok).
+          const revenantsReduce = unitNumbers[REVENANTS_INDEX] > 0 ? 0.85 : 1;
           witchesSplashDamage = roundDamageByMode(
             roundingMode,
             attackerSide,
-            unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * 0.25
+            unitNumbers[attackerIndex] * UNIT_DESC[attackerIndex][ATTACK_INDEX] * 0.25 * revenantsReduce
           );
         }
 
@@ -808,9 +801,10 @@
           if (unitHealth[defenderIndex] <= 0) {
             unitNumbers[defenderIndex] = 0;
           } else if (attackerDamage > 0) {
-            // Sifir hasarli vurus (cadi cift raund) dirilen sayimini yeniden hesaplatmaz;
-            // aksi halde 1 canlik dirilenler hasarsiz sekilde 7 canlik kovalara dusuyor.
-            const baseHp = UNIT_DESC[ZOMBIES_INDEX][HEALTH_INDEX];
+            // Sifir hasarli vurus (cadi cift raund) dirilen sayimini yeniden hesaplatmaz.
+            // Dirilen her zombi 1 canlidir: 2026-09 oyun raporlari 1 can = 1 birim sayiyor
+            // (37 dirilen 6 hasar yiyince 31 birim / 31 can).
+            const baseHp = UNIT_DESC[REVIVED_INDEX][HEALTH_INDEX];
             unitNumbers[defenderIndex] = Math.ceil(unitHealth[defenderIndex] / baseHp);
           }
         } else {
@@ -842,7 +836,19 @@
         }
 
         if (witchesSplashDamage > 0) {
-          for (let m = 0; m < UNIT_DESC.length; m += 1) {
+          // Yayilma sirasi: Mezar dehseti (R6) BIRDEN FAZLA birimse Kemik kanattan once islenir
+          // (2213/2230/2232/2292/2303: R6 6-10 birim -> R6 once). R6 tek birimse R4 once
+          // (2037/2455/2496/2551/2629/2630). Hasar ayni; yalniz islem sirasi degisir.
+          // Ceset (R10) sahadaysa yayilma once ona islenir (46513/46364: R10 → R6 → R4 → orumcek).
+          const witchesSplashOrder = UNIT_DESC.map((_, idx) => idx).filter((idx) => idx !== LICHES_INDEX);
+          witchesSplashOrder.unshift(LICHES_INDEX);
+          if (unitNumbers[WRAITHS_INDEX] > 1) {
+            const bw = witchesSplashOrder.indexOf(BONEWINGS_INDEX);
+            const wr = witchesSplashOrder.indexOf(WRAITHS_INDEX);
+            witchesSplashOrder[bw] = WRAITHS_INDEX;
+            witchesSplashOrder[wr] = BONEWINGS_INDEX;
+          }
+          for (const m of witchesSplashOrder) {
             if (UNIT_DESC[m][SIDE_INDEX] === "enemy" && UNIT_DESC[m][POSITION_INDEX] === "rear") {
               let unitWasAlive = false;
               if (unitHealth[m] > 0) {
@@ -889,16 +895,25 @@
           unitHealth[REVIVED_INDEX] = zombies * UNIT_DESC[REVIVED_INDEX][HEALTH_INDEX];
           // Revived zombies keep any speed penalties the original stack had accumulated.
           unitSpeed[REVIVED_INDEX] = unitSpeed[ZOMBIES_INDEX];
+          // Kultist buff'i da dirilenlere gecer (2026-09 oyun raporu 2177: 13 dirilen x 2 x 0.5 x 0.75 x 1.1 = 11).
+          unitBuffs[REVIVED_INDEX] = unitBuffs[ZOMBIES_INDEX];
           log(`- ${UNIT_DESC[ZOMBIES_INDEX][NAME_INDEX]}, her biri 1 canla geri dirildi`);
         }
-        if (attackerIndex === CULTISTS_INDEX && unitNumbers[CULTISTS_INDEX] > 0) {
-          for (let n = 0; n < 50; n += 1) {
-            const randomUnitIndex = randomInt(unitNumbers.length, rng);
-            if (randomUnitIndex !== CULTISTS_INDEX && unitNumbers[randomUnitIndex] > 0 && UNIT_DESC[randomUnitIndex][SIDE_INDEX] === "enemy") {
-              unitBuffs[randomUnitIndex] += 0.1;
-              log(`- ${UNIT_DESC[CULTISTS_INDEX][NAME_INDEX]}, ${UNIT_DESC[randomUnitIndex][NAME_INDEX]} birimini +%10 hasar artisiyla guclendirdi`);
-              break;
+        // Kultistler bu eylemde hasar alip hayatta kalirsa rastgele bir dusman birimi (Kultistler dahil)
+        // kalici +%10 hasar kazanir; her hayatta kalinan vurus yeniden tetikler. 2026-09 raporlari:
+        // 11 "vurus-hayatta" savasin hepsinde buff var, vurulmayan 58 savasin hicbirinde yok; buff
+        // yalniz dusman biriminin hasarina isliyor (orn. rapor 2103: 8 Iskelet x 3 x 0.5 x 1.1 = 13).
+        if (unitNumbers[CULTISTS_INDEX] > 0 && unitHealth[CULTISTS_INDEX] < cultistsHealthBefore) {
+          const buffCandidates = [];
+          for (let m = 0; m < unitNumbers.length; m += 1) {
+            if (unitNumbers[m] > 0 && UNIT_DESC[m][SIDE_INDEX] === "enemy") {
+              buffCandidates.push(m);
             }
+          }
+          if (buffCandidates.length > 0) {
+            const buffedIndex = buffCandidates[randomInt(buffCandidates.length, rng)];
+            unitBuffs[buffedIndex] += 0.1;
+            log(`- ${UNIT_DESC[CULTISTS_INDEX][NAME_INDEX]} vurulup hayatta kaldi; ${UNIT_DESC[buffedIndex][NAME_INDEX]} birimi +%10 hasar kazandi`);
           }
         }
 
@@ -926,15 +941,6 @@
         if (attackerIndex === GIANTS_INDEX) {
           unitBuffs[GIANTS_INDEX] = 1;
           log("- Kemik İzbandut'un biriktirdiği hasar sıfırlandı");
-        }
-
-        if (unitNumbers[NECROMANCERS_INDEX] > 0) {
-          for (let m = 0; m < unitNumbers.length; m += 1) {
-            if (unitNumbersBefore[m] - unitNumbers[m] > 0 && unitNumbers[m] === 0) {
-              unitBuffs[NECROMANCERS_INDEX] += 0.1;
-              log(`- ${UNIT_DESC[NECROMANCERS_INDEX][NAME_INDEX]}, yok edilen ${UNIT_DESC[m][NAME_INDEX]} sayesinde +%10 hasar kazandi`);
-            }
-          }
         }
 
         let detectedNextAttackerUnit = false;
@@ -1734,6 +1740,55 @@
     return neighbors;
   }
 
+  function buildJointNeighborCandidates(baseCounts, availableAllyCounts, maxPoints) {
+    const activeUnits = ALLY_UNITS.filter((unit) => (availableAllyCounts[unit.key] || 0) > 0);
+    const basePoints = calculateArmyPoints(baseCounts);
+    const candidates = new Map();
+    function values(current, maximum) {
+      return [...new Set([0, 1, current - 2, current - 1, current, current + 1, current + 2,
+        Math.floor(current / 2), maximum])].filter((value) => value >= 0 && value <= maximum);
+    }
+    for (let first = 0; first < activeUnits.length; first += 1) {
+      for (let second = first + 1; second < activeUnits.length; second += 1) {
+        const left = activeUnits[first].key;
+        const right = activeUnits[second].key;
+        const leftCost = POINTS_BY_ALLY_KEY[left];
+        const rightCost = POINTS_BY_ALLY_KEY[right];
+        const leftCount = baseCounts[left] || 0;
+        const rightCount = baseCounts[right] || 0;
+        const budget = maxPoints - basePoints + leftCount * leftCost + rightCount * rightCost;
+        const leftMax = Math.min(availableAllyCounts[left], Math.floor(budget / leftCost));
+        for (const leftValue of values(leftCount, leftMax)) {
+          const rightMax = Math.min(availableAllyCounts[right], Math.floor((budget - leftValue * leftCost) / rightCost));
+          for (const rightValue of values(rightCount, rightMax)) {
+            if (leftValue === leftCount && rightValue === rightCount) continue;
+            const candidate = cloneCounts(baseCounts, ALLY_UNITS);
+            candidate[left] = leftValue;
+            candidate[right] = rightValue;
+            candidates.set(getCountSignature(candidate, ALLY_UNITS), candidate);
+          }
+        }
+      }
+    }
+    return [...candidates.values()];
+  }
+
+  function buildLossRecoveryCandidates(baseCounts, losses, availableAllyCounts, maxPoints) {
+    const candidates = buildJointNeighborCandidates(baseCounts, availableAllyCounts, maxPoints);
+    const losingUnits = ALLY_UNITS
+      .filter((unit) => (losses[unit.key] || 0) > 0 && (baseCounts[unit.key] || 0) > 0)
+      .sort((left, right) => losses[right.key] * BLOOD_BY_ALLY_KEY[right.key] - losses[left.key] * BLOOD_BY_ALLY_KEY[left.key])
+      .slice(0, 2);
+    losingUnits.forEach((unit) => {
+      // Kayip veren turu cikarmak tek basina kotu olabilir; diger iki turu
+      // birlikte yeniden kurmadan bu baslangici eleme.
+      const reduced = cloneCounts(baseCounts, ALLY_UNITS);
+      reduced[unit.key] = 0;
+      candidates.push(...buildJointNeighborCandidates(reduced, availableAllyCounts, maxPoints));
+    });
+    return candidates;
+  }
+
   function getBroadNeighborCandidates(baseCounts, availableAllyCounts, enemyCounts, maxPoints) {
     const neighbors = [];
     const strategicOrder = getStrategicUnitOrder(availableAllyCounts, enemyCounts);
@@ -1802,7 +1857,8 @@
   }
 
   function getBloodEfficiency(unit) {
-    return (unit.attack * unit.health) / BLOOD_BY_ALLY_KEY[unit.key];
+    const stats = getAllyUnitStats(unit);
+    return (stats.attack * stats.health) / stats.blood;
   }
 
   function getTypeMultiplier(attackerType, defenderType) {
@@ -1902,11 +1958,18 @@
     if (limit <= 0) {
       return [];
     }
-    if (scoredCandidates.length <= limit) {
-      return scoredCandidates.map((entry) => entry.candidate);
+    // Tekrarlanan dizilimler kotayi tuketmesin; en yuksek puani koru.
+    const unique = new Map();
+    [...scoredCandidates].sort((left, right) => right.score - left.score).forEach((entry) => {
+      const signature = getCountSignature(entry.candidate, ALLY_UNITS);
+      if (!unique.has(signature)) {
+        unique.set(signature, entry);
+      }
+    });
+    const sorted = [...unique.values()];
+    if (sorted.length <= limit) {
+      return sorted.map((entry) => entry.candidate);
     }
-
-    const sorted = [...scoredCandidates].sort((left, right) => right.score - left.score);
     const selected = new Map();
     const topCount = Math.max(1, Math.floor(limit * 0.72));
 
@@ -1915,8 +1978,9 @@
     });
 
     const remainingSlots = limit - selected.size;
-    const stride = Math.max(1, Math.floor(sorted.length / Math.max(1, remainingSlots)));
-    for (let index = Math.floor(stride / 2); index < sorted.length && selected.size < limit; index += stride) {
+    const stride = (sorted.length - topCount) / Math.max(1, remainingSlots);
+    for (let slot = 0; slot < remainingSlots; slot += 1) {
+      const index = topCount + Math.floor((slot + 0.5) * stride);
       const candidate = sorted[index].candidate;
       selected.set(getCountSignature(candidate, ALLY_UNITS), candidate);
     }
@@ -1997,7 +2061,11 @@
     }
 
     collect(0);
-    return spreadSelectCandidates(scoredCandidates, candidateLimit);
+    const minimumPoints = Math.max(0, Math.ceil(options.minimumPoints || 0));
+    return spreadSelectCandidates(
+      scoredCandidates.filter((entry) => calculateArmyPoints(entry.candidate) >= minimumPoints),
+      candidateLimit
+    );
   }
 
   function buildStrategicRandomCandidates(availableAllyCounts, enemyCounts, maxPoints, options = {}) {
@@ -2074,27 +2142,17 @@
 
     // Strateji 1: Tip avantajlı birimlere odaklan
     const enemyTypes = {};
-    ENEMY_UNITS.forEach((unit) => {
+    ENEMY_UNITS.forEach((unit, index) => {
       const count = enemyCounts[unit.key] || 0;
-      if (count > 0) enemyTypes[unit.type] = (enemyTypes[unit.type] || 0) + count;
+      const type = UNIT_DESC[index][TYPE_INDEX];
+      if (count > 0) enemyTypes[type] = (enemyTypes[type] || 0) + count;
     });
 
-    const counterMap = {
-      brute: ['occult', 'witches', 'banshees'],
-      occult: ['monster', 'gargoyles', 'rotmaws'],
-      monster: ['brute', 'ghouls', 'thralls']
-    };
-
-    const counterUnits = new Set();
     Object.keys(enemyTypes).forEach((enemyType) => {
-      (counterMap[enemyType] || []).forEach((key) => counterUnits.add(key));
-    });
-
-    if (counterUnits.size > 0) {
       const counterCandidate = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
       let usedPoints = 0;
       const prioritizedUnits = availableUnits
-        .filter((unit) => counterUnits.has(unit.key))
+        .filter((unit) => getTypeMultiplier(getAllyUnitStats(unit).type, enemyType) > 1)
         .sort((a, b) => getBloodEfficiency(b) - getBloodEfficiency(a));
 
       prioritizedUnits.forEach((unit) => {
@@ -2110,7 +2168,7 @@
       if (usedPoints > 0) {
         candidates.push(fillCandidateToPointLimit(counterCandidate, availableAllyCounts, maxPoints));
       }
-    }
+    });
 
     // Strateji 2: Kan verimliliği en yüksek birimler
     const sortedByEfficiency = [...availableUnits].sort((a, b) => getBloodEfficiency(b) - getBloodEfficiency(a));
@@ -2151,7 +2209,7 @@
     }
 
     // Strateji 5: Çürük Çene + Düşük HP düşmanlar
-    const lowHpEnemies = ENEMY_UNITS.filter((e) => (enemyCounts[e.key] || 0) > 0 && e.health < 5).length;
+    const lowHpEnemies = ENEMY_UNITS.filter((e, index) => (enemyCounts[e.key] || 0) > 0 && UNIT_DESC[index][HEALTH_INDEX] < 5).length;
     if (lowHpEnemies >= 3 && (availableAllyCounts.rotmaws || 0) > 0) {
       const rotmawCandidate = {
         rotmaws: availableAllyCounts.rotmaws || 0,
@@ -2279,6 +2337,13 @@
     // orani esiklerinde (or. %100) kucuk orneklemde sansla '%100' gorunen adaylari
     // gercek oranlarina cekmek icin optimizer buraya buyuk bir deger gecirir.
     const minVerifyTrials = Math.max(0, Number(options.minVerifyTrials) || 0);
+    // Final dogrulamaya (yuksek trial) giren en iyi benzersiz aday sayisi. Dusuk trial'li
+    // aramada nadir ama agir kayiplar (orn. %25 ihtimalli kultist buff'i) gorunmeyebilir;
+    // daha genis finalist havuzu bu riski tasimayan adaylari da final olcume sokar.
+    // 2026-09-14 olcumu: rapor 2251 dizilimi (dengeli) 6 finalistte %25 ihtimalle 365 kan
+    // veren orduyu, 20 finalistte her seed'de 35 kan veren orduyu seciyor; 8 benchmark
+    // katinin onerileri ve kayiplari degismedi (~%15 ek sure).
+    const finalistCount = Math.max(1, Math.round(Number(options.finalistCount) || 20));
     const baseSeed = options.baseSeed || 42042;
     const diversityMode = Boolean(options.diversityMode);
     const tekilMode = Boolean(options.tekilMode);
@@ -2361,7 +2426,8 @@
       minimumSearchPoints
     ));
     initialCandidates.push(...buildStrategicGridCandidates(availableAllyCounts, enemyCounts, maxPoints, {
-      limit: Math.max(300, beamWidth * 32)
+      limit: Math.max(300, beamWidth * 32),
+      minimumPoints: minimumSearchPoints
     }));
     initialCandidates.push(...buildStrategicRandomCandidates(availableAllyCounts, enemyCounts, maxPoints, {
       count: exploratoryCandidateCount,
@@ -3289,7 +3355,8 @@
         // modlarin kendi grid limitlerini icerir (300/320/448/576).
         const gridLimits = [576, 300, 448, 384, 320, 512, 240, 660];
         pool.push(...buildStrategicGridCandidates(availableAllyCounts, enemyCounts, maxPoints, {
-          limit: gridLimits[(extensionRound - 1) % gridLimits.length]
+          limit: gridLimits[(extensionRound - 1) % gridLimits.length],
+          minimumPoints: minimumSearchPoints
         }));
         // Arketip merdiveni: HER birim icin birim-odakli dizilimler. Ana akista
         // sadece stratejik sirada ilk 4 birim taranir; burada geri kalanlar da
@@ -3440,9 +3507,20 @@
     const finalVerifyTrials = Math.max(stabilityTrials, 32, minVerifyTrials);
     if (best) {
       const independentTrials = Math.max(24, Math.round(finalVerifyTrials / 2));
-      const finalists = [best, ...collectBestUniqueEvaluations(6)]
+      const finalists = [best, ...collectBestUniqueEvaluations(finalistCount)]
         .filter((entry) => entry?.counts || entry?.searchCounts);
-      const verified = finalists
+      // Iki birimi birlikte degistirerek tekli mutasyonlarin gecemedigi esikleri ara.
+      // Eski finalistler korunur; yeni adaylar da ayni son dogrulamadan gecer.
+      if (objective === "min_loss" && best.feasible && !isPastHardDeadline()) {
+        const jointRanked = successiveHalvingEvaluation(buildLossRecoveryCandidates(
+          best.searchCounts || toSearchCounts(best.counts),
+          (stoneMode ? best.avgStoneAdjustedAllyLosses : best.avgAllyLosses) || {},
+          availableAllyCounts, maxPoints
+        ));
+        finalists.push(...jointRanked.slice(0, 6));
+      }
+      const uniqueFinalists = new Map(finalists.map((entry) => [entry.signature, entry]));
+      const verified = [...uniqueFinalists.values()]
         .map((entry) => {
           const searchCounts = entry.searchCounts || toSearchCounts(entry.counts);
           const crnEvaluation = evaluateCandidate(searchCounts, finalVerifyTrials);
@@ -3599,7 +3677,10 @@
     ["onerilen duzenin ornek savas gunlugu", "sample battle log of the recommended formation"],
     ["muttefik on saflari asip arka saflari hedef aldi", "bypassed ally front lines to target the rear"],
     ["dusman on saflari asip arka saflari hedef aldi", "bypassed enemy front lines to target the rear"],
-    ["birimini +%10 hasar artisiyla guclendirdi", "empowered unit with +%10 damage gain"],
+    ["vurulup hayatta kaldi", "was hit and survived"],
+    ["hasar kazandi", "damage gained"],
+    ["kita icin", "stacks for"],
+    ["sahadaki", "on the field"],
     ["birim tipini onemsemiyor", "ignores unit types"],
     ["her biri 1 canla geri dirildi", "each revived with 1 hp"],
     ["sadece can kaybi", "hp damage only"],

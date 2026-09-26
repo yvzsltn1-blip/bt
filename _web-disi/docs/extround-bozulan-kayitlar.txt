@@ -1,0 +1,1683 @@
+Extround'da onceki battle-core ile tutan, yeni battle-core ile tutmayan eski arsiv kayitlari: 280
+Kaynak: test-sonuclari-1-40/*.txt | Olusturma: 2026-09-13T13:03:27.048Z
+Dizilim bicimi: Rakip R<no>:<adet>, Biz T<no>:<adet> (arsivdeki gibi). Kan: T1=10 T2=15 T3=20 T4=35 T5=50 T6=75 T7=90 T8=150.
+
+2. Kat | test-sonuclari-pass-kat1-5-tumu72-20260609-1534.txt #3 [DOGRU]
+  Rakip        : [R1:1-R2:13-R3:1]
+  Biz          : [T1:10-T2:1-T3:0-T4:1-T5:0-T6:0-T7:0-T8:0]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 15 kan (T2 x1)
+
+2. Kat | test-sonuclari-pass-kat1-5-tumu72-20260609-1534.txt #5 [DOGRU]
+  Rakip        : [R1:2-R2:8-R3:4]
+  Biz          : [T1:7-T2:1-T3:0-T4:1-T5:0-T6:0-T7:0-T8:0]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 15 kan (T2 x1)
+
+2. Kat | test-sonuclari-pass-kat1-5-tumu72-20260609-1534.txt #6 [DOGRU]
+  Rakip        : [R1:2-R2:5-R3:6]
+  Biz          : [T1:4-T2:1-T3:0-T4:2-T5:0-T6:0-T7:0-T8:0]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 15 kan (T2 x1)
+
+3. Kat | test-sonuclari-pass-kat1-5-tumu72-20260609-1534.txt #22 [DOGRU]
+  Rakip        : [R1:2-R2:10-R3:6]
+  Biz          : [T1:7-T2:1-T3:0-T4:2-T5:0-T6:0-T7:0-T8:0]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 15 kan (T2 x1)
+
+4. Kat | test-sonuclari-pass-kat1-5-tumu72-20260609-1534.txt #40 [DOGRU]
+  Rakip        : [R1:1-R2:23-R3:1]
+  Biz          : [T1:2-T2:0-T3:1-T4:0-T5:0-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Yenilgi, 190 kan (T1 x2, T3 x1, T8 x1)
+
+6. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #17 [DOGRU]
+  Rakip        : [R1:7-R2:27-R3:3]
+  Biz          : [T1:10-T2:1-T3:0-T4:0-T5:0-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 245 kan (T1 x8, T2 x1, T8 x1)
+
+6. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #20 [DOGRU]
+  Rakip        : [R1:5-R2:28-R3:3]
+  Biz          : [T1:10-T2:1-T3:0-T4:0-T5:0-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 245 kan (T1 x8, T2 x1, T8 x1)
+
+6. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #22 [DOGRU]
+  Rakip        : [R1:3-R2:29-R3:3]
+  Biz          : [T1:0-T2:2-T3:0-T4:1-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 165 kan (T2 x1, T8 x1)
+
+7. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #39 [DOGRU]
+  Rakip        : [R1:6-R2:31-R3:4]
+  Biz          : [T1:1-T2:1-T3:2-T4:1-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 165 kan (T2 x1, T8 x1)
+
+7. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #42 [DOGRU]
+  Rakip        : [R1:7-R2:26-R3:7]
+  Biz          : [T1:0-T2:3-T3:0-T4:3-T5:0-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 180 kan (T2 x2, T8 x1)
+
+7. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #43 [DOGRU]
+  Rakip        : [R1:5-R2:30-R3:5]
+  Biz          : [T1:1-T2:1-T3:1-T4:3-T5:0-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 165 kan (T2 x1, T8 x1)
+
+8. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #67 [DOGRU]
+  Rakip        : [R1:5-R2:35-R3:5]
+  Biz          : [T1:1-T2:0-T3:0-T4:3-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+8. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #76 [DOGRU]
+  Rakip        : [R1:9-R2:27-R3:9]
+  Biz          : [T1:11-T2:3-T3:0-T4:1-T5:0-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 195 kan (T2 x3, T8 x1) [194/256 seed] | Zafer, 180 kan (T2 x2, T8 x1) [62/256 seed]
+
+9. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #89 [DOGRU]
+  Rakip        : [R1:12-R2:29-R3:10]
+  Biz          : [T1:1-T2:1-T3:1-T4:3-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+9. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #97 [DOGRU]
+  Rakip        : [R1:1-R2:39-R3:7]
+  Biz          : [T1:0-T2:1-T3:0-T4:6-T5:0-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+9. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #100 [DOGRU]
+  Rakip        : [R1:6-R2:35-R3:8]
+  Biz          : [T1:10-T2:1-T3:0-T4:1-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+9. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #101 [DOGRU]
+  Rakip        : [R1:8-R2:34-R3:8]
+  Biz          : [T1:10-T2:1-T3:0-T4:1-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+9. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #104 [DOGRU]
+  Rakip        : [R1:4-R2:33-R3:10]
+  Biz          : [T1:0-T2:1-T3:0-T4:6-T5:0-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 165 kan (T2 x1, T8 x1)
+
+9. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #108 [DOGRU]
+  Rakip        : [R1:2-R2:40-R3:6]
+  Biz          : [T1:0-T2:3-T3:0-T4:3-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+9. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #125 [DOGRU]
+  Rakip        : [R1:4-R2:39-R3:6]
+  Biz          : [T1:1-T2:1-T3:1-T4:3-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+10. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #137 [DOGRU]
+  Rakip        : [R1:4-R2:38-R3:10]
+  Biz          : [T1:0-T2:1-T3:0-T4:5-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+10. Kat | test-sonuclari-pass-kat6-10-tumu163-20260609-1534.txt #146 [DOGRU]
+  Rakip        : [R1:3-R2:40-R3:9]
+  Biz          : [T1:0-T2:1-T3:0-T4:5-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #2 [DOGRU]
+  Rakip        : [R1:9-R2:37-R3:9-R4:2]
+  Biz          : [T1:5-T2:0-T3:1-T4:3-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #3 [DOGRU]
+  Rakip        : [R1:9-R2:38-R3:10-R4:1]
+  Biz          : [T1:6-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #4 [DOGRU]
+  Rakip        : [R1:2-R2:44-R3:10]
+  Biz          : [T1:0-T2:1-T3:0-T4:6-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #7 [DOGRU]
+  Rakip        : [R1:2-R2:37-R3:13-R4:1]
+  Biz          : [T1:2-T2:1-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #14 [DOGRU]
+  Rakip        : [R1:4-R2:36-R3:13-R4:1]
+  Biz          : [T1:2-T2:2-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #21 [DOGRU]
+  Rakip        : [R1:1-R2:42-R3:10-R4:1]
+  Biz          : [T1:3-T2:0-T3:2-T4:4-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #27 [DOGRU]
+  Rakip        : [R1:4-R2:40-R3:12]
+  Biz          : [T1:0-T2:1-T3:0-T4:6-T5:0-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #29 [DOGRU]
+  Rakip        : [R1:2-R2:40-R3:11-R4:1]
+  Biz          : [T1:2-T2:2-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #37 [DOGRU]
+  Rakip        : [R1:9-R2:38-R3:10-R4:1]
+  Biz          : [T1:7-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #38 [DOGRU]
+  Rakip        : [R1:10-R2:36-R3:11-R4:1]
+  Biz          : [T1:7-T2:0-T3:0-T4:4-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #44 [DOGRU]
+  Rakip        : [R1:9-R2:35-R3:12-R4:1]
+  Biz          : [T1:5-T2:0-T3:1-T4:4-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+11. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #46 [DOGRU]
+  Rakip        : [R1:10-R2:36-R3:11-R4:1]
+  Biz          : [T1:6-T2:3-T3:0-T4:3-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+12. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #49 [DOGRU]
+  Rakip        : [R1:9-R2:36-R3:13-R4:2]
+  Biz          : [T1:5-T2:4-T3:2-T4:4-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+12. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #71 [DOGRU]
+  Rakip        : [R1:8-R2:39-R3:13-R4:1]
+  Biz          : [T1:6-T2:1-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+12. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #74 [DOGRU]
+  Rakip        : [R1:9-R2:37-R3:14-R4:1]
+  Biz          : [T1:6-T2:1-T3:0-T4:5-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+12. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #89 [DOGRU]
+  Rakip        : [R1:10-R2:37-R3:12-R4:2]
+  Biz          : [T1:6-T2:1-T3:0-T4:4-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+12. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #96 [DOGRU]
+  Rakip        : [R1:2-R2:45-R3:11-R4:1]
+  Biz          : [T1:2-T2:2-T3:1-T4:3-T5:0-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+13. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #121 [DOGRU]
+  Rakip        : [R1:7-R2:40-R3:16-R4:1]
+  Biz          : [T1:5-T2:0-T3:3-T4:5-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+13. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #123 [DOGRU]
+  Rakip        : [R1:5-R2:41-R3:16-R4:1]
+  Biz          : [T1:6-T2:1-T3:0-T4:6-T5:0-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 0 kan (-)
+  Sim (yeni)   : Zafer, 150 kan (T8 x1)
+
+14. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #183 [DOGRU]
+  Rakip        : [R1:14-R2:37-R3:14-R4:4]
+  Biz          : [T1:10-T2:2-T3:1-T4:4-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+14. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #204 [DOGRU]
+  Rakip        : [R1:6-R2:49-R3:12-R4:2]
+  Biz          : [T1:10-T2:1-T3:2-T4:6-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+15. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #227 [DOGRU]
+  Rakip        : [R1:15-R2:41-R3:16-R4:3]
+  Biz          : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+15. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #241 [DOGRU]
+  Rakip        : [R1:7-R2:36-R3:17-R4:6]
+  Biz          : [T1:3-T2:1-T3:2-T4:9-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 215 kan (T2 x1, T5 x1, T8 x1)
+
+15. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #261 [DOGRU]
+  Rakip        : [R1:15-R2:41-R3:11-R4:6]
+  Biz          : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+15. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #277 [DOGRU]
+  Rakip        : [R1:13-R2:42-R3:11-R4:6]
+  Biz          : [T1:17-T2:0-T3:1-T4:6-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+15. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #284 [DOGRU]
+  Rakip        : [R1:15-R2:38-R3:13-R4:6]
+  Biz          : [T1:17-T2:0-T3:1-T4:6-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+15. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #286 [DOGRU]
+  Rakip        : [R1:5-R2:37-R3:17-R4:6]
+  Biz          : [T1:3-T2:1-T3:2-T4:9-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 215 kan (T2 x1, T5 x1, T8 x1)
+
+15. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #287 [DOGRU]
+  Rakip        : [R1:12-R2:41-R3:12-R4:6]
+  Biz          : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+15. Kat | test-sonuclari-pass-kat11-15-tumu295-20260609-1535.txt #288 [DOGRU]
+  Rakip        : [R1:13-R2:41-R3:15-R4:4]
+  Biz          : [T1:12-T2:2-T3:0-T4:5-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #3 [DOGRU]
+  Rakip        : [R1:14-R2:41-R3:13-R4:7]
+  Biz          : [T1:10-T2:1-T3:1-T4:3-T5:2-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 455 kan (T1 x10, T4 x3, T5 x2, T8 x1)
+  Sim (yeni)   : Yenilgi, 640 kan (T1 x10, T2 x1, T3 x1, T4 x3, T5 x2, T6 x2, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #9 [DOGRU]
+  Rakip        : [R1:8-R2:38-R3:17-R4:7]
+  Biz          : [T1:1-T2:3-T3:5-T4:6-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #15 [DOGRU]
+  Rakip        : [R1:15-R2:42-R3:17-R4:4]
+  Biz          : [T1:12-T2:2-T3:2-T4:5-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #23 [DOGRU]
+  Rakip        : [R1:16-R2:42-R3:15-R4:5]
+  Biz          : [T1:12-T2:2-T3:2-T4:5-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #29 [DOGRU]
+  Rakip        : [R1:13-R2:42-R3:16-R4:5]
+  Biz          : [T1:12-T2:2-T3:2-T4:5-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #36 [DOGRU]
+  Rakip        : [R1:8-R2:38-R3:17-R4:7]
+  Biz          : [T1:1-T2:2-T3:2-T4:6-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #55 [DOGRU]
+  Rakip        : [R1:6-R2:40-R3:18-R4:6]
+  Biz          : [T1:1-T2:3-T3:3-T4:5-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #57 [DOGRU]
+  Rakip        : [R1:14-R2:41-R3:18-R4:4]
+  Biz          : [T1:12-T2:2-T3:2-T4:5-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #64 [DOGRU]
+  Rakip        : [R1:4-R2:39-R3:21-R4:5]
+  Biz          : [T1:1-T2:3-T3:5-T4:6-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+16. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #74 [DOGRU]
+  Rakip        : [R1:14-R2:40-R3:17-R4:5]
+  Biz          : [T1:10-T2:1-T3:0-T4:5-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+17. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #122 [DOGRU]
+  Rakip        : [R1:16-R2:39-R3:17-R4:7]
+  Biz          : [T1:10-T2:2-T3:3-T4:6-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+17. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #132 [DOGRU]
+  Rakip        : [R1:15-R2:39-R3:19-R4:6]
+  Biz          : [T1:10-T2:2-T3:3-T4:6-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+17. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #140 [DOGRU]
+  Rakip        : [R1:8-R2:37-R3:16-R4:10]
+  Biz          : [T1:2-T2:3-T3:1-T4:9-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+18. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #197 [DOGRU]
+  Rakip        : [R1:19-R2:35-R3:22-R4:7]
+  Biz          : [T1:10-T2:0-T3:3-T4:8-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #227 [DOGRU]
+  Rakip        : [R1:17-R2:35-R3:21-R4:10]
+  Biz          : [T1:11-T2:2-T3:2-T4:8-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #232 [DOGRU]
+  Rakip        : [R1:15-R2:36-R3:21-R4:10]
+  Biz          : [T1:11-T2:2-T3:2-T4:8-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #234 [DOGRU]
+  Rakip        : [R1:15-R2:35-R3:20-R4:11]
+  Biz          : [T1:11-T2:1-T3:1-T4:9-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #239 [DOGRU]
+  Rakip        : [R1:18-R2:33-R3:17-R4:13]
+  Biz          : [T1:11-T2:1-T3:2-T4:11-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #240 [DOGRU]
+  Rakip        : [R1:6-R2:38-R3:21-R4:11]
+  Biz          : [T1:1-T2:4-T3:0-T4:9-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #241 [DOGRU]
+  Rakip        : [R1:6-R2:39-R3:22-R4:10]
+  Biz          : [T1:0-T2:2-T3:0-T4:8-T5:1-T6:2-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #257 [DOGRU]
+  Rakip        : [R1:16-R2:37-R3:20-R4:10]
+  Biz          : [T1:12-T2:4-T3:0-T4:8-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #262 [DOGRU]
+  Rakip        : [R1:19-R2:37-R3:19-R4:10]
+  Biz          : [T1:11-T2:1-T3:0-T4:10-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #263 [DOGRU]
+  Rakip        : [R1:13-R2:36-R3:20-R4:11]
+  Biz          : [T1:11-T2:1-T3:0-T4:10-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+19. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #277 [DOGRU]
+  Rakip        : [R1:18-R2:38-R3:22-R4:8]
+  Biz          : [T1:13-T2:1-T3:0-T4:9-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #286 [DOGRU]
+  Rakip        : [R1:18-R2:36-R3:20-R4:12]
+  Biz          : [T1:10-T2:2-T3:0-T4:11-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #294 [DOGRU]
+  Rakip        : [R1:6-R2:39-R3:22-R4:12]
+  Biz          : [T1:28-T2:0-T3:2-T4:11-T5:1-T6:1-T7:0-T8:0]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 165 kan (T3 x2, T5 x1, T6 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #306 [DOGRU]
+  Rakip        : [R1:5-R2:39-R3:19-R4:14]
+  Biz          : [T1:0-T2:1-T3:4-T4:12-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #308 [DOGRU]
+  Rakip        : [R1:17-R2:37-R3:18-R4:13]
+  Biz          : [T1:17-T2:1-T3:1-T4:11-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #311 [DOGRU]
+  Rakip        : [R1:18-R2:31-R3:20-R4:14]
+  Biz          : [T1:10-T2:1-T3:0-T4:11-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #313 [DOGRU]
+  Rakip        : [R1:21-R2:29-R3:22-R4:13]
+  Biz          : [T1:10-T2:1-T3:0-T4:11-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #315 [DOGRU]
+  Rakip        : [R1:18-R2:33-R3:22-R4:12]
+  Biz          : [T1:10-T2:2-T3:1-T4:10-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #316 [DOGRU]
+  Rakip        : [R1:17-R2:28-R3:24-R4:13]
+  Biz          : [T1:10-T2:1-T3:0-T4:11-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #334 [DOGRU]
+  Rakip        : [R1:19-R2:32-R3:19-R4:14]
+  Biz          : [T1:10-T2:2-T3:2-T4:12-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #337 [DOGRU]
+  Rakip        : [R1:20-R2:40-R3:20-R4:10]
+  Biz          : [T1:11-T2:3-T3:6-T4:9-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+20. Kat | test-sonuclari-pass-kat16-20-tumu356-20260609-1535.txt #339 [DOGRU]
+  Rakip        : [R1:18-R2:41-R3:20-R4:10]
+  Biz          : [T1:11-T2:1-T3:0-T4:9-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+21. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #17 [DOGRU]
+  Rakip        : [R1:7-R2:30-R3:24-R4:15-R5:1]
+  Biz          : [T1:1-T2:1-T3:1-T4:14-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 215 kan (T2 x1, T5 x1, T8 x1)
+
+21. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #33 [DOGRU]
+  Rakip        : [R1:1-R2:41-R3:22-R4:13-R5:1]
+  Biz          : [T1:0-T2:2-T3:5-T4:12-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+21. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #45 [DOGRU]
+  Rakip        : [R1:5-R2:32-R3:20-R4:17-R5:1]
+  Biz          : [T1:0-T2:3-T3:0-T4:14-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 215 kan (T2 x1, T5 x1, T8 x1)
+
+22. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #62 [DOGRU]
+  Rakip        : [R1:7-R2:32-R3:21-R4:18-R5:1]
+  Biz          : [T1:1-T2:5-T3:1-T4:16-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 230 kan (T2 x2, T5 x1, T8 x1)
+
+22. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #96 [DOGRU]
+  Rakip        : [R1:7-R2:36-R3:23-R4:14-R5:2]
+  Biz          : [T1:0-T2:1-T3:5-T4:11-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+23. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #128 [DOGRU]
+  Rakip        : [R1:4-R2:41-R3:21-R4:17-R5:1]
+  Biz          : [T1:0-T2:3-T3:1-T4:16-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+23. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #132 [DOGRU]
+  Rakip        : [R1:6-R2:40-R3:21-R4:17-R5:1]
+  Biz          : [T1:0-T2:4-T3:1-T4:14-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+23. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #147 [DOGRU]
+  Rakip        : [R1:3-R2:39-R3:26-R4:15-R5:1]
+  Biz          : [T1:0-T2:3-T3:0-T4:14-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+23. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #170 [DOGRU]
+  Rakip        : [R1:5-R2:36-R3:23-R4:14-R5:4]
+  Biz          : [T1:0-T2:5-T3:0-T4:11-T5:1-T6:2-T7:1-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+24. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #202 [DOGRU]
+  Rakip        : [R1:21-R2:38-R3:19-R4:12-R5:6]
+  Biz          : [T1:10-T2:1-T3:1-T4:11-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+25. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #243 [DOGRU]
+  Rakip        : [R1:20-R2:26-R3:24-R4:16-R5:6]
+  Biz          : [T1:10-T2:1-T3:1-T4:14-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+25. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #253 [DOGRU]
+  Rakip        : [R1:24-R2:27-R3:26-R4:16-R5:4]
+  Biz          : [T1:2-T2:7-T3:3-T4:13-T5:1-T6:3-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+25. Kat | test-sonuclari-pass-kat21-25-tumu290-20260609-1535.txt #269 [DOGRU]
+  Rakip        : [R1:22-R2:36-R3:22-R4:14-R5:5]
+  Biz          : [T1:6-T2:10-T3:2-T4:12-T5:1-T6:4-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+26. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #5 [DOGRU]
+  Rakip        : [R1:25-R2:39-R3:18-R4:13-R5:8]
+  Biz          : [T1:15-T2:5-T3:1-T4:12-T5:1-T6:3-T7:0-T8:1]
+  Gercek kayip : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 280 kan (T2 x4, T3 x1, T5 x1, T8 x1)
+
+26. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #24 [DOGRU]
+  Rakip        : [R1:19-R2:30-R3:30-R4:13-R5:6]
+  Biz          : [T1:10-T2:1-T3:1-T4:13-T5:1-T6:3-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+26. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #25 [DOGRU]
+  Rakip        : [R1:20-R2:38-R3:17-R4:15-R5:8]
+  Biz          : [T1:14-T2:4-T3:1-T4:12-T5:1-T6:4-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+26. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #38 [DOGRU]
+  Rakip        : [R1:21-R2:40-R3:18-R4:17-R5:5]
+  Biz          : [T1:9-T2:11-T3:1-T4:8-T5:1-T6:4-T7:1-T8:1]
+  Gercek kayip : Zafer, 160 kan (T3 x1, T5 x1, T7 x1)
+  Sim (yeni)   : Zafer, 325 kan (T2 x1, T3 x1, T5 x1, T7 x1, T8 x1)
+
+26. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #44 [DOGRU]
+  Rakip        : [R1:15-R2:31-R3:21-R4:14-R5:10]
+  Biz          : [T1:18-T2:2-T3:1-T4:12-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+26. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #45 [DOGRU]
+  Rakip        : [R1:16-R2:31-R3:26-R4:12-R5:9]
+  Biz          : [T1:16-T2:2-T3:1-T4:13-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+26. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #46 [DOGRU]
+  Rakip        : [R1:22-R2:34-R3:23-R4:15-R5:6]
+  Biz          : [T1:10-T2:10-T3:1-T4:13-T5:1-T6:3-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #58 [DOGRU]
+  Rakip        : [R1:21-R2:30-R3:29-R4:14-R5:7]
+  Biz          : [T1:12-T2:1-T3:1-T4:11-T5:1-T6:3-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #62 [DOGRU]
+  Rakip        : [R1:22-R2:38-R3:27-R4:13-R5:6]
+  Biz          : [T1:10-T2:11-T3:1-T4:11-T5:1-T6:4-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #65 [DOGRU]
+  Rakip        : [R1:20-R2:38-R3:23-R4:11-R5:10]
+  Biz          : [T1:18-T2:12-T3:1-T4:10-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #68 [DOGRU]
+  Rakip        : [R1:20-R2:28-R3:18-R4:18-R5:10]
+  Biz          : [T1:18-T2:1-T3:1-T4:16-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #83 [DOGRU]
+  Rakip        : [R1:21-R2:35-R3:24-R4:15-R5:7]
+  Biz          : [T1:12-T2:10-T3:1-T4:13-T5:1-T6:3-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #84 [DOGRU]
+  Rakip        : [R1:19-R2:44-R3:22-R4:13-R5:7]
+  Biz          : [T1:13-T2:11-T3:1-T4:11-T5:1-T6:4-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #90 [DOGRU]
+  Rakip        : [R1:20-R2:32-R3:28-R4:14-R5:7]
+  Biz          : [T1:12-T2:2-T3:1-T4:13-T5:1-T6:3-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #91 [DOGRU]
+  Rakip        : [R1:23-R2:38-R3:18-R4:17-R5:7]
+  Biz          : [T1:12-T2:4-T3:1-T4:15-T5:1-T6:4-T7:0-T8:1]
+  Gercek kayip : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 280 kan (T2 x4, T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #96 [DOGRU]
+  Rakip        : [R1:20-R2:26-R3:27-R4:17-R5:7]
+  Biz          : [T1:13-T2:3-T3:1-T4:14-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+27. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #106 [DOGRU]
+  Rakip        : [R1:19-R2:31-R3:27-R4:14-R5:8]
+  Biz          : [T1:15-T2:5-T3:1-T4:13-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+28. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #126 [DOGRU]
+  Rakip        : [R1:17-R2:32-R3:23-R4:16-R5:10]
+  Biz          : [T1:18-T2:1-T3:1-T4:15-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+28. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #131 [DOGRU]
+  Rakip        : [R1:19-R2:34-R3:25-R4:16-R5:8]
+  Biz          : [T1:14-T2:1-T3:1-T4:14-T5:1-T6:3-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+28. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #135 [DOGRU]
+  Rakip        : [R1:19-R2:37-R3:17-R4:16-R5:11]
+  Biz          : [T1:20-T2:11-T3:1-T4:14-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+28. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #145 [DOGRU]
+  Rakip        : [R1:17-R2:41-R3:18-R4:13-R5:12]
+  Biz          : [T1:23-T2:7-T3:1-T4:11-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+28. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #153 [DOGRU]
+  Rakip        : [R1:27-R2:34-R3:24-R4:15-R5:8]
+  Biz          : [T1:15-T2:3-T3:1-T4:13-T5:1-T6:3-T7:0-T8:1]
+  Gercek kayip : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 265 kan (T2 x3, T3 x1, T5 x1, T8 x1)
+
+29. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #172 [DOGRU]
+  Rakip        : [R1:15-R2:38-R3:17-R4:16-R5:13]
+  Biz          : [T1:24-T2:3-T3:1-T4:13-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+29. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #185 [DOGRU]
+  Rakip        : [R1:20-R2:25-R3:24-R4:16-R5:13]
+  Biz          : [T1:19-T2:1-T3:1-T4:18-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 65 kan (T2 x1, T5 x1)
+  Sim (yeni)   : Zafer, 215 kan (T2 x1, T5 x1, T8 x1)
+
+29. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #196 [DOGRU]
+  Rakip        : [R1:19-R2:38-R3:25-R4:14-R5:10]
+  Biz          : [T1:19-T2:10-T3:1-T4:12-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+29. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #208 [DOGRU]
+  Rakip        : [R1:15-R2:41-R3:18-R4:13-R5:14]
+  Biz          : [T1:26-T2:10-T3:1-T4:12-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+29. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #209 [DOGRU]
+  Rakip        : [R1:19-R2:25-R3:27-R4:18-R5:10]
+  Biz          : [T1:18-T2:4-T3:1-T4:19-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #219 [DOGRU]
+  Rakip        : [R1:7-R2:39-R3:25-R4:12-R5:15]
+  Biz          : [T1:28-T2:2-T3:1-T4:13-T5:1-T6:0-T7:2-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #232 [DOGRU]
+  Rakip        : [R1:16-R2:33-R3:23-R4:15-R5:14]
+  Biz          : [T1:26-T2:1-T3:1-T4:17-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #239 [DOGRU]
+  Rakip        : [R1:21-R2:25-R3:24-R4:19-R5:12]
+  Biz          : [T1:22-T2:0-T3:1-T4:16-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #241 [DOGRU]
+  Rakip        : [R1:19-R2:28-R3:18-R4:17-R5:16]
+  Biz          : [T1:30-T2:2-T3:1-T4:15-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #248 [DOGRU]
+  Rakip        : [R1:15-R2:38-R3:19-R4:18-R5:12]
+  Biz          : [T1:22-T2:1-T3:1-T4:16-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #249 [DOGRU]
+  Rakip        : [R1:20-R2:31-R3:23-R4:15-R5:14]
+  Biz          : [T1:26-T2:2-T3:1-T4:14-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #250 [DOGRU]
+  Rakip        : [R1:20-R2:28-R3:27-R4:15-R5:13]
+  Biz          : [T1:24-T2:5-T3:1-T4:18-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #252 [DOGRU]
+  Rakip        : [R1:11-R2:31-R3:18-R4:15-R5:18]
+  Biz          : [T1:35-T2:1-T3:1-T4:14-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #256 [DOGRU]
+  Rakip        : [R1:8-R2:28-R3:19-R4:21-R5:14]
+  Biz          : [T1:25-T2:1-T3:0-T4:20-T5:1-T6:0-T7:0-T8:1]
+  Gercek kayip : Zafer, 50 kan (T5 x1)
+  Sim (yeni)   : Zafer, 200 kan (T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #257 [DOGRU]
+  Rakip        : [R1:15-R2:36-R3:16-R4:17-R5:15]
+  Biz          : [T1:28-T2:2-T3:1-T4:16-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+30. Kat | test-sonuclari-pass-kat26-30-tumu268-20260609-1535.txt #265 [DOGRU]
+  Rakip        : [R1:20-R2:23-R3:23-R4:17-R5:15]
+  Biz          : [T1:28-T2:1-T3:1-T4:16-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+31. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #1 [DOGRU]
+  Rakip        : [R1:17-R2:25-R3:15-R4:18-R5:18-R6:1]
+  Biz          : [T1:34-T2:1-T3:1-T4:16-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+
+31. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #5 [DOGRU]
+  Rakip        : [R1:12-R2:38-R3:26-R4:12-R5:14-R6:1]
+  Biz          : [T1:26-T2:3-T3:1-T4:12-T5:1-T6:1-T7:2-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+31. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #16 [DOGRU]
+  Rakip        : [R1:12-R2:42-R3:18-R4:14-R5:15-R6:1]
+  Biz          : [T1:29-T2:1-T3:1-T4:15-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+
+31. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #37 [DOGRU]
+  Rakip        : [R1:9-R2:42-R3:26-R4:13-R5:14]
+  Biz          : [T1:26-T2:3-T3:1-T4:15-T5:1-T6:2-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+32. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #46 [DOGRU]
+  Rakip        : [R1:11-R2:36-R3:15-R4:18-R5:17-R6:1]
+  Biz          : [T1:32-T2:1-T3:1-T4:17-T5:1-T6:0-T7:1-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+
+32. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #53 [DOGRU]
+  Rakip        : [R1:17-R2:35-R3:14-R4:17-R5:16-R6:2]
+  Biz          : [T1:30-T2:2-T3:1-T4:15-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+
+32. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #90 [DOGRU]
+  Rakip        : [R1:21-R2:37-R3:17-R4:18-R5:14-R6:1]
+  Biz          : [T1:26-T2:0-T3:1-T4:17-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 295 kan (T3 x1, T5 x1, T6 x1, T8 x1)
+
+33. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #107 [DOGRU]
+  Rakip        : [R1:11-R2:38-R3:17-R4:18-R5:17-R6:1]
+  Biz          : [T1:32-T2:2-T3:1-T4:18-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 70 kan (T3 x1, T5 x1)
+  Sim (yeni)   : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+
+34. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #146 [DOGRU]
+  Rakip        : [R1:19-R2:39-R3:18-R4:21-R5:14-R6:1]
+  Biz          : [T1:27-T2:2-T3:1-T4:18-T5:1-T6:1-T7:1-T8:1]
+  Gercek kayip : Zafer, 220 kan (T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+
+35. Kat | test-sonuclari-pass-kat31-35-tumu247-20260609-1535.txt #223 [DOGRU]
+  Rakip        : [R1:8-R2:27-R3:21-R4:15-R5:15-R6:7]
+  Biz          : [T1:28-T2:1-T3:1-T4:22-T5:1-T6:1-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 310 kan (T2 x1, T3 x1, T5 x1, T6 x1, T8 x1)
+
+36. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #20 [DOGRU]
+  Rakip        : [R1:30-R2:23-R3:17-R4:19-R5:13-R6:7]
+  Biz          : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:9-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+36. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #27 [DOGRU]
+  Rakip        : [R1:25-R2:19-R3:28-R4:13-R5:13-R6:8]
+  Biz          : [T1:24-T2:1-T3:1-T4:11-T5:1-T6:8-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+36. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #33 [DOGRU]
+  Rakip        : [R1:21-R2:24-R3:16-R4:21-R5:18-R6:4]
+  Biz          : [T1:34-T2:6-T3:1-T4:5-T5:1-T6:9-T7:1-T8:1]
+  Gercek kayip : Zafer, 160 kan (T3 x1, T5 x1, T7 x1)
+  Sim (yeni)   : Zafer, 310 kan (T3 x1, T5 x1, T7 x1, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #53 [DOGRU]
+  Rakip        : [R1:28-R2:18-R3:16-R4:20-R5:13-R6:9]
+  Biz          : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #62 [DOGRU]
+  Rakip        : [R1:13-R2:32-R3:25-R4:20-R5:13-R6:5]
+  Biz          : [T1:24-T2:1-T3:1-T4:20-T5:1-T6:1-T7:2-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 490 kan (T2 x1, T3 x1, T5 x1, T6 x1, T7 x2, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #64 [DOGRU]
+  Rakip        : [R1:23-R2:20-R3:27-R4:12-R5:16-R6:8]
+  Biz          : [T1:30-T2:1-T3:1-T4:11-T5:1-T6:8-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #65 [DOGRU]
+  Rakip        : [R1:26-R2:17-R3:16-R4:18-R5:17-R6:8]
+  Biz          : [T1:32-T2:1-T3:1-T4:16-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #71 [DOGRU]
+  Rakip        : [R1:17-R2:19-R3:20-R4:15-R5:15-R6:10]
+  Biz          : [T1:28-T2:1-T3:1-T4:12-T5:1-T6:7-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #74 [DOGRU]
+  Rakip        : [R1:26-R2:21-R3:18-R4:14-R5:18-R6:8]
+  Biz          : [T1:34-T2:1-T3:1-T4:12-T5:1-T6:9-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #76 [DOGRU]
+  Rakip        : [R1:24-R2:18-R3:24-R4:18-R5:13-R6:8]
+  Biz          : [T1:24-T2:1-T3:1-T4:16-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #84 [DOGRU]
+  Rakip        : [R1:38-R2:18-R3:16-R4:20-R5:18-R6:5]
+  Biz          : [T1:34-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 535 kan (T2 x1, T3 x1, T5 x1, T6 x4, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #90 [DOGRU]
+  Rakip        : [R1:13-R2:33-R3:26-R4:13-R5:13-R6:8]
+  Biz          : [T1:15-T2:0-T3:9-T4:12-T5:1-T6:5-T7:1-T8:1]
+  Gercek kayip : Zafer, 675 kan (T3 x5, T5 x1, T6 x5, T8 x1)
+  Sim (yeni)   : Zafer, 845 kan (T3 x9, T5 x1, T6 x5, T7 x1, T8 x1)
+
+37. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #100 [DOGRU]
+  Rakip        : [R1:25-R2:19-R3:26-R4:13-R5:14-R6:9]
+  Biz          : [T1:26-T2:1-T3:1-T4:11-T5:1-T6:8-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #103 [DOGRU]
+  Rakip        : [R1:18-R2:17-R3:25-R4:13-R5:18-R6:9]
+  Biz          : [T1:34-T2:1-T3:1-T4:11-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #110 [DOGRU]
+  Rakip        : [R1:26-R2:20-R3:29-R4:13-R5:12-R6:10]
+  Biz          : [T1:22-T2:1-T3:1-T4:12-T5:1-T6:8-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #117 [DOGRU]
+  Rakip        : [R1:21-R2:16-R3:25-R4:18-R5:12-R6:10]
+  Biz          : [T1:22-T2:1-T3:1-T4:15-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #121 [DOGRU]
+  Rakip        : [R1:24-R2:28-R3:23-R4:17-R5:11-R6:9]
+  Biz          : [T1:20-T2:1-T3:1-T4:15-T5:1-T6:11-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #122 [DOGRU]
+  Rakip        : [R1:23-R2:29-R3:16-R4:17-R5:16-R6:8]
+  Biz          : [T1:30-T2:1-T3:1-T4:14-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 535 kan (T2 x1, T3 x1, T5 x1, T6 x4, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #125 [DOGRU]
+  Rakip        : [R1:28-R2:30-R3:17-R4:19-R5:11-R6:9]
+  Biz          : [T1:20-T2:1-T3:1-T4:17-T5:1-T6:12-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #126 [DOGRU]
+  Rakip        : [R1:27-R2:24-R3:22-R4:17-R5:14-R6:8]
+  Biz          : [T1:26-T2:1-T3:1-T4:14-T5:1-T6:9-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #129 [DOGRU]
+  Rakip        : [R1:26-R2:20-R3:20-R4:14-R5:19-R6:8]
+  Biz          : [T1:36-T2:1-T3:1-T4:12-T5:1-T6:8-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #131 [DOGRU]
+  Rakip        : [R1:25-R2:21-R3:20-R4:15-R5:13-R6:11]
+  Biz          : [T1:24-T2:1-T3:1-T4:12-T5:1-T6:8-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 835 kan (T2 x1, T3 x1, T5 x1, T6 x8, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #132 [DOGRU]
+  Rakip        : [R1:25-R2:31-R3:27-R4:12-R5:12-R6:9]
+  Biz          : [T1:22-T2:1-T3:1-T4:10-T5:1-T6:12-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #134 [DOGRU]
+  Rakip        : [R1:23-R2:32-R3:17-R4:20-R5:12-R6:8]
+  Biz          : [T1:22-T2:2-T3:1-T4:5-T5:1-T6:13-T7:1-T8:1]
+  Gercek kayip : Zafer, 340 kan (T2 x2, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 815 kan (T2 x2, T3 x1, T4 x5, T5 x1, T6 x4, T7 x1, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #138 [DOGRU]
+  Rakip        : [R1:26-R2:18-R3:18-R4:22-R5:14-R6:8]
+  Biz          : [T1:26-T2:1-T3:1-T4:19-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #140 [DOGRU]
+  Rakip        : [R1:23-R2:30-R3:12-R4:17-R5:16-R6:9]
+  Biz          : [T1:30-T2:1-T3:1-T4:14-T5:1-T6:12-T7:0-T8:1]
+  Gercek kayip : Zafer, 270 kan (T2 x1, T3 x1, T4 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 645 kan (T2 x1, T3 x1, T4 x1, T5 x1, T6 x5, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #141 [DOGRU]
+  Rakip        : [R1:27-R2:35-R3:17-R4:20-R5:12-R6:7]
+  Biz          : [T1:22-T2:2-T3:1-T4:5-T5:1-T6:14-T7:1-T8:1]
+  Gercek kayip : Zafer, 340 kan (T2 x2, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 965 kan (T2 x2, T3 x1, T4 x5, T5 x1, T6 x6, T7 x1, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #143 [DOGRU]
+  Rakip        : [R1:22-R2:14-R3:26-R4:12-R5:17-R6:10]
+  Biz          : [T1:33-T2:1-T3:1-T4:13-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #144 [DOGRU]
+  Rakip        : [R1:27-R2:28-R3:24-R4:11-R5:15-R6:9]
+  Biz          : [T1:28-T2:1-T3:1-T4:10-T5:1-T6:11-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #145 [DOGRU]
+  Rakip        : [R1:20-R2:21-R3:18-R4:16-R5:14-R6:11]
+  Biz          : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:8-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #146 [DOGRU]
+  Rakip        : [R1:22-R2:16-R3:16-R4:20-R5:13-R6:11]
+  Biz          : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #147 [DOGRU]
+  Rakip        : [R1:24-R2:13-R3:23-R4:17-R5:16-R6:9]
+  Biz          : [T1:30-T2:1-T3:1-T4:15-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #149 [DOGRU]
+  Rakip        : [R1:18-R2:15-R3:25-R4:19-R5:12-R6:10]
+  Biz          : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #150 [DOGRU]
+  Rakip        : [R1:27-R2:17-R3:30-R4:15-R5:14-R6:8]
+  Biz          : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+38. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #151 [DOGRU]
+  Rakip        : [R1:35-R2:32-R3:25-R4:12-R5:16-R6:6]
+  Biz          : [T1:30-T2:2-T3:1-T4:11-T5:1-T6:13-T7:0-T8:1]
+  Gercek kayip : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 625 kan (T2 x2, T3 x1, T5 x1, T6 x5, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #155 [DOGRU]
+  Rakip        : [R1:23-R2:14-R3:15-R4:22-R5:19-R6:8]
+  Biz          : [T1:36-T2:1-T3:1-T4:19-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #156 [DOGRU]
+  Rakip        : [R1:21-R2:27-R3:25-R4:12-R5:15-R6:10]
+  Biz          : [T1:28-T2:1-T3:1-T4:11-T5:1-T6:11-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #157 [DOGRU]
+  Rakip        : [R1:26-R2:18-R3:17-R4:19-R5:12-R6:12]
+  Biz          : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1075 kan (T2 x1, T3 x1, T4 x9, T5 x1, T6 x7, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #158 [DOGRU]
+  Rakip        : [R1:32-R2:38-R3:18-R4:14-R5:13-R6:9]
+  Biz          : [T1:24-T2:2-T3:1-T4:11-T5:1-T6:15-T7:0-T8:1]
+  Gercek kayip : Zafer, 285 kan (T2 x2, T3 x1, T4 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 660 kan (T2 x2, T3 x1, T4 x1, T5 x1, T6 x5, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #159 [DOGRU]
+  Rakip        : [R1:24-R2:28-R3:23-R4:17-R5:11-R6:10]
+  Biz          : [T1:20-T2:1-T3:1-T4:15-T5:1-T6:11-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #161 [DOGRU]
+  Rakip        : [R1:24-R2:18-R3:16-R4:20-R5:12-R6:12]
+  Biz          : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1075 kan (T2 x1, T3 x1, T4 x9, T5 x1, T6 x7, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #162 [DOGRU]
+  Rakip        : [R1:26-R2:26-R3:14-R4:18-R5:15-R6:10]
+  Biz          : [T1:28-T2:1-T3:1-T4:15-T5:1-T6:10-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #164 [DOGRU]
+  Rakip        : [R1:19-R2:35-R3:17-R4:16-R5:15-R6:9]
+  Biz          : [T1:28-T2:2-T3:1-T4:5-T5:1-T6:14-T7:1-T8:1]
+  Gercek kayip : Zafer, 340 kan (T2 x2, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 890 kan (T2 x2, T3 x1, T4 x5, T5 x1, T6 x5, T7 x1, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #165 [DOGRU]
+  Rakip        : [R1:15-R2:19-R3:18-R4:21-R5:13-R6:11]
+  Biz          : [T1:24-T2:1-T3:1-T4:17-T5:1-T6:7-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #166 [DOGRU]
+  Rakip        : [R1:21-R2:30-R3:14-R4:13-R5:17-R6:11]
+  Biz          : [T1:32-T2:1-T3:1-T4:11-T5:1-T6:12-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #167 [DOGRU]
+  Rakip        : [R1:15-R2:12-R3:25-R4:18-R5:16-R6:10]
+  Biz          : [T1:30-T2:1-T3:1-T4:17-T5:1-T6:5-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 785 kan (T2 x1, T3 x1, T4 x5, T5 x1, T6 x5, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #169 [DOGRU]
+  Rakip        : [R1:16-R2:16-R3:22-R4:18-R5:16-R6:10]
+  Biz          : [T1:30-T2:1-T3:1-T4:15-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #172 [DOGRU]
+  Rakip        : [R1:20-R2:15-R3:26-R4:18-R5:12-R6:11]
+  Biz          : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 930 kan (T2 x1, T3 x1, T4 x7, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #174 [DOGRU]
+  Rakip        : [R1:27-R2:20-R3:28-R4:15-R5:14-R6:9]
+  Biz          : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:8-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #175 [DOGRU]
+  Rakip        : [R1:26-R2:29-R3:22-R4:12-R5:15-R6:10]
+  Biz          : [T1:28-T2:1-T3:1-T4:10-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #176 [DOGRU]
+  Rakip        : [R1:28-R2:30-R3:15-R4:13-R5:17-R6:10]
+  Biz          : [T1:32-T2:1-T3:1-T4:11-T5:1-T6:12-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #178 [DOGRU]
+  Rakip        : [R1:26-R2:29-R3:25-R4:13-R5:11-R6:11]
+  Biz          : [T1:20-T2:1-T3:1-T4:11-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #184 [DOGRU]
+  Rakip        : [R1:25-R2:34-R3:25-R4:14-R5:12-R6:9]
+  Biz          : [T1:22-T2:2-T3:1-T4:11-T5:1-T6:13-T7:1-T8:1]
+  Gercek kayip : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 625 kan (T2 x2, T3 x1, T5 x1, T6 x5, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #185 [DOGRU]
+  Rakip        : [R1:25-R2:19-R3:16-R4:15-R5:14-R6:13]
+  Biz          : [T1:26-T2:9-T3:1-T4:12-T5:1-T6:7-T7:1-T8:1]
+  Gercek kayip : Zafer, 355 kan (T2 x9, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 970 kan (T2 x9, T3 x1, T5 x1, T6 x7, T7 x1, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #186 [DOGRU]
+  Rakip        : [R1:20-R2:36-R3:17-R4:13-R5:17-R6:9]
+  Biz          : [T1:32-T2:2-T3:1-T4:6-T5:1-T6:14-T7:1-T8:1]
+  Gercek kayip : Zafer, 340 kan (T2 x2, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 715 kan (T2 x2, T3 x1, T5 x1, T6 x5, T7 x1, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #188 [DOGRU]
+  Rakip        : [R1:27-R2:30-R3:14-R4:19-R5:11-R6:11]
+  Biz          : [T1:20-T2:1-T3:1-T4:17-T5:1-T6:12-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #192 [DOGRU]
+  Rakip        : [R1:25-R2:31-R3:14-R4:19-R5:11-R6:11]
+  Biz          : [T1:20-T2:1-T3:1-T4:16-T5:1-T6:12-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #193 [DOGRU]
+  Rakip        : [R1:18-R2:29-R3:14-R4:20-R5:12-R6:11]
+  Biz          : [T1:22-T2:1-T3:1-T4:17-T5:1-T6:12-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #195 [DOGRU]
+  Rakip        : [R1:26-R2:14-R3:18-R4:20-R5:17-R6:9]
+  Biz          : [T1:32-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #198 [DOGRU]
+  Rakip        : [R1:27-R2:15-R3:15-R4:20-R5:18-R6:9]
+  Biz          : [T1:34-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #199 [DOGRU]
+  Rakip        : [R1:26-R2:14-R3:29-R4:13-R5:19-R6:8]
+  Biz          : [T1:36-T2:1-T3:1-T4:13-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #200 [DOGRU]
+  Rakip        : [R1:28-R2:29-R3:14-R4:18-R5:17-R6:8]
+  Biz          : [T1:32-T2:1-T3:1-T4:15-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 535 kan (T2 x1, T3 x1, T5 x1, T6 x4, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #201 [DOGRU]
+  Rakip        : [R1:28-R2:25-R3:21-R4:17-R5:14-R6:9]
+  Biz          : [T1:26-T2:1-T3:1-T4:15-T5:1-T6:10-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #203 [DOGRU]
+  Rakip        : [R1:25-R2:29-R3:15-R4:18-R5:17-R6:8]
+  Biz          : [T1:32-T2:1-T3:1-T4:15-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 535 kan (T2 x1, T3 x1, T5 x1, T6 x4, T8 x1)
+
+39. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #204 [DOGRU]
+  Rakip        : [R1:21-R2:26-R3:21-R4:16-R5:14-R6:10]
+  Biz          : [T1:26-T2:1-T3:1-T4:13-T5:1-T6:10-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 610 kan (T2 x1, T3 x1, T5 x1, T6 x5, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #207 [DOGRU]
+  Rakip        : [R1:15-R2:17-R3:30-R4:21-R5:11-R6:10]
+  Biz          : [T1:20-T2:1-T3:1-T4:18-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #209 [DOGRU]
+  Rakip        : [R1:25-R2:14-R3:31-R4:16-R5:14-R6:10]
+  Biz          : [T1:26-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #211 [DOGRU]
+  Rakip        : [R1:17-R2:30-R3:24-R4:11-R5:16-R6:11]
+  Biz          : [T1:30-T2:1-T3:1-T4:10-T5:1-T6:12-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #212 [DOGRU]
+  Rakip        : [R1:13-R2:27-R3:21-R4:16-R5:15-R6:11]
+  Biz          : [T1:28-T2:1-T3:1-T4:14-T5:1-T6:11-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #213 [DOGRU]
+  Rakip        : [R1:28-R2:38-R3:16-R4:14-R5:13-R6:11]
+  Biz          : [T1:24-T2:2-T3:1-T4:12-T5:1-T6:15-T7:0-T8:1]
+  Gercek kayip : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 700 kan (T2 x2, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #215 [DOGRU]
+  Rakip        : [R1:24-R2:34-R3:17-R4:13-R5:17-R6:10]
+  Biz          : [T1:32-T2:2-T3:1-T4:11-T5:1-T6:14-T7:0-T8:1]
+  Gercek kayip : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 625 kan (T2 x2, T3 x1, T5 x1, T6 x5, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #216 [DOGRU]
+  Rakip        : [R1:26-R2:33-R3:20-R4:14-R5:13-R6:11]
+  Biz          : [T1:24-T2:2-T3:1-T4:12-T5:1-T6:13-T7:0-T8:1]
+  Gercek kayip : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 700 kan (T2 x2, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #217 [DOGRU]
+  Rakip        : [R1:23-R2:14-R3:24-R4:19-R5:17-R6:9]
+  Biz          : [T1:32-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #218 [DOGRU]
+  Rakip        : [R1:22-R2:17-R3:26-R4:22-R5:11-R6:10]
+  Biz          : [T1:20-T2:1-T3:1-T4:19-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #219 [DOGRU]
+  Rakip        : [R1:29-R2:17-R3:15-R4:20-R5:12-R6:13]
+  Biz          : [T1:22-T2:10-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 370 kan (T2 x10, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1490 kan (T2 x10, T3 x1, T4 x17, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #221 [DOGRU]
+  Rakip        : [R1:28-R2:16-R3:17-R4:15-R5:14-R6:14]
+  Biz          : [T1:26-T2:9-T3:1-T4:13-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 355 kan (T2 x9, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1335 kan (T2 x9, T3 x1, T4 x13, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #222 [DOGRU]
+  Rakip        : [R1:26-R2:13-R3:15-R4:21-R5:18-R6:10]
+  Biz          : [T1:34-T2:1-T3:1-T4:18-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #223 [DOGRU]
+  Rakip        : [R1:21-R2:15-R3:26-R4:13-R5:16-R6:12]
+  Biz          : [T1:31-T2:1-T3:1-T4:13-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 775 kan (T2 x1, T3 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #224 [DOGRU]
+  Rakip        : [R1:24-R2:16-R3:16-R4:18-R5:16-R6:12]
+  Biz          : [T1:30-T2:1-T3:1-T4:15-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 775 kan (T2 x1, T3 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #225 [DOGRU]
+  Rakip        : [R1:22-R2:12-R3:14-R4:20-R5:17-R6:12]
+  Biz          : [T1:32-T2:1-T3:1-T4:18-T5:1-T6:5-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 890 kan (T2 x1, T3 x1, T4 x8, T5 x1, T6 x5, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #227 [DOGRU]
+  Rakip        : [R1:28-R2:25-R3:24-R4:18-R5:10-R6:11]
+  Biz          : [T1:18-T2:1-T3:1-T4:16-T5:1-T6:10-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #228 [DOGRU]
+  Rakip        : [R1:23-R2:16-R3:29-R4:14-R5:13-R6:12]
+  Biz          : [T1:24-T2:1-T3:1-T4:15-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 775 kan (T2 x1, T3 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #229 [DOGRU]
+  Rakip        : [R1:19-R2:31-R3:26-R4:13-R5:11-R6:12]
+  Biz          : [T1:20-T2:1-T3:1-T4:11-T5:1-T6:13-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #230 [DOGRU]
+  Rakip        : [R1:22-R2:11-R3:24-R4:18-R5:14-R6:12]
+  Biz          : [T1:26-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 965 kan (T2 x1, T3 x1, T4 x8, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #232 [DOGRU]
+  Rakip        : [R1:27-R2:14-R3:19-R4:16-R5:18-R6:11]
+  Biz          : [T1:34-T2:1-T3:1-T4:15-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1175 kan (T2 x1, T3 x1, T4 x14, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #233 [DOGRU]
+  Rakip        : [R1:24-R2:15-R3:20-R4:16-R5:16-R6:12]
+  Biz          : [T1:31-T2:1-T3:1-T4:13-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 775 kan (T2 x1, T3 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #236 [DOGRU]
+  Rakip        : [R1:20-R2:16-R3:14-R4:20-R5:16-R6:12]
+  Biz          : [T1:30-T2:1-T3:1-T4:17-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1005 kan (T2 x1, T3 x1, T4 x7, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #237 [DOGRU]
+  Rakip        : [R1:27-R2:12-R3:17-R4:22-R5:18-R6:9]
+  Biz          : [T1:34-T2:1-T3:1-T4:19-T5:1-T6:5-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 960 kan (T2 x1, T3 x1, T4 x10, T5 x1, T6 x5, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #238 [DOGRU]
+  Rakip        : [R1:20-R2:14-R3:18-R4:16-R5:13-R6:15]
+  Biz          : [T1:24-T2:7-T3:1-T4:15-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 325 kan (T2 x7, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1230 kan (T2 x7, T3 x1, T4 x13, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #241 [DOGRU]
+  Rakip        : [R1:27-R2:23-R3:21-R4:16-R5:14-R6:11]
+  Biz          : [T1:26-T2:1-T3:1-T4:14-T5:1-T6:9-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 835 kan (T2 x1, T3 x1, T5 x1, T6 x8, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #242 [DOGRU]
+  Rakip        : [R1:16-R2:30-R3:23-R4:17-R5:10-R6:12]
+  Biz          : [T1:18-T2:1-T3:1-T4:15-T5:1-T6:12-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #243 [DOGRU]
+  Rakip        : [R1:25-R2:27-R3:24-R4:11-R5:14-R6:12]
+  Biz          : [T1:26-T2:1-T3:1-T4:7-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 310 kan (T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 325 kan (T2 x1, T3 x1, T5 x1, T7 x1, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #244 [DOGRU]
+  Rakip        : [R1:28-R2:15-R3:25-R4:19-R5:17-R6:8]
+  Biz          : [T1:32-T2:1-T3:1-T4:17-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x1, T3 x1, T5 x1, T6 x6, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #245 [DOGRU]
+  Rakip        : [R1:28-R2:31-R3:13-R4:13-R5:16-R6:12]
+  Biz          : [T1:30-T2:1-T3:1-T4:11-T5:1-T6:13-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #246 [DOGRU]
+  Rakip        : [R1:27-R2:35-R3:18-R4:15-R5:14-R6:10]
+  Biz          : [T1:26-T2:2-T3:1-T4:13-T5:1-T6:14-T7:0-T8:1]
+  Gercek kayip : Zafer, 250 kan (T2 x2, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 625 kan (T2 x2, T3 x1, T5 x1, T6 x5, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #247 [DOGRU]
+  Rakip        : [R1:27-R2:17-R3:14-R4:21-R5:12-R6:13]
+  Biz          : [T1:22-T2:9-T3:1-T4:18-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 355 kan (T2 x9, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1230 kan (T2 x9, T3 x1, T4 x10, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #248 [DOGRU]
+  Rakip        : [R1:27-R2:12-R3:29-R4:20-R5:12-R6:10]
+  Biz          : [T1:23-T2:1-T3:1-T4:20-T5:1-T6:5-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 960 kan (T2 x1, T3 x1, T4 x10, T5 x1, T6 x5, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #249 [DOGRU]
+  Rakip        : [R1:30-R2:16-R3:24-R4:12-R5:16-R6:12]
+  Biz          : [T1:31-T2:1-T3:1-T4:13-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 775 kan (T2 x1, T3 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #250 [DOGRU]
+  Rakip        : [R1:17-R2:14-R3:28-R4:19-R5:11-R6:12]
+  Biz          : [T1:21-T2:1-T3:1-T4:16-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 775 kan (T2 x1, T3 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #252 [DOGRU]
+  Rakip        : [R1:14-R2:17-R3:33-R4:15-R5:13-R6:11]
+  Biz          : [T1:24-T2:1-T3:1-T4:13-T5:1-T6:7-T7:1-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #253 [DOGRU]
+  Rakip        : [R1:23-R2:17-R3:17-R4:14-R5:17-R6:13]
+  Biz          : [T1:32-T2:8-T3:1-T4:12-T5:1-T6:7-T7:0-T8:1]
+  Gercek kayip : Zafer, 340 kan (T2 x8, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1285 kan (T2 x8, T3 x1, T4 x12, T5 x1, T6 x7, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #254 [DOGRU]
+  Rakip        : [R1:13-R2:13-R3:28-R4:15-R5:12-R6:14]
+  Biz          : [T1:22-T2:5-T3:1-T4:13-T5:1-T6:4-T7:3-T8:1]
+  Gercek kayip : Zafer, 295 kan (T2 x5, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 865 kan (T2 x5, T3 x1, T5 x1, T6 x4, T7 x3, T8 x1)
+
+40. Kat | test-sonuclari-pass-kat36-40-tumu255-20260609-1535.txt #255 [DOGRU]
+  Rakip        : [R1:28-R2:25-R3:12-R4:18-R5:16-R6:11]
+  Biz          : [T1:30-T2:1-T3:1-T4:16-T5:1-T6:10-T7:0-T8:1]
+  Gercek kayip : Zafer, 235 kan (T2 x1, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 760 kan (T2 x1, T3 x1, T5 x1, T6 x7, T8 x1)
+
+41. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #3 [DOGRU]
+  Rakip        : [R1:25-R2:27-R3:13-R4:12-R5:15-R6:14-R7:1]
+  Biz          : [T1:33-T2:10-T3:1-T4:11-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 445 kan (T2 x9, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x10, T3 x1, T5 x1, T6 x3, T7 x1, T8 x1)
+
+41. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #4 [DOGRU]
+  Rakip        : [R1:22-R2:25-R3:24-R4:12-R5:14-R6:12-R7:1]
+  Biz          : [T1:4-T2:1-T3:9-T4:12-T5:1-T6:10-T7:1-T8:1]
+  Gercek kayip : Zafer, 455 kan (T2 x1, T5 x1, T6 x2, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 980 kan (T2 x1, T5 x1, T6 x9, T7 x1, T8 x1)
+
+41. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #5 [DOGRU]
+  Rakip        : [R1:22-R2:30-R3:18-R4:14-R5:12-R6:13-R7:1]
+  Biz          : [T1:29-T2:9-T3:26-T4:14-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 455 kan (T1 x12, T2 x9, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 985 kan (T1 x12, T2 x9, T3 x4, T5 x1, T6 x6, T8 x1)
+
+41. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #3 [DOGRU]
+  Rakip        : [R1:25-R2:27-R3:13-R4:12-R5:15-R6:14-R7:1]
+  Biz          : [T1:33-T2:10-T3:1-T4:11-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 445 kan (T2 x9, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 685 kan (T2 x10, T3 x1, T5 x1, T6 x3, T7 x1, T8 x1)
+
+41. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #4 [DOGRU]
+  Rakip        : [R1:22-R2:25-R3:24-R4:12-R5:14-R6:12-R7:1]
+  Biz          : [T1:4-T2:1-T3:9-T4:12-T5:1-T6:10-T7:1-T8:1]
+  Gercek kayip : Zafer, 455 kan (T2 x1, T5 x1, T6 x2, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 980 kan (T2 x1, T5 x1, T6 x9, T7 x1, T8 x1)
+
+41. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #5 [DOGRU]
+  Rakip        : [R1:22-R2:30-R3:18-R4:14-R5:12-R6:13-R7:1]
+  Biz          : [T1:29-T2:9-T3:26-T4:14-T5:1-T6:6-T7:0-T8:1]
+  Gercek kayip : Zafer, 455 kan (T1 x12, T2 x9, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 985 kan (T1 x12, T2 x9, T3 x4, T5 x1, T6 x6, T8 x1)
+
+42. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #13 [DOGRU]
+  Rakip        : [R1:22-R2:14-R3:15-R4:21-R5:18-R6:11-R7:1]
+  Biz          : [T1:43-T2:16-T3:28-T4:21-T5:1-T6:0-T7:0-T8:0]
+  Gercek kayip : Zafer, 650 kan (T1 x18, T2 x16, T3 x2, T4 x4, T5 x1)
+  Sim (yeni)   : Zafer, 1205 kan (T1 x18, T2 x16, T3 x28, T4 x5, T5 x1)
+
+42. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #15 [DOGRU]
+  Rakip        : [R1:8-R2:11-R3:15-R4:23-R5:18-R6:12-R7:1]
+  Biz          : [T1:2-T2:1-T3:13-T4:23-T5:1-T6:5-T7:1-T8:1]
+  Gercek kayip : Zafer, 340 kan (T2 x1, T4 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 860 kan (T2 x1, T3 x2, T4 x4, T5 x1, T6 x5, T7 x1, T8 x1)
+
+42. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #12 [DOGRU]
+  Rakip        : [R1:22-R2:14-R3:15-R4:21-R5:18-R6:11-R7:1]
+  Biz          : [T1:43-T2:16-T3:28-T4:21-T5:1-T6:0-T7:0-T8:0]
+  Gercek kayip : Zafer, 650 kan (T1 x18, T2 x16, T3 x2, T4 x4, T5 x1)
+  Sim (yeni)   : Zafer, 1205 kan (T1 x18, T2 x16, T3 x28, T4 x5, T5 x1)
+
+42. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #14 [DOGRU]
+  Rakip        : [R1:8-R2:11-R3:15-R4:23-R5:18-R6:12-R7:1]
+  Biz          : [T1:2-T2:1-T3:13-T4:23-T5:1-T6:5-T7:1-T8:1]
+  Gercek kayip : Zafer, 340 kan (T2 x1, T4 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 860 kan (T2 x1, T3 x2, T4 x4, T5 x1, T6 x5, T7 x1, T8 x1)
+
+43. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #18 [DOGRU]
+  Rakip        : [R1:24-R2:15-R3:27-R4:13-R5:18-R6:12-R7:1]
+  Biz          : [T1:25-T2:1-T3:6-T4:15-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 455 kan (T2 x1, T5 x1, T6 x2, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 910 kan (T2 x1, T3 x6, T4 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+43. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #17 [DOGRU]
+  Rakip        : [R1:24-R2:15-R3:27-R4:13-R5:18-R6:12-R7:1]
+  Biz          : [T1:25-T2:1-T3:6-T4:15-T5:1-T6:6-T7:1-T8:1]
+  Gercek kayip : Zafer, 455 kan (T2 x1, T5 x1, T6 x2, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 910 kan (T2 x1, T3 x6, T4 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+46. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #30 [DOGRU]
+  Rakip        : [R1:17-R2:11-R3:26-R4:15-R5:18-R6:11-R7:5]
+  Biz          : [T1:10-T2:6-T3:10-T4:16-T5:1-T6:7-T7:1-T8:1]
+  Gercek kayip : Zafer, 530 kan (T2 x6, T5 x1, T6 x2, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1105 kan (T2 x6, T3 x10, T5 x1, T6 x7, T7 x1, T8 x1)
+
+46. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #28 [DOGRU]
+  Rakip        : [R1:17-R2:11-R3:26-R4:15-R5:18-R6:11-R7:5]
+  Biz          : [T1:10-T2:6-T3:10-T4:16-T5:1-T6:7-T7:1-T8:1]
+  Gercek kayip : Zafer, 530 kan (T2 x6, T5 x1, T6 x2, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1105 kan (T2 x6, T3 x10, T5 x1, T6 x7, T7 x1, T8 x1)
+
+49. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #46 [DOGRU]
+  Rakip        : [R1:20-R2:11-R3:24-R4:10-R5:16-R6:12-R7:10]
+  Biz          : [T1:35-T2:7-T3:1-T4:21-T5:1-T6:5-T7:1-T8:1]
+  Gercek kayip : Zafer, 415 kan (T2 x7, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1035 kan (T2 x7, T3 x1, T4 x7, T5 x1, T6 x5, T7 x1, T8 x1)
+
+49. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #49 [DOGRU]
+  Rakip        : [R1:24-R2:23-R3:23-R4:11-R5:14-R6:9-R7:11]
+  Biz          : [T1:30-T2:14-T3:1-T4:11-T5:1-T6:9-T7:1-T8:1]
+  Gercek kayip : Zafer, 430 kan (T2 x14, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 880 kan (T2 x14, T3 x1, T5 x1, T6 x6, T8 x1)
+
+49. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #54 [DOGRU]
+  Rakip        : [R1:29-R2:27-R3:23-R4:12-R5:17-R6:9-R7:8]
+  Biz          : [T1:37-T2:16-T3:1-T4:12-T5:1-T6:11-T7:0-T8:1]
+  Gercek kayip : Zafer, 1265 kan (T2 x16, T5 x1, T6 x11, T8 x1)
+  Sim (yeni)   : Zafer, 1190 kan (T2 x16, T5 x1, T6 x10, T8 x1)
+
+49. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #40 [DOGRU]
+  Rakip        : [R1:20-R2:11-R3:24-R4:10-R5:16-R6:12-R7:10]
+  Biz          : [T1:35-T2:7-T3:1-T4:21-T5:1-T6:5-T7:1-T8:1]
+  Gercek kayip : Zafer, 415 kan (T2 x7, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1035 kan (T2 x7, T3 x1, T4 x7, T5 x1, T6 x5, T7 x1, T8 x1)
+
+49. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #43 [DOGRU]
+  Rakip        : [R1:24-R2:23-R3:23-R4:11-R5:14-R6:9-R7:11]
+  Biz          : [T1:30-T2:14-T3:1-T4:11-T5:1-T6:9-T7:1-T8:1]
+  Gercek kayip : Zafer, 430 kan (T2 x14, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 880 kan (T2 x14, T3 x1, T5 x1, T6 x6, T8 x1)
+
+49. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #48 [DOGRU]
+  Rakip        : [R1:29-R2:27-R3:23-R4:12-R5:17-R6:9-R7:8]
+  Biz          : [T1:37-T2:16-T3:1-T4:12-T5:1-T6:11-T7:0-T8:1]
+  Gercek kayip : Zafer, 1265 kan (T2 x16, T5 x1, T6 x11, T8 x1)
+  Sim (yeni)   : Zafer, 1190 kan (T2 x16, T5 x1, T6 x10, T8 x1)
+
+50. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #59 [DOGRU]
+  Rakip        : [R1:25-R2:31-R3:11-R4:10-R5:15-R6:13-R7:10]
+  Biz          : [T1:33-T2:17-T3:1-T4:9-T5:1-T6:12-T7:1-T8:1]
+  Gercek kayip : Zafer, 565 kan (T2 x17, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1015 kan (T2 x17, T3 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+50. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #62 [DOGRU]
+  Rakip        : [R1:11-R2:27-R3:11-R4:12-R5:11-R6:13-R7:13]
+  Biz          : [T1:23-T2:4-T3:1-T4:6-T5:1-T6:11-T7:1-T8:3]
+  Gercek kayip : Zafer, 310 kan (T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 460 kan (T3 x1, T5 x1, T7 x1, T8 x2)
+
+50. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #51 [DOGRU]
+  Rakip        : [R1:25-R2:31-R3:11-R4:10-R5:15-R6:13-R7:10]
+  Biz          : [T1:33-T2:17-T3:1-T4:9-T5:1-T6:12-T7:1-T8:1]
+  Gercek kayip : Zafer, 565 kan (T2 x17, T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 1015 kan (T2 x17, T3 x1, T5 x1, T6 x6, T7 x1, T8 x1)
+
+50. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #54 [DOGRU]
+  Rakip        : [R1:11-R2:27-R3:11-R4:12-R5:11-R6:13-R7:13]
+  Biz          : [T1:23-T2:4-T3:1-T4:6-T5:1-T6:11-T7:1-T8:3]
+  Gercek kayip : Zafer, 310 kan (T3 x1, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 460 kan (T3 x1, T5 x1, T7 x1, T8 x2)
+
+51. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #68 [DOGRU]
+  Rakip        : [R1:18-R2:23-R3:23-R4:11-R5:13-R6:7-R7:12-R8:2]
+  Biz          : [T1:28-T2:11-T3:1-T4:10-T5:1-T6:9-T7:3-T8:1]
+  Gercek kayip : Zafer, 385 kan (T2 x11, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 835 kan (T2 x11, T3 x1, T5 x1, T6 x6, T8 x1)
+
+51. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #59 [DOGRU]
+  Rakip        : [R1:18-R2:23-R3:23-R4:11-R5:13-R6:7-R7:12-R8:2]
+  Biz          : [T1:28-T2:11-T3:1-T4:10-T5:1-T6:9-T7:3-T8:1]
+  Gercek kayip : Zafer, 385 kan (T2 x11, T3 x1, T5 x1, T8 x1)
+  Sim (yeni)   : Zafer, 835 kan (T2 x11, T3 x1, T5 x1, T6 x6, T8 x1)
+
+56. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #87 [DOGRU]
+  Rakip        : [R1:27-R2:26-R3:8-R4:11-R5:17-R6:7-R7:10-R8:6]
+  Biz          : [T1:36-T2:1-T3:31-T4:11-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 530 kan (T2 x1, T5 x1, T6 x3, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 830 kan (T2 x1, T5 x1, T6 x7, T7 x1, T8 x1)
+
+56. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #69 [DOGRU]
+  Rakip        : [R1:27-R2:26-R3:8-R4:11-R5:17-R6:7-R7:10-R8:6]
+  Biz          : [T1:36-T2:1-T3:31-T4:11-T5:1-T6:11-T7:1-T8:1]
+  Gercek kayip : Zafer, 530 kan (T2 x1, T5 x1, T6 x3, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 830 kan (T2 x1, T5 x1, T6 x7, T7 x1, T8 x1)
+
+60. Kat | test-sonuclari-pass-kat41-100-tumu144-20260622-0114.txt #109 [DOGRU]
+  Rakip        : [R1:15-R2:24-R3:5-R4:6-R5:14-R6:11-R7:9-R8:10]
+  Biz          : [T1:33-T2:6-T3:20-T4:8-T5:1-T6:12-T7:1-T8:1]
+  Gercek kayip : Zafer, 520 kan (T1 x14, T2 x6, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 745 kan (T1 x14, T2 x6, T5 x1, T6 x3, T7 x1, T8 x1)
+
+60. Kat | test-sonuclari-pass-kat41-101-tumu98-20260612-1839.txt #84 [DOGRU]
+  Rakip        : [R1:15-R2:24-R3:5-R4:6-R5:14-R6:11-R7:9-R8:10]
+  Biz          : [T1:33-T2:6-T3:20-T4:8-T5:1-T6:12-T7:1-T8:1]
+  Gercek kayip : Zafer, 520 kan (T1 x14, T2 x6, T5 x1, T7 x1, T8 x1)
+  Sim (yeni)   : Zafer, 745 kan (T1 x14, T2 x6, T5 x1, T6 x3, T7 x1, T8 x1)

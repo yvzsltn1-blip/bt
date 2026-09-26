@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         BiteFight Birlik + Magara + Orb
 // @namespace    https://bt-analiz.web.app
-// @version      1.2.1
+// @version      1.2.9
 // @description  Birlik, magara, orb ve skill basmayi tek panelde birlestirir; oncelikli tek tus baslatma.
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
-// @require      https://bt-analiz.web.app/battle-core.js?v=20260702-2
+// @require      https://bt-analiz.web.app/battle-core.js?v=20260927-1
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
@@ -2826,18 +2826,10 @@
   // Panelden secilebilir; GM'de saklanir. Varsayilan: %99.5.
   const BOT_MIN_WIN_RATE_DEFAULT = 0.995;
   const BOT_MIN_WIN_RATE_KEY = 'btBotMinWinRate';
-  const BOT_ROUNDING_MODE_KEY = 'btBotRoundingMode';
   // Tekil v2 (kayip deseni onceligi): varsayilan acik, panelden kapatilabilir.
   const BOT_TEKIL_V2_KEY = 'btBotTekilV2Mode';
   const BOT_UNIT_LIMITS_KEY = 'btBotUnitLimits';
   const BOT_UNIT_LIMIT_DEFAULTS = [99, 99, 99, 99, 99, 99, 99, 1];
-  const BOT_ROUNDING_MODES = {
-    legacy: 'Degismemis',
-    exact: 'OG Mod',
-    safe: 'Guvenli',
-    extround: 'Extround',
-    simulat: 'Simulator'
-  };
   // Panel simge durumuna kucululdu mu (kullanici tercihi, GM'de saklanir).
   const BOT_PANEL_MINIMIZED_KEY = 'btBotPanelMinimized';
   // Kenardan tutup boyutlandirilan panelin son genisligi/yuksekligi (px).
@@ -3572,17 +3564,6 @@
     GM_setValue(BOT_MIN_WIN_RATE_KEY, Number.isFinite(clamped) ? clamped : BOT_MIN_WIN_RATE_DEFAULT);
   }
 
-  function getBotRoundingMode() {
-    const stored = String(GM_getValue(BOT_ROUNDING_MODE_KEY, 'legacy') || 'legacy');
-    return Object.prototype.hasOwnProperty.call(BOT_ROUNDING_MODES, stored) ? stored : 'legacy';
-  }
-
-  function setBotRoundingMode(mode) {
-    const normalized = Object.prototype.hasOwnProperty.call(BOT_ROUNDING_MODES, mode) ? mode : 'legacy';
-    GM_setValue(BOT_ROUNDING_MODE_KEY, normalized);
-    return normalized;
-  }
-
   function isBotTekilV2Enabled() {
     return GM_getValue(BOT_TEKIL_V2_KEY, true) !== false;
   }
@@ -3822,7 +3803,8 @@ self.onmessage = (event) => {
       counts: source ? source.counts : null,
       winRate: source ? source.winRate : 0,
       avgUsedPoints: source ? source.avgUsedPoints : 0,
-      lossValue
+      lossValue,
+      expectedLoss: source && Number.isFinite(source.expectedLostBlood) ? source.expectedLostBlood : null
     });
   } catch (error) {
     self.postMessage({ ok: false, message: String((error && error.message) || error) });
@@ -4362,7 +4344,7 @@ self.onmessage = (event) => {
 
     // Dengeli cozumun beklenen kan kaybi esigi asiyorsa hizli ve derin modlari da
     // tara; guvenli cozum veren modlar arasinda en dusuk kayipli olanla savas.
-    if (isSafeBotOutcome(outcome) && Number.isFinite(outcome.lossValue) && outcome.lossValue > BOT_LOSS_ESCALATION_THRESHOLD) {
+    if (isSafeBotOutcome(outcome) && Number.isFinite(getBotDecisionLoss(outcome)) && getBotDecisionLoss(outcome) > BOT_LOSS_ESCALATION_THRESHOLD) {
       const candidates = [{ mode: 'balanced', outcome }];
       for (const mode of ['fast', 'deep']) {
         if (!isBotEnabled()) {
@@ -4376,10 +4358,10 @@ self.onmessage = (event) => {
       }
       let bestEntry = null;
       candidates.forEach((entry) => {
-        if (!isSafeBotOutcome(entry.outcome) || !Number.isFinite(entry.outcome.lossValue)) {
+        if (!isSafeBotOutcome(entry.outcome) || !Number.isFinite(getBotDecisionLoss(entry.outcome))) {
           return;
         }
-        if (!bestEntry || entry.outcome.lossValue < bestEntry.outcome.lossValue) {
+        if (!bestEntry || getBotDecisionLoss(entry.outcome) < getBotDecisionLoss(bestEntry.outcome)) {
           bestEntry = entry;
         }
       });
@@ -4403,7 +4385,8 @@ self.onmessage = (event) => {
       }
     });
 
-    const lossNote = Number.isFinite(outcome.lossValue) ? `, kayip ${Math.round(outcome.lossValue)}` : '';
+    const decisionLoss = getBotDecisionLoss(outcome);
+    const lossNote = Number.isFinite(decisionLoss) ? `, beklenen kayip ${Math.round(decisionLoss)}` : '';
     setBotStatus(`Kat ${stage}: %${Math.round(winRate * 100)} cozum dolduruluyor (${BOT_MODE_LABELS[chosenMode] || chosenMode}${lossNote})...`);
     try {
       await createArchiveRecord('fill', { targets, preferTargets: true });
@@ -4449,7 +4432,6 @@ self.onmessage = (event) => {
       stabilityTrials: runConfig.stabilityTrials,
       baseSeed: runConfig.baseSeed,
       objective: 'min_loss',
-      roundingMode: getBotRoundingMode(),
       stoneMode: false,
       diversityMode: false,
       tekilMode: false,
@@ -4501,8 +4483,19 @@ self.onmessage = (event) => {
       possible: !!result.possible,
       counts: source ? source.counts : null,
       winRate: source ? source.winRate : 0,
-      lossValue: extractBotLossValue(result, source)
+      lossValue: extractBotLossValue(result, source),
+      expectedLoss: source && Number.isFinite(source.expectedLostBlood) ? source.expectedLostBlood : null
     };
+  }
+
+  // Karar icin kullanilacak kayip: optimizer'in yuksek trial'li final dogrulamasindaki
+  // BEKLENEN kan kaybi. lossValue tek bir ornek savastir; nadir ama agir kayiplari
+  // (orn. %25 ihtimalle 365 kan) gostermez ve riskli orduyu ucuz gosterir (rapor 2251).
+  function getBotDecisionLoss(outcome) {
+    if (outcome && Number.isFinite(outcome.expectedLoss)) {
+      return outcome.expectedLoss;
+    }
+    return outcome ? outcome.lossValue : null;
   }
 
   async function handleResultPage() {
@@ -6020,7 +6013,6 @@ self.onmessage = (event) => {
     panel.appendChild(reminderRow);
 
     appendWinRateSetting(panel);
-    appendRoundingModeSetting(panel);
     appendTekilV2Setting(panel);
     appendTimingSettings(panel);
 
@@ -6299,33 +6291,6 @@ self.onmessage = (event) => {
 
     row.append(select, customInput);
     wrap.append(label, row);
-    panel.appendChild(wrap);
-  }
-
-  function appendRoundingModeSetting(panel) {
-    const wrap = document.createElement('label');
-    wrap.className = 'bt-panel-section';
-    wrap.style.cssText = 'border-top:1px solid rgba(210,168,108,.18);padding-top:5px;margin-top:1px;display:flex;flex-direction:column;gap:4px';
-
-    const label = document.createElement('span');
-    label.textContent = 'Tarama hesap modu';
-    label.style.cssText = 'color:#c8b49a;font-size:10.5px';
-
-    const select = document.createElement('select');
-    select.style.cssText = 'width:100%;height:31px;padding:0 8px;border-radius:8px;border:1px solid rgba(210,168,108,.35);background:#18120e;color:#f5e9d2;font-size:11.5px';
-    Object.entries(BOT_ROUNDING_MODES).forEach(([value, text]) => {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = text;
-      select.appendChild(option);
-    });
-    select.value = getBotRoundingMode();
-    select.onchange = () => {
-      const mode = setBotRoundingMode(select.value);
-      setBotStatus(`Tarama hesap modu: ${BOT_ROUNDING_MODES[mode]}`);
-    };
-
-    wrap.append(label, select);
     panel.appendChild(wrap);
   }
 

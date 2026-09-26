@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         BiteFight Sehir Orb Toplayici
 // @namespace    av-analiz
-// @version      2.9.6
-// @description  Sehir avini otomatik tekrarlar; panelden secilen S/A/B sinifi iksirlerde, belirlenen gecikme sonrasi Cikarmak tiklar veya otomatik alma kapaliysa durup kullaniciya birakir. 0/3 kaldiginda yenilenmeyi bekler. Bot calisirken telefon ekran/tus kilidi kapanmaz. Diger sayfalarda bekci modunda calisir: orb suresi gelince robbery sayfasina kendisi gider.
+// @version      2.10.0
+// @description  Sehir avini otomatik tekrarlar; panelden secilen S/A/B sinifi iksirlerde, belirlenen gecikme sonrasi Depola/Cikarmak tiklar veya otomatik alma kapaliysa durup kullaniciya birakir. Bos yer kalmayinca yenilenmeyi bekler. Bot calisirken telefon ekran/tus kilidi kapanmaz. Diger sayfalarda bekci modunda calisir: orb suresi gelince robbery sayfasina kendisi gider.
 // @match        https://*.bitefight.gameforge.com/*
 // @downloadURL  https://bt-analiz.web.app/orb.user.js
 // @updateURL    https://bt-analiz.web.app/orb.user.js
@@ -19,7 +19,7 @@
   window.__BFOrbHarvestLoaded = true;
 
   const SCRIPT_TAG = "[BF Orb]";
-  const SCRIPT_VERSION = "2.9.6";
+  const SCRIPT_VERSION = "2.10.0";
   const FIREBASE_API_KEY = "AIzaSyB6_mwliHgUXjCSidzZIBiQj_8hLkYvZV4";
   const ORB_NOTIFICATIONS_URL = "https://firestore.googleapis.com/v1/projects/bt-analiz/databases/(default)/documents/orbNotifications";
   const LOCATIONS = [
@@ -41,6 +41,10 @@
   // "Uygun aksiyon bulunamadi" durumunda robbery uzerinden kac kez yeniden denenir.
   const NO_ACTION_RETRY_KEY = "BFOrbNoActionRetries";
   const NO_ACTION_MAX_RETRIES = 3;
+  // Yeni arayuzde bos yer kalmadiginda sayfada geri sayim gosterilmiyor ve
+  // robbery/index'te slot bilgisi hic yok. Sure okunamazsa bot hemen tekrar
+  // ava girip enerji yakmasin diye bu kadar beklenir.
+  const ORB_FULL_FALLBACK_MS = 30 * 60 * 1000;
 
   const DEFAULT_SETTINGS = {
     classes: { S: true, A: true, B: true }, // toplanacak siniflar
@@ -650,7 +654,7 @@
     if (orbInfo.total > 0 && orbInfo.available === 0) {
       // Av sayfasindaki slot sayaclarindan gercek yenilenme suresini oku ki
       // panel 00:00:00 gostermesin ve bot hazir sanip bosuna ava girmesin.
-      waitForOrbRenewal("3/3 kure doldu.");
+      waitForOrbRenewal(`Bos yer kalmadi (0/${orbInfo.total}).`);
       return;
     }
 
@@ -739,7 +743,7 @@
     }
 
     if (refreshedOrbInfo.total > 0 && refreshedOrbInfo.available === 0) {
-      waitForOrbRenewal("3/3 kure doldu.");
+      waitForOrbRenewal(`Bos yer kalmadi (0/${refreshedOrbInfo.total}).`);
       return;
     }
 
@@ -835,13 +839,25 @@
     return style.display !== "none" && style.visibility !== "hidden" && node.offsetParent !== null;
   }
 
+  // Hasat kutusu artik av kutusundan ayri, ikinci bir #humanhunt blogunda ve
+  // basligi "Hasat edildi" (eskiden ayni blokta "Hasat" idi). Once baslikla,
+  // olmazsa icerikle (slot satiri / Depola butonu) taninir.
   function findHarvestBox(doc) {
-    for (const section of doc.querySelectorAll("#content #humanhunt, #humanhunt")) {
-      const heading = normalizeText(section.querySelector("h2")?.textContent || "");
-      if (/hasat/i.test(foldTurkish(heading))) {
+    const sections = [...doc.querySelectorAll("#content #humanhunt, #humanhunt, #content .wrap-content")];
+
+    for (const section of sections) {
+      const heading = foldTurkish(section.querySelector("h2")?.textContent || "");
+      if (/hasat/.test(heading)) {
         return section;
       }
     }
+
+    for (const section of sections) {
+      if (section.querySelector(".harvestSlots, #storeBloodBtn, #extractBloodBtn, .slots .slot")) {
+        return section;
+      }
+    }
+
     return null;
   }
 
@@ -885,42 +901,82 @@
     return match ? match[1].toUpperCase() : "";
   }
 
+  // Kure durumu. Yeni arayuz: "4/4 Bos yerler" (#freeSlotsCount /
+  // #totalSlotsCount) - available = kalan BOS yer sayisi. Eski arayuz:
+  // ".slots .slot" icinde "Kullanilabilir" yazan slotlar. Toplam slot sayisi
+  // sunucuya gore degisebildiginden (3 iken 4 oldu) hicbir yerde sabitlenmez.
   function getOrbInfo(harvestBox) {
     if (!harvestBox) {
       return { available: 0, total: 0, states: [] };
     }
 
-    const slots = [...harvestBox.querySelectorAll(".slots .slot")];
-    const states = slots.map((slot) => {
-      const text = normalizeText(slot.innerText || "");
-      const folded = foldTurkish(text);
-      return {
-        available: folded.includes("kullanilabilir"),
-        text,
-      };
-    });
+    const freeNode = harvestBox.querySelector("#freeSlotsCount");
+    const totalNode = harvestBox.querySelector("#totalSlotsCount");
+    if (freeNode && totalNode) {
+      const available = Number(normalizeText(freeNode.textContent));
+      const total = Number(normalizeText(totalNode.textContent));
+      if (Number.isFinite(available) && Number.isFinite(total) && total > 0) {
+        return { available, total, states: [] };
+      }
+    }
 
-    return {
-      available: states.filter((slot) => slot.available).length,
-      total: states.length,
-      states,
-    };
+    const slots = [...harvestBox.querySelectorAll(".slots .slot")];
+    if (slots.length > 0) {
+      const states = slots.map((slot) => {
+        const text = normalizeText(slot.innerText || "");
+        const folded = foldTurkish(text);
+        return {
+          available: folded.includes("kullanilabilir"),
+          text,
+        };
+      });
+
+      return {
+        available: states.filter((slot) => slot.available).length,
+        total: states.length,
+        states,
+      };
+    }
+
+    // Son care: sayac id'leri degisirse "4/4 Bos yerler" metnini dogrudan oku.
+    const boxText = normalizeText(harvestBox.innerText || harvestBox.body?.innerText || "");
+    const match = boxText.toLocaleLowerCase("tr").match(/(\d+)\s*\/\s*(\d+)\s*bo\S*\s*yer/);
+    if (match) {
+      return { available: Number(match[1]), total: Number(match[2]), states: [] };
+    }
+
+    return { available: 0, total: 0, states: [] };
   }
 
+  // Once hasat kutusundaki sayac okunur (sayfadaki baska geri sayimlar orb
+  // suresi sanilmasin), bulunamazsa #content geneline bakilir. Kendi panelimiz
+  // body'ye eklendigi icin #content taramasina takilmaz.
   function pageOrbRemainingSeconds() {
-    const values = [];
-    for (const node of document.querySelectorAll("#content span, #content div, #content p")) {
-      const text = normalizeText(node.textContent || "");
-      // Kure sayaci 1 saatin ustunde "1:03:47" (S:DD:SS), altinda "28:40" (DD:SS)
-      // bicimindedir; iki bicim de okunmali yoksa kureler "hazir" sanilir.
-      const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-      if (!match) continue;
-      const seconds = match[3] !== undefined
-        ? Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3])
-        : Number(match[1]) * 60 + Number(match[2]);
-      if (seconds > 0) values.push(seconds);
+    const readFrom = (scope, selector) => {
+      const values = [];
+      for (const node of scope.querySelectorAll(selector)) {
+        const text = normalizeText(node.textContent || "");
+        // Kure sayaci 1 saatin ustunde "1:03:47" (S:DD:SS), altinda "28:40" (DD:SS)
+        // bicimindedir; iki bicim de okunmali yoksa kureler "hazir" sanilir.
+        const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+        if (!match) continue;
+        const seconds = match[3] !== undefined
+          ? Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3])
+          : Number(match[1]) * 60 + Number(match[2]);
+        if (seconds > 0) values.push(seconds);
+      }
+      return values.length >= 1 ? Math.max(...values) : 0;
+    };
+
+    const harvestBox = findHarvestBox(document);
+    if (harvestBox) {
+      const fromBox = readFrom(harvestBox, "span, div, p");
+      if (fromBox > 0) {
+        return fromBox;
+      }
     }
-    return values.length >= 1 ? Math.max(...values) : 0;
+
+    return readFrom(document, "#content span, #content div, #content p");
   }
 
   function updateOrbScheduleFromPage() {
@@ -955,6 +1011,20 @@
         settings.orbCollectAt = detectedReadyAt + Math.round(delayMinutes * 60000);
         saveSettings();
       }
+    }
+    // Bos yer yok ama sayfada okunabilir bir geri sayim da yok: yeni arayuzde
+    // slot sayaci gosterilmiyor ve robbery/index'te slot bilgisi hic bulunmuyor.
+    // Guvenli bir varsayilan bekleme yazilmazsa bot "kureler hazir" sanip
+    // sonsuz doguda enerji yakar.
+    if (!remainingSeconds && orbInfo.total > 0 && orbInfo.available === 0 &&
+        !(settings.orbCollectAt > Date.now())) {
+      const min = settings.orbReadyDelayMinMinutes;
+      const max = settings.orbReadyDelayMaxMinutes;
+      const delayMinutes = min + Math.random() * (max - min);
+      settings.orbReadyAt = Date.now() + ORB_FULL_FALLBACK_MS;
+      settings.orbCollectAt = settings.orbReadyAt + Math.round(delayMinutes * 60000);
+      saveSettings();
+      log(`Bos yer yok ve sayfada geri sayim okunamadi; ${Math.round(ORB_FULL_FALLBACK_MS / 60000)} dk sonra yeniden bakilacak.`);
     }
     if (settings.orbCollectAt > Date.now()) {
       return settings.orbCollectAt - Date.now();
@@ -1026,7 +1096,21 @@
       return null;
     }
 
-    return harvestBox.querySelector("#extractBloodBtn, #extractBlood button, button[id*='extractBlood']");
+    // Buton "Cikarmak" (#extractBloodBtn) iken "Depola" (#storeBloodBtn) oldu.
+    const byId = harvestBox.querySelector(
+      "#storeBloodBtn, #extractBloodBtn, #extractBlood button, button[id*='storeBlood'], button[id*='extractBlood']"
+    );
+    if (byId) {
+      return byId;
+    }
+
+    // Id de degisirse metinden bul (Turkce karakterler foldTurkish sonrasi da
+    // farkli kodlanabildigi icin genis kaliplar kullanilir).
+    return [...harvestBox.querySelectorAll("button, input[type='submit'], input[type='button']")]
+      .find((node) => {
+        const text = foldTurkish(node.textContent || node.value || "");
+        return /depola/.test(text) || /karmak/.test(text);
+      }) || null;
   }
 
   function isRobberyIndexPage(url) {

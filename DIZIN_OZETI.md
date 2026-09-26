@@ -38,7 +38,6 @@ Canli uygulama dosyalari ayrintili, buyuk yedek/agaclari ise toplulastirilmis ol
 - `optimizer-minimum.html`: Daha sade optimizer arayuzu.
 - `skill.html`: Skill/ozellik odakli yardimci ekran.
 - `skill.js`: Skill ekraninin istemci mantigi.
-- `simulat.js`: Simulasyon akisi veya simulasyon yardimci mantigi.
 - `simulation-log-export.js`: Simulasyon loglarini disa aktarma araci.
 - `bulk-regression.js`: Toplu regresyon veya toplu karsilastirma scripti.
 - `battle-core.js`: Savas hesaplama/kurallarinin ana motoru.
@@ -101,7 +100,7 @@ Canli uygulama dosyalari ayrintili, buyuk yedek/agaclari ise toplulastirilmis ol
 - `test-unit-names.js`: Birim isimlendirmesi veya map dogrulama testi.
 - `test-simulation-log-export.js`: Simulasyon log export davranisini test eder.
 - `test-firebase-paged-fallback.js`: Firebase sayfalama/fallback akisini test eder.
-- `test-battle-rounding-policy.js`: Savas hesaplarindaki yuvarlama kurallarini test eder.
+- `test-battle-rounding-policy.js`: Tek savas modelini oyun raporlariyla dogrulanmis savaslara (Kat 15/19/21/91) karsi test eder.
 - `test-battle-log-unit-summary.js`: Savas loglarindaki birlik ozetini test eder.
 
 ### `_web-disi`

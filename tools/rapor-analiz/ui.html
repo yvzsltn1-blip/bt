@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Savaş Raporu Analizi</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1d2330;--mute:#667085;--line:#e3e6ec;--ok:#1a7f4b;--okbg:#e5f5ec;--warn:#9a6700;--warnbg:#fff4d6;--blue:#1f5fbf;--bluebg:#e6effc;--bad:#b42318;--badbg:#fde8e7;--hl:#fff1a8}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--card:#1b2029;--ink:#e6e9ef;--mute:#98a2b3;--line:#2c3340;--ok:#4cc38a;--okbg:#15301f;--warn:#e7b541;--warnbg:#342a10;--blue:#7aa7ff;--bluebg:#172640;--bad:#ff7b72;--badbg:#3a1714;--hl:#4a4213}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+header{padding:18px 24px;border-bottom:1px solid var(--line);background:var(--card);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+header .sub{color:var(--mute);font-size:12px}
+main{max-width:1400px;margin:0 auto;padding:20px 24px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:28px;text-align:center;cursor:pointer}
+.drop.over{border-color:var(--blue);background:var(--bluebg)}
+button,select,input{font:inherit;color:inherit}
+button{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:6px 12px;cursor:pointer}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button:hover{filter:brightness(.96)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;cursor:pointer}
+.tile .v{font-size:28px;font-weight:600}
+.tile .l{color:var(--mute);font-size:12px}
+.tile.active{outline:2px solid var(--blue)}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 2px;background:var(--line)}
+.c-tam{color:var(--ok)}.c-sira{color:var(--blue)}.c-akis{color:var(--warn)}.c-sonuc{color:var(--bad)}
+.b-tam{background:var(--ok)}.b-sira{background:var(--blue)}.b-akis{background:var(--warn)}.b-sonuc{background:var(--bad)}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.p-tam{background:var(--okbg);color:var(--ok)}.p-sira{background:var(--bluebg);color:var(--blue)}.p-akis{background:var(--warnbg);color:var(--warn)}.p-sonuc{background:var(--badbg);color:var(--bad)}
+table{border-collapse:collapse;width:100%}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--mute);font-weight:600;position:sticky;top:0;background:var(--card)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.main{cursor:pointer}tr.main:hover{background:var(--bg)}
+.bad{background:var(--badbg)}
+.hl{background:var(--hl)}
+.mute{color:var(--mute)}
+.tablewrap{overflow-x:auto}
+.detail{background:var(--bg);padding:14px}
+.detail h3{font-size:14px;margin:14px 0 6px}
+.acts td{font-family:Consolas,monospace;font-size:12px;padding:3px 6px}
+.acts tr.sep td{border-top:2px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:s 1s linear infinite;vertical-align:middle}
+@keyframes s{to{transform:rotate(360deg)}}
+.err{color:var(--bad);font-weight:600}
+input[type=search]{border:1px solid var(--line);border-radius:7px;padding:6px 10px;background:var(--card);min-width:220px}
+.hidden{display:none!important}
+.prog{margin-top:12px}.prog .track{height:10px;background:var(--line);border-radius:5px;overflow:hidden}.prog .fill{height:100%;width:0;background:var(--blue);transition:width .3s}
+code{font-family:Consolas,monospace;font-size:12px}
+button.why{padding:2px 10px;font-size:12px;border-color:var(--blue);color:var(--blue);background:var(--bluebg);font-weight:600}
+.explain{border:1px solid var(--blue);border-left:4px solid var(--blue);background:var(--card);border-radius:8px;padding:12px 16px;margin-bottom:14px}
+.explain h4{margin:10px 0 4px;font-size:13px}
+.explain h4:first-child{margin-top:0}
+.explain ul{margin:0;padding-left:20px}
+.explain li{margin:2px 0}
+.explain .t{font-size:15px;font-weight:700;color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Savaş Raporu Analizi</h1>
+    <div class="sub" id="engineInfo">Oyun raporları ↔ bizim motor (battle-core.js)</div>
+  </div>
+  <div class="row" style="margin-left:auto" id="dlBar"></div>
+</header>
+<main>
+  <section class="card" id="uploadCard">
+    <div class="drop" id="drop">
+      <div style="font-size:16px;font-weight:600">Savaş raporları JSON dosyasını buraya sürükleyin</div>
+      <div class="mute">veya tıklayıp seçin (ör. savas-raporlari-2026-09-25_id_….json)</div>
+      <input type="file" id="file" accept=".json,application/json" class="hidden">
+    </div>
+    <div class="row" style="margin-top:12px">
+      <label>Kültistli savaşlarda denenecek tohum sayısı
+        <select id="seeds"><option>64</option><option selected>256</option><option>1024</option></select>
+      </label>
+      <span id="status" class="mute"></span>
+    </div>
+    <div class="prog hidden" id="prog"><div class="row" style="justify-content:space-between;margin-bottom:4px"><b id="progPct">%0</b><span class="mute" id="progTxt"></span></div><div class="track"><div class="fill" id="progFill"></div></div></div>
+  </section>
+  <section class="card" id="mergeCard">
+    <h3 style="margin:0 0 4px">JSON birleştir</h3>
+    <div class="mute" style="margin-bottom:10px">Birden çok savaş raporu JSON'unu seçin: aynı savaşlar (aynı kat, aynı iki ordu dizilişi ve aynı sonuç/kayıplar; rapor ID'si farklı olsa da) teke düşürülür, kalanlar tek JSON'da birleştirilir. Tekrarlardan en eksiksiz olan, eşitse en yeni ID'li olan kalır.</div>
+    <div class="drop" id="mdrop" style="padding:18px">
+      <div style="font-weight:600">JSON dosyalarını buraya sürükleyin veya tıklayıp seçin (çoklu seçim)</div>
+      <input type="file" id="mfile" accept=".json,application/json" multiple class="hidden">
+    </div>
+    <label style="display:block;margin-top:10px"><input type="checkbox" id="mFlow" onchange="mergeCompute()"> Sonuç aynı olsa da eylem akışı farklıysa ayrı savaş say (kültistli savaşlarda rastgeleliği korur)</label>
+    <div id="mlist" style="margin-top:10px"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" id="mDownload" disabled onclick="mergeDownload()">Birleşik JSON'u indir</button>
+      <button id="mAnalyze" disabled onclick="mergeAnalyze()">Birleşik dosyayı analiz et</button>
+      <button id="mClear" onclick="mergeClear()">Listeyi temizle</button>
+    </div>
+    <div id="mres" style="margin-top:10px"></div>
+  </section>
+  <div id="out"></div>
+</main>
+<script>
+"use strict";
+const CAT = {
+  tam: { label: "Tam uyumlu", desc: "Tüm eylemler (sıra, hedef, hasar, kalan birim, can) ve sonuç birebir aynı" },
+  sira: { label: "Sonuç aynı · yalnız sıra farkı", desc: "Sonuç aynı; eylemler aynı ama sıraları farklı" },
+  akis: { label: "Sonuç aynı · akış farklı", desc: "Sonuç (kazanan, kayıplar, kan) aynı; saldırı sırası/hedef/hasar farklı" },
+  sonuc: { label: "Sonuç farklı", desc: "Kazanan, kayıplar veya kan kaybı gerçekten farklı" }
+};
+const WIN = { ally: "Zafer", enemy: "Yenilgi" };
+let DATA = window.__REPORT__ || null;
+let filter = "all", query = "", open = new Set();
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmtN = (n) => n == null ? "–" : Number(n).toLocaleString("tr-TR");
+const pct = (a, b) => b ? (100 * a / b).toFixed(1).replace(".", ",") + "%" : "–";
+const unitName = (c) => (DATA.codeNames && DATA.codeNames[c]) || c;
+
+// ---- yukleme ----
+if (!DATA) {
+  const drop = $("drop"), file = $("file");
+  drop.onclick = () => file.click();
+  file.onchange = () => file.files[0] && run(file.files[0]);
+  drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+  drop.ondragleave = () => drop.classList.remove("over");
+  drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); e.dataTransfer.files[0] && run(e.dataTransfer.files[0]); };
+  fetch("/api/engine").then((r) => r.json()).then((e) => { $("engineInfo").textContent = `v${e.version} · Motor: ${e.label}${e.mtime ? " (" + new Date(e.mtime).toLocaleString("tr-TR") + ")" : ""}`; }).catch(() => {});
+  setInterval(() => fetch("/api/ping").catch(() => {}), 10000); fetch("/api/ping").catch(() => {});
+  const mdrop = $("mdrop"), mfile = $("mfile");
+  mdrop.onclick = () => mfile.click();
+  mfile.onchange = () => { mergeAdd([...mfile.files]); mfile.value = ""; };
+  mdrop.ondragover = (e) => { e.preventDefault(); mdrop.classList.add("over"); };
+  mdrop.ondragleave = () => mdrop.classList.remove("over");
+  mdrop.ondrop = (e) => { e.preventDefault(); mdrop.classList.remove("over"); mergeAdd([...e.dataTransfer.files]); };
+} else {
+  $("uploadCard").classList.add("hidden");
+  $("mergeCard").classList.add("hidden");
+  render();
+}
+
+// ---- JSON birlestirme ----
+let MFILES = [], MERGED = null;
+const canon = (v) => Array.isArray(v) ? `[${v.map(canon).join(",")}]`
+  : v && typeof v === "object" ? `{${Object.keys(v).sort().map((k) => JSON.stringify(k) + ":" + canon(v[k])).join(",")}}` : JSON.stringify(v);
+// Ayni ID'nin farkli surumlerinden en eksiksizini sec (hatasiz > tur verisi olan > daha cok eylem).
+const completeness = (r) => (r && !r.error ? 1e9 : 0) + (r && Array.isArray(r.rounds) ? 1e6 : 0)
+  + (r && Array.isArray(r.rounds) ? r.rounds.reduce((s, x) => s + ((x && x.a) || []).reduce((t, a) => t + ((a && a.ev) || []).length, 0), 0) : 0);
+
+async function mergeAdd(files) {
+  for (const f of files) {
+    if (MFILES.some((x) => x.name === f.name && x.size === f.size)) continue;
+    const item = { name: f.name, size: f.size, reports: [], error: null };
+    try {
+      let d = JSON.parse((await f.text()).replace(/^﻿/, ""));
+      if (Array.isArray(d)) d = { reports: d };
+      if (!d || !Array.isArray(d.reports)) throw new Error("\"reports\" listesi yok");
+      item.reports = d.reports;
+    } catch (err) { item.error = err.message; }
+    MFILES.push(item);
+  }
+  mergeCompute();
+}
+function mergeClear() { MFILES = []; MERGED = null; mergeCompute(); }
+function mergeRemove(i) { MFILES.splice(i, 1); mergeCompute(); }
+
+// Ayni savas: ayni kat, ayni iki ordu (baslangic/kalan/kayip/kan) ve ayni sonuc; secenekle eylem akisi da.
+// Birim adi degil rutbe: oyun adlari degistirdi (or. "Dehset kurdu" → "Yarasa surusu", ikisi de Rutbe I).
+const armyKey = (list) => canon((list || []).map((u) => [u.rank || u.name, u.nums]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
+const katOf = (r) => { const m = String((r && r.kat) || "").match(/#\s*(\d+)/); return m ? m[1] : ""; };
+// Eylem akisi: saldiran/hedef rutbe ile, sayilarla (ad ve mod metinleri surumler arasi degisebilir).
+function flowKey(r) {
+  if (!r || !Array.isArray(r.rounds)) return "";
+  const rank = {};
+  (r.mine || []).forEach((u) => { rank[u.name] = "B" + (u.rank || u.name); });
+  (r.enemy || []).forEach((u) => { rank[u.name] = "D" + (u.rank || u.name); });
+  return canon(r.rounds.map((rd) => ((rd && rd.a) || []).map((a) => ((a && a.ev) || []).map((e) =>
+    [rank[e.s] || e.s, rank[e.t] || e.t, e.Zarar, e.Birimler, e["Yaşam Enerjisi"]]))));
+}
+function battleKey(r, withFlow) {
+  if (!r || r.error || !r.mine || !r.enemy) return "raw:" + canon(r);
+  return ["k" + katOf(r), r.result, armyKey(r.mine), armyKey(r.enemy), withFlow ? flowKey(r) : ""].join("|");
+}
+
+function mergeCompute() {
+  const withFlow = $("mFlow").checked;
+  const groups = new Map();
+  let total = 0;
+  MFILES.forEach((f) => {
+    f.unique = 0; f.dup = 0;
+    f.reports.forEach((r) => {
+      total += 1;
+      const key = battleKey(r, withFlow);
+      const g = groups.get(key);
+      if (!g) { groups.set(key, { r, items: [{ r, file: f.name }], flows: new Set([flowKey(r)]) }); f.unique += 1; return; }
+      f.dup += 1;
+      g.items.push({ r, file: f.name });
+      g.flows.add(flowKey(r));
+      // En eksiksiz olan; esitse en yeni (buyuk ID) kalir
+      const c = completeness(r), cc = completeness(g.r);
+      if (c > cc || (c === cc && (Number(r && r.id) || 0) > (Number(g.r && g.r.id) || 0))) g.r = r;
+    });
+  });
+  const reports = [...groups.values()].map((g) => g.r).sort((a, b) => (Number(b && b.id) || 0) - (Number(a && a.id) || 0));
+  const dupGroups = [...groups.values()].filter((g) => g.items.length > 1).sort((a, b) => b.items.length - a.items.length);
+  const ids = reports.map((r) => Number(r && r.id)).filter(Number.isFinite);
+  MERGED = MFILES.length ? { reports, total, dupGroups, minId: ids.length ? Math.min(...ids) : null, maxId: ids.length ? Math.max(...ids) : null } : null;
+
+  $("mlist").innerHTML = MFILES.length ? `<table><tr><th>Dosya</th><th class="n">Savaş</th><th class="n">Yeni katkı</th><th class="n">Tekrar</th><th></th></tr>${MFILES.map((f, i) => `<tr><td>${esc(f.name)}${f.error ? ` <span class="err">(${esc(f.error)})</span>` : ""}</td><td class="n">${f.reports.length}</td><td class="n">${f.unique}</td><td class="n">${f.dup}</td><td><button onclick="mergeRemove(${i})">Çıkar</button></td></tr>`).join("")}</table>` : "";
+  $("mDownload").disabled = $("mAnalyze").disabled = !(MERGED && MERGED.reports.length);
+  if (!MERGED) { $("mres").innerHTML = ""; return; }
+  const m = MERGED;
+  const sameId = m.dupGroups.reduce((s, g) => s + g.items.length - new Set(g.items.map((x) => String(x.r && x.r.id))).size, 0);
+  const flowDiff = m.dupGroups.filter((g) => g.flows.size > 1).length;
+  const summ = (r) => r && r.mine ? `Kat ${katOf(r) || "?"} · ${esc(r.result || "")}` : "?";
+  $("mres").innerHTML = `<div class="tiles" style="margin:0">
+      <div class="tile"><div class="v">${m.total}</div><div class="l">Toplam savaş (${MFILES.length} dosya)</div></div>
+      <div class="tile"><div class="v c-tam">${m.reports.length}</div><div class="l">Birleşik dosyada kalan (tekil)</div></div>
+      <div class="tile"><div class="v">${m.total - m.reports.length}</div><div class="l">Silinen tekrar</div></div>
+      <div class="tile"><div class="v">${m.dupGroups.length}</div><div class="l">Tekrarlı savaş grubu</div></div></div>
+    <div class="mute" style="margin-top:8px">ID aralığı: ${m.minId ?? "-"} – ${m.maxId ?? "-"} · Aynı rapor ID'si birden çok dosyada: ${sameId}${!withFlow && flowDiff ? ` · ${flowDiff} grupta sonuç aynı ama eylem akışı farklı (kültist rastgeleliği); bunları ayrı tutmak için yukarıdaki kutuyu işaretleyin` : ""}</div>
+    ${m.dupGroups.length ? `<details style="margin-top:8px"><summary>Tekrarlı grupları göster (${m.dupGroups.length})</summary><div class="tablewrap"><table><tr><th>Savaş</th><th class="n">Adet</th><th>Tutulan ID</th><th>Silinen ID'ler</th></tr>${m.dupGroups.map((g) => { const kept = String(g.r && g.r.id); const del = g.items.filter((x) => x.r !== g.r).map((x) => String(x.r && x.r.id)); return `<tr><td>${summ(g.r)}${g.flows.size > 1 ? ` <span class="mute">(akış ${g.flows.size} farklı)</span>` : ""}</td><td class="n">${g.items.length}</td><td><b>${esc(kept)}</b></td><td>${esc(del.slice(0, 40).join(", "))}${del.length > 40 ? " …" : ""}</td></tr>`; }).join("")}</table></div></details>` : ""}`;
+}
+
+function mergeName() { const m = MERGED; return `savas-raporlari-birlesik-${new Date().toLocaleDateString("sv-SE")}${m.minId != null ? `_id_${m.minId}-${m.maxId}` : ""}.json`; }
+function mergeText() { return JSON.stringify({ reports: MERGED.reports }, null, 1); }
+function mergeDownload() { if (MERGED) save(mergeName(), "application/json", mergeText()); }
+function mergeAnalyze() { if (MERGED) { run(new File([mergeText()], mergeName(), { type: "application/json" })); window.scrollTo({ top: 0, behavior: "smooth" }); } }
+
+async function run(f) {
+  $("status").innerHTML = `<span class="spin"></span> ${esc(f.name)} analiz ediliyor…`;
+  $("out").innerHTML = "";
+  try {
+    const text = await f.text();
+    const res = await fetch(`/api/analyze?seeds=${$("seeds").value}&name=${encodeURIComponent(f.name)}`, { method: "POST", body: text });
+    const start = await res.json();
+    if (!res.ok) throw new Error(start.error || res.statusText);
+    $("prog").classList.remove("hidden");
+    let json = null;
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 400));
+      let st;
+      try { st = await fetch("/api/job?id=" + start.job).then((r) => r.json()); }
+      catch { throw new Error("Program kapanmış görünüyor. SavasRaporuAnalizi.exe'yi yeniden açın."); }
+      if (st.status === "error" || st.error) throw new Error(st.error);
+      if (st.status === "done") { json = st.result; break; }
+      const p = st.total ? st.done / st.total : 0;
+      const eta = p > 0.02 ? Math.round(st.elapsedMs / p * (1 - p) / 1000) : null;
+      $("progPct").textContent = "%" + Math.floor(p * 100);
+      $("progFill").style.width = (p * 100).toFixed(1) + "%";
+      $("progTxt").textContent = `${st.done} / ${st.total} savaş${eta != null ? " · kalan ~" + eta + " sn" : ""}`;
+    }
+    $("prog").classList.add("hidden");
+    DATA = json; filter = "all"; query = ""; open = new Set();
+    $("status").textContent = `${f.name} · ${json.meta.analyzed} savaş · ${(json.meta.durationMs / 1000).toFixed(1)} sn`;
+    render();
+  } catch (err) {
+    $("prog").classList.add("hidden");
+    $("status").innerHTML = `<span class="err">Hata: ${esc(err.message)}</span>`;
+  }
+}
+
+// ---- cizim ----
+function render() {
+  const d = DATA, m = d.meta, c = d.counts, n = m.analyzed;
+  if (window.__REPORT__) $("engineInfo").textContent = `Rapor: ${m.fileName || ""} · ${new Date(m.analyzedAt).toLocaleString("tr-TR")} · Motor: ${m.engine.label}`;
+  $("dlBar").innerHTML = (window.__REPORT__ ? "" : `<button class="primary" onclick="dlHtml()">Raporu indir (HTML)</button>`) + `<button onclick="dlCsv()">CSV</button><button onclick="dlJson()">JSON</button>`;
+  const bar = Object.keys(CAT).map((k) => c[k] ? `<div class="b-${k}" style="width:${100 * c[k] / n}%" title="${CAT[k].label}: ${c[k]}"></div>` : "").join("");
+  const tiles = [`<div class="tile ${filter === "all" ? "active" : ""}" onclick="setFilter('all')"><div class="v">${n}</div><div class="l">Analiz edilen savaş${m.total !== n ? ` (dosyada ${m.total})` : ""}</div></div>`]
+    .concat(Object.keys(CAT).map((k) => `<div class="tile ${filter === k ? "active" : ""}" onclick="setFilter('${k}')" title="${esc(CAT[k].desc)}"><div class="v c-${k}">${c[k]}</div><div class="l">${CAT[k].label} · ${pct(c[k], n)}</div></div>`)).join("");
+
+  const wins = d.battles.filter((b) => b.real.winner === "ally").length;
+  const winSame = d.battles.filter((b) => b.real.winner === b.sim.winner).length;
+  const bloodSame = d.battles.filter((b) => b.real.blood === b.sim.blood).length;
+  const rnd = d.battles.filter((b) => b.random);
+  const ids = d.battles.map((b) => Number(b.id)).filter(Number.isFinite);
+  const kats = [...new Set(d.battles.map((b) => b.kat).filter((x) => x != null))].sort((a, b) => a - b);
+
+  const diffList = d.battles.filter((b) => b.category === "sonuc");
+  const flowList = d.battles.filter((b) => b.category === "akis" || b.category === "sira");
+
+  $("out").innerHTML = `
+  <div class="tiles">${tiles}</div>
+  <div class="card"><div class="bar">${bar}</div><div class="mute" style="font-size:12px">${Object.keys(CAT).map((k) => `<span class="c-${k}">■</span> ${CAT[k].label}: ${CAT[k].desc}`).join("<br>")}</div></div>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Genel bilgi</h3><table>
+      <tr><td>Dosya</td><td>${esc(m.fileName || "-")}</td></tr>
+      <tr><td>Rapor ID aralığı</td><td>${ids.length ? `${Math.min(...ids)} – ${Math.max(...ids)}` : "-"}</td></tr>
+      <tr><td>Katlar</td><td>${kats.length ? `${kats.length} farklı kat (${kats[0]} – ${kats[kats.length - 1]})` : "-"}</td></tr>
+      <tr><td>Gerçek sonuç</td><td>${wins} zafer · ${n - wins} yenilgi</td></tr>
+      <tr><td>Kazanan tutması</td><td>${winSame}/${n} (${pct(winSame, n)})</td></tr>
+      <tr><td>Kan kaybı tutması</td><td>${bloodSame}/${n} (${pct(bloodSame, n)})</td></tr>
+      <tr><td>Kültistli (rastgele) savaş</td><td>${rnd.length} · her biri için ${m.seedCount} tohum denendi</td></tr>
+      <tr><td>Atlanan rapor</td><td>${d.skipped.length}${d.skipped.length ? " — " + d.skipped.map((s) => `${esc(s.id)}: ${esc(s.reason)}`).join("; ") : ""}</td></tr>
+      <tr><td>Motor</td><td><code>${esc(m.engine.label)}</code>${m.engine.mtime ? `<br><span class="mute">${new Date(m.engine.mtime).toLocaleString("tr-TR")}</span>` : ""}</td></tr>
+      <tr><td>Analiz zamanı</td><td>${new Date(m.analyzedAt).toLocaleString("tr-TR")} · ${(m.durationMs / 1000).toFixed(1)} sn</td></tr>
+    </table></div>
+    <div class="card"><h3 style="margin-top:0">Sonucu farklı çıkan savaşlar (${diffList.length})</h3>
+      ${diffList.length ? `<div class="tablewrap"><table><tr><th>ID</th><th>Kat</th><th>Gerçek</th><th>Motor</th><th>Farklar</th><th></th></tr>${diffList.map((b) => `<tr><td><a href="#b${b.id}" onclick="jump('${b.id}')">${b.id}</a></td><td>${b.kat ?? ""}</td><td>${WIN[b.real.winner]} · kan ${fmtN(b.real.blood)}</td><td>${WIN[b.sim.winner]} · kan ${fmtN(b.sim.blood)}</td><td>${esc(b.diffReasons.join("; "))}</td><td>${whyBtn(b)}</td></tr>`).join("")}</table></div>` : `<div class="c-tam">Yok — tüm savaşların sonucu motorla aynı.</div>`}
+      <h3>Sonuç aynı, akış farklı (${flowList.length})</h3>
+      ${flowList.length ? flowList.map((b) => `<a href="#b${b.id}" onclick="jump('${b.id}')">${b.id}</a>`).join(", ") : `<span class="mute">Yok</span>`}
+      ${(() => { const t = {}; d.battles.forEach((b) => { if (b.explain) (t[b.explain.title] = t[b.explain.title] || []).push(b); }); const e = Object.entries(t).sort((a, b) => b[1].length - a[1].length); return e.length ? `<h3>Sapma türleri</h3><table><tr><th class="n">Adet</th><th>Tür</th><th>Savaşlar</th></tr>${e.map(([k, arr]) => `<tr><td class="n">${arr.length}</td><td>${esc(k)}</td><td>${arr.slice(0, 30).map((b) => `<a href="#b${b.id}" onclick="event.preventDefault();why('${b.id}')">${b.id}</a>`).join(", ")}${arr.length > 30 ? " …" : ""}</td></tr>`).join("")}</table>` : ""; })()}
+      ${d.buckets.length ? `<h3>Sapma kümeleri (ilk sapan eylem türüne göre)</h3><table><tr><th class="n">Adet</th><th>Sapma</th><th>ID'ler</th></tr>${d.buckets.map((x) => `<tr><td class="n">${x.ids.length}</td><td><code>${esc(x.key)}</code></td><td>${x.ids.map((id) => `<a href="#b${id}" onclick="jump('${id}')">${id}</a>`).join(", ")}</td></tr>`).join("")}</table>` : ""}
+    </div>
+  </div>
+  <div class="card">
+    <div class="row" style="margin-bottom:10px"><h3 style="margin:0">Savaş listesi</h3>
+      <input type="search" id="q" placeholder="ID veya kat ara…" value="${esc(query)}" oninput="query=this.value;renderList()">
+      <button onclick="toggleAll(true)">Tümünü aç</button><button onclick="toggleAll(false)">Tümünü kapat</button>
+      <span class="mute" id="listInfo"></span></div>
+    <div class="tablewrap"><table id="list"></table></div>
+  </div>`;
+  renderList();
+}
+
+function visible() {
+  const q = query.trim();
+  return DATA.battles.filter((b) => (filter === "all" || b.category === filter) && (!q || b.id.includes(q) || String(b.kat) === q.replace(/^kat\s*/i, "")));
+}
+function renderList() {
+  const rows = visible();
+  $("listInfo").textContent = `${rows.length} savaş gösteriliyor`;
+  $("list").innerHTML = `<tr><th>ID</th><th>Kat</th><th>Durum</th><th>Gerçek</th><th>Motor</th><th class="n">Kan (gerçek / motor)</th><th class="n">Tur (g / m)</th><th class="n">Eylem (g / m)</th><th class="n">Farklı eylem</th><th>İlk sapma / not</th></tr>` +
+    rows.map((b) => {
+      const first = b.firstDiff != null ? `#${b.firstDiff + 1}: ${b.actions.bad[b.firstDiff].join("+")}` : "";
+      const note = [first, b.random ? `kültist: tohum ${b.seed}, ${b.sameOutcomeSeeds}/${b.seedsTried} tohum aynı sonuç` : ""].filter(Boolean).join(" · ");
+      return `<tr class="main" id="b${b.id}" onclick="toggle('${b.id}')"><td><b>${b.id}</b></td><td>${b.kat ?? ""}</td><td><span class="pill p-${b.category}">${CAT[b.category].label}</span></td>
+        <td>${WIN[b.real.winner]}</td><td class="${b.real.winner !== b.sim.winner ? "bad" : ""}">${WIN[b.sim.winner]}</td>
+        <td class="n ${b.real.blood !== b.sim.blood ? "bad" : ""}">${fmtN(b.real.blood)} / ${fmtN(b.sim.blood)}</td>
+        <td class="n ${b.real.rounds !== b.sim.rounds ? "bad" : ""}">${b.real.rounds} / ${b.sim.rounds}</td>
+        <td class="n ${b.real.actions !== b.sim.actions ? "bad" : ""}">${b.real.actions} / ${b.sim.actions}</td>
+        <td class="n">${b.mismatchCount || ""}</td><td class="mute">${whyBtn(b)} ${esc(note)}</td></tr>` +
+        (open.has(b.id) ? `<tr><td colspan="10" class="detail">${detail(b)}</td></tr>` : "");
+    }).join("");
+}
+
+function detail(b) {
+  const army = (side) => b.units.filter((u) => u.side === side);
+  const unitTable = (side) => `<table><tr><th>Birim</th><th class="n">Başlangıç</th><th class="n">Kalan (g / m)</th><th class="n">Kayıp (g / m)</th>${side === "ally" ? `<th class="n">Kan (g / m)</th>` : ""}</tr>` +
+    army(side).map((u) => `<tr><td>${esc(u.name)} <span class="mute">${u.code}</span></td><td class="n">${u.start}</td>
+      <td class="n ${u.realLeft !== u.simLeft ? "bad" : ""}">${u.realLeft} / ${u.simLeft}</td>
+      <td class="n ${u.realLost !== u.simLost ? "bad" : ""}">${u.realLost} / ${u.simLost}</td>
+      ${side === "ally" ? `<td class="n ${u.realBlood !== u.simBlood ? "bad" : ""}">${fmtN(u.realBlood)} / ${fmtN(u.simBlood)}</td>` : ""}</tr>`).join("") + `</table>`;
+  const A = b.actions, len = Math.max(A.real.length, A.sim.length);
+  const cell = (x, bad, f) => x && x[f] !== undefined ? `<td class="${bad.includes(f) ? "bad" : ""} ${f === "dmg" || f === "after" || f === "hp" ? "n" : ""}">${f === "s" || f === "t" ? esc(unitName(x[f])) : fmtN(x[f])}</td>` : `<td class="mute">–</td>`;
+  let prevR = 0, acts = "";
+  for (let i = 0; i < len; i += 1) {
+    const r = A.real[i], s = A.sim[i], bad = A.bad[i] || [];
+    const round = (r || s).r;
+    acts += `<tr class="${round !== prevR ? "sep" : ""} ${i === b.firstDiff ? "hl" : ""}"><td class="n">${i + 1}</td><td class="${bad.includes("tur") ? "bad" : ""}">T${r ? r.r : "–"}${r ? "·E" + r.n : ""}</td>
+      ${["s", "t", "dmg", "after", "hp"].map((f) => cell(r, bad, f)).join("")}<td class="mute">${esc(r && r.mods)}</td>
+      <td style="border-left:2px solid var(--line)">T${s ? s.r : "–"}${s ? "·E" + s.n : ""}</td>${["s", "t", "dmg", "after", "hp"].map((f) => cell(s, bad, f)).join("")}
+      <td>${bad.length ? `<span class="c-sonuc">${bad.join("+")}</span>` : `<span class="c-tam">✓</span>`}</td></tr>`;
+    prevR = round;
+  }
+  return `${explainBox(b)}
+    <div class="row"><span class="pill p-${b.category}">${CAT[b.category].label}</span>
+      <span>Gerçek: <b>${WIN[b.real.winner]}</b>, kan ${fmtN(b.real.blood)}, ${b.real.unitsLost} birim kayıp, ${b.real.rounds} tur</span>
+      <span>Motor: <b>${WIN[b.sim.winner]}</b>, kan ${fmtN(b.sim.blood)}, ${b.sim.unitsLost} birim kayıp, ${b.sim.rounds} tur</span>
+      ${b.time ? `<span class="mute">${esc(b.time)}</span>` : ""}</div>
+    ${b.random ? `<div class="mute" style="margin-top:6px">Kültist rastgele buff içeriyor: ${b.seedsTried} tohum denendi, gerçeğe en yakın tohum ${b.seed}. Aynı sonucu veren tohum: ${b.sameOutcomeSeeds}/${b.seedsTried} · motorda zafer oranı ${pct(b.simWinRate * b.seedsTried, b.seedsTried)}</div>` : ""}
+    ${b.diffReasons.length ? `<div style="margin-top:6px"><b>Farklar:</b> ${esc(b.diffReasons.join(" · "))}</div>` : ""}
+    ${b.warnings.length ? `<div class="err">${esc(b.warnings.join(" · "))}</div>` : ""}
+    <div class="grid2"><div><h3>Bizim ordu</h3>${unitTable("ally")}</div><div><h3>Düşman ordusu</h3>${unitTable("enemy")}</div></div>
+    <h3>Eylem eylem karşılaştırma ${b.firstDiff != null ? `<span class="mute">(ilk sapma sarı satır #${b.firstDiff + 1})</span>` : ""}</h3>
+    <div class="tablewrap"><table class="acts"><tr><th class="n">#</th><th colspan="7">GERÇEK: Tur·Eylem / Saldıran / Hedef / Zarar / Kalan birim / Can / Modlar</th><th colspan="6" style="border-left:2px solid var(--line)">MOTOR: Tur·Eylem / Saldıran / Hedef / Zarar / Kalan / Can</th><th>Fark</th></tr>${acts}</table></div>`;
+}
+
+function whyBtn(b) { return b.explain ? `<button class="why" onclick="event.stopPropagation();why('${b.id}')" title="Farkın nedeni, düzeltme önerisi ve diğer savaşlara etkisi">Neden?</button>` : ""; }
+function why(id) {
+  const b = DATA.battles.find((x) => x.id === id);
+  if (!b) return;
+  if (!visible().includes(b)) { filter = "all"; query = ""; render(); }
+  open.add(id); renderList();
+  setTimeout(() => { const el = document.getElementById("ex" + id); el && el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30);
+}
+function explainBox(b) {
+  const x = b.explain;
+  if (!x) return "";
+  const list = (arr) => `<ul>${arr.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>`;
+  const rel = (x.relatedIds || []).filter((id) => DATA.battles.some((y) => y.id === id));
+  return `<div class="explain" id="ex${b.id}"><div class="t">Neden farklı? · ${esc(x.title)}</div>
+    <h4>Ne oldu</h4>${list(x.summary)}
+    <h4>Neyi değiştirirsek düzelir</h4>${list(x.fix)}
+    <h4>Diğer savaşlara etkisi</h4>${list(x.impact)}
+    ${rel.length ? `<h4>Aynı sorunu yaşayan diğer savaşlar (${rel.length})</h4><div>${rel.map((id) => `<a href="#b${id}" onclick="event.preventDefault();why('${id}')">${id}</a>`).join(", ")}</div>` : ""}
+    <div class="mute" style="margin-top:8px;font-size:12px">Açıklama kural tabanlıdır: ilk sapan eylem incelenir, aynı durum bu dosyadaki tüm savaşlarda sayılır. Motor değişikliğinden sonra dosya yeniden analiz edilerek doğrulanmalıdır.</div></div>`;
+}
+function setFilter(f) { filter = f; render(); document.getElementById("list").scrollIntoView({ behavior: "smooth" }); }
+function toggle(id) { open.has(id) ? open.delete(id) : open.add(id); renderList(); }
+function toggleAll(on) { open = on ? new Set(visible().map((b) => b.id)) : new Set(); renderList(); }
+function jump(id) { filter = "all"; query = ""; open.add(id); render(); setTimeout(() => { const el = document.getElementById("b" + id); el && el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30); }
+
+// ---- indirme ----
+function baseName() { return "savas-analizi-" + (DATA.meta.fileName || "rapor").replace(/\.json$/i, "").replace(/^savas-raporlari-?/i, ""); }
+function save(name, type, body) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([body], { type }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+async function dlHtml() {
+  // Indirilen rapor ayni arayuzun cevrimdisi kopyasi: veri gomulu, filtre/detaylar calisir.
+  const src = window.__SRC__ || await fetch("/").then((r) => r.text());
+  const payload = JSON.stringify(DATA).replace(/</g, "\\u003c");
+  const html = src.replace("<head>", `<head>\n<script>window.__REPORT__=${payload};<\/script>`);
+  save(baseName() + ".html", "text/html;charset=utf-8", html);
+}
+function dlJson() { save(baseName() + ".json", "application/json", JSON.stringify(DATA, null, 1)); }
+function dlCsv() {
+  const cols = ["id", "kat", "durum", "gercek_sonuc", "motor_sonuc", "gercek_kan", "motor_kan", "gercek_tur", "motor_tur", "gercek_eylem", "motor_eylem", "farkli_eylem", "ilk_sapma", "farklar", "kultist_tohum", "ayni_sonuc_tohum", "sapma_turu", "oneri"];
+  const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const lines = [cols.join(";")].concat(DATA.battles.map((b) => [b.id, b.kat, CAT[b.category].label, WIN[b.real.winner], WIN[b.sim.winner], b.real.blood, b.sim.blood, b.real.rounds, b.sim.rounds, b.real.actions, b.sim.actions, b.mismatchCount,
+    b.firstDiff != null ? b.firstDiff + 1 : "", b.diffReasons.join(" | "), b.random ? b.seed : "", b.random ? `${b.sameOutcomeSeeds}/${b.seedsTried}` : "", b.explain ? b.explain.title : "", b.explain ? b.explain.fix.join(" | ") : ""].map(q).join(";")));
+  save(baseName() + ".csv", "text/csv;charset=utf-8", "﻿" + lines.join("\r\n"));
+}
+</script>
+</body>
+</html>

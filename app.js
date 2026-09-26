@@ -26,7 +26,6 @@ const statusLabel = document.querySelector("#statusLabel");
 const simulateBtn = document.querySelector("#simulateBtn");
 const sampleBtn = document.querySelector("#sampleBtn");
 const clearBtn = document.querySelector("#clearBtn");
-const simulationRoundingModeButtons = [...document.querySelectorAll(".simulation-rounding-button")];
 const allyPointValue = document.querySelector("#allyPointValue");
 const reportWrongSimulationBtn = document.querySelector("#reportWrongSimulationBtn");
 const langToggleSimulationBtn = document.querySelector("#langToggleSimulationBtn");
@@ -58,7 +57,6 @@ const variantLogSummary = document.querySelector("#variantLogSummary");
 const variantLogInfo = document.querySelector("#variantLogInfo");
 const variantLogOutput = document.querySelector("#variantLogOutput");
 const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
-const ROUNDING_MODE_STORAGE_KEY = "bt-analiz.rounding-mode.v1";
 const LOSS_REDUCTION_ICON_URL = "https://s66-tr.bitefight.gameforge.com/img/voodoo/res3_rotation.gif";
 let currentSimulationReport = null;
 let pendingWrongSimulationReport = null;
@@ -76,7 +74,6 @@ let currentSimulationResult = null;
 let currentKnifeEdgeRisk = null;
 let isLossReductionActive = false;
 let pendingHydratedSimulationSeed = null;
-let currentSimulationRoundingMode = loadStoredRoundingMode();
 let currentActualOutcomeMode = "victory";
 let cachedVictoryActualLosses = {};
 let cachedVictoryActualCapacity = "";
@@ -91,53 +88,6 @@ const NEARBY_VICTORY_MAX_EXTRA_UNITS = 5;
 const NEARBY_IMPROVEMENT_MAX_EXTRA_UNITS = 3;
 const NEARBY_ADVICE_MAX_RESULTS = 5;
 
-function getRoundingModeLabel(mode) {
-  const normalizedMode = normalizeRoundingMode(mode);
-  if (normalizedMode === "legacy") {
-    return "Degismemis";
-  }
-  if (normalizedMode === "extround") {
-    return "Extround";
-  }
-  if (normalizedMode === "simulat") {
-    return "Simulator";
-  }
-  return "Guvenli";
-}
-
-function loadStoredRoundingMode() {
-  try {
-    const storedMode = window.localStorage.getItem(ROUNDING_MODE_STORAGE_KEY);
-    return storedMode === "exact" ? "extround" : normalizeRoundingMode(storedMode);
-  } catch (_error) {
-    return "safe";
-  }
-}
-
-function persistRoundingMode(mode) {
-  try {
-    window.localStorage.setItem(ROUNDING_MODE_STORAGE_KEY, normalizeRoundingMode(mode));
-  } catch (_error) {
-    // localStorage yoksa secim sadece bu oturumda kalir.
-  }
-}
-
-function syncSimulationRoundingModeButtons() {
-  simulationRoundingModeButtons.forEach((button) => {
-    const isActive = normalizeRoundingMode(button.dataset.roundingMode) === currentSimulationRoundingMode;
-    button.classList.toggle("active", isActive);
-    button.setAttribute("aria-pressed", isActive ? "true" : "false");
-  });
-}
-
-function setSimulationRoundingMode(mode, options = {}) {
-  currentSimulationRoundingMode = normalizeRoundingMode(mode);
-  syncSimulationRoundingModeButtons();
-  if (options.persist !== false) {
-    persistRoundingMode(currentSimulationRoundingMode);
-  }
-}
-
 reportWrongSimulationBtn.disabled = true;
 buildWrongLossInputs();
 
@@ -151,13 +101,6 @@ resetValues();
 hydrateSimulationFromOptimizer();
 void refreshMatchedActualReport();
 bindAdminSession();
-setSimulationRoundingMode(currentSimulationRoundingMode, { persist: false });
-
-simulationRoundingModeButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    setSimulationRoundingMode(button.dataset.roundingMode || "safe");
-  });
-});
 
 simulateBtn.addEventListener("click", () => {
   try {
@@ -167,8 +110,7 @@ simulateBtn.addEventListener("click", () => {
     statusLabel.textContent = "Simulasyon calisiyor";
     const result = simulateBattle(enemy, ally, {
       seed,
-      collectLog: true,
-      roundingMode: currentSimulationRoundingMode
+      collectLog: true
     });
     renderSimulation(result, { seed });
   } catch (error) {
@@ -878,7 +820,6 @@ function hydrateSimulationFromOptimizer() {
     }
 
     pendingHydratedSimulationSeed = Number.isInteger(payload.seed) ? payload.seed : null;
-    setSimulationRoundingMode(payload.roundingMode || currentSimulationRoundingMode);
 
     ENEMY_UNITS.forEach((unit) => {
       inputRefs[unit.key].value = String(payload.enemyCounts[unit.key] || 0);
@@ -1057,7 +998,6 @@ function renderSimulationMeta(report = null, result = null) {
     simulationMetaPanel.appendChild(createMetaField("Seed", report.seed));
   }
   simulationMetaPanel.appendChild(createMetaField("Sonuc", result.winner === "enemy" ? "Maglubiyet" : "Zafer"));
-  simulationMetaPanel.appendChild(createMetaField("Hesap modu", getRoundingModeLabel(result.roundingMode)));
   simulationMetaPanel.appendChild(createMetaField("Kan kaybi", getDisplayedSimulationLostBlood(report, result)));
   simulationMetaPanel.appendChild(createMetaField("Kullanilan puan", report.usedPoints ?? 0));
   simulationMetaPanel.appendChild(createMetaField("Kapasite", report.usedCapacity ?? 0));
@@ -1789,7 +1729,7 @@ function renderNearbyAdviceDetails(analysis) {
   head.className = "variant-details-head";
   head.innerHTML = `
     <strong>${analysis.title}</strong>
-    <span>Seed ${analysis.seed ?? "-"} / ${getRoundingModeLabel(analysis.roundingMode)} modu / ${analysis.checkedCount} yakin kombinasyon tarandi.</span>
+    <span>Seed ${analysis.seed ?? "-"} / ${analysis.checkedCount} yakin kombinasyon tarandi.</span>
   `;
 
   const summary = document.createElement("div");

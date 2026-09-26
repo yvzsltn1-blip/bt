@@ -27,7 +27,6 @@ const reportCountLabel = document.querySelector("#reportCountLabel");
 const reportProgress = document.querySelector("#reportProgress");
 const rerunReportBtn = document.querySelector("#rerunReportBtn");
 const downloadChangedTxtBtn = document.querySelector("#downloadChangedTxtBtn");
-const reportRoundingModeSelect = document.querySelector("#reportRoundingModeSelect");
 const reportSummaryGrid = document.querySelector("#reportSummaryGrid");
 const reportInsightsGrid = document.querySelector("#reportInsightsGrid");
 const reportActiveFilterNote = document.querySelector("#reportActiveFilterNote");
@@ -69,15 +68,6 @@ clearReportFilterBtn?.addEventListener("click", () => {
   currentReportFilter = "all";
   renderAuditResults(lastAuditResults);
 });
-reportRoundingModeSelect?.addEventListener("change", () => {
-  const nextMode = normalizeAuditRoundingMode(reportRoundingModeSelect.value);
-  if (currentPayload) {
-    currentPayload.roundingMode = nextMode;
-    writeReportPayload(currentPayload);
-  }
-  hydrateReportShell();
-  void runRegressionAudit();
-});
 moveConfirmedWrongBtn?.addEventListener("click", () => {
   void promoteMatchedWrongReports();
 });
@@ -99,14 +89,10 @@ function setReportFilter(filterKey = "all") {
 }
 
 function hydrateReportShell() {
-  const selectedMode = getSelectedAuditRoundingMode();
   if (!currentPayload) {
     reportTitle.textContent = "Toplu Test Raporu";
     reportScope.textContent = "Aktif rapor verisi bulunamadi.";
     reportCountLabel.textContent = "0";
-    if (reportRoundingModeSelect) {
-      reportRoundingModeSelect.value = selectedMode;
-    }
     if (reportBackLink) {
       reportBackLink.href = "saved.html";
       reportBackLink.textContent = "Onaylananlar";
@@ -118,9 +104,6 @@ function hydrateReportShell() {
   reportTitle.textContent = currentPayload.title || "Toplu Test Raporu";
   reportScope.textContent = buildReportScopeText(currentPayload.scopeLabel || "Secilen kayitlar kontrol edilecek.");
   reportCountLabel.textContent = `${currentPayload.selectedCount || 0}/${currentPayload.totalCount || 0}`;
-  if (reportRoundingModeSelect) {
-    reportRoundingModeSelect.value = selectedMode;
-  }
   if (reportBackLink) {
     reportBackLink.href = currentPayload.backHref || "saved.html";
     reportBackLink.textContent = currentPayload.backLabel || "Kaynak Sayfa";
@@ -1388,21 +1371,8 @@ function waitForNextFrame() {
 }
 
 function evaluateSeedSample(enemyCounts, allyCounts, seeds, expected, actualTruth, roundingMode) {
-  const primary = evaluateSeedSampleWithMode(enemyCounts, allyCounts, seeds, expected, actualTruth, roundingMode);
-  if (primary.hasExpectedMatch || roundingMode === "extround") {
-    return primary;
-  }
-  // Eslesme yoksa uzanti motoru yuvarlamasiyla (extround) ikinci tur denenir.
-  // Dogrular ilk turda eslestigi icin sonuclari degismez; 2026-06-12 olcumu:
-  // 1946 dogru kayit korunuyor, 21 yanlisin 14'u extround ile yakalaniyor.
-  const fallback = evaluateSeedSampleWithMode(enemyCounts, allyCounts, seeds, expected, actualTruth, "extround");
-  if (fallback.hasExpectedMatch) {
-    return {
-      ...fallback,
-      note: `${fallback.note} (extround yuvarlama ile)`
-    };
-  }
-  return primary;
+  // Tek savas modeli: ikinci bir yuvarlama turu yok.
+  return evaluateSeedSampleWithMode(enemyCounts, allyCounts, seeds, expected, actualTruth, roundingMode);
 }
 
 function evaluateSeedSampleWithMode(enemyCounts, allyCounts, seeds, expected, actualTruth, roundingMode) {
@@ -1565,62 +1535,19 @@ function normalizeStoredRoundingMode(mode) {
   return null;
 }
 
-function normalizeAuditRoundingMode(mode) {
-  if (mode === "legacy" || mode === "safe" || mode === "extround") {
-    return mode;
-  }
-  if (mode === "exact") {
-    return "extround";
-  }
-  return "legacy";
-}
+// Tek savas modeli: tum kayitlar ayni (oyun raporlariyla dogrulanan) modelle test edilir.
+const AUDIT_ROUNDING_MODE = "extround";
 
-function getSelectedAuditRoundingMode() {
-  const nextMode = normalizeAuditRoundingMode(currentPayload?.roundingMode);
-  if (currentPayload) {
-    currentPayload.roundingMode = nextMode;
-  }
-  return nextMode;
-}
-
-function resolveAuditRoundingMode(item) {
-  const selectedMode = getSelectedAuditRoundingMode();
-  if (selectedMode !== "stored") {
-    return selectedMode;
-  }
-  return normalizeStoredRoundingMode(item?.roundingMode) || "safe";
-}
-
-function getRoundingModeLabel(mode) {
-  if (mode === "legacy") {
-    return "Degismemis";
-  }
-  if (mode === "extround") {
-    return "Extround";
-  }
-  if (mode === "safe") {
-    return "Guvenli";
-  }
-  return "Kayda gore";
+function resolveAuditRoundingMode(_item) {
+  return AUDIT_ROUNDING_MODE;
 }
 
 function buildReportScopeText(baseText) {
-  const selectedMode = getSelectedAuditRoundingMode();
-  const modeText = selectedMode === "stored"
-    ? "Test modu: Kayda gore (kayitta yoksa Guvenli)"
-    : `Test modu: ${getRoundingModeLabel(selectedMode)}`;
-  return `${baseText} / ${modeText}`;
+  return baseText;
 }
 
-function buildAuditModeBadgeText(item) {
-  const selectedMode = getSelectedAuditRoundingMode();
-  if (selectedMode !== "stored") {
-    return `${getRoundingModeLabel(item.auditRoundingMode)} (manuel secim)`;
-  }
-  if (item.storedRoundingMode) {
-    return `${getRoundingModeLabel(item.auditRoundingMode)} (kayit modu)`;
-  }
-  return `${getRoundingModeLabel(item.auditRoundingMode)} (kayit modu yok)`;
+function buildAuditModeBadgeText(_item) {
+  return "Tek model";
 }
 
 function buildRosterLabel(counts, units, limit = null) {

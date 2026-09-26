@@ -57,7 +57,9 @@ const remainingFailure = {
     bats: 0, ghouls: 2, thralls: 0, banshees: 2,
     necromancers: 1, gargoyles: 0, witches: 0, rotmaws: 1
   },
-  expectedLostBlood: 165,
+  // Hicbir modelin uretemeyecegi beklenti: yeniden testin "hala yanlis" yolunu oyun
+  // kurallarindan bagimsiz sinar (eski arsiv degeri guncel modelle artik tutuyor).
+  expectedLostBlood: 99999,
   expectedAllyLosses: {
     bats: 0, ghouls: 1, thralls: 0, banshees: 0,
     necromancers: 0, gargoyles: 0, witches: 0, rotmaws: 1

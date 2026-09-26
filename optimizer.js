@@ -73,7 +73,6 @@ const stageAutoAdvanceToggleBtn = document.querySelector("#stageAutoAdvanceToggl
 const optimizerPointsValue = document.querySelector("#optimizerPointsValue");
 const optimizerPointsLimit = document.querySelector("#optimizerPointsLimit");
 const modeButtons = [...document.querySelectorAll(".mode-button")];
-const roundingModeButtons = [...document.querySelectorAll(".optimizer-rounding-mode-button")];
 const optimizerObjectiveSelect = document.querySelector("#optimizerObjectiveSelect");
 const matchedSavedPanel = document.querySelector("#matchedSavedPanel");
 const modeComparePanel = document.querySelector("#modeComparePanel");
@@ -119,7 +118,6 @@ const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 const OPTIMIZER_RELIABILITY_STORAGE_KEY = "bt-analiz.optimizer-reliability.v1";
 const FAVORITE_STRATEGIES_STORAGE_KEY = "bt-analiz.optimizer.favorite-strategies.v1";
 const EXTENDED_SEARCH_STORAGE_KEY = "bt-analiz.optimizer.extendedSearch.v1";
-const ROUNDING_MODE_STORAGE_KEY = "bt-analiz.rounding-mode.v1";
 const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
 
 let optimizerSearchSession = createEmptySearchSession();
@@ -127,7 +125,8 @@ let optimizerMode = "balanced";
 let optimizerObjective = "min_loss";
 let optimizerActiveMinWinRate = 0.75;
 let optimizerActiveMinVerifyTrials = 0;
-let optimizerRoundingMode = loadStoredRoundingMode();
+// Tek savas modeli: secim yok, battle-core her zaman dogrulanmis modeli kullanir.
+const optimizerRoundingMode = normalizeRoundingMode();
 var roundingMode = optimizerRoundingMode;
 let optimizerDiversityMode = false;
 let optimizerTekilMode = false;
@@ -321,47 +320,6 @@ function syncManualPointRangeDefaults({ force = false } = {}) {
   }
   setManualPointRangeManaged(true);
   return defaults;
-}
-
-function getRoundingModeLabel(mode) {
-  const normalizedMode = normalizeRoundingMode(mode);
-  if (normalizedMode === "legacy") {
-    return "Degismemis";
-  }
-  if (normalizedMode === "extround") {
-    return "Extround";
-  }
-  if (normalizedMode === "simulat") {
-    return "Simulator";
-  }
-  if (normalizedMode === "exact") {
-    return "OG Mod";
-  }
-  return "Guvenli";
-}
-
-function loadStoredRoundingMode() {
-  try {
-    const stored = window.localStorage.getItem(ROUNDING_MODE_STORAGE_KEY);
-    if (!stored) return "legacy";
-    return normalizeRoundingMode(stored);
-  } catch (_error) {
-    return "legacy";
-  }
-}
-
-function persistRoundingMode(mode) {
-  try {
-    window.localStorage.setItem(ROUNDING_MODE_STORAGE_KEY, normalizeRoundingMode(mode));
-  } catch (_error) {
-    // localStorage yoksa secim sadece bu oturumda kalir.
-  }
-}
-
-function setOptimizerRoundingMode(mode) {
-  optimizerRoundingMode = normalizeRoundingMode(mode);
-  roundingMode = optimizerRoundingMode;
-  return optimizerRoundingMode;
 }
 
 function normalizeOptimizerObjective(objective) {
@@ -872,7 +830,6 @@ syncTekilV2ModeButton();
 if (isQuickVariant()) {
   initQuickPopup();
 }
-syncRoundingModeButtons();
 syncObjectiveSelect();
 syncSearchBandControls();
 syncWinRateThresholdControls();
@@ -890,15 +847,6 @@ modeButtons.forEach((button) => {
   });
 });
 
-roundingModeButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    setOptimizerRoundingMode(button.dataset.roundingMode);
-    persistRoundingMode(optimizerRoundingMode);
-    syncRoundingModeButtons();
-    invalidateSearchSession();
-    optimizerStatus.textContent = `Hesap modu: ${getRoundingModeLabel(optimizerRoundingMode)}`;
-  });
-});
 
 if (optimizerObjectiveSelect) {
   optimizerObjectiveSelect.addEventListener("change", () => {
@@ -1722,7 +1670,7 @@ async function runOptimizerSearch(batchRuns) {
 // Worker kurulamazsa (or. file:// veya CSP) senkron yola kalici dusulur.
 // Surum etiketi, HTML'deki battle-core.js surumuyle ayni tutulmali
 // (worker, battle-core.js'i bu parametreyle yukler).
-const OPTIMIZER_WORKER_SCRIPT = "optimizer-worker.js?v=20260702-2";
+const OPTIMIZER_WORKER_SCRIPT = "optimizer-worker.js?v=20260925-1";
 const OPTIMIZER_PARALLEL_SEED_STRIDE = 104729;
 // file:// altinda tarayicilar worker kurulumunu engelliyor (unique origin);
 // hic denemeden senkron yola dus ki konsola hata dusmesin.
@@ -1961,9 +1909,6 @@ function setOptimizerBusy(isBusy) {
   modeButtons.forEach((button) => {
     button.disabled = isBusy;
   });
-  roundingModeButtons.forEach((button) => {
-    button.disabled = isBusy;
-  });
   if (optimizerObjectiveSelect) {
     optimizerObjectiveSelect.disabled = isBusy;
   }
@@ -2041,14 +1986,6 @@ function persistExtendedSearchSetting() {
   } catch (_error) {
     // localStorage erisimi yoksa ayar sadece bu sayfa oturumunda kalir.
   }
-}
-
-function syncRoundingModeButtons() {
-  roundingModeButtons.forEach((button) => {
-    const isActive = normalizeRoundingMode(button.dataset.roundingMode) === optimizerRoundingMode;
-    button.classList.toggle("active", isActive);
-    button.setAttribute("aria-pressed", isActive ? "true" : "false");
-  });
 }
 
 function syncObjectiveSelect() {
@@ -6428,7 +6365,7 @@ function getOptimizerFlavorLabel(diversityMode = false, tekilMode = false, tekil
 }
 
 function getModeLabel(mode, objective = "min_loss", diversityMode = false, tekilMode = false, tekilV2Mode = false, stoneMode = false, roundingMode = "safe") {
-  const parts = [getSearchModeLabel(mode), getObjectiveLabel(objective), getRoundingModeLabel(roundingMode)];
+  const parts = [getSearchModeLabel(mode), getObjectiveLabel(objective)];
   if (stoneMode) {
     parts.push("Taşlı");
   }
@@ -7020,7 +6957,6 @@ function restoreFromQuery() {
   });
   optimizerMode = item.mode || "balanced";
   optimizerObjective = normalizeOptimizerObjective(item.objective);
-  setOptimizerRoundingMode(item.roundingMode || optimizerRoundingMode);
   optimizerDiversityMode = Boolean(item.diversityMode);
   optimizerTekilMode = Boolean(item.tekilMode);
   optimizerTekilV2Mode = Boolean(item.tekilV2Mode);
@@ -7031,7 +6967,6 @@ function restoreFromQuery() {
   applySearchBandSettings(item.searchBandSettings || { mode: "tight75" });
   applyManualPointRangeSettings(item.manualPointRangeSettings || { enabled: false, minUsedPoints: 0, maxUsedPoints: 0 });
   modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
-  syncRoundingModeButtons();
   syncObjectiveSelect();
   syncDiversityModeButton();
   syncTekilModeButton();

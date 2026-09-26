@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      8.5
+// @version      9.5
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
 // @updateURL    https://bt-analiz.web.app/otobirlik.user.js
 // @downloadURL  https://bt-analiz.web.app/otobirlik.user.js
-// @require      https://bt-analiz.web.app/battle-core.js?v=20260702-2
+// @require      https://bt-analiz.web.app/battle-core.js?v=20260927-1
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
@@ -657,18 +657,10 @@
   // Panelden secilebilir; GM'de saklanir. Varsayilan: %99.5.
   const BOT_MIN_WIN_RATE_DEFAULT = 0.995;
   const BOT_MIN_WIN_RATE_KEY = 'btBotMinWinRate';
-  const BOT_ROUNDING_MODE_KEY = 'btBotRoundingMode';
   // Tekil v2 (kayip deseni onceligi): varsayilan acik, panelden kapatilabilir.
   const BOT_TEKIL_V2_KEY = 'btBotTekilV2Mode';
   const BOT_UNIT_LIMITS_KEY = 'btBotUnitLimits';
   const BOT_UNIT_LIMIT_DEFAULTS = [99, 99, 99, 99, 99, 99, 99, 1];
-  const BOT_ROUNDING_MODES = {
-    legacy: 'Degismemis',
-    exact: 'OG Mod',
-    safe: 'Guvenli',
-    extround: 'Extround',
-    simulat: 'Simulator'
-  };
   // Panel simge durumuna kucululdu mu (kullanici tercihi, GM'de saklanir).
   const BOT_PANEL_MINIMIZED_KEY = 'btBotPanelMinimized';
   // Kenardan tutup boyutlandirilan panelin son genisligi/yuksekligi (px).
@@ -1125,9 +1117,8 @@
       return;
     }
     if (target !== candidate) GM_setValue(BOT_NEXT_STAGE_KEY, target);
-    const targetPage = Math.ceil(target / 10);
-    // Dogru 10'luk dilimde miyiz? (Kart numaralarina gore.) Degilse o dilime git.
-    if (currentFloorPage() !== targetPage) {
+    // Dogru 10'luk dilimde ve URL hedef kati mi gosteriyor? Degilse hedef kata git.
+    if (floorUrlNeedsNavigation(target)) {
       setBotStatus(`Kat ${target} aciliyor...`);
       await timedSleep('button');
       if (!(await ensureOnline(`Kat ${target}`))) {
@@ -1280,7 +1271,7 @@
     if (!(await ensureOnline(`Kat ${next}`))) {
       return;
     }
-    location.assign(buildFloorUrl(next));
+    goToNextFloorViaForward(next);
   }
   // ====================== /OTO KAT MODU ======================
 
@@ -1309,17 +1300,6 @@
   function setBotMinWinRate(rate) {
     const clamped = Math.min(1, Math.max(0.01, Number(rate)));
     GM_setValue(BOT_MIN_WIN_RATE_KEY, Number.isFinite(clamped) ? clamped : BOT_MIN_WIN_RATE_DEFAULT);
-  }
-
-  function getBotRoundingMode() {
-    const stored = String(GM_getValue(BOT_ROUNDING_MODE_KEY, 'legacy') || 'legacy');
-    return Object.prototype.hasOwnProperty.call(BOT_ROUNDING_MODES, stored) ? stored : 'legacy';
-  }
-
-  function setBotRoundingMode(mode) {
-    const normalized = Object.prototype.hasOwnProperty.call(BOT_ROUNDING_MODES, mode) ? mode : 'legacy';
-    GM_setValue(BOT_ROUNDING_MODE_KEY, normalized);
-    return normalized;
   }
 
   function isBotTekilV2Enabled() {
@@ -1561,7 +1541,8 @@ self.onmessage = (event) => {
       counts: source ? source.counts : null,
       winRate: source ? source.winRate : 0,
       avgUsedPoints: source ? source.avgUsedPoints : 0,
-      lossValue
+      lossValue,
+      expectedLoss: source && Number.isFinite(source.expectedLostBlood) ? source.expectedLostBlood : null
     });
   } catch (error) {
     self.postMessage({ ok: false, message: String((error && error.message) || error) });
@@ -1817,6 +1798,25 @@ self.onmessage = (event) => {
     return Number(hours || 0) * 3600 + Number(minutes || 0) * 60 + Number(seconds || 0);
   }
 
+  // GIR linkleri kattan bagimsizdir (/ancestral/show/1); sunucu girilecek kati
+  // URL'deki layerId'den bilir. Kat butonuna tiklamak bunu degistirmez; bu yuzden
+  // GIR'den once URL hedef kati gostermeli. (ILERI ayni kata doner.)
+  function floorUrlNeedsNavigation(target) {
+    const layerId = getLayerIdFromHref(location.href);
+    return currentFloorPage() !== Math.ceil(target / 10) || (layerId > 0 && layerId !== target);
+  }
+
+  // Sonuc sayfasindaki ILERI ile kat sayfasina doner; kat isleyicisi orada hedef
+  // kati secip GIR'e basar. ILERI bulunamazsa hedef katin URL'sine dogrudan gider.
+  function goToNextFloorViaForward(next) {
+    const forward = document.querySelector('a.combatBtn.combatLink[href*="ancestral/index"]');
+    if (forward) {
+      forward.click();
+      return;
+    }
+    location.assign(buildFloorUrl(next));
+  }
+
   // Hedef kati aktif edip giris butonuna tiklar.
   async function clickFloorEntry(stage) {
     await activateFloor(stage);
@@ -1881,13 +1881,15 @@ self.onmessage = (event) => {
   // Altin esigi asinca bot kat sayfasindan klan sayfasina gider, kutuya miktari
   // tusla tusla yazar, "Hibe et"e basar ve ayrildigi kat sayfasina geri doner.
   // Adimlar arasinda rastgele beklemeler var; akis GM'de tutulan durumla surer.
+  // Esik 10-13 milyon arasindan rastgele secilir ve bagisa kadar sabit kalir;
+  // esige ulasinca altinin TAMAMI bagislanir. Her bagistan sonra yeni esik cekilir.
   // ---------------------------------------------------------------------------
   const CLAN_DONATE_ENABLED_KEY = 'btClanDonateEnabled';
   const CLAN_DONATE_LAST_KEY = 'btClanDonateLastAt';
   const CLAN_DONATE_STATE_KEY = 'btClanDonateStateV1';
-  const CLAN_DONATE_THRESHOLD = 8000000;   // bu altinin uzerine cikinca bagis yapilir
-  const CLAN_DONATE_MIN = 7000000;         // bagis alt siniri
-  const CLAN_DONATE_MAX = 8000000;         // bagis ust siniri
+  const CLAN_DONATE_TARGET_KEY = 'btClanDonateTargetGold';
+  const CLAN_DONATE_TRIGGER_MIN = 10000000; // esik alt siniri
+  const CLAN_DONATE_TRIGGER_MAX = 13000000; // esik ust siniri
   const CLAN_DONATE_COOLDOWN_MS = 60 * 1000; // ard arda denemeleri sinirlar
   const CLAN_DONATE_STATE_TTL_MS = 5 * 60 * 1000; // yarim kalan akis bu surede iptal
   let clanDonateBusy = false;
@@ -1957,15 +1959,20 @@ self.onmessage = (event) => {
   async function typeLikeHuman(input, text) {
     input.focus();
     input.click();
-    await humanPause(180, 520);
+    await humanPause(500, 1400);
     input.value = '';
     for (const char of String(text)) {
       input.value += char;
       input.dispatchEvent(new KeyboardEvent('keydown', { key: char, bubbles: true }));
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new KeyboardEvent('keyup', { key: char, bubbles: true }));
-      await sleep(70 + Math.random() * 190);
+      // Arada bir daha uzun duraksama: tempoyu duzenli olmaktan cikarir.
+      const pause = Math.random() < 0.18
+        ? 700 + Math.random() * 900
+        : 220 + Math.random() * 400;
+      await sleep(pause);
     }
+    await humanPause(300, 900);
     input.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
@@ -1980,10 +1987,22 @@ self.onmessage = (event) => {
     el.click();
   }
 
-  function randomDonationAmount(gold) {
-    const max = Math.min(CLAN_DONATE_MAX, gold);
-    const min = Math.min(CLAN_DONATE_MIN, max);
-    return Math.floor(min + Math.random() * (max - min + 1));
+  // Bagis esigi: 10-13 milyon arasi rastgele bir hedef. Bir kere secilir ve
+  // bagis yapilana kadar GM'de saklanir (her turda yeniden cekilseydi esik
+  // pratikte hep alt sinira yapisirdi).
+  function getClanDonateTarget() {
+    const stored = Number(GM_getValue(CLAN_DONATE_TARGET_KEY, 0)) || 0;
+    if (stored >= CLAN_DONATE_TRIGGER_MIN && stored <= CLAN_DONATE_TRIGGER_MAX) {
+      return stored;
+    }
+    return rollClanDonateTarget();
+  }
+
+  function rollClanDonateTarget() {
+    const span = CLAN_DONATE_TRIGGER_MAX - CLAN_DONATE_TRIGGER_MIN;
+    const target = Math.floor(CLAN_DONATE_TRIGGER_MIN + Math.random() * (span + 1));
+    GM_setValue(CLAN_DONATE_TARGET_KEY, target);
+    return target;
   }
 
   // Bagis akisinin sayfa basina tek adimi. Donus true ise sayfa devralindi
@@ -2023,9 +2042,10 @@ self.onmessage = (event) => {
         }
         // Sayfayi "okuyormus" gibi kisa bir duraklama.
         await humanPause(1200, 3500);
+        // Altinin tamami bagislanir; klan sayfasindaki guncel deger varsa o esas alinir.
         const pageGold = getCurrentGold();
-        const amount = pageGold !== null && pageGold < Number(state.amount)
-          ? randomDonationAmount(pageGold)
+        const amount = pageGold !== null && pageGold > 0
+          ? pageGold
           : Number(state.amount);
         if (!Number.isFinite(amount) || amount <= 0) {
           clearClanDonateState();
@@ -2060,7 +2080,8 @@ self.onmessage = (event) => {
       return false;
     }
     const gold = getCurrentGold();
-    if (gold === null || gold <= CLAN_DONATE_THRESHOLD) {
+    const target = getClanDonateTarget();
+    if (gold === null || gold < target) {
       return false;
     }
     const lastAt = Number(GM_getValue(CLAN_DONATE_LAST_KEY, 0)) || 0;
@@ -2068,13 +2089,15 @@ self.onmessage = (event) => {
       return false;
     }
     GM_setValue(CLAN_DONATE_LAST_KEY, Date.now());
+    // Sonraki tur icin yeni bir esik cekilir.
+    rollClanDonateTarget();
     saveClanDonateState({
       phase: 'form',
       returnUrl: location.href,
-      amount: randomDonationAmount(gold),
+      amount: gold,
       startedAt: Date.now()
     });
-    setBotStatus(`Klan bagisi: altin ${gold.toLocaleString('tr-TR')}, klan sayfasina gidiliyor`);
+    setBotStatus(`Klan bagisi: altin ${gold.toLocaleString('tr-TR')} (esik ${target.toLocaleString('tr-TR')}), klan sayfasina gidiliyor`);
     await humanPause(900, 2800);
     location.assign(clanIndexUrl());
     return true;
@@ -2284,7 +2307,7 @@ self.onmessage = (event) => {
 
     // Dengeli cozumun beklenen kan kaybi esigi asiyorsa hizli ve derin modlari da
     // tara; guvenli cozum veren modlar arasinda en dusuk kayipli olanla savas.
-    if (isSafeBotOutcome(outcome) && Number.isFinite(outcome.lossValue) && outcome.lossValue > BOT_LOSS_ESCALATION_THRESHOLD) {
+    if (isSafeBotOutcome(outcome) && Number.isFinite(getBotDecisionLoss(outcome)) && getBotDecisionLoss(outcome) > BOT_LOSS_ESCALATION_THRESHOLD) {
       const candidates = [{ mode: 'balanced', outcome }];
       for (const mode of ['fast', 'deep']) {
         if (!isBotEnabled()) {
@@ -2298,10 +2321,10 @@ self.onmessage = (event) => {
       }
       let bestEntry = null;
       candidates.forEach((entry) => {
-        if (!isSafeBotOutcome(entry.outcome) || !Number.isFinite(entry.outcome.lossValue)) {
+        if (!isSafeBotOutcome(entry.outcome) || !Number.isFinite(getBotDecisionLoss(entry.outcome))) {
           return;
         }
-        if (!bestEntry || entry.outcome.lossValue < bestEntry.outcome.lossValue) {
+        if (!bestEntry || getBotDecisionLoss(entry.outcome) < getBotDecisionLoss(bestEntry.outcome)) {
           bestEntry = entry;
         }
       });
@@ -2325,7 +2348,8 @@ self.onmessage = (event) => {
       }
     });
 
-    const lossNote = Number.isFinite(outcome.lossValue) ? `, kayip ${Math.round(outcome.lossValue)}` : '';
+    const decisionLoss = getBotDecisionLoss(outcome);
+    const lossNote = Number.isFinite(decisionLoss) ? `, beklenen kayip ${Math.round(decisionLoss)}` : '';
     setBotStatus(`Kat ${stage}: %${Math.round(winRate * 100)} cozum dolduruluyor (${BOT_MODE_LABELS[chosenMode] || chosenMode}${lossNote})...`);
     try {
       await createArchiveRecord('fill', { targets, preferTargets: true });
@@ -2371,7 +2395,6 @@ self.onmessage = (event) => {
       stabilityTrials: runConfig.stabilityTrials,
       baseSeed: runConfig.baseSeed,
       objective: 'min_loss',
-      roundingMode: getBotRoundingMode(),
       stoneMode: false,
       diversityMode: false,
       tekilMode: false,
@@ -2423,8 +2446,19 @@ self.onmessage = (event) => {
       possible: !!result.possible,
       counts: source ? source.counts : null,
       winRate: source ? source.winRate : 0,
-      lossValue: extractBotLossValue(result, source)
+      lossValue: extractBotLossValue(result, source),
+      expectedLoss: source && Number.isFinite(source.expectedLostBlood) ? source.expectedLostBlood : null
     };
+  }
+
+  // Karar icin kullanilacak kayip: optimizer'in yuksek trial'li final dogrulamasindaki
+  // BEKLENEN kan kaybi. lossValue tek bir ornek savastir; nadir ama agir kayiplari
+  // (orn. %25 ihtimalle 365 kan) gostermez ve riskli orduyu ucuz gosterir (rapor 2251).
+  function getBotDecisionLoss(outcome) {
+    if (outcome && Number.isFinite(outcome.expectedLoss)) {
+      return outcome.expectedLoss;
+    }
+    return outcome ? outcome.lossValue : null;
   }
 
   async function handleResultPage() {
@@ -2461,7 +2495,7 @@ self.onmessage = (event) => {
       return;
     }
 
-    // Ileri linki ayni kata doner; bot sonraki katin sayfasina dogrudan gider.
+    // ILERI kat sayfasina doner; handleFloorPage sonraki kati secip GIR'e basar.
     // Katlar arasi bekleme: saniyelik geri sayim, Durdur butonu bu sirada da calisir.
     const floorRange = loadBotTiming().floor;
     const waitSeconds = Math.max(0, Math.round(floorRange.min + Math.random() * (floorRange.max - floorRange.min)));
@@ -2478,7 +2512,7 @@ self.onmessage = (event) => {
     if (!(await ensureOnline(`Kat ${stage + 1}`))) {
       return;
     }
-    location.assign(buildFloorUrl(stage + 1));
+    goToNextFloorViaForward(stage + 1);
   }
 
   async function handleFloorPage() {
@@ -2488,9 +2522,8 @@ self.onmessage = (event) => {
       return;
     }
 
-    const targetPage = Math.ceil(target / 10);
-    if (currentFloorPage() !== targetPage) {
-      // Hedef kat baska bir 10'luk dilimde; o dilime git.
+    if (floorUrlNeedsNavigation(target)) {
+      // Hedef kat baska dilimde ya da URL baska kati gosteriyor; hedef kata git.
       setBotStatus(`Kat ${target} aciliyor...`);
       await timedSleep('button');
       if (!(await ensureOnline(`Kat ${target}`))) {
@@ -3868,7 +3901,7 @@ self.onmessage = (event) => {
     const donateRow = document.createElement('label');
     donateRow.className = 'bt-panel-toggle';
     donateRow.style.cssText = 'display:flex;gap:5px;align-items:center;color:#c8b49a;font-size:11px;cursor:pointer';
-    donateRow.title = 'Altin 8.000.000 uzerine ciktiginda klan kasasina 7-8 milyon arasi rastgele bagis yapar; bot durmadan devam eder';
+    donateRow.title = 'Altin 10-13 milyon arasindan secilen rastgele esige ulasinca altinin tamamini klan kasasina bagislar; bot durmadan devam eder';
     const donateCheckbox = document.createElement('input');
     donateCheckbox.type = 'checkbox';
     donateCheckbox.checked = isClanDonateEnabled();
@@ -3876,19 +3909,18 @@ self.onmessage = (event) => {
     donateCheckbox.onchange = () => {
       GM_setValue(CLAN_DONATE_ENABLED_KEY, donateCheckbox.checked);
       setBotStatus(donateCheckbox.checked
-        ? 'Oto klan bagisi acik: 8M ustu altinda 7-8M arasi bagis yapilacak'
+        ? 'Oto klan bagisi acik: 10-13M arasi esige ulasinca altinin tamami bagislanacak'
         : 'Oto klan bagisi kapali');
       if (!donateCheckbox.checked) {
         clearClanDonateState();
       }
     };
     const donateLabel = document.createElement('span');
-    donateLabel.textContent = 'Oto klan bagisi (8M ustu)';
+    donateLabel.textContent = 'Oto klan bagisi (10-13M esik, tamami)';
     donateRow.append(donateCheckbox, donateLabel);
     panel.appendChild(donateRow);
 
     appendWinRateSetting(panel);
-    appendRoundingModeSetting(panel);
     appendTekilV2Setting(panel);
     appendTimingSettings(panel);
 
@@ -4167,33 +4199,6 @@ self.onmessage = (event) => {
 
     row.append(select, customInput);
     wrap.append(label, row);
-    panel.appendChild(wrap);
-  }
-
-  function appendRoundingModeSetting(panel) {
-    const wrap = document.createElement('label');
-    wrap.className = 'bt-panel-section';
-    wrap.style.cssText = 'border-top:1px solid rgba(210,168,108,.18);padding-top:5px;margin-top:1px;display:flex;flex-direction:column;gap:4px';
-
-    const label = document.createElement('span');
-    label.textContent = 'Tarama hesap modu';
-    label.style.cssText = 'color:#c8b49a;font-size:10.5px';
-
-    const select = document.createElement('select');
-    select.style.cssText = 'width:100%;height:31px;padding:0 8px;border-radius:8px;border:1px solid rgba(210,168,108,.35);background:#18120e;color:#f5e9d2;font-size:11.5px';
-    Object.entries(BOT_ROUNDING_MODES).forEach(([value, text]) => {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = text;
-      select.appendChild(option);
-    });
-    select.value = getBotRoundingMode();
-    select.onchange = () => {
-      const mode = setBotRoundingMode(select.value);
-      setBotStatus(`Tarama hesap modu: ${BOT_ROUNDING_MODES[mode]}`);
-    };
-
-    wrap.append(label, select);
     panel.appendChild(wrap);
   }
 

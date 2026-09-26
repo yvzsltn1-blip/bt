@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      3.5
+// @version      4.3
 // @description  quick.html sonuclarini Bitefight savasa otomatik doldurur, arsiv kaydi tutar ve kat botu ile katlari otomatik gecer
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
-// @require      https://bt-analiz.web.app/battle-core.js?v=20260702-2
+// @require      https://bt-analiz.web.app/battle-core.js?v=20260927-1
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
@@ -1201,7 +1201,6 @@ self.onmessage = (event) => {
       stabilityTrials: runConfig.stabilityTrials,
       baseSeed: runConfig.baseSeed,
       objective: 'min_loss',
-      roundingMode: 'legacy',
       stoneMode: false,
       diversityMode: false,
       tekilMode: false,

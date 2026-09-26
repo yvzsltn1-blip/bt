@@ -242,13 +242,8 @@
     const initialCount = Number(options.initialSeedCount || INITIAL_SEED_COUNT);
     const deepCount = Math.max(initialCount, Number(options.deepSeedCount || DEEP_SEED_COUNT));
     const seeds = buildDeterministicSeeds(item, deepCount);
-    const roundingMode = options.roundingMode || "legacy";
-    // Eslesme bulunamazsa uzanti motoru yuvarlamasiyla (extround) ikinci tur denenir.
-    // Dogrular ilk turda eslestigi icin davranislari degismez; yalnizca
-    // yanlislarin bir kismi bu alternatif yuvarlama dunyasinda yakalanir.
-    const roundingModePasses = roundingMode === "extround"
-      ? ["extround"]
-      : [roundingMode, "extround"];
+    // Tek savas modeli: battle-core roundingMode'u yok sayar, tek gecis yeterli.
+    const roundingModePasses = ["extround"];
     let closest = null;
     let closestScore = Number.POSITIVE_INFINITY;
     let matched = null;
@@ -301,8 +296,8 @@
       actualAllyLosses: actual.allyLosses,
       differences: matched ? "" : buildDifferences(expected, actual),
       note: matched
-        ? `Yeniden test: beklenen sonuc ${scanned} seed icinde bulundu (seed ${matched.seed}${matchedRoundingMode === "extround" ? ", extround yuvarlama" : ""}).`
-        : `Yeniden test: beklenen sonuc ${scanned} deterministik seed icinde bulunamadi (extround dahil).`
+        ? `Yeniden test: beklenen sonuc ${scanned} seed icinde bulundu (seed ${matched.seed}).`
+        : `Yeniden test: beklenen sonuc ${scanned} deterministik seed icinde bulunamadi.`
     };
   }
 
