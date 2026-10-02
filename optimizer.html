@@ -82,6 +82,7 @@
             <button class="objective-button active" data-objective="min_loss" type="button">En Az Kayıpla Kazan</button>
             <button class="objective-button" data-objective="min_army" type="button">En Az Orduyla Kazan</button>
             <button class="objective-button" data-objective="safe_win" type="button">Daha Guvenli Kazan</button>
+            <button class="objective-button" data-objective="min_time" type="button">En Kisa Yenilenme</button>
           </div>
         </div>
 
@@ -92,6 +93,7 @@
               <option value="min_loss">En Az Kayipla Kazan</option>
               <option value="min_army">En Az Orduyla Kazan</option>
               <option value="safe_win">Daha Guvenli Kazan</option>
+              <option value="min_time">En Kisa Yenilenme</option>
             </select>
           </label>
           <label class="select-wrap optimizer-band-preset-wrap" for="optimizerWinRateThreshold">
@@ -168,6 +170,19 @@
             <span class="roster-metric">Kazanan sonuc icin min kayip</span>
           </div>
           <div id="optimizerLossConstraintInputs" class="unit-grid"></div>
+        </section>
+
+        <div class="panel-head-tools panel-head-tools-secondary optimizer-secondary-inline">
+          <button id="lossCapToggleBtn" class="button button-ghost" type="button" aria-expanded="false" aria-controls="optimizerLossCapPanel">Kayip Siniri</button>
+        </div>
+
+        <section id="optimizerLossCapPanel" class="roster-card roster-card-ally" hidden>
+          <div class="roster-head">
+            <span class="roster-dot" aria-hidden="true"></span>
+            <h3>Maksimum Kayip</h3>
+            <span class="roster-metric">Bos = sinirsiz. En kotu denemede bile bu sayi asilmaz.</span>
+          </div>
+          <div id="optimizerLossCapInputs" class="unit-grid"></div>
         </section>
 
           </div>
@@ -401,7 +416,7 @@
   <script src="site-gate.js?v=20260703-01" defer></script>
   <script src="firebase-client.js?v=20260610-3" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="battle-core.js?v=20260927-1" defer></script>
-  <script src="optimizer.js?v=20260925-1" defer></script>
+  <script src="battle-core.js?v=20260927-3" defer></script>
+  <script src="optimizer.js?v=20260927-1" defer></script>
 </body>
 </html>

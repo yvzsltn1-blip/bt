@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         BiteFight Birlik + Magara + Orb
 // @namespace    https://bt-analiz.web.app
-// @version      1.2.9
+// @version      1.3.0
 // @description  Birlik, magara, orb ve skill basmayi tek panelde birlestirir; oncelikli tek tus baslatma.
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
-// @require      https://bt-analiz.web.app/battle-core.js?v=20260927-1
+// @require      https://bt-analiz.web.app/battle-core.js?v=20260927-3
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
@@ -9106,7 +9106,7 @@ self.onmessage = (event) => {
     30: { label: '%30', multiplier: 0.7 },
     60: { label: '%60', multiplier: 0.4 }
   };
-  const DEFAULTS = { skillId: 1, count: 300, minDelay: 1, maxDelay: 3, discount: '60' };
+  const DEFAULTS = { skillId: 1, skillIds: [1], count: 300, minDelay: 1, maxDelay: 3, discount: '60' };
 
   let tabId = sessionStorage.getItem(TAB_ID_KEY);
   if (!tabId) {
@@ -9173,11 +9173,11 @@ self.onmessage = (event) => {
 
   function saveConfig() {
     const panel = document.getElementById(PANEL_ID);
-    if (!panel || !panel.querySelector('#bfs-skill')) return;
+    if (!panel || !panel.querySelector('#bfs-count')) return;
     const stored = loadConfig();
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       ...stored,
-      skillId: Number(panel.querySelector('#bfs-skill').value),
+      skillIds: selectedSkills().map((skill) => skill.id),
       count: Math.max(1, parseNumber(panel.querySelector('#bfs-count').value)),
       minDelay: Math.max(0, Number(panel.querySelector('#bfs-min').value) || 0),
       maxDelay: Math.max(0, Number(panel.querySelector('#bfs-max').value) || 0),
@@ -9257,12 +9257,12 @@ self.onmessage = (event) => {
 
   // Eldeki altinla kac basim yapilabilir? (Her basimda maliyet arttigi icin
   // adim adim toplanir.)
-  function affordableCount(level, gold, multiplier) {
-    if (!level || !gold) return 0;
+  function affordableCount(levels, gold, multiplier) {
+    if (!levels.length || levels.some((level) => !level) || !gold) return 0;
     let total = 0;
     let count = 0;
     while (count < 50000) {
-      const next = total + skillCost(level + count, multiplier);
+      const next = total + levels.reduce((sum, level) => sum + skillCost(level + count, multiplier), 0);
       if (next > gold) break;
       total = next;
       count += 1;
@@ -9270,16 +9270,41 @@ self.onmessage = (event) => {
     return count;
   }
 
-  function selectedSkill() {
-    const id = Number(document.querySelector('#bfs-skill')?.value || 1);
-    return SKILLS.find((skill) => skill.id === id) || SKILLS[0];
+  function normalizeSkillIds(ids) {
+    // Oyun sayfasi (Prototype.js) diziyi JSON'a "[2,3,4]" metni olarak yazabiliyor.
+    const list = (typeof ids === 'string' ? ids.match(/\d+/g) || [] : Array.isArray(ids) ? ids : [ids]).map(Number);
+    return SKILLS.map((skill) => skill.id).filter((id) => list.includes(id));
+  }
+
+  // Coklu skill basimi: secilen skiller sirayla donusumlu basilir, her skill
+  // perSkill adede ulasinca siradan cikar. Eski tek-skill durumlari skillId/count
+  // alanlarindan turetilir.
+  function runPlan(state) {
+    const skillIds = normalizeSkillIds(state?.skillIds?.length ? state.skillIds : [state?.skillId]);
+    const perSkill = Math.max(1, Number(state?.perSkill) || Number(state?.count) || 1);
+    return { skillIds, perSkill, doneBy: { ...(state?.doneBy || {}) } };
+  }
+
+  function nextSkill(state) {
+    const { skillIds, perSkill, doneBy } = runPlan(state);
+    const start = Math.max(0, Number(state.cursor) || 0);
+    for (let offset = 0; offset < skillIds.length; offset += 1) {
+      const id = skillIds[(start + offset) % skillIds.length];
+      if ((Number(doneBy[id]) || 0) < perSkill) return SKILLS.find((skill) => skill.id === id);
+    }
+    return null;
+  }
+
+  function selectedSkills() {
+    const ids = [...document.querySelectorAll('[name="bfs-skill"]:checked')].map((input) => Number(input.value));
+    return SKILLS.filter((skill) => ids.includes(skill.id));
   }
 
   function readForm() {
     const min = Math.max(0, Number(document.querySelector('#bfs-min').value) || 0);
     const max = Math.max(min, Number(document.querySelector('#bfs-max').value) || 0);
     return {
-      skill: selectedSkill(),
+      skills: selectedSkills(),
       count: Math.min(50000, Math.max(1, parseNumber(document.querySelector('#bfs-count').value))),
       minDelay: min,
       maxDelay: max,
@@ -9294,6 +9319,27 @@ self.onmessage = (event) => {
     el.dataset.tone = tone;
   }
 
+  // Basim sirasinda: istenen eylem icin kalan basimlarin toplam maliyeti (0'a iner).
+  function updateRemaining() {
+    const el = document.querySelector('#bfs-left');
+    if (!el) return;
+    const state = loadRunState();
+    if (!state?.active) {
+      el.textContent = state && state.tone === 'success' ? '0 altın' : '—';
+      return;
+    }
+    const plan = runPlan(state);
+    const multiplier = DISCOUNTS[document.querySelector('[name="bfs-discount"]:checked')?.value || 'none'].multiplier;
+    let left = 0;
+    for (const id of plan.skillIds) {
+      const skill = SKILLS.find((item) => item.id === id);
+      const level = skill ? getLevel(document, skill) : 0;
+      const remaining = Math.max(0, plan.perSkill - (Number(plan.doneBy[id]) || 0));
+      if (level && remaining) left += totalCost(level, remaining, multiplier);
+    }
+    el.textContent = formatNumber(left) + ' altın';
+  }
+
   function updateProgress(total) {
     const bar = document.querySelector('#bfs-progress-bar');
     if (!bar) return;
@@ -9301,6 +9347,7 @@ self.onmessage = (event) => {
     bar.style.width = `${percent}%`;
     document.querySelector('#bfs-progress-text').textContent = `${formatNumber(completed)} / ${formatNumber(total)}`;
     document.querySelector('#bfs-spent').textContent = `${formatNumber(spent)} altın`;
+    updateRemaining();
   }
 
   function formatDuration(seconds) {
@@ -9313,17 +9360,21 @@ self.onmessage = (event) => {
 
   function refreshEstimate() {
     const panel = document.getElementById(PANEL_ID);
-    if (!panel || !panel.querySelector('#bfs-skill') || running) return;
+    if (!panel || !panel.querySelector('#bfs-count') || running) return;
     const form = readForm();
-    const level = getLevel(document, form.skill);
+    const levels = form.skills.map((skill) => ({ skill, level: getLevel(document, skill) }));
+    const level = levels.length > 0 && levels.every((item) => item.level);
     const gold = getGold(document);
     const multiplier = DISCOUNTS[form.discount].multiplier;
-    const estimate = level ? totalCost(level, form.count, multiplier) : 0;
-    const secondsMin = form.count > 1 ? (form.count - 1) * form.minDelay : 0;
-    const secondsMax = form.count > 1 ? (form.count - 1) * form.maxDelay : 0;
+    const estimate = level ? levels.reduce((sum, item) => sum + totalCost(item.level, form.count, multiplier), 0) : 0;
+    const presses = form.count * form.skills.length;
+    const secondsMin = presses > 1 ? (presses - 1) * form.minDelay : 0;
+    const secondsMax = presses > 1 ? (presses - 1) * form.maxDelay : 0;
     const enough = Boolean(estimate) && Boolean(gold) && estimate <= gold;
 
-    panel.querySelector('#bfs-current').textContent = level ? formatNumber(level) : 'Bulunamadı';
+    panel.querySelector('#bfs-current').textContent = levels.length
+      ? levels.map((item) => `${item.skill.name} ${item.level ? formatNumber(item.level) : '?'}`).join(' · ')
+      : 'Skill seç';
     panel.querySelector('#bfs-gold').textContent = gold ? `${formatNumber(gold)} altın` : 'Bulunamadı';
     panel.querySelector('#bfs-cost').textContent = estimate ? `${formatNumber(estimate)} altın` : 'Hesaplanamadı';
     panel.querySelector('#bfs-remaining').textContent = estimate && gold
@@ -9331,12 +9382,13 @@ self.onmessage = (event) => {
       : '—';
     panel.querySelector('#bfs-duration').textContent = `${formatDuration(secondsMin)} – ${formatDuration(secondsMax)}`;
     panel.querySelector('#bfs-max-count').textContent = level && gold
-      ? `${formatNumber(affordableCount(level, gold, multiplier))} basım`
+      ? `${formatNumber(affordableCount(levels.map((item) => item.level), gold, multiplier))} basım${levels.length > 1 ? ' / skill' : ''}`
       : '—';
 
-    if (!level) setStatus('Skill tablosu bulunamadı; Profil > Özellikler sekmesini aç.', 'error');
+    if (!form.skills.length) setStatus('En az bir skill seç.', 'error');
+    else if (!level) setStatus('Skill tablosu bulunamadı; Profil > Özellikler sekmesini aç.', 'error');
     else if (!enough) setStatus('Altın tahmini maliyetin altında; basım altın bitince durur.', 'warn');
-    else setStatus('Hazır · altın yeterli.', 'ready');
+    else setStatus(`Hazır · ${form.skills.length} skill × ${formatNumber(form.count)} = ${formatNumber(presses)} basım · altın yeterli.`, 'ready');
     saveConfig();
   }
 
@@ -9379,7 +9431,11 @@ self.onmessage = (event) => {
   function performNavigationStep() {
     const state = loadRunState();
     if (!state?.active || state.owner !== tabId || state.pending) return;
-    const skill = SKILLS.find((item) => item.id === Number(state.skillId)) || SKILLS[0];
+    const skill = nextSkill(state);
+    if (!skill) {
+      finishTraining(state, `Tamamlandı · ${state.completed} basım`, 'success');
+      return;
+    }
     const link = findTrainingLink(document, skill.id);
     if (!link) {
       finishTraining(state, `${skill.name} basma bağlantısı bulunamadı`, 'error');
@@ -9402,8 +9458,9 @@ self.onmessage = (event) => {
 
     const pendingState = saveRunState({
       ...state,
-      pending: { level: currentLevel, gold: currentGold, cost: actualCost },
-      status: `${state.completed + 1}. ${skill.name} basılıyor…`,
+      skillId: skill.id,
+      pending: { skillId: skill.id, level: currentLevel, gold: currentGold, cost: actualCost },
+      status: `${state.completed + 1}. ${skill.name} (${(Number(runPlan(state).doneBy[skill.id]) || 0) + 1}/${runPlan(state).perSkill}) basılıyor…`,
       tone: 'running'
     });
     renderRunState(pendingState);
@@ -9434,7 +9491,7 @@ self.onmessage = (event) => {
     if (!state.active || state.owner !== tabId) return;
 
     if (state.pending) {
-      const skill = SKILLS.find((item) => item.id === Number(state.skillId)) || SKILLS[0];
+      const skill = SKILLS.find((item) => item.id === Number(state.pending.skillId ?? state.skillId)) || SKILLS[0];
       const currentLevel = getLevel(document, skill);
       const currentGold = getGold(document);
       const succeeded = (currentLevel > 0 && currentLevel > state.pending.level) ||
@@ -9444,8 +9501,11 @@ self.onmessage = (event) => {
         return;
       }
 
+      const plan = runPlan(state);
       state = saveRunState({
         ...state,
+        doneBy: { ...plan.doneBy, [skill.id]: (Number(plan.doneBy[skill.id]) || 0) + 1 },
+        cursor: plan.skillIds.indexOf(skill.id) + 1,
         completed: state.completed + 1,
         spent: state.spent + (state.pending.cost || 0),
         pending: null
@@ -9467,7 +9527,11 @@ self.onmessage = (event) => {
   async function startTraining() {
     if (running) return;
     const form = readForm();
-    if (!findTrainingLink(document, form.skill.id)) {
+    if (!form.skills.length) {
+      setStatus('En az bir skill seç.', 'error');
+      return;
+    }
+    if (form.skills.some((skill) => !findTrainingLink(document, skill.id))) {
       setStatus('Önce Profil > Özellikler sekmesini aç.', 'error');
       return;
     }
@@ -9485,8 +9549,12 @@ self.onmessage = (event) => {
     const state = saveRunState({
       active: true,
       owner: tabId,
-      skillId: form.skill.id,
-      count: form.count,
+      skillId: form.skills[0].id,
+      skillIds: form.skills.map((skill) => skill.id),
+      perSkill: form.count,
+      doneBy: {},
+      cursor: 0,
+      count: form.count * form.skills.length,
       minDelay: form.minDelay,
       maxDelay: form.maxDelay,
       completed: 0,
@@ -9518,6 +9586,9 @@ self.onmessage = (event) => {
       #${PANEL_ID} label{display:grid;gap:4px;color:#a99273;font-size:10px}
       #${PANEL_ID} input,#${PANEL_ID} select{width:100%;height:29px;padding:0 8px;color:#f2dfc1;background:#100c09;border:1px solid #594027;border-radius:7px;outline:none;font:inherit}
       #${PANEL_ID} input:focus,#${PANEL_ID} select:focus{border-color:#d3aa6b}
+      #${PANEL_ID} .bfs-skills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}#${PANEL_ID} .bfs-skills label{display:block;flex:1 1 auto}
+      #${PANEL_ID} .bfs-skills input{position:absolute;opacity:0;pointer-events:none}#${PANEL_ID} .bfs-skills span{display:block;padding:6px;text-align:center;border:1px solid #4a3521;border-radius:8px;background:#120e0a;color:#a9957b;cursor:pointer;font-weight:700}
+      #${PANEL_ID} .bfs-skills input:checked+span{color:#191008;background:#d3aa6b;border-color:#e6c48c}
       #${PANEL_ID} .bfs-discounts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:9px 0}
       #${PANEL_ID} .bfs-discounts label{display:block}
       #${PANEL_ID} .bfs-discounts input{position:absolute;opacity:0;pointer-events:none}
@@ -9565,11 +9636,14 @@ self.onmessage = (event) => {
     }
 
     const config = loadConfig();
+    const skillIds = normalizeSkillIds(config.skillIds ?? config.skillId);
     panel.innerHTML = `
       <div class="bfs-box">
+        <div class="bfs-skills" role="group" aria-label="Skiller">
+          ${SKILLS.map((skill) => `<label><input type="checkbox" name="bfs-skill" value="${skill.id}"${skillIds.includes(skill.id) ? ' checked' : ''}><span>${skill.name}</span></label>`).join('')}
+        </div>
         <div class="bfs-grid">
-          <label>Skill<select id="bfs-skill">${SKILLS.map((skill) => `<option value="${skill.id}"${skill.id === Number(config.skillId) ? ' selected' : ''}>${skill.name}</option>`).join('')}</select></label>
-          <label>Basım adedi<input id="bfs-count" type="number" min="1" max="50000" value="${config.count}"></label>
+          <label style="grid-column:1/-1">Skill başına basım adedi<input id="bfs-count" type="number" min="1" max="50000" value="${config.count}"></label>
           <label>Min. bekleme (sn)<input id="bfs-min" type="number" min="0" step="0.1" value="${config.minDelay}"></label>
           <label>Maks. bekleme (sn)<input id="bfs-max" type="number" min="0" step="0.1" value="${config.maxDelay}"></label>
         </div>
@@ -9583,6 +9657,7 @@ self.onmessage = (event) => {
           <div class="bfs-metric"><small>Tahmini kalan</small><strong id="bfs-remaining">—</strong></div>
           <div class="bfs-metric"><small>Süre aralığı</small><strong id="bfs-duration">—</strong></div>
           <div class="bfs-metric"><small>Altın yeter</small><strong id="bfs-max-count">—</strong></div>
+          <div class="bfs-metric" style="grid-column:1/-1"><small>Kalan tutar (eylem için)</small><strong id="bfs-left">—</strong></div>
         </div>
         <button class="bfs-fill" id="bfs-max-btn" type="button">Altının yettiği kadar bas</button>
         <div class="bfs-progress"><i id="bfs-progress-bar"></i></div>
@@ -9601,9 +9676,9 @@ self.onmessage = (event) => {
     panel.querySelector('#bfs-stop').addEventListener('click', stopTraining);
     panel.querySelector('#bfs-max-btn').addEventListener('click', () => {
       const form = readForm();
-      const level = getLevel(document, form.skill);
+      const levels = form.skills.map((skill) => getLevel(document, skill));
       const gold = getGold(document);
-      const max = affordableCount(level, gold, DISCOUNTS[form.discount].multiplier);
+      const max = affordableCount(levels, gold, DISCOUNTS[form.discount].multiplier);
       if (!max) {
         setStatus('Altın tek basıma bile yetmiyor.', 'error');
         return;

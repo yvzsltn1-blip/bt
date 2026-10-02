@@ -28,6 +28,10 @@ const optimizerConstraintInfo = document.querySelector("#optimizerConstraintInfo
 const lossConstraintToggleBtn = document.querySelector("#lossConstraintToggleBtn");
 const optimizerLossConstraintPanel = document.querySelector("#optimizerLossConstraintPanel");
 const optimizerLossConstraintInputs = document.querySelector("#optimizerLossConstraintInputs");
+const lossCapToggleBtn = document.querySelector("#lossCapToggleBtn");
+const optimizerLossCapPanel = document.querySelector("#optimizerLossCapPanel");
+const optimizerLossCapInputsHost = document.querySelector("#optimizerLossCapInputs");
+const optimizerLossCapInputs = {};
 const optimizerSearchBandPresetInput = document.querySelector("#optimizerSearchBandPreset");
 const optimizerSearchBandPresetMobileInput = document.querySelector("#optimizerSearchBandPresetMobile");
 const optimizerCustomBandInputs = document.querySelector("#optimizerCustomBandInputs");
@@ -168,6 +172,9 @@ let currentFavoriteModalSignature = null;
 let currentFavoriteModalPendingEntry = null;
 let extendedSearchEnabled = false;
 let lossConstraintModeEnabled = false;
+let lossCapModeEnabled = false;
+// Birim yeniden uretim suresi (dk/adet); battle-core DEFAULT_RECOVERY_MINUTES ile ayni.
+const RECOVERY_MINUTES = { bats: 3, ghouls: 5, thralls: 10, banshees: 15, necromancers: 20, gargoyles: 30, witches: 45, rotmaws: 180 };
 let optimizerManualPointRangeEnabled = false;
 
 function isMinimumOptimizerVariant() {
@@ -323,7 +330,7 @@ function syncManualPointRangeDefaults({ force = false } = {}) {
 }
 
 function normalizeOptimizerObjective(objective) {
-  if (objective === "min_army" || objective === "safe_win") {
+  if (objective === "min_army" || objective === "safe_win" || objective === "min_time") {
     return objective;
   }
   return "min_loss";
@@ -340,6 +347,9 @@ function getOptimizerObjectiveStatusText(objective) {
   }
   if (normalizedObjective === "safe_win") {
     return "Hedef: daha guvenli kazan";
+  }
+  if (normalizedObjective === "min_time") {
+    return "Hedef: en kisa yenilenme (bekleme suresi)";
   }
   return "Hedef: en az kayipla kazan";
 }
@@ -788,6 +798,7 @@ buildWrongLossInputs();
 buildInputs(optimizerEnemyInputs, ENEMY_UNITS, "enemy");
 buildInputs(optimizerAllyInputs, ALLY_UNITS, "ally");
 buildLossConstraintInputs();
+buildLossCapInputs();
 
 wireSequentialInputOrder([
   optimizerSearchBandPresetInput,
@@ -818,6 +829,7 @@ if (isQuickVariant()) {
 loadExtendedSearchSetting();
 syncExtendedSearchToggle();
 syncLossConstraintToggle();
+syncLossCapToggle();
 renderPointSummary();
 applyStageFromQuery();
 void initializeFavoriteStrategies();
@@ -993,6 +1005,15 @@ if (tekilV2ModeBtn) {
     syncTekilV2ModeButton();
     invalidateSearchSession();
     optimizerStatus.textContent = optimizerTekilV2Mode ? "Tekil v2 açıldı" : "Tekil v2 kapatıldı";
+  });
+}
+
+if (lossCapToggleBtn) {
+  lossCapToggleBtn.addEventListener("click", () => {
+    lossCapModeEnabled = !lossCapModeEnabled;
+    syncLossCapToggle();
+    invalidateSearchSession();
+    optimizerStatus.textContent = lossCapModeEnabled ? "Kayip siniri acildi" : "Kayip siniri kapatildi";
   });
 }
 
@@ -1453,6 +1474,7 @@ async function runOptimizerSearch(batchRuns) {
     const minimumRequiredCounts = collectMinimumRequiredCounts();
     const requiredLossCounts = collectRequiredLossCounts();
     const requiredLossExactFlags = collectRequiredLossExactFlags();
+    const maxLossCaps = collectLossCaps();
     const searchBandSettings = collectSearchBandSettings();
     const stage = getCommittedStage();
     if (!stage) {
@@ -1511,7 +1533,7 @@ async function runOptimizerSearch(batchRuns) {
       optimizerTekilV2Mode,
       optimizerStoneMode,
       optimizerRoundingMode
-    );
+    ) + (Object.keys(maxLossCaps).length ? `|caps:${JSON.stringify(maxLossCaps)}` : "");
     const continuing = optimizerSearchSession.key === searchKey;
     let runIndex = continuing ? optimizerSearchSession.runCount : 0;
     let bestResult = continuing ? optimizerSearchSession.bestResult : null;
@@ -1553,6 +1575,7 @@ async function runOptimizerSearch(batchRuns) {
         minimumRequiredCounts,
         requiredLossCounts,
         requiredLossExactFlags,
+        maxLossCaps,
         minWinRate: optimizerActiveMinWinRate,
         minVerifyTrials: optimizerActiveMinVerifyTrials,
         trialCount: lastRunConfig.trialCount,
@@ -1640,6 +1663,7 @@ async function runOptimizerSearch(batchRuns) {
       stoneMode: optimizerStoneMode,
       requiredLossCounts,
       requiredLossExactFlags,
+      maxLossCaps,
       totalCombinationCount,
       bandCombinationCount,
       batchRuns: completedRuns,
@@ -1927,6 +1951,12 @@ function setOptimizerBusy(isBusy) {
   if (lossConstraintToggleBtn) {
     lossConstraintToggleBtn.disabled = isBusy;
   }
+  if (lossCapToggleBtn) {
+    lossCapToggleBtn.disabled = isBusy;
+  }
+  Object.values(optimizerLossCapInputs).forEach((input) => {
+    input.disabled = isBusy;
+  });
 }
 
 function waitForNextFrame() {
@@ -3063,7 +3093,16 @@ function pickBetterOptimizerResult(left, right) {
     if (leftSource.winRate !== rightSource.winRate) {
       return leftSource.winRate > rightSource.winRate ? left : right;
     }
-    if (objective === "min_army") {
+    if (objective === "min_time") {
+      const lr = leftSource.expectedRecoveryMinutes ?? Number.POSITIVE_INFINITY;
+      const rr = rightSource.expectedRecoveryMinutes ?? Number.POSITIVE_INFINITY;
+      if (lr !== rr) {
+        return lr < rr ? left : right;
+      }
+      if ((leftSource[lossKey] ?? Number.POSITIVE_INFINITY) !== (rightSource[lossKey] ?? Number.POSITIVE_INFINITY)) {
+        return (leftSource[lossKey] ?? Number.POSITIVE_INFINITY) < (rightSource[lossKey] ?? Number.POSITIVE_INFINITY) ? left : right;
+      }
+    } else if (objective === "min_army") {
       if (leftSource.avgUsedPoints !== rightSource.avgUsedPoints) {
         return leftSource.avgUsedPoints < rightSource.avgUsedPoints ? left : right;
       }
@@ -3196,6 +3235,88 @@ function buildLossConstraintInputs() {
   });
 
   wireSequentialInputOrder(inputs);
+}
+
+function buildLossCapInputs() {
+  if (!optimizerLossCapInputsHost) {
+    return;
+  }
+  optimizerLossCapInputsHost.innerHTML = "";
+  const inputs = [];
+  ALLY_UNITS.forEach((unit) => {
+    const row = document.createElement("div");
+    row.className = "unit-row";
+    const label = document.createElement("label");
+    label.htmlFor = `optimizer-loss-cap-${unit.key}`;
+    label.textContent = `${unit.label} · ${RECOVERY_MINUTES[unit.key]} dk`;
+    label.classList.add("unit-row-title");
+    // createNumberInput bos alani "0" yapar; burada bos = sinirsiz oldugu icin ayri alan.
+    const input = document.createElement("input");
+    input.id = `optimizer-loss-cap-${unit.key}`;
+    input.type = "text";
+    input.inputMode = "numeric";
+    input.pattern = "[0-9]*";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    input.enterKeyHint = "done";
+    input.placeholder = "sinirsiz";
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D+/g, "");
+      invalidateSearchSession();
+    });
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "unit-row-inputs";
+    inputGroup.appendChild(createUnitInputStack("Max Kayip", input, "is-minimum"));
+    row.append(label, inputGroup);
+    optimizerLossCapInputsHost.appendChild(row);
+    optimizerLossCapInputs[unit.key] = input;
+    inputs.push(input);
+  });
+  wireSequentialInputOrder(inputs);
+}
+
+function syncLossCapToggle() {
+  if (lossCapToggleBtn) {
+    lossCapToggleBtn.textContent = lossCapModeEnabled ? "Kayip Siniri Acik" : "Kayip Siniri";
+    lossCapToggleBtn.setAttribute("aria-expanded", lossCapModeEnabled ? "true" : "false");
+    lossCapToggleBtn.setAttribute("aria-pressed", lossCapModeEnabled ? "true" : "false");
+  }
+  if (optimizerLossCapPanel) {
+    optimizerLossCapPanel.hidden = !lossCapModeEnabled;
+  }
+}
+
+// Bos alan = sinirsiz. Yalniz panel acikken uygulanir.
+function collectLossCaps() {
+  const caps = {};
+  if (!lossCapModeEnabled) {
+    return caps;
+  }
+  ALLY_UNITS.forEach((unit) => {
+    const raw = String(optimizerLossCapInputs[unit.key]?.value || "").trim();
+    if (raw !== "") {
+      caps[unit.key] = parseCount(raw, `${unit.label} maksimum kayip`);
+    }
+  });
+  return caps;
+}
+
+function formatLossCaps(caps) {
+  return ALLY_UNITS.filter((unit) => caps[unit.key] !== undefined).map((unit) => `${unit.label} <=${caps[unit.key]}`).join(", ");
+}
+
+function formatRecoverySummary(entry) {
+  if (!entry || !Number.isFinite(entry.expectedRecoveryMinutes)) {
+    return null;
+  }
+  const fmt = (m) => (m >= 60 ? `${Math.floor(m / 60)} sa ${Math.round(m % 60)} dk` : `${Math.round(m)} dk`);
+  return `ortalama ${fmt(entry.expectedRecoveryMinutes)}, en kotu ${fmt(entry.worstRecoveryMinutes || 0)}`;
+}
+
+function formatWorstLosses(entry) {
+  const worst = entry?.worstAllyLosses || {};
+  const parts = ALLY_UNITS.filter((unit) => (worst[unit.key] || 0) > 0).map((unit) => `${worst[unit.key]} ${getSummaryUnitName(unit.key)}`);
+  return parts.length ? parts.join(", ") : "kayip yok";
 }
 
 function syncLossConstraintToggle() {
@@ -3859,6 +3980,11 @@ function resetValues() {
     }
   });
   lossConstraintModeEnabled = false;
+  lossCapModeEnabled = false;
+  Object.values(optimizerLossCapInputs).forEach((input) => {
+    input.value = "";
+  });
+  syncLossCapToggle();
   optimizerManualPointRangeEnabled = false;
   syncManualPointRangeDefaults({ force: true });
   syncLossConstraintToggle();
@@ -4074,6 +4200,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
     `- kazanma orani hedefi: %${Math.round(optimizerActiveMinWinRate * 100)}+`,
     ...(activeMinimumEntries.length ? [`- min kullanim: ${formatMinimumRequirements(activeMinimumEntries, 6)}`] : []),
     ...(activeRequiredLossEntries.length ? [`- kayip hedefi: ${formatRequiredLossRequirements(activeRequiredLossEntries, 6)}`] : []),
+    ...(meta.maxLossCaps && Object.keys(meta.maxLossCaps).length ? [`- kayip siniri (en kotu deneme): ${formatLossCaps(meta.maxLossCaps)}`] : []),
     `- arama bandindaki kombinasyon: ${formatLargeInteger(meta.bandCombinationCount)}`,
     `- toplam olasi kombinasyon: ${formatLargeInteger(meta.totalCombinationCount)}`,
     `- deneme: ${meta.runIndex}`,
@@ -4084,7 +4211,8 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
       `- puan boslugu: ${formatOptimizerPointSlackSummary(maxPoints, source.avgUsedPoints)}`,
       ...(result.possible ? [`- stabilite sinyali: ${getOptimizerStabilitySignal(source)}`] : []),
       ...(lossRangeSummary ? [`- beklenen kayip araligi: ${lossRangeSummary}`] : []),
-      `- en cok yiprananlar: ${formatOptimizerTopLossSummary(source)}`
+      `- en cok yiprananlar: ${formatOptimizerTopLossSummary(source)}`,
+      ...(formatRecoverySummary(source) ? [`- yenilenme suresi: ${formatRecoverySummary(source)}`, `- en kotu denemedeki kayip: ${formatWorstLosses(source)}`] : [])
     ] : [])
   ];
 
@@ -4101,7 +4229,7 @@ function renderOptimizerResult(result, stage, maxPoints, meta) {
 
     optimizerSummary.innerHTML = "";
     optimizerSummary.appendChild(summaryBlock);
-    recommendationPanel.innerHTML = result?.constraintIssue === "required-losses-not-found"
+    recommendationPanel.innerHTML = result?.constraintIssue === "required-losses-not-found" || result?.constraintIssue === "loss-caps-not-found"
       ? '<p class="summary-empty">Istenen sonuca uygun dizilis bulunamadi.</p>'
       : '<p class="summary-empty">Bu kosullarda simulasyona acilacak bir dizilim uretilemedi.</p>';
     optimizerLogOutput.textContent = "Gecerli bir aday uretilemedigi icin savas gunlugu hazirlanmadi.";
@@ -4272,6 +4400,9 @@ function getConstraintIssueMessage(issue) {
   }
   if (issue === "required-losses-not-found") {
     return "Istenen sonuca uygun dizilis bulunamadi.";
+  }
+  if (issue === "loss-caps-not-found") {
+    return "Kayip siniri icinde kalan kazanan dizilis bulunamadi (dusman on safta en yavas birime vurur; T8 hep ilk hedeftir).";
   }
   if (issue === "minimum-exceeds-pool") {
     return "Min kullanim kisiti eldeki ordudan buyuk.";
@@ -6341,6 +6472,9 @@ function getObjectiveLabel(objective) {
   }
   if (normalizedObjective === "safe_win") {
     return "Daha Guvenli Kazan";
+  }
+  if (normalizedObjective === "min_time") {
+    return "En Kisa Yenilenme";
   }
   return "En Az Kayipla Kazan";
 }

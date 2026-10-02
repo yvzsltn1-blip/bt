@@ -26,6 +26,9 @@
   ];
 
   const ALLY_POINT_COSTS = [2, 3, 4, 7, 10, 15, 18, 30];
+  // Birim basina yeniden uretim suresi (dakika). Her tur kendi kuyrugunda paralel uretilir;
+  // bir savasin yenilenme suresi = max(kayip x sure).
+  const DEFAULT_RECOVERY_MINUTES = { bats: 3, ghouls: 5, thralls: 10, banshees: 15, necromancers: 20, gargoyles: 30, witches: 45, rotmaws: 180 };
 
   const UNIT_DESC = [
     ["İskelet (R1)", "enemy", "brute", "front", 3, 4, 3, 0, 0],
@@ -1592,7 +1595,7 @@
   }
 
   function compareEvaluations(a, b, options = {}) {
-    const objective = options.objective === "min_army" || options.objective === "safe_win"
+    const objective = options.objective === "min_army" || options.objective === "safe_win" || options.objective === "min_time"
       ? options.objective
       : "min_loss";
     const roundingMode = normalizeRoundingMode(options.roundingMode);
@@ -1614,7 +1617,19 @@
       if (a.winRate !== b.winRate) {
         return b.winRate - a.winRate;
       }
-      if (objective === "min_army") {
+      if (objective === "min_time") {
+        const ar = a.expectedRecoveryMinutes ?? Number.POSITIVE_INFINITY;
+        const br = b.expectedRecoveryMinutes ?? Number.POSITIVE_INFINITY;
+        if (Math.abs(ar - br) > 1e-9) {
+          return ar - br;
+        }
+        if ((a[lossMetricKey] ?? Number.POSITIVE_INFINITY) !== (b[lossMetricKey] ?? Number.POSITIVE_INFINITY)) {
+          return (a[lossMetricKey] ?? Number.POSITIVE_INFINITY) - (b[lossMetricKey] ?? Number.POSITIVE_INFINITY);
+        }
+        if (a.avgUsedPoints !== b.avgUsedPoints) {
+          return a.avgUsedPoints - b.avgUsedPoints;
+        }
+      } else if (objective === "min_army") {
         if (a.avgUsedPoints !== b.avgUsedPoints) {
           return a.avgUsedPoints - b.avgUsedPoints;
         }
@@ -1645,6 +1660,15 @@
       return a.signature.localeCompare(b.signature);
     }
 
+    // Kayip siniri varsa: kazanma esigini gecip siniri az asan aday daha iyi
+    if (a.lossCapExcess || b.lossCapExcess) {
+      if (Boolean(a.meetsWinRate) !== Boolean(b.meetsWinRate)) {
+        return a.meetsWinRate ? -1 : 1;
+      }
+      if ((a.lossCapExcess || 0) !== (b.lossCapExcess || 0)) {
+        return (a.lossCapExcess || 0) - (b.lossCapExcess || 0);
+      }
+    }
     if (a.winRate !== b.winRate) {
       return b.winRate - a.winRate;
     }
@@ -2320,9 +2344,20 @@
     maxPoints = maximumSearchPoints;
 
     const minWinRate = options.minWinRate || 0.75;
-    const objective = options.objective === "min_army" || options.objective === "safe_win"
+    // Birim basina kayip siniri (en kotu deneme): { rotmaws: 1 } -> hicbir denemede 1'den fazla T8 olmez.
+    const lossCaps = Object.fromEntries(ALLY_UNITS.map((unit) => {
+      const cap = options.maxLossCaps ? options.maxLossCaps[unit.key] : undefined;
+      return [unit.key, cap === undefined || cap === null || cap === "" || !Number.isFinite(Number(cap)) ? null : Math.max(0, Math.floor(Number(cap)))];
+    }));
+    const hasLossCaps = ALLY_UNITS.some((unit) => lossCaps[unit.key] !== null);
+    const recoveryMinutes = { ...DEFAULT_RECOVERY_MINUTES, ...(options.recoveryMinutes || {}) };
+    const meetsLossCaps = (worst) => ALLY_UNITS.every((unit) => lossCaps[unit.key] === null || (worst?.[unit.key] || 0) <= lossCaps[unit.key]);
+    const lossRecoveryMinutes = (losses) => ALLY_UNITS.reduce((m, unit) => Math.max(m, (losses?.[unit.key] || 0) * (Number(recoveryMinutes[unit.key]) || 0)), 0);
+    const objective = options.objective === "min_army" || options.objective === "safe_win" || options.objective === "min_time"
       ? options.objective
       : "min_loss";
+    // Ek olcumler yalniz gerektiginde (performans: varsayilan aramalar etkilenmesin).
+    const trackRecovery = hasLossCaps || objective === "min_time";
     const requestedRoundingMode = normalizeRoundingMode(options.roundingMode);
     const actualGuardMode = requestedRoundingMode === "exact";
     const roundingMode = actualGuardMode ? "legacy" : requestedRoundingMode;
@@ -2542,6 +2577,9 @@
         totalStoneAdjustedAllyLossesSum: Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0])),
         allyLossesSum: Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0])),
         stoneAdjustedAllyLossesSum: Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0])),
+        worstAllyLosses: Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0])),
+        recoveryMinutesSum: 0,
+        worstRecoveryMinutes: 0,
         winningSeeds: []
       };
     }
@@ -2588,6 +2626,15 @@
           acc.totalAllyLossesSum[unit.key] += result.allyLosses?.[unit.key] || 0;
           acc.totalStoneAdjustedAllyLossesSum[unit.key] += stoneProfile.permanentLossesByKey[unit.key] || 0;
         });
+        if (trackRecovery) {
+          const trialLosses = stoneMode ? stoneProfile.permanentLossesByKey : (result.allyLosses || {});
+          ALLY_UNITS.forEach((unit) => {
+            acc.worstAllyLosses[unit.key] = Math.max(acc.worstAllyLosses[unit.key], trialLosses[unit.key] || 0);
+          });
+          const trialRecovery = lossRecoveryMinutes(trialLosses);
+          acc.recoveryMinutesSum += trialRecovery;
+          acc.worstRecoveryMinutes = Math.max(acc.worstRecoveryMinutes, trialRecovery);
+        }
         if (result.winner === "ally") {
           acc.wins += 1;
           acc.winLostBloodSum += result.lostBloodTotal;
@@ -2644,6 +2691,9 @@
         expectedStoneAdjustedAllyLosses,
         avgAllyLosses,
         avgStoneAdjustedAllyLosses,
+        worstAllyLosses: trackRecovery ? { ...acc.worstAllyLosses } : null,
+        expectedRecoveryMinutes: trackRecovery ? acc.recoveryMinutesSum / targetTrials : null,
+        worstRecoveryMinutes: trackRecovery ? acc.worstRecoveryMinutes : null,
         objective,
         tekilMode,
         tekilV2Mode,
@@ -2652,7 +2702,13 @@
         winningSeeds: [...acc.winningSeeds]
       };
       evaluation.meetsRequiredLosses = evaluationMeetsRequiredLosses(evaluation);
-      evaluation.feasible = winRate >= minWinRate && evaluation.meetsRequiredLosses;
+      evaluation.meetsLossCaps = meetsLossCaps(evaluation.worstAllyLosses);
+      // Sinir asimi (uygun olmayan adaylari uygun bolgeye yonlendirmek icin)
+      evaluation.lossCapExcess = hasLossCaps
+        ? ALLY_UNITS.reduce((sum, unit) => sum + (lossCaps[unit.key] === null ? 0 : Math.max(0, (evaluation.worstAllyLosses[unit.key] || 0) - lossCaps[unit.key])), 0)
+        : 0;
+      evaluation.meetsWinRate = winRate >= minWinRate;
+      evaluation.feasible = winRate >= minWinRate && evaluation.meetsRequiredLosses && evaluation.meetsLossCaps;
 
       evaluations.set(evaluationKey, evaluation);
       return evaluation;
@@ -2796,6 +2852,10 @@
         expectedAllyLosses: { ...(entry.expectedAllyLosses || {}) },
         expectedStoneAdjustedAllyLosses: { ...(entry.expectedStoneAdjustedAllyLosses || {}) },
         avgAllyLosses: { ...(entry.avgAllyLosses || {}) },
+        worstAllyLosses: { ...(entry.worstAllyLosses || {}) },
+        expectedRecoveryMinutes: entry.expectedRecoveryMinutes,
+        worstRecoveryMinutes: entry.worstRecoveryMinutes,
+        meetsLossCaps: entry.meetsLossCaps,
         avgStoneAdjustedAllyLosses: { ...(entry.avgStoneAdjustedAllyLosses || {}) },
         meetsRequiredLosses: entry.meetsRequiredLosses !== false,
         objective: entry.objective,
@@ -3473,6 +3533,7 @@
       let totalLostUnitsSum = 0;
       let totalStoneAdjustedLostBloodSum = 0;
       let totalStoneAdjustedLostUnitsSum = 0;
+      const worstAllyLosses = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
       for (let trial = 0; trial < trials; trial += 1) {
         simulationRuns += 1;
         const seed = baseSeed + 7654321 + trial * 1013;
@@ -3486,6 +3547,10 @@
         const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
         totalStoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
         totalStoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
+        if (hasLossCaps) {
+          const trialLosses = stoneMode ? stoneProfile.permanentLossesByKey : (result.allyLosses || {});
+          ALLY_UNITS.forEach((unit) => { worstAllyLosses[unit.key] = Math.max(worstAllyLosses[unit.key], trialLosses[unit.key] || 0); });
+        }
         if (result.winner === "ally") {
           wins += 1;
         }
@@ -3493,6 +3558,7 @@
       return {
         trials,
         wins,
+        worstAllyLosses,
         expectedLostBlood: totalLostBloodSum / trials,
         expectedLostUnits: totalLostUnitsSum / trials,
         expectedStoneAdjustedLostBlood: totalStoneAdjustedLostBloodSum / trials,
@@ -3511,7 +3577,7 @@
         .filter((entry) => entry?.counts || entry?.searchCounts);
       // Iki birimi birlikte degistirerek tekli mutasyonlarin gecemedigi esikleri ara.
       // Eski finalistler korunur; yeni adaylar da ayni son dogrulamadan gecer.
-      if (objective === "min_loss" && best.feasible && !isPastHardDeadline()) {
+      if ((objective === "min_loss" || objective === "min_time") && best.feasible && !isPastHardDeadline()) {
         const jointRanked = successiveHalvingEvaluation(buildLossRecoveryCandidates(
           best.searchCounts || toSearchCounts(best.counts),
           (stoneMode ? best.avgStoneAdjustedAllyLosses : best.avgAllyLosses) || {},
@@ -3539,7 +3605,8 @@
             wins: pooledWins,
             winRate: pooledWins / pooledTrials
           };
-          combined.feasible = combined.winRate >= minWinRate && crnEvaluation.meetsRequiredLosses;
+          combined.feasible = combined.winRate >= minWinRate && crnEvaluation.meetsRequiredLosses
+            && crnEvaluation.meetsLossCaps && meetsLossCaps(independent.worstAllyLosses);
           return { combined, evaluation: crnEvaluation };
         })
         .sort((left, right) => compareEntries(left.combined, right.combined));
@@ -3548,7 +3615,7 @@
       }
     }
 
-    if (hasRequiredLossConstraints && !best.feasible) {
+    if ((hasRequiredLossConstraints || hasLossCaps) && !best.feasible) {
       return {
         possible: false,
         recommendation: null,
@@ -3567,7 +3634,7 @@
         requiredLossExactFlags,
         minimumUsedPoints: minimumTotalPoints,
         maximumUsedPoints: maximumTotalPoints,
-        constraintIssue: "required-losses-not-found"
+        constraintIssue: hasRequiredLossConstraints ? "required-losses-not-found" : "loss-caps-not-found"
       };
     }
 

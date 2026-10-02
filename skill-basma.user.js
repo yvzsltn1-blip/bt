@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BiteFight Skill Basma Paneli
 // @namespace    https://bt-analiz.web.app
-// @version      1.2.1
+// @version      1.4.0
 // @description  Skill maliyetini hesaplar ve secilen araliklarla otomatik egitim basar.
 // @match        https://*.bitefight.gameforge.com/profile/*
 // @match        http://*.bitefight.gameforge.com/profile/*
@@ -30,7 +30,7 @@
     30: { label: '%30 indirim', multiplier: 0.7 },
     60: { label: '%60 indirim', multiplier: 0.4 }
   };
-  const DEFAULTS = { skillId: 1, count: 300, minDelay: 1, maxDelay: 3, discount: '60', collapsed: false, panelX: null, panelY: null };
+  const DEFAULTS = { skillId: 1, skillIds: [1], count: 300, minDelay: 1, maxDelay: 3, discount: '60', collapsed: false, panelX: null, panelY: null };
 
   let tabId = sessionStorage.getItem(TAB_ID_KEY);
   if (!tabId) {
@@ -92,7 +92,7 @@
     if (!panel) return;
     const rect = panel.getBoundingClientRect();
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      skillId: Number(panel.querySelector('#bts-skill').value),
+      skillIds: selectedSkills().map((skill) => skill.id),
       count: Math.max(1, parseNumber(panel.querySelector('#bts-count').value)),
       minDelay: Math.max(0, Number(panel.querySelector('#bts-min').value) || 0),
       maxDelay: Math.max(0, Number(panel.querySelector('#bts-max').value) || 0),
@@ -180,16 +180,41 @@
     return total;
   }
 
-  function selectedSkill() {
-    const id = Number(document.querySelector('#bts-skill')?.value || 1);
-    return SKILLS.find((skill) => skill.id === id) || SKILLS[0];
+  function normalizeSkillIds(ids) {
+    // Oyun sayfasi (Prototype.js) diziyi JSON'a "[2,3,4]" metni olarak yazabiliyor.
+    const list = (typeof ids === 'string' ? ids.match(/\d+/g) || [] : Array.isArray(ids) ? ids : [ids]).map(Number);
+    return SKILLS.map((skill) => skill.id).filter((id) => list.includes(id));
+  }
+
+  // Coklu skill basimi: secilen skiller sirayla donusumlu basilir, her skill
+  // perSkill adede ulasinca siradan cikar. Eski tek-skill durumlari skillId/count
+  // alanlarindan turetilir.
+  function runPlan(state) {
+    const skillIds = normalizeSkillIds(state?.skillIds?.length ? state.skillIds : [state?.skillId]);
+    const perSkill = Math.max(1, Number(state?.perSkill) || Number(state?.count) || 1);
+    return { skillIds, perSkill, doneBy: { ...(state?.doneBy || {}) } };
+  }
+
+  function nextSkill(state) {
+    const { skillIds, perSkill, doneBy } = runPlan(state);
+    const start = Math.max(0, Number(state.cursor) || 0);
+    for (let offset = 0; offset < skillIds.length; offset += 1) {
+      const id = skillIds[(start + offset) % skillIds.length];
+      if ((Number(doneBy[id]) || 0) < perSkill) return SKILLS.find((skill) => skill.id === id);
+    }
+    return null;
+  }
+
+  function selectedSkills() {
+    const ids = [...document.querySelectorAll('[name="bts-skill"]:checked')].map((input) => Number(input.value));
+    return SKILLS.filter((skill) => ids.includes(skill.id));
   }
 
   function readForm() {
     const min = Math.max(0, Number(document.querySelector('#bts-min').value) || 0);
     const max = Math.max(min, Number(document.querySelector('#bts-max').value) || 0);
     return {
-      skill: selectedSkill(),
+      skills: selectedSkills(),
       count: Math.min(50000, Math.max(1, parseNumber(document.querySelector('#bts-count').value))),
       minDelay: min,
       maxDelay: max,
@@ -204,31 +229,60 @@
     el.dataset.tone = tone;
   }
 
+  // Basim sirasinda: istenen eylem icin kalan basimlarin toplam maliyeti (0'a iner).
+  function updateRemaining() {
+    const el = document.querySelector('#bts-left');
+    if (!el) return;
+    const state = loadRunState();
+    if (!state?.active) {
+      el.textContent = state && state.tone === 'success' ? '0 altın' : '—';
+      return;
+    }
+    const plan = runPlan(state);
+    const multiplier = DISCOUNTS[document.querySelector('[name="bts-discount"]:checked')?.value || 'none'].multiplier;
+    let left = 0;
+    for (const id of plan.skillIds) {
+      const skill = SKILLS.find((item) => item.id === id);
+      const level = skill ? getLevel(document, skill) : 0;
+      const remaining = Math.max(0, plan.perSkill - (Number(plan.doneBy[id]) || 0));
+      if (level && remaining) left += totalCost(level, remaining, multiplier);
+    }
+    el.textContent = formatNumber(left) + ' altın';
+  }
+
   function updateProgress(total) {
     const percent = total ? Math.min(100, (completed / total) * 100) : 0;
     document.querySelector('#bts-progress-bar').style.width = `${percent}%`;
     document.querySelector('#bts-progress-text').textContent = `${formatNumber(completed)} / ${formatNumber(total)}`;
     document.querySelector('#bts-spent').textContent = `${formatNumber(spent)} altın`;
+    updateRemaining();
   }
 
   function refreshEstimate() {
     const panel = document.getElementById(PANEL_ID);
     if (!panel || running) return;
     const form = readForm();
-    const level = getLevel(document, form.skill);
+    const levels = form.skills.map((skill) => ({ skill, level: getLevel(document, skill) }));
+    const level = levels.length > 0 && levels.every((item) => item.level);
     const gold = getGold(document);
-    const estimate = level ? totalCost(level, form.count, DISCOUNTS[form.discount].multiplier) : 0;
-    const secondsMin = form.count > 1 ? (form.count - 1) * form.minDelay : 0;
-    const secondsMax = form.count > 1 ? (form.count - 1) * form.maxDelay : 0;
+    const multiplier = DISCOUNTS[form.discount].multiplier;
+    const estimate = level ? levels.reduce((sum, item) => sum + totalCost(item.level, form.count, multiplier), 0) : 0;
+    const presses = form.count * form.skills.length;
+    const secondsMin = presses > 1 ? (presses - 1) * form.minDelay : 0;
+    const secondsMax = presses > 1 ? (presses - 1) * form.maxDelay : 0;
 
-    panel.querySelector('#bts-current').textContent = level ? formatNumber(level) : 'Bulunamadı';
+    panel.querySelector('#bts-current').textContent = levels.length
+      ? levels.map((item) => `${item.skill.name} ${item.level ? formatNumber(item.level) : '?'}`).join(' · ')
+      : 'Skill seç';
     panel.querySelector('#bts-gold').textContent = gold ? `${formatNumber(gold)} altın` : 'Bulunamadı';
     panel.querySelector('#bts-cost').textContent = estimate ? `${formatNumber(estimate)} altın` : 'Hesaplanamadı';
     panel.querySelector('#bts-remaining').textContent = estimate && gold
       ? `${formatNumber(Math.max(0, gold - estimate))} altın${estimate > gold ? ' · yetersiz' : ''}`
       : '—';
     panel.querySelector('#bts-duration').textContent = `${formatDuration(secondsMin)} – ${formatDuration(secondsMax)}`;
-    setStatus(level ? 'Hazır' : 'Skill tablosu bulunamadı', level ? 'ready' : 'error');
+    if (!form.skills.length) setStatus('En az bir skill seç', 'error');
+    else if (!level) setStatus('Skill tablosu bulunamadı', 'error');
+    else setStatus(`Hazır · ${form.skills.length} skill × ${formatNumber(form.count)} = ${formatNumber(presses)} basım`, 'ready');
     saveConfig();
   }
 
@@ -272,7 +326,11 @@
   function performNavigationStep() {
     const state = loadRunState();
     if (!state?.active || state.owner !== tabId || state.pending) return;
-    const skill = SKILLS.find((item) => item.id === Number(state.skillId)) || SKILLS[0];
+    const skill = nextSkill(state);
+    if (!skill) {
+      finishTraining(state, `Tamamlandı · ${state.completed} basım`, 'success');
+      return;
+    }
     const link = findTrainingLink(document, skill.id);
     if (!link) {
       finishTraining(state, `${skill.name} basma bağlantısı bulunamadı`, 'error');
@@ -295,8 +353,9 @@
 
     const pendingState = saveRunState({
       ...state,
-      pending: { level: currentLevel, gold: currentGold, cost: actualCost },
-      status: `${state.completed + 1}. ${skill.name} basılıyor ve sayfa yenileniyor…`,
+      skillId: skill.id,
+      pending: { skillId: skill.id, level: currentLevel, gold: currentGold, cost: actualCost },
+      status: `${state.completed + 1}. ${skill.name} (${(Number(runPlan(state).doneBy[skill.id]) || 0) + 1}/${runPlan(state).perSkill}) basılıyor ve sayfa yenileniyor…`,
       tone: 'running'
     });
     renderRunState(pendingState);
@@ -327,7 +386,7 @@
     if (!state.active || state.owner !== tabId) return;
 
     if (state.pending) {
-      const skill = SKILLS.find((item) => item.id === Number(state.skillId)) || SKILLS[0];
+      const skill = SKILLS.find((item) => item.id === Number(state.pending.skillId ?? state.skillId)) || SKILLS[0];
       const currentLevel = getLevel(document, skill);
       const currentGold = getGold(document);
       const succeeded = (currentLevel > 0 && currentLevel > state.pending.level) ||
@@ -337,8 +396,11 @@
         return;
       }
 
+      const plan = runPlan(state);
       state = saveRunState({
         ...state,
+        doneBy: { ...plan.doneBy, [skill.id]: (Number(plan.doneBy[skill.id]) || 0) + 1 },
+        cursor: plan.skillIds.indexOf(skill.id) + 1,
         completed: state.completed + 1,
         spent: state.spent + (state.pending.cost || 0),
         pending: null
@@ -360,7 +422,11 @@
   function startTraining() {
     if (running) return;
     const form = readForm();
-    if (!findTrainingLink(document, form.skill.id)) {
+    if (!form.skills.length) {
+      setStatus('En az bir skill seç.', 'error');
+      return;
+    }
+    if (form.skills.some((skill) => !findTrainingLink(document, skill.id))) {
       setStatus('Önce profil > Özellikler sekmesini aç', 'error');
       return;
     }
@@ -369,8 +435,12 @@
     const state = saveRunState({
       active: true,
       owner: tabId,
-      skillId: form.skill.id,
-      count: form.count,
+      skillId: form.skills[0].id,
+      skillIds: form.skills.map((skill) => skill.id),
+      perSkill: form.count,
+      doneBy: {},
+      cursor: 0,
+      count: form.count * form.skills.length,
       minDelay: form.minDelay,
       maxDelay: form.maxDelay,
       completed: 0,
@@ -447,6 +517,9 @@
       #${PANEL_ID} .bts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}#${PANEL_ID} label{display:grid;gap:5px;color:#bdb4aa;font-size:11px}
       #${PANEL_ID} input,#${PANEL_ID} select{width:100%;height:35px;padding:0 10px;color:#fff;background:#111;border:1px solid #3b352f;border-radius:8px;outline:none}
       #${PANEL_ID} input:focus,#${PANEL_ID} select:focus{border-color:#d39b45;box-shadow:0 0 0 2px #d39b4522}
+      #${PANEL_ID} .bts-skills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}#${PANEL_ID} .bts-skills label{display:block;flex:1 1 auto}
+      #${PANEL_ID} .bts-skills input{position:absolute;opacity:0;pointer-events:none}#${PANEL_ID} .bts-skills span{display:block;padding:6px;text-align:center;border:1px solid #3b352f;border-radius:8px;background:#121212;color:#aaa;cursor:pointer;font-weight:700}
+      #${PANEL_ID} .bts-skills input:checked+span{color:#1a1106;background:#dfa447;border-color:#f3c06f}
       #${PANEL_ID} .bts-discounts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0}#${PANEL_ID} .bts-discounts label{display:block}
       #${PANEL_ID} .bts-discounts input{position:absolute;opacity:0;pointer-events:none}#${PANEL_ID} .bts-discounts span{display:block;padding:8px 4px;text-align:center;border:1px solid #3b352f;border-radius:8px;background:#121212;color:#aaa;cursor:pointer}
       #${PANEL_ID} .bts-discounts input:checked+span{color:#1a1106;background:#dfa447;border-color:#f3c06f;font-weight:800}
@@ -465,15 +538,18 @@
   function createPanel() {
     if (document.getElementById(PANEL_ID)) return;
     const config = loadConfig();
+    const skillIds = normalizeSkillIds(config.skillIds ?? config.skillId);
     const panel = document.createElement('section');
     panel.id = PANEL_ID;
     if (config.collapsed) panel.classList.add('bts-collapsed');
     panel.innerHTML = `
       <header class="bts-head"><div><div class="bts-title">Skill Basma</div><div class="bts-sub">Canlı maliyet · yenilenen token</div></div><button class="bts-collapse" type="button" title="Küçült">−</button></header>
       <div class="bts-body">
+        <div class="bts-skills" role="group" aria-label="Skiller">
+          ${SKILLS.map((skill) => `<label><input type="checkbox" name="bts-skill" value="${skill.id}"${skillIds.includes(skill.id) ? ' checked' : ''}><span>${skill.name}</span></label>`).join('')}
+        </div>
         <div class="bts-grid">
-          <label>Skill<select id="bts-skill">${SKILLS.map((skill) => `<option value="${skill.id}" ${skill.id === Number(config.skillId) ? 'selected' : ''}>${skill.id} · ${skill.name}</option>`).join('')}</select></label>
-          <label>Basım adedi<input id="bts-count" type="number" min="1" max="50000" value="${config.count}"></label>
+          <label style="grid-column:1/-1">Skill başına basım adedi<input id="bts-count" type="number" min="1" max="50000" value="${config.count}"></label>
           <label>Min. bekleme (sn)<input id="bts-min" type="number" min="0" step="0.1" value="${config.minDelay}"></label>
           <label>Maks. bekleme (sn)<input id="bts-max" type="number" min="0" step="0.1" value="${config.maxDelay}"></label>
         </div>
@@ -484,6 +560,7 @@
           <div class="bts-metric"><small>Mevcut skill</small><strong id="bts-current">—</strong></div><div class="bts-metric"><small>Mevcut altın</small><strong id="bts-gold">—</strong></div>
           <div class="bts-metric"><small>Tahmini maliyet</small><strong id="bts-cost">—</strong></div><div class="bts-metric"><small>Tahmini kalan</small><strong id="bts-remaining">—</strong></div>
           <div class="bts-metric"><small>Süre aralığı</small><strong id="bts-duration">—</strong></div><div class="bts-metric"><small>Gerçek harcama</small><strong id="bts-spent">0 altın</strong></div>
+          <div class="bts-metric" style="grid-column:1/-1"><small>Kalan tutar (eylem için)</small><strong id="bts-left">—</strong></div>
         </div>
         <div class="bts-progress"><i id="bts-progress-bar"></i></div><div class="bts-progress-row"><span>İlerleme</span><strong id="bts-progress-text">0 / 0</strong></div>
         <div class="bts-actions"><button id="bts-start" type="button">Basmayı başlat</button><button id="bts-stop" type="button" disabled>Durdur</button></div>

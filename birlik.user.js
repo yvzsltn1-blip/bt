@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      4.3
+// @version      4.5
 // @description  quick.html sonuclarini Bitefight savasa otomatik doldurur, arsiv kaydi tutar ve kat botu ile katlari otomatik gecer
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
 // @match        *://*.bitefight.gameforge.com/*
-// @require      https://bt-analiz.web.app/battle-core.js?v=20260927-1
+// @require      https://bt-analiz.web.app/battle-core.js?v=20260927-3
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
