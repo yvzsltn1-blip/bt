@@ -6,6 +6,8 @@ const {
   parseCount,
   normalizeRoundingMode,
   calculateArmyPoints,
+  compareRecoveryEvaluations,
+  calculateRecoveryMinutes,
   POINTS_BY_ALLY_KEY,
   BLOOD_BY_ALLY_KEY,
   getStagePointLimit,
@@ -78,6 +80,7 @@ const optimizerPointsValue = document.querySelector("#optimizerPointsValue");
 const optimizerPointsLimit = document.querySelector("#optimizerPointsLimit");
 const modeButtons = [...document.querySelectorAll(".mode-button")];
 const optimizerObjectiveSelect = document.querySelector("#optimizerObjectiveSelect");
+const optimizerStoneUsageInputs = [...document.querySelectorAll('input[name="optimizerStoneUsage"]')];
 const matchedSavedPanel = document.querySelector("#matchedSavedPanel");
 const modeComparePanel = document.querySelector("#modeComparePanel");
 const compareToggleBtn = document.querySelector("#compareToggleBtn");
@@ -122,6 +125,7 @@ const OPTIMIZER_SIMULATION_STORAGE_KEY = "bt-analiz.optimizer-to-simulation.v1";
 const OPTIMIZER_RELIABILITY_STORAGE_KEY = "bt-analiz.optimizer-reliability.v1";
 const FAVORITE_STRATEGIES_STORAGE_KEY = "bt-analiz.optimizer.favorite-strategies.v1";
 const EXTENDED_SEARCH_STORAGE_KEY = "bt-analiz.optimizer.extendedSearch.v1";
+const QUICK_SETTINGS_STORAGE_KEY = "bt-analiz.optimizer.quickSettings.v1";
 const TOP_RESULTS_BENCHMARK_SAMPLE_COUNT = 240;
 
 let optimizerSearchSession = createEmptySearchSession();
@@ -330,6 +334,7 @@ function syncManualPointRangeDefaults({ force = false } = {}) {
 }
 
 function normalizeOptimizerObjective(objective) {
+  if (isQuickVariant() && objective === "min_army") return "min_time";
   if (objective === "min_army" || objective === "safe_win" || objective === "min_time") {
     return objective;
   }
@@ -349,7 +354,7 @@ function getOptimizerObjectiveStatusText(objective) {
     return "Hedef: daha guvenli kazan";
   }
   if (normalizedObjective === "min_time") {
-    return "Hedef: en kisa yenilenme (bekleme suresi)";
+    return "Hedef: Homojen Kazan — en kısa ordu yenilenme süresi";
   }
   return "Hedef: en az kayipla kazan";
 }
@@ -641,6 +646,24 @@ function getDisplayedRepresentativeLossBreakdown(source = null, result = null) {
   return getDisplayedLossBreakdownSource(source);
 }
 
+function getQuickRecoveryComparison(source = null, result = null) {
+  const battle = getRepresentativeBattle(result, source);
+  // Use the same integer casualties for the unit list, blood and both queues.
+  // Without a sample battle, use raw losses even when stone mode is selected.
+  const rawLosses = battle?.allyLosses || source?.expectedAllyLosses || source?.avgAllyLosses || {};
+  const losses = Object.fromEntries(ALLY_UNITS.map((unit) =>
+    [unit.key, Math.max(0, Math.round(rawLosses[unit.key] || 0))]));
+  const stone = getStoneAdjustedLossProfile(losses);
+  return {
+    losses,
+    lostBlood: ALLY_UNITS.reduce((total, unit) => total + losses[unit.key] * BLOOD_BY_ALLY_KEY[unit.key], 0),
+    recoveryMinutes: calculateRecoveryMinutes(losses),
+    stoneLostBlood: stone.permanentLostBlood,
+    stoneRecoveryMinutes: calculateRecoveryMinutes(stone.permanentLossesByKey),
+    revivedUnits: stone.revivedUnits
+  };
+}
+
 function createOpenSimulationButton(enemyCounts, allyCounts, label = "Simule Et", seed = null, roundingMode = optimizerRoundingMode) {
   const button = document.createElement("button");
   button.type = "button";
@@ -827,6 +850,9 @@ if (isQuickVariant()) {
   });
 }
 loadExtendedSearchSetting();
+loadQuickSettings();
+syncStoneUsageInputs();
+modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
 syncExtendedSearchToggle();
 syncLossConstraintToggle();
 syncLossCapToggle();
@@ -866,6 +892,22 @@ if (optimizerObjectiveSelect) {
     syncObjectiveSelect();
     invalidateSearchSession();
     optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
+  });
+}
+
+optimizerStoneUsageInputs.forEach((input) => {
+  input.addEventListener("change", () => {
+    if (!input.checked) return;
+    optimizerStoneMode = input.value === "yes";
+    syncStoneUsageInputs();
+    invalidateSearchSession();
+    optimizerStatus.textContent = `${getOptimizerObjectiveStatusText(optimizerObjective)} · ${optimizerStoneMode ? "taşlı" : "taşsız"}`;
+  });
+});
+
+if (isQuickVariant()) {
+  getQuickSettingInputs().forEach((input) => {
+    ["input", "change", "blur"].forEach((event) => input.addEventListener(event, () => queueMicrotask(persistQuickSettings)));
   });
 }
 
@@ -1694,7 +1736,7 @@ async function runOptimizerSearch(batchRuns) {
 // Worker kurulamazsa (or. file:// veya CSP) senkron yola kalici dusulur.
 // Surum etiketi, HTML'deki battle-core.js surumuyle ayni tutulmali
 // (worker, battle-core.js'i bu parametreyle yukler).
-const OPTIMIZER_WORKER_SCRIPT = "optimizer-worker.js?v=20260925-1";
+const OPTIMIZER_WORKER_SCRIPT = "optimizer-worker.js?v=20261004-2";
 const OPTIMIZER_PARALLEL_SEED_STRIDE = 104729;
 // file:// altinda tarayicilar worker kurulumunu engelliyor (unique origin);
 // hic denemeden senkron yola dus ki konsola hata dusmesin.
@@ -1936,6 +1978,7 @@ function setOptimizerBusy(isBusy) {
   if (optimizerObjectiveSelect) {
     optimizerObjectiveSelect.disabled = isBusy;
   }
+  optimizerStoneUsageInputs.forEach((input) => { input.disabled = isBusy; });
   Object.values(optimizerInputs).forEach((input) => {
     input.disabled = isBusy;
   });
@@ -2024,6 +2067,67 @@ function syncObjectiveSelect() {
   }
 }
 
+function syncStoneUsageInputs() {
+  optimizerStoneUsageInputs.forEach((input) => {
+    input.checked = input.value === (optimizerStoneMode ? "yes" : "no");
+  });
+}
+
+function getQuickSettingInputs() {
+  return [optimizerSearchBandPresetInput, optimizerCustomBandMinInput, optimizerCustomBandMaxInput,
+    optimizerWinRateThresholdInput, optimizerCustomWinRateInput, optimizerBatchRunsInput,
+    optimizerManualMinPointsInput, optimizerManualMaxPointsInput,
+    ...ALLY_UNITS.map((unit) => optimizerInputs[unit.key]),
+    ...Object.values(optimizerMinimumInputs), ...Object.values(optimizerRequiredLossInputs),
+    ...Object.values(optimizerLossCapInputs)].filter(Boolean);
+}
+
+function persistQuickSettings() {
+  if (!isQuickVariant()) return;
+  try {
+    window.localStorage.setItem(QUICK_SETTINGS_STORAGE_KEY, JSON.stringify({
+      mode: optimizerMode, objective: optimizerObjective, stoneMode: optimizerStoneMode,
+      diversityMode: optimizerDiversityMode, tekilMode: optimizerTekilMode, tekilV2Mode: optimizerTekilV2Mode,
+      manualPointRangeEnabled: optimizerManualPointRangeEnabled,
+      lossConstraintModeEnabled, lossCapModeEnabled,
+      values: Object.fromEntries(getQuickSettingInputs().map((input) => [input.id, input.value])),
+      exactLosses: Object.fromEntries(Object.entries(optimizerRequiredLossExactInputs)
+        .map(([key, input]) => [key, input.getAttribute("aria-pressed") === "true"]))
+    }));
+  } catch (_error) { /* Keep settings usable if browser storage is unavailable. */ }
+}
+
+function loadQuickSettings() {
+  if (!isQuickVariant()) return;
+  try {
+    const settings = JSON.parse(window.localStorage.getItem(QUICK_SETTINGS_STORAGE_KEY) || "null");
+    if (!settings || typeof settings !== "object") return;
+    if (["fast", "balanced", "deep", "ultra"].includes(settings.mode)) optimizerMode = settings.mode;
+    optimizerObjective = normalizeOptimizerObjective(settings.objective);
+    optimizerStoneMode = settings.stoneMode === true;
+    optimizerDiversityMode = settings.diversityMode === true;
+    optimizerTekilMode = settings.tekilMode === true;
+    optimizerTekilV2Mode = !optimizerTekilMode && settings.tekilV2Mode === true;
+    optimizerManualPointRangeEnabled = settings.manualPointRangeEnabled === true;
+    lossConstraintModeEnabled = settings.lossConstraintModeEnabled === true;
+    lossCapModeEnabled = settings.lossCapModeEnabled === true;
+    getQuickSettingInputs().forEach((input) => {
+      const value = settings.values?.[input.id];
+      if (typeof value !== "string") return;
+      if (input.tagName === "SELECT") {
+        if ([...input.options].some((option) => option.value === value)) input.value = value;
+      } else if (/^\d*$/.test(value)) input.value = value;
+    });
+    if (optimizerSearchBandPresetMobileInput && optimizerSearchBandPresetInput) {
+      optimizerSearchBandPresetMobileInput.value = optimizerSearchBandPresetInput.value;
+    }
+    Object.entries(optimizerRequiredLossExactInputs).forEach(([key, input]) => {
+      input.setAttribute("aria-pressed", String(settings.exactLosses?.[key] === true));
+    });
+    if (optimizerManualPointRangeEnabled) setManualPointRangeManaged(false);
+  } catch (_error) { /* Ignore damaged or inaccessible browser settings. */ }
+}
+
 function syncComparePanelToggle() {
   compareToggleBtn.textContent = comparePanelOpen ? "-" : "+";
   compareToggleBtn.setAttribute("aria-expanded", comparePanelOpen ? "true" : "false");
@@ -2064,6 +2168,7 @@ function applyResponsiveCollapsibleDefaults() {
 }
 
 function invalidateSearchSession() {
+  persistQuickSettings();
   optimizerSearchSession = createEmptySearchSession();
   setOptimizeButtonLabel("Simule Et");
   syncOptimizeButtonCompletionState(false);
@@ -3083,6 +3188,9 @@ function pickBetterOptimizerResult(left, right) {
   }
 
   if (left.possible) {
+    if (objective === "min_time") {
+      return compareRecoveryEvaluations(leftSource, rightSource) <= 0 ? left : right;
+    }
     const tekilPriorityMode = Boolean(rightSource?.tekilMode || leftSource?.tekilMode || rightSource?.tekilV2Mode || leftSource?.tekilV2Mode);
     if (tekilPriorityMode) {
       const tekilPriorityDelta = compareTekilOptimizerPriority(leftSource, rightSource, stoneMode);
@@ -3093,16 +3201,7 @@ function pickBetterOptimizerResult(left, right) {
     if (leftSource.winRate !== rightSource.winRate) {
       return leftSource.winRate > rightSource.winRate ? left : right;
     }
-    if (objective === "min_time") {
-      const lr = leftSource.expectedRecoveryMinutes ?? Number.POSITIVE_INFINITY;
-      const rr = rightSource.expectedRecoveryMinutes ?? Number.POSITIVE_INFINITY;
-      if (lr !== rr) {
-        return lr < rr ? left : right;
-      }
-      if ((leftSource[lossKey] ?? Number.POSITIVE_INFINITY) !== (rightSource[lossKey] ?? Number.POSITIVE_INFINITY)) {
-        return (leftSource[lossKey] ?? Number.POSITIVE_INFINITY) < (rightSource[lossKey] ?? Number.POSITIVE_INFINITY) ? left : right;
-      }
-    } else if (objective === "min_army") {
+    if (objective === "min_army") {
       if (leftSource.avgUsedPoints !== rightSource.avgUsedPoints) {
         return leftSource.avgUsedPoints < rightSource.avgUsedPoints ? left : right;
       }
@@ -4501,6 +4600,8 @@ function createComparisonSnapshot(source, meta) {
     winRate: source.winRate || 0,
     expectedLostBlood: Number.isFinite(source.expectedLostBlood) ? source.expectedLostBlood : null,
     expectedLostUnits: Number.isFinite(source.expectedLostUnits) ? source.expectedLostUnits : null,
+    expectedRecoveryMinutes: source.expectedRecoveryMinutes,
+    worstRecoveryMinutes: source.worstRecoveryMinutes,
     avgLostBlood: Number.isFinite(source.avgLostBlood) ? source.avgLostBlood : null,
     expectedStoneAdjustedLostBlood: Number.isFinite(source.expectedStoneAdjustedLostBlood) ? source.expectedStoneAdjustedLostBlood : null,
     expectedStoneAdjustedLostUnits: Number.isFinite(source.expectedStoneAdjustedLostUnits) ? source.expectedStoneAdjustedLostUnits : null,
@@ -4574,6 +4675,9 @@ function compareResultSnapshots(left, right) {
     return left.feasible ? -1 : 1;
   }
   if (left.feasible) {
+    if (normalizeOptimizerObjective(left.objective || right.objective) === "min_time") {
+      return compareRecoveryEvaluations(left, right);
+    }
     if (left.winRate !== right.winRate) {
       return right.winRate - left.winRate;
     }
@@ -4750,6 +4854,9 @@ function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
   const totalStoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
   const allyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
   const stoneAdjustedAllyLossesSum = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key, 0]));
+  const trackRecovery = normalizeOptimizerObjective(snapshot.objective) === "min_time";
+  let recoveryMinutesSum = 0;
+  let worstRecoveryMinutes = 0;
 
   seeds.forEach((seed) => {
     const result = simulateBattle(enemyCounts, snapshot.counts, {
@@ -4765,6 +4872,11 @@ function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
     totalLostUnitsSum += result.lostUnitsTotal;
     totalLostBloodSquaredSum += result.lostBloodTotal * result.lostBloodTotal;
     const stoneProfile = getStoneAdjustedLossProfile(result.allyLosses || {});
+    if (trackRecovery) {
+      const minutes = calculateRecoveryMinutes(snapshot.stoneMode ? stoneProfile.permanentLossesByKey : result.allyLosses);
+      recoveryMinutesSum += minutes;
+      worstRecoveryMinutes = Math.max(worstRecoveryMinutes, minutes);
+    }
     totalStoneAdjustedLostBloodSum += stoneProfile.permanentLostBlood;
     totalStoneAdjustedLostUnitsSum += stoneProfile.permanentLostUnits;
     totalStoneCountSum += stoneProfile.stoneCount;
@@ -4804,7 +4916,9 @@ function evaluateComparisonSnapshot(enemyCounts, snapshot, seeds) {
     trials: seeds.length,
     wins,
     winRate,
-    feasible: winRate >= 0.75,
+    feasible: winRate >= (trackRecovery ? optimizerActiveMinWinRate : 0.75),
+    expectedRecoveryMinutes: trackRecovery ? recoveryMinutesSum / seeds.length : snapshot.expectedRecoveryMinutes,
+    worstRecoveryMinutes: trackRecovery ? worstRecoveryMinutes : snapshot.worstRecoveryMinutes,
     expectedLostBlood,
     expectedLostUnits: totalLostUnitsSum / seeds.length,
     avgLostBlood: wins > 0 ? lostBloodSum / wins : null,
@@ -5001,6 +5115,9 @@ function compareOptimizerCandidates(left, right) {
   }
 
   if (left.feasible) {
+    if (normalizeOptimizerObjective(left.objective || right.objective) === "min_time") {
+      return compareRecoveryEvaluations(left, right);
+    }
     if (left.winRate !== right.winRate) {
       return right.winRate - left.winRate;
     }
@@ -5421,6 +5538,10 @@ function buildDisplayedTopCandidates(result) {
   // Secilen kazanma orani esigini saglayan (feasible) dizilis varsa, yalnizca
   // onlari goster. Hicbiri esigi saglamiyorsa en yakin alternatifleri goster.
   const feasibleAlternatives = allAlternatives.filter((entry) => entry.feasible);
+  if (normalizeOptimizerObjective(primary.objective) === "min_time") {
+    const recoveryAlternatives = primary.feasible ? feasibleAlternatives : allAlternatives;
+    return [primary, ...recoveryAlternatives.sort(compareOptimizerCandidates).slice(0, 5)];
+  }
   const baseMinWinRate = getOptimizerMinWinRate(primary.objective);
   const thresholdElevated = optimizerActiveMinWinRate > baseMinWinRate + 1e-9;
   let alternatives;
@@ -5627,6 +5748,7 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
   const summaryStats = entry.feasible
     ? [
         ["Kazanma orani", `%${Math.round(entry.winRate * 100)}`],
+        ...(normalizeOptimizerObjective(entry.objective) === "min_time" ? [["Yenilenme süresi", formatRecoverySummary(entry)]] : []),
         [getLossMetricLabel(entry.stoneMode), `${Math.round(getDisplayedLossValue(entry))}`],
         ["Kullanilan puan", `${Math.round(entry.avgUsedPoints)} / ${maxPoints}`],
         ["Kullanilan birlik", `${getSelectedUnitCount(entry)}`],
@@ -5653,7 +5775,7 @@ function createTopResultCard(entry, index, maxPoints, options = {}) {
       headRow.appendChild(labelNode);
       const scoreWrap = document.createElement("div");
       scoreWrap.className = "top-result-score-wrap";
-      if (Number.isFinite(entry.smartScore)) {
+      if (Number.isFinite(entry.smartScore) && normalizeOptimizerObjective(entry.objective) !== "min_time") {
         const scoreNode = document.createElement("span");
         scoreNode.className = "top-result-smart-badge";
         scoreNode.textContent = entry.smartScore.toFixed(1);
@@ -6097,6 +6219,8 @@ function showQuickPopup(result, maxPoints, meta) {
 
   const winRateEl = document.querySelector("#quickStatWinRate");
   const lossEl = document.querySelector("#quickStatLoss");
+  const recoveryEl = document.querySelector("#quickStatRecovery");
+  const stoneComparisonEl = document.querySelector("#quickStatStoneComparison");
   const pointsEl = document.querySelector("#quickStatPoints");
   const unitListEl = document.querySelector("#quickUnitList");
   const openSimulationBtn = document.querySelector("#quickPopupOpenSimulationBtn");
@@ -6144,12 +6268,21 @@ function showQuickPopup(result, maxPoints, meta) {
     }
   }
   if (winRateEl) winRateEl.textContent = `%${Math.round(source.winRate * 100)}`;
-  if (lossEl) lossEl.textContent = String(Math.round(getDisplayedRepresentativeLossValue(source, result)));
+  const recovery = getQuickRecoveryComparison(source, result);
+  if (lossEl) lossEl.textContent = String(recovery.lostBlood);
+  if (recoveryEl) {
+    recoveryEl.textContent = `${recovery.recoveryMinutes} dk`;
+    recoveryEl.title = "Tüm kayıpları yerine koyma süresi: birlik türlerinin yenilenme sürelerinin en uzunu.";
+  }
+  if (stoneComparisonEl) {
+    stoneComparisonEl.textContent = `Taşlı: ${recovery.stoneLostBlood} kan · ${recovery.stoneRecoveryMinutes} dk`;
+    stoneComparisonEl.title = `Her birlik türünde ölen sayısının beşte biri yukarı yuvarlanarak canlanır. Toplam ${recovery.revivedUnits} birlik canlanır.`;
+  }
   if (pointsEl) pointsEl.textContent = `${Math.round(source.avgUsedPoints)} / ${maxPoints}`;
 
   if (unitListEl) {
     unitListEl.innerHTML = "";
-    const lossBreakdown = getDisplayedRepresentativeLossBreakdown(source, result);
+    const lossBreakdown = recovery.losses;
     let shown = 0;
     ALLY_UNITS.forEach((unit) => {
       const count = source.counts?.[unit.key] || 0;
@@ -6474,7 +6607,7 @@ function getObjectiveLabel(objective) {
     return "Daha Guvenli Kazan";
   }
   if (normalizedObjective === "min_time") {
-    return "En Kisa Yenilenme";
+    return "Homojen Kazan";
   }
   return "En Az Kayipla Kazan";
 }
@@ -7097,7 +7230,8 @@ function restoreFromQuery() {
   if (optimizerTekilMode && optimizerTekilV2Mode) {
     optimizerTekilV2Mode = false;
   }
-  optimizerStoneMode = false;
+  optimizerStoneMode = Boolean(item.stoneMode);
+  syncStoneUsageInputs();
   applySearchBandSettings(item.searchBandSettings || { mode: "tight75" });
   applyManualPointRangeSettings(item.manualPointRangeSettings || { enabled: false, minUsedPoints: 0, maxUsedPoints: 0 });
   modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.mode === optimizerMode));
@@ -7106,6 +7240,7 @@ function restoreFromQuery() {
   syncTekilModeButton();
   syncTekilV2ModeButton();
   optimizerStatus.textContent = getOptimizerObjectiveStatusText(optimizerObjective);
+  persistQuickSettings();
 }
 
 function applyStageFromQuery() {

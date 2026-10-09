@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=20260610-1">
+  <link rel="stylesheet" href="styles.css?v=20261004-3">
 </head>
 <body class="site-gate-pending" data-optimizer-variant="quick">
   <div class="page-shell">
@@ -85,10 +85,15 @@
             <span>Hedef</span>
             <select id="optimizerObjectiveSelect" class="stage-select">
               <option value="min_loss" selected>En Az Kayipla Kazan</option>
-              <option value="min_army">En Az Orduyla Kazan</option>
+              <option value="min_time">Homojen Kazan</option>
               <option value="safe_win">Daha Guvenli Kazan</option>
             </select>
           </label>
+          <fieldset class="quick-stone-options">
+            <legend>Taş Kullanımı</legend>
+            <label><input type="radio" name="optimizerStoneUsage" value="no" checked> Kullanılmayacak</label>
+            <label><input type="radio" name="optimizerStoneUsage" value="yes"> Kullanılacak</label>
+          </fieldset>
           <label class="select-wrap optimizer-band-preset-wrap" for="optimizerWinRateThreshold">
             <span>Kazanma Orani</span>
             <select id="optimizerWinRateThreshold" class="stage-select">
@@ -357,8 +362,12 @@
           <span class="quick-popup-stat-value" id="quickStatWinRate">â€”</span>
         </div>
         <div class="quick-popup-stat">
-          <span class="quick-popup-stat-label">Kan Kaybi</span>
-          <span class="quick-popup-stat-value" id="quickStatLoss">â€”</span>
+          <span class="quick-popup-stat-label">Kan Kaybı · Taşsız</span>
+          <div class="quick-popup-loss-row">
+            <span class="quick-popup-stat-value" id="quickStatLoss">—</span>
+            <small class="quick-popup-recovery" id="quickStatRecovery"></small>
+          </div>
+          <small class="quick-popup-stone-comparison" id="quickStatStoneComparison"></small>
         </div>
         <div class="quick-popup-stat">
           <span class="quick-popup-stat-label">Puan</span>
@@ -474,7 +483,7 @@
   <script src="site-gate.js?v=20260703-01" defer></script>
   <script src="firebase-client.js?v=20260610-3" defer></script>
   <script src="admin-auth-ui.js?v=20260425-1" defer></script>
-  <script src="battle-core.js?v=20260927-3" defer></script>
-  <script src="optimizer.js?v=20260927-1" defer></script>
+  <script src="battle-core.js?v=20261004-2" defer></script>
+  <script src="optimizer.js?v=20261004-4" defer></script>
 </body>
 </html>

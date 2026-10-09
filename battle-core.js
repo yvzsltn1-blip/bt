@@ -1594,6 +1594,59 @@
     return [...candidateMap.values()];
   }
 
+  function calculateRecoveryMinutes(losses, recoveryMinutes = DEFAULT_RECOVERY_MINUTES) {
+    return ALLY_UNITS.reduce((minutes, unit) => Math.max(minutes,
+      (losses?.[unit.key] || 0) * recoveryMinutes[unit.key]), 0);
+  }
+
+  // Only compare winning candidates here. The selected win-rate threshold is
+  // enforced by feasibility. Recovery time is a plateau metric (max over unit
+  // types), so whole-minute ties are common; blood loss breaks those ties.
+  function compareRecoveryEvaluations(a, b) {
+    const stoneMode = Boolean(a.stoneMode || b.stoneMode);
+    const keys = ["expectedRecoveryMinutes", stoneMode ? "expectedStoneAdjustedLostBlood" : "expectedLostBlood", "worstRecoveryMinutes"];
+    for (const key of keys) {
+      let left = a[key] ?? Number.POSITIVE_INFINITY;
+      let right = b[key] ?? Number.POSITIVE_INFINITY;
+      if (key === "expectedRecoveryMinutes") {
+        left = Math.round(left);
+        right = Math.round(right);
+      }
+      if (left !== right) return left < right ? -1 : 1;
+    }
+    if (a.winRate !== b.winRate) return b.winRate - a.winRate;
+    if (a.avgUsedPoints !== b.avgUsedPoints) return a.avgUsedPoints - b.avgUsedPoints;
+    if (a.avgUsedCapacity !== b.avgUsedCapacity) return a.avgUsedCapacity - b.avgUsedCapacity;
+    return String(a.signature || "").localeCompare(String(b.signature || ""));
+  }
+
+  function buildHomogeneousRecoveryCandidates(baseCounts, losses, pool, maxPoints, recoveryMinutes) {
+    const duration = calculateRecoveryMinutes(losses, recoveryMinutes);
+    if (duration <= 0) return [];
+    const candidates = [];
+    const bottlenecks = ALLY_UNITS.filter((unit) =>
+      (losses[unit.key] || 0) * recoveryMinutes[unit.key] >= duration * 0.8);
+    const replacements = ALLY_UNITS.filter((unit) => (pool[unit.key] || 0) > (baseCounts[unit.key] || 0))
+      .sort((a, b) => (losses[a.key] || 0) * recoveryMinutes[a.key]
+        - (losses[b.key] || 0) * recoveryMinutes[b.key]);
+    bottlenecks.forEach((unit) => {
+      [0.1, 0.25, 0.5].forEach((ratio) => {
+        const candidate = cloneCounts(baseCounts, ALLY_UNITS);
+        const reduction = Math.min(candidate[unit.key], Math.max(1, Math.ceil((losses[unit.key] || 0) * ratio)));
+        candidate[unit.key] -= reduction;
+        candidates.push(candidate);
+        replacements.filter((other) => other.key !== unit.key).forEach((other) => {
+          const variant = cloneCounts(candidate, ALLY_UNITS);
+          const room = Math.floor((maxPoints - calculateArmyPoints(variant)) / POINTS_BY_ALLY_KEY[other.key]);
+          const headroom = Math.max(1, Math.floor(duration / recoveryMinutes[other.key] - (losses[other.key] || 0)));
+          variant[other.key] += Math.min(room, headroom, pool[other.key] - variant[other.key]);
+          candidates.push(variant);
+        });
+      });
+    });
+    return candidates;
+  }
+
   function compareEvaluations(a, b, options = {}) {
     const objective = options.objective === "min_army" || options.objective === "safe_win" || options.objective === "min_time"
       ? options.objective
@@ -1608,6 +1661,7 @@
       return a.feasible ? -1 : 1;
     }
     if (a.feasible) {
+      if (objective === "min_time") return compareRecoveryEvaluations(a, b);
       if (tekilPriorityMode) {
         const tekilPriorityDelta = compareTekilLossPriority(a, b, stoneMode);
         if (tekilPriorityDelta !== 0) {
@@ -1617,19 +1671,7 @@
       if (a.winRate !== b.winRate) {
         return b.winRate - a.winRate;
       }
-      if (objective === "min_time") {
-        const ar = a.expectedRecoveryMinutes ?? Number.POSITIVE_INFINITY;
-        const br = b.expectedRecoveryMinutes ?? Number.POSITIVE_INFINITY;
-        if (Math.abs(ar - br) > 1e-9) {
-          return ar - br;
-        }
-        if ((a[lossMetricKey] ?? Number.POSITIVE_INFINITY) !== (b[lossMetricKey] ?? Number.POSITIVE_INFINITY)) {
-          return (a[lossMetricKey] ?? Number.POSITIVE_INFINITY) - (b[lossMetricKey] ?? Number.POSITIVE_INFINITY);
-        }
-        if (a.avgUsedPoints !== b.avgUsedPoints) {
-          return a.avgUsedPoints - b.avgUsedPoints;
-        }
-      } else if (objective === "min_army") {
+      if (objective === "min_army") {
         if (a.avgUsedPoints !== b.avgUsedPoints) {
           return a.avgUsedPoints - b.avgUsedPoints;
         }
@@ -2352,7 +2394,7 @@
     const hasLossCaps = ALLY_UNITS.some((unit) => lossCaps[unit.key] !== null);
     const recoveryMinutes = { ...DEFAULT_RECOVERY_MINUTES, ...(options.recoveryMinutes || {}) };
     const meetsLossCaps = (worst) => ALLY_UNITS.every((unit) => lossCaps[unit.key] === null || (worst?.[unit.key] || 0) <= lossCaps[unit.key]);
-    const lossRecoveryMinutes = (losses) => ALLY_UNITS.reduce((m, unit) => Math.max(m, (losses?.[unit.key] || 0) * (Number(recoveryMinutes[unit.key]) || 0)), 0);
+    const lossRecoveryMinutes = (losses) => calculateRecoveryMinutes(losses, recoveryMinutes);
     const objective = options.objective === "min_army" || options.objective === "safe_win" || options.objective === "min_time"
       ? options.objective
       : "min_loss";
@@ -2385,7 +2427,25 @@
     const tekilV2Mode = Boolean(options.tekilV2Mode);
     const tekilPriorityMode = tekilMode || tekilV2Mode;
     const knownSignatures = new Set(options.knownSignatures || []);
-    const seedCandidates = Array.isArray(options.seedCandidates) ? options.seedCandidates : [];
+    const seedCandidates = Array.isArray(options.seedCandidates) ? [...options.seedCandidates] : [];
+    const requestedTimeBudgetMs = Math.max(0, Number(options.timeBudgetMs) || 0);
+    let lossSeedSimulationRuns = 0;
+    if (objective === "min_time") {
+      // Homojen arama gurultulu bir plato metrigini izler; olgun "en az kayip"
+      // aramasinin en iyi adaylari baslangic noktasi olarak eklenir. Boylece
+      // sonuc, ayni kosulda en az kayip aramasinin yenilenme suresinden kotu olmaz.
+      const lossSeed = optimizeArmyUsage(originalAvailableAllyCounts, enemyCounts, {
+        ...options,
+        objective: "min_loss",
+        timeBudgetMs: Math.round(requestedTimeBudgetMs * 0.4)
+      });
+      lossSeedSimulationRuns = lossSeed.simulationRuns || 0;
+      [lossSeed.recommendation, ...(lossSeed.topCandidates || []).slice(0, 40)].forEach((entry) => {
+        if (entry?.counts) {
+          seedCandidates.push(entry.counts);
+        }
+      });
+    }
     // Diger modlarin baseSeed'leri: uzatma fazinda keşif uretimi bu seed
     // aileleriyle de kosturulur; boylece (or.) Derin mod, Hizli modun gordugu
     // keşif adaylarinin ust kumesini de tarar ve mod-arasi tutarlilik artar.
@@ -2403,7 +2463,7 @@
     // Zaman butcesi: verilirse arama, butceyi asana kadar ek kesif turlari yapar
     // (seed cesitlendirmeli yeniden baslatma). Butce asilirsa ana dongu erken kesilir.
     const searchStartTime = Date.now();
-    const timeBudgetMs = Math.max(0, Number(options.timeBudgetMs) || 0);
+    const timeBudgetMs = objective === "min_time" ? Math.round(requestedTimeBudgetMs * 0.6) : requestedTimeBudgetMs;
     const searchDeadline = timeBudgetMs > 0 ? searchStartTime + timeBudgetMs : null;
     const hardDeadline = searchDeadline ? searchDeadline + Math.max(400, Math.round(timeBudgetMs * 0.12)) : null;
     const isPastDeadline = () => searchDeadline !== null && Date.now() > searchDeadline;
@@ -2411,7 +2471,7 @@
     const evaluations = new Map();
     const evalAccumulators = new Map();
     const uniqueSignatures = new Set();
-    let simulationRuns = 0;
+    let simulationRuns = lossSeedSimulationRuns;
     const initialCandidates = [];
     const compareEntries = (left, right) => compareEvaluations(left, right, { objective, stoneMode, tekilMode, tekilV2Mode, tekilPriorityMode });
     const strategicOrder = getStrategicUnitOrder(availableAllyCounts, enemyCounts);
@@ -2454,6 +2514,16 @@
 
     // Stratejik adayları ekle
     initialCandidates.push(...buildStrategicCandidates(availableAllyCounts, enemyCounts, maxPoints));
+    if (objective === "min_time") {
+      // Equal production-time profiles seed the search; actual battle losses
+      // decide whether these or a different distribution recover sooner.
+      [30, 60, 90, 120, 180, 240, 360, 480, 720, 1080].forEach((minutes) => {
+        const candidate = Object.fromEntries(ALLY_UNITS.map((unit) => [unit.key,
+          Math.min(availableAllyCounts[unit.key] || 0, Math.floor(minutes / recoveryMinutes[unit.key]))]));
+        initialCandidates.push(normalizeCandidateToPointLimit(candidate, maxPoints));
+        initialCandidates.push(fillCandidateToPointLimit(candidate, availableAllyCounts, maxPoints));
+      });
+    }
     initialCandidates.push(...buildBoundedExhaustiveCandidates(
       availableAllyCounts,
       maxPoints,
@@ -3146,6 +3216,11 @@
       const mutated = [];
       beam.forEach((entry) => {
         mutated.push(...getNeighborCandidates(entry.searchCounts, availableAllyCounts, maxPoints));
+        if (objective === "min_time") {
+          mutated.push(...buildHomogeneousRecoveryCandidates(entry.searchCounts,
+            stoneMode ? entry.expectedStoneAdjustedAllyLosses : entry.expectedAllyLosses,
+            availableAllyCounts, maxPoints, recoveryMinutes));
+        }
         if (iteration % 2 === 0 || entry.feasible) {
           mutated.push(...getBroadNeighborCandidates(entry.searchCounts, availableAllyCounts, enemyCounts, maxPoints));
         }
@@ -3923,6 +3998,8 @@
     cloneCounts,
     normalizeRoundingMode,
     calculateArmyPoints,
+    calculateRecoveryMinutes,
+    compareRecoveryEvaluations,
     getStagePointLimit,
     normalizeCandidateToPointLimit,
     simulateBattle,

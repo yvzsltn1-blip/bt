@@ -7184,6 +7184,60 @@ body[data-optimizer-variant="quick"] .controls-panel {
   font-variant-numeric: tabular-nums;
 }
 
+.quick-stone-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.quick-stone-options legend {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+}
+
+.quick-stone-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.quick-stone-options input {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.quick-popup-loss-row {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.quick-popup-recovery,
+.quick-popup-stone-comparison {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.quick-popup-recovery {
+  white-space: nowrap;
+}
+
+.quick-popup-stone-comparison {
+  display: block;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
 .quick-popup-units-head {
   display: flex;
   align-items: center;

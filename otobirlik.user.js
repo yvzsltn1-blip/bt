@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Oto Birlik Doldurucu v3
 // @namespace    https://bt-analiz.web.app
-// @version      9.8
+// @version      10.0
 // @description  Birlik Doldurucu'nun oto-kat surumu: secilen araliktaki katlari sirayla tarar, girilebilenleri tamamlar ve tur sonunda ayarlanan sure kadar bekler
 // @match        https://bt-analiz.web.app/*
 // @match        *://*.bitefight.org/*
@@ -647,11 +647,11 @@
   const BOT_NEXT_STAGE_KEY = 'btBotNextStage';
   const BOT_STOP_STAGE_KEY = 'btBotStopStage';
   const BOT_DONE_KEY = 'btBotDone';
-  // Manuel bot tur sayisi: Baslangic-Son kat araligi kac kez dolasilacak (1-4).
+  // Manuel bot tur sayisi: Baslangic-Son kat araligi kac kez dolasilacak (1-8).
   // {start, total, left}: left = bu tur dahil kalan tur.
   const BOT_LAPS_KEY = 'btBotLaps';
   const BOT_LAP_COUNT_KEY = 'btBotLapCount';
-  const BOT_MAX_LAPS = 4;
+  const BOT_MAX_LAPS = 8;
   // Girise kapali (bekleme suresi olan) katlari atlarken art arda kac kat atlandigini
   // tutar; sonsuz atlamayi onlemek icin kullanilir. Basarili giris/zaferde sifirlanir.
   const BOT_SKIP_COUNT_KEY = 'btBotSkipCount';
@@ -2469,6 +2469,38 @@ self.onmessage = (event) => {
     return outcome ? outcome.lossValue : null;
   }
 
+  // Son kata varildiginde (zafer ya da giris kapali) kalan tur varsa araligin ilk katina
+  // donup true doner; tur kalmadiysa false doner ve cagiran botu durdurur.
+  async function advanceToNextLap() {
+    const laps = parseStoredJson(BOT_LAPS_KEY, {});
+    const left = Number(laps.left) || 1;
+    const lapStart = Number(laps.start) || 0;
+    if (left <= 1 || lapStart < 1) {
+      return false;
+    }
+    const done = GM_getValue(BOT_DONE_KEY, 0);
+    const lapNo = laps.total - left + 2;
+    GM_setValue(BOT_LAPS_KEY, JSON.stringify({ ...laps, left: left - 1 }));
+    GM_setValue(BOT_NEXT_STAGE_KEY, lapStart);
+    const lapRange = loadBotTiming().floor;
+    const lapWait = Math.max(0, Math.round(lapRange.min + Math.random() * (lapRange.max - lapRange.min)));
+    for (let remaining = lapWait; remaining > 0; remaining -= 1) {
+      if (!isBotEnabled()) {
+        return true;
+      }
+      setBotStatus(`Tur ${lapNo - 1}/${laps.total} tamam (${done} kat). Tur ${lapNo} icin Kat ${lapStart}: ${remaining} sn`);
+      await sleep(1000);
+    }
+    if (!isBotEnabled()) {
+      return true;
+    }
+    if (!(await ensureOnline(`Kat ${lapStart}`))) {
+      return true;
+    }
+    location.assign(buildFloorUrl(lapStart));
+    return true;
+  }
+
   async function handleResultPage() {
     const stage = GM_getValue(BOT_NEXT_STAGE_KEY, 0);
     const victory = !!document.querySelector('h1.combatResultHeader.resultVictory');
@@ -2499,33 +2531,10 @@ self.onmessage = (event) => {
 
     const stopStage = GM_getValue(BOT_STOP_STAGE_KEY, 0);
     if (stopStage && stage >= stopStage) {
-      const laps = parseStoredJson(BOT_LAPS_KEY, {});
-      const left = Number(laps.left) || 1;
-      const lapStart = Number(laps.start) || 0;
-      if (left <= 1 || lapStart < 1) {
-        stopBot(`Hedef kat (${stopStage}) tamamlandi, ${done} kat gecildi`);
+      if (await advanceToNextLap()) {
         return;
       }
-      // Kalan tur var: araligin ilk katina donup yeniden dolas.
-      const lapNo = laps.total - left + 2;
-      GM_setValue(BOT_LAPS_KEY, JSON.stringify({ ...laps, left: left - 1 }));
-      GM_setValue(BOT_NEXT_STAGE_KEY, lapStart);
-      const lapRange = loadBotTiming().floor;
-      const lapWait = Math.max(0, Math.round(lapRange.min + Math.random() * (lapRange.max - lapRange.min)));
-      for (let remaining = lapWait; remaining > 0; remaining -= 1) {
-        if (!isBotEnabled()) {
-          return;
-        }
-        setBotStatus(`Tur ${lapNo - 1}/${laps.total} tamam (${done} kat). Tur ${lapNo} icin Kat ${lapStart}: ${remaining} sn`);
-        await sleep(1000);
-      }
-      if (!isBotEnabled()) {
-        return;
-      }
-      if (!(await ensureOnline(`Kat ${lapStart}`))) {
-        return;
-      }
-      location.assign(buildFloorUrl(lapStart));
+      stopBot(`Hedef kat (${stopStage}) tamamlandi, ${done} kat gecildi`);
       return;
     }
 
@@ -2573,8 +2582,12 @@ self.onmessage = (event) => {
       // Kat girise kapali (bekleme suresi / cooldown / acma sarti). Bota gore: durma,
       // bir sonraki kata atla ve oradan devam et. Sonsuz atlamayi onlemek icin Son kat
       // sinirina gelince ya da Son kat girilmemisken art arda 50 kat atlaninca dur.
+      // Son kata gelince kalan tur varsa basa donulur (tur sayisi burada da uygulanir).
       const stopStage = GM_getValue(BOT_STOP_STAGE_KEY, 0);
       if (stopStage && target >= stopStage) {
+        if (await advanceToNextLap()) {
+          return;
+        }
         stopBot(`Kat ${target}: giris kapali ve hedef kat (${stopStage}) sinirina gelindi`);
         return;
       }
@@ -3611,8 +3624,8 @@ self.onmessage = (event) => {
         option.textContent = `${lap} tur`;
         lapSelect.appendChild(option);
       }
-      const savedLaps = Number(GM_getValue(BOT_LAP_COUNT_KEY, 1));
-      lapSelect.value = String(savedLaps >= 1 && savedLaps <= BOT_MAX_LAPS ? savedLaps : 1);
+      const savedLaps = Number(GM_getValue(BOT_LAP_COUNT_KEY, 4));
+      lapSelect.value = String(savedLaps >= 1 && savedLaps <= BOT_MAX_LAPS ? savedLaps : 4);
       lapSelect.addEventListener('change', () => GM_setValue(BOT_LAP_COUNT_KEY, Number(lapSelect.value)));
 
       row.appendChild(startInput);
